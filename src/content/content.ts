@@ -901,6 +901,19 @@ function isInlineLinkWrapper(el: HTMLElement): boolean {
 /**
  * Extract inline text from a Draft.js block, preserving bold/italic/links.
  */
+function extractImageMd(img: HTMLImageElement): string {
+  const alt = img.getAttribute('alt') || 'Image';
+  let src = img.getAttribute('src') || '';
+  if (!src) return '';
+  if (src.includes('twimg.com/emoji') || src.includes('abs-0.twimg.com')) {
+    return alt;
+  }
+  if (src.includes('pbs.twimg.com')) {
+    src = src.replace(/&name=\w+/, '&name=large');
+  }
+  return `![${alt}](${src})`;
+}
+
 function extractInlineText(el: Element): string {
   let result = '';
 
@@ -913,15 +926,32 @@ function extractInlineText(el: Element): string {
     if (child.nodeType !== Node.ELEMENT_NODE) continue;
     const elem = child as HTMLElement;
 
+    // ── Bare image (no link wrapper) ──
+    if (elem.tagName === 'IMG') {
+      const md = extractImageMd(elem as HTMLImageElement);
+      if (md) result += md;
+      continue;
+    }
+
     // ── Direct link ──
     if (elem.tagName === 'A') {
-      const href = elem.getAttribute('href') || '';
-      const linkText = elem.textContent?.trim() || '';
+      const anchor = elem as HTMLAnchorElement;
+      const href = anchor.getAttribute('href') || '';
+      const linkText = anchor.textContent?.trim() || '';
       const fullHref = href.startsWith('//')
         ? `https:${href}`
         : href.startsWith('/')
         ? `https://x.com${href}`
         : href;
+      // Article inline images are <a href="/.../media/..."> wrapping an <img>.
+      // Emit just the image markdown so the file looks clean and the popup's
+      // image-localization regex picks it up.
+      const innerImg = anchor.querySelector('img') as HTMLImageElement | null;
+      if (innerImg && !linkText) {
+        const md = extractImageMd(innerImg);
+        if (md) result += md;
+        continue;
+      }
       result += `[${linkText}](${fullHref})`;
       continue;
     }
@@ -939,6 +969,12 @@ function extractInlineText(el: Element): string {
         : href.startsWith('/')
         ? `https://x.com${href}`
         : href;
+      const innerImg = anchor.querySelector('img') as HTMLImageElement | null;
+      if (innerImg && !linkText) {
+        const md = extractImageMd(innerImg);
+        if (md) result += md;
+        continue;
+      }
       result += `[${linkText}](${fullHref})`;
       continue;
     }
