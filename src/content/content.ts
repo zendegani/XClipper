@@ -807,6 +807,7 @@ function extractArticle(): ExtractedContent {
         const text = extractInlineText(li);
         if (text) mdParts.push(`- ${text}`);
       });
+      mdParts.push(''); // blank line so the next block isn't folded into the last item
       continue;
     }
 
@@ -814,6 +815,7 @@ function extractArticle(): ExtractedContent {
     if (block.classList.contains('longform-unordered-list-item')) {
       const text = extractInlineText(block);
       if (text) mdParts.push(`- ${text}`);
+      mdParts.push('');
       continue;
     }
 
@@ -824,6 +826,7 @@ function extractArticle(): ExtractedContent {
         const text = extractInlineText(li);
         if (text) mdParts.push(`${idx + 1}. ${text}`);
       });
+      mdParts.push('');
       continue;
     }
 
