@@ -6,6 +6,13 @@ const MENU_SAVE = 'tweet2md-save';
 const MENU_COPY = 'tweet2md-copy';
 const STATUS_URL_PATTERN = /^https?:\/\/(?:www\.)?x\.com\/[^/]+\/status\/\d+/;
 
+// Strip any path beyond /status/<id> (e.g. /history, /photo/1, /analytics) and
+// drop any existing query/hash, so we always open the canonical permalink.
+function normalizeStatusUrl(url: string): string | null {
+  const m = url.match(/^(https?:\/\/(?:www\.)?x\.com\/[^/]+\/status\/\d+)/);
+  return m ? m[1] : null;
+}
+
 // Last known tweet URL under the user's cursor, set by the injector content
 // script on `contextmenu`. Used when info.linkUrl is missing (right-click on
 // tweet body or media instead of the timestamp link).
@@ -45,14 +52,13 @@ chrome.contextMenus.onClicked.addListener((info) => {
 
   // Prefer an explicit link the user right-clicked on, then the URL the
   // injector reported for the tweet under the cursor, then the page URL.
-  let target = '';
-  if (info.linkUrl && STATUS_URL_PATTERN.test(info.linkUrl)) {
-    target = info.linkUrl;
-  } else if (lastContextUrl && STATUS_URL_PATTERN.test(lastContextUrl)) {
-    target = lastContextUrl;
-  } else if (info.pageUrl && STATUS_URL_PATTERN.test(info.pageUrl)) {
-    target = info.pageUrl;
-  }
+  // Normalize each candidate to /status/<id> — the link may be a sub-path
+  // like /history or /photo/1 which would otherwise break extraction.
+  const target =
+    (info.linkUrl && normalizeStatusUrl(info.linkUrl)) ||
+    (lastContextUrl && normalizeStatusUrl(lastContextUrl)) ||
+    (info.pageUrl && normalizeStatusUrl(info.pageUrl)) ||
+    '';
   if (!target) return;
 
   const action = info.menuItemId === MENU_COPY ? 'copy' : 'download';

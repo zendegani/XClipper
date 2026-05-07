@@ -52,12 +52,20 @@ function buildIcon(): SVGElement {
   return svg;
 }
 
+function normalizeStatusUrl(url: string): string | null {
+  const m = url.match(/^(https?:\/\/(?:www\.)?x\.com\/[^/]+\/status\/\d+)/);
+  return m ? m[1] : null;
+}
+
 function getStatusUrl(article: Element): string | null {
   const timeLink = article.querySelector('a[href*="/status/"] time');
   const a = timeLink?.closest('a') as HTMLAnchorElement | null;
-  if (a?.href) return a.href;
+  if (a?.href) {
+    const norm = normalizeStatusUrl(a.href);
+    if (norm) return norm;
+  }
   const anyStatus = article.querySelector('a[href*="/status/"]') as HTMLAnchorElement | null;
-  return anyStatus?.href || null;
+  return anyStatus?.href ? normalizeStatusUrl(anyStatus.href) : null;
 }
 
 function openWithMarker(url: string, action: 'download' | 'copy'): void {
