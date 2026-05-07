@@ -38,6 +38,15 @@
   "ctx_save_tweet": {
     "message": "Save tweet as Markdown"
   },
+  "ctx_copy_tweet": {
+    "message": "Copy tweet as Markdown"
+  },
+  "opt_inline_copies_title": {
+    "message": "When enabled, the inline icon on each tweet copies markdown to the clipboard instead of downloading a file"
+  },
+  "opt_inline_copies": {
+    "message": "Inline button copies instead"
+  },
   "footer_hint": {
     "message": "Open a tweet or article on X.com to get started"
   },

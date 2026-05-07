@@ -2,9 +2,22 @@
 // action bar. Clicking opens the tweet's permalink in a new tab with the
 // `#tweet2md=1` marker, which the main content script's bootstrap handles.
 
-const MARKER = 'tweet2md=1';
 const BUTTON_ATTR = 'data-tweet2md-injected';
 const decorated = new WeakSet<Element>();
+
+let inlineButtonCopies = false;
+
+function loadInlineMode(): void {
+  chrome.storage.local.get('tweet2md_settings', (result) => {
+    const s = (result['tweet2md_settings'] || {}) as { inlineButtonCopies?: boolean };
+    inlineButtonCopies = s.inlineButtonCopies === true;
+  });
+}
+loadInlineMode();
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area !== 'local' || !changes['tweet2md_settings']) return;
+  loadInlineMode();
+});
 
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
@@ -47,9 +60,9 @@ function getStatusUrl(article: Element): string | null {
   return anyStatus?.href || null;
 }
 
-function openWithMarker(url: string): void {
+function openWithMarker(url: string, action: 'download' | 'copy'): void {
   const sep = url.includes('#') ? '&' : '#';
-  window.open(url + sep + MARKER, '_blank', 'noopener');
+  window.open(url + sep + 'tweet2md=' + action, '_blank', 'noopener');
 }
 
 function makeButton(onClick: (e: Event) => void): HTMLElement {
@@ -110,7 +123,7 @@ function decorateArticleActionBar(article: Element): void {
 
   const btn = makeButton(() => {
     const fresh = getStatusUrl(article) || url;
-    openWithMarker(fresh);
+    openWithMarker(fresh, inlineButtonCopies ? 'copy' : 'download');
   });
   const container = document.createElement('div');
   container.style.cssText = 'display:flex;align-items:center;';
@@ -146,7 +159,7 @@ function decorateArticleTopBar(): void {
     return;
   }
 
-  const btn = makeButton(() => openWithMarker(window.location.href));
+  const btn = makeButton(() => openWithMarker(window.location.href, inlineButtonCopies ? 'copy' : 'download'));
   const container = document.createElement('div');
   container.style.cssText = 'display:flex;align-items:center;';
   container.appendChild(btn);
@@ -172,3 +185,22 @@ const observer = new MutationObserver(() => {
 
 observer.observe(document.body, { childList: true, subtree: true });
 scan();
+
+// ─── Right-click tracking ────────────────────────────────────────────
+// On context menu open, find the closest tweet article and tell the background
+// service worker its permalink. The background uses this as the fallback URL
+// when the user picks the menu item over an area that isn't a status link.
+
+document.addEventListener('contextmenu', (e) => {
+  const target = e.target as Element | null;
+  const article = target?.closest?.('article[role="article"]') as Element | null;
+  let url: string | null = null;
+  if (article) {
+    url = getStatusUrl(article);
+  } else if (window.location.pathname.includes('/status/')) {
+    // On a permalink page where no article is under the cursor, fall back to
+    // the page URL itself.
+    url = window.location.href;
+  }
+  chrome.runtime.sendMessage({ action: 'TWEET2MD_CTX_URL', url });
+}, true);

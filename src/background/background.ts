@@ -1,33 +1,69 @@
 import type { DownloadRequest } from '../types/messages';
 
-// ─── Context menu: "Save tweet as Markdown" ─────────────────────────
+// ─── Context menu: Save / Copy tweet as Markdown ────────────────────
 
-const MENU_ID = 'tweet2md-save';
-const MARKER = 'tweet2md=1';
+const MENU_SAVE = 'tweet2md-save';
+const MENU_COPY = 'tweet2md-copy';
 const STATUS_URL_PATTERN = /^https?:\/\/(?:www\.)?x\.com\/[^/]+\/status\/\d+/;
 
-function registerContextMenu(): void {
-  chrome.contextMenus.create(
-    {
-      id: MENU_ID,
+// Last known tweet URL under the user's cursor, set by the injector content
+// script on `contextmenu`. Used when info.linkUrl is missing (right-click on
+// tweet body or media instead of the timestamp link).
+let lastContextUrl: string | null = null;
+
+function registerContextMenus(): void {
+  chrome.contextMenus.removeAll(() => {
+    chrome.contextMenus.create({
+      id: MENU_SAVE,
       title: chrome.i18n.getMessage('ctx_save_tweet') || 'Save tweet as Markdown',
       contexts: ['link', 'page'],
       targetUrlPatterns: ['*://x.com/*/status/*'],
       documentUrlPatterns: ['*://x.com/*'],
-    },
-    () => void chrome.runtime.lastError, // ignore duplicate-id errors on reload
-  );
+    });
+    chrome.contextMenus.create({
+      id: MENU_COPY,
+      title: chrome.i18n.getMessage('ctx_copy_tweet') || 'Copy tweet as Markdown',
+      contexts: ['link', 'page'],
+      targetUrlPatterns: ['*://x.com/*/status/*'],
+      documentUrlPatterns: ['*://x.com/*'],
+    });
+  });
 }
 
-chrome.runtime.onInstalled.addListener(registerContextMenu);
-chrome.runtime.onStartup.addListener(registerContextMenu);
+chrome.runtime.onInstalled.addListener(registerContextMenus);
+chrome.runtime.onStartup.addListener(registerContextMenus);
+
+function appendMarker(url: string, action: 'download' | 'copy'): string {
+  // Strip any existing tweet2md marker so we don't compound them.
+  const cleaned = url.replace(/[#&]tweet2md=(?:download|copy|1)/g, '').replace(/#$/, '');
+  const sep = cleaned.includes('#') ? '&' : '#';
+  return cleaned + sep + 'tweet2md=' + action;
+}
 
 chrome.contextMenus.onClicked.addListener((info) => {
-  if (info.menuItemId !== MENU_ID) return;
-  const target = info.linkUrl || info.pageUrl || '';
-  if (!STATUS_URL_PATTERN.test(target)) return;
-  const sep = target.includes('#') ? '&' : '#';
-  chrome.tabs.create({ url: target + sep + MARKER });
+  if (info.menuItemId !== MENU_SAVE && info.menuItemId !== MENU_COPY) return;
+
+  // Prefer an explicit link the user right-clicked on, then the URL the
+  // injector reported for the tweet under the cursor, then the page URL.
+  let target = '';
+  if (info.linkUrl && STATUS_URL_PATTERN.test(info.linkUrl)) {
+    target = info.linkUrl;
+  } else if (lastContextUrl && STATUS_URL_PATTERN.test(lastContextUrl)) {
+    target = lastContextUrl;
+  } else if (info.pageUrl && STATUS_URL_PATTERN.test(info.pageUrl)) {
+    target = info.pageUrl;
+  }
+  if (!target) return;
+
+  const action = info.menuItemId === MENU_COPY ? 'copy' : 'download';
+  chrome.tabs.create({ url: appendMarker(target, action) });
+});
+
+chrome.runtime.onMessage.addListener((msg, _sender, _sendResponse) => {
+  if (msg && msg.action === 'TWEET2MD_CTX_URL') {
+    lastContextUrl = typeof msg.url === 'string' ? msg.url : null;
+  }
+  return false;
 });
 
 // ─── Download handler ───────────────────────────────────────────────

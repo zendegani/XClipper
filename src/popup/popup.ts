@@ -13,6 +13,9 @@ const chkMetadata = document.getElementById(
 const chkCloseTab = document.getElementById(
   'chk-close-tab'
 ) as HTMLInputElement;
+const chkInlineCopies = document.getElementById(
+  'chk-inline-copies'
+) as HTMLInputElement;
 
 // ─── Initialize i18n ──────────────────────────────────────────────────
 
@@ -37,12 +40,14 @@ interface Settings {
   downloadImages: boolean;
   includeMetadata: boolean;
   closeTabAfterExport: boolean;
+  inlineButtonCopies: boolean;
 }
 
 const DEFAULT_SETTINGS: Settings = {
   downloadImages: false,
   includeMetadata: true, // on by default
-  closeTabAfterExport: true, // on by default for inline/context-menu flow
+  closeTabAfterExport: false,
+  inlineButtonCopies: false, // inline button downloads by default
 };
 
 async function loadSettings(): Promise<Settings> {
@@ -63,6 +68,7 @@ loadSettings().then((settings) => {
   chkDownloadImages.checked = settings.downloadImages;
   chkMetadata.checked = settings.includeMetadata;
   chkCloseTab.checked = settings.closeTabAfterExport;
+  chkInlineCopies.checked = settings.inlineButtonCopies;
 });
 
 function persistAll(): void {
@@ -70,12 +76,14 @@ function persistAll(): void {
     downloadImages: chkDownloadImages.checked,
     includeMetadata: chkMetadata.checked,
     closeTabAfterExport: chkCloseTab.checked,
+    inlineButtonCopies: chkInlineCopies.checked,
   });
 }
 
 chkDownloadImages.addEventListener('change', persistAll);
 chkMetadata.addEventListener('change', persistAll);
 chkCloseTab.addEventListener('change', persistAll);
+chkInlineCopies.addEventListener('change', persistAll);
 
 // ─── Helpers ────────────────────────────────────────────────────────
 
