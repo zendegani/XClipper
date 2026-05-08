@@ -131,7 +131,7 @@ function setLoading(loading: boolean, target?: 'download' | 'copy'): void {
 
 // ─── Shared Extraction ──────────────────────────────────────────────
 
-async function extractMarkdown(): Promise<PostProcessResult> {
+async function extractMarkdown(forAction: 'download' | 'copy' = 'download'): Promise<PostProcessResult> {
   const [tab] = await chrome.tabs.query({
     active: true,
     currentWindow: true,
@@ -153,7 +153,9 @@ async function extractMarkdown(): Promise<PostProcessResult> {
   }
 
   const includeMetadata = chkMetadata.checked;
-  const downloadImages = chkDownloadImages.checked;
+  // "Save images locally" only applies when downloading; copying to clipboard
+  // can't carry sibling files, so the markdown must keep absolute URLs.
+  const downloadImages = forAction === 'download' && chkDownloadImages.checked;
 
   const response: ExtractResponse = await chrome.tabs.sendMessage(tab.id, {
     action: 'EXTRACT',
@@ -221,7 +223,7 @@ btnCopy.addEventListener('click', async () => {
   statusEl.className = 'status hidden';
 
   try {
-    const result = await extractMarkdown();
+    const result = await extractMarkdown('copy');
 
     await navigator.clipboard.writeText(result.markdown);
 

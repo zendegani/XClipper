@@ -1080,12 +1080,31 @@ function loadStoredSettings(): Promise<StoredSettings> {
 
 async function waitForArticle(timeoutMs = 15000): Promise<Element | null> {
   const start = Date.now();
+  let article: Element | null = null;
   while (Date.now() - start < timeoutMs) {
-    const a = document.querySelector('article[role="article"]');
-    if (a) return a;
+    article = document.querySelector('article[role="article"]');
+    if (article) break;
     await delay(200);
   }
-  return null;
+  if (!article) return null;
+
+  // For long-form articles the outer <article> wrapper renders quickly but the
+  // Draft.js article body loads later. Wait for it (or its title) before we
+  // hand the article to the extractor, otherwise we'd extract from an empty
+  // body and miss the headline, paragraphs and images.
+  const looksLikeLongForm = !!document.querySelector(
+    '[data-testid="twitterArticleHeader"], a[href$="/article/edit"]'
+  );
+  if (looksLikeLongForm) {
+    while (Date.now() - start < timeoutMs) {
+      const body =
+        document.querySelector('[data-testid="twitterArticleRichTextView"]') ||
+        document.querySelector('[data-testid="twitter-article-title"]');
+      if (body && body.textContent && body.textContent.trim().length > 0) break;
+      await delay(200);
+    }
+  }
+  return article;
 }
 
 async function autoExtract(action: 'download' | 'copy'): Promise<void> {
@@ -1104,7 +1123,10 @@ async function autoExtract(action: 'download' | 'copy'): Promise<void> {
 
   const settings = await loadStoredSettings();
   const includeMetadata = settings.includeMetadata !== false; // default on
-  const downloadImages = settings.downloadImages === true;
+  // Local image saving only makes sense when we're actually downloading a
+  // sibling file. For 'copy' the clipboard can't carry images, so keep
+  // absolute URLs in the markdown.
+  const downloadImages = action === 'download' && settings.downloadImages === true;
   const shouldClose = settings.closeTabAfterExport === true; // default off
 
   const response = await extract({ includeMetadata });

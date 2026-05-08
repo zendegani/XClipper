@@ -78,6 +78,20 @@ function normalizeStatusUrl(url: string): string | null {
 }
 
 function getStatusUrl(article: Element): string | null {
+  // On a /status/<id> permalink page, the URL bar is authoritative for the
+  // *outer* tweet. The article DOM may contain a quoted tweet whose own
+  // <time> link appears earlier in DOM order than the main tweet's — picking
+  // the first time-link there would return the quoted tweet's URL.
+  // So if the article element references the page's status id anywhere, trust
+  // the URL bar instead of walking the DOM.
+  if (window.location.pathname.includes('/status/')) {
+    const pageUrl = normalizeStatusUrl(window.location.href);
+    const id = pageUrl?.match(/status\/(\d+)/)?.[1];
+    if (pageUrl && id && article.querySelector(`a[href*="/status/${id}"]`)) {
+      return pageUrl;
+    }
+  }
+
   const timeLink = article.querySelector('a[href*="/status/"] time');
   const a = timeLink?.closest('a') as HTMLAnchorElement | null;
   if (a?.href) {
