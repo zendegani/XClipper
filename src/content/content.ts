@@ -307,6 +307,20 @@ function extractAuthorFromArticle(
     }
   }
 
+  // Fallback: when User-Name is inside a quoted-tweet block, the whole quote
+  // is one outer link so the inner name / handle render as plain spans
+  // (zero <a> tags). Parse author from User-Name's text content instead.
+  if (name === 'Unknown' || handle === 'unknown') {
+    const txt = (userNameEl.textContent || '').replace(/\s+/g, ' ').trim();
+    const handleMatch = txt.match(/@[A-Za-z0-9_]+/);
+    if (handleMatch && handle === 'unknown') handle = handleMatch[0];
+    if (name === 'Unknown') {
+      const idx = handleMatch ? txt.indexOf(handleMatch[0]) : -1;
+      const nameText = idx > 0 ? txt.slice(0, idx).trim() : txt;
+      if (nameText) name = nameText;
+    }
+  }
+
   return { name, handle };
 }
 
