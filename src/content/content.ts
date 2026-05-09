@@ -1015,7 +1015,7 @@ function extractInlineText(el: Element): string {
 
 // ─── Main Extraction Entry Point ────────────────────────────────────
 
-async function extract(options?: {
+export async function extract(options?: {
   includeMetadata?: boolean;
 }): Promise<ExtractResponse> {
   try {
@@ -1089,18 +1089,46 @@ async function waitForArticle(timeoutMs = 15000): Promise<Element | null> {
   if (!article) return null;
 
   // For long-form articles the outer <article> wrapper renders quickly but the
-  // Draft.js article body loads later. Wait for it (or its title) before we
-  // hand the article to the extractor, otherwise we'd extract from an empty
-  // body and miss the headline, paragraphs and images.
+  // Draft.js article body — and especially the inline images inside it — load
+  // later. Wait until: (1) the body has text, AND (2) every article media link
+  // wrapper has an inner <img src=…>. Without (2) the walker sees <a href=…>
+  // with no inner img and emits `[](url)` instead of `![Image](src)`.
   const looksLikeLongForm = !!document.querySelector(
-    '[data-testid="twitterArticleHeader"], a[href$="/article/edit"]'
+    '[data-testid="twitterArticleReadView"], [data-testid="twitterArticleRichTextView"], [data-testid="twitter-article-title"]'
   );
   if (looksLikeLongForm) {
+    // Wait for body text first
     while (Date.now() - start < timeoutMs) {
       const body =
         document.querySelector('[data-testid="twitterArticleRichTextView"]') ||
         document.querySelector('[data-testid="twitter-article-title"]');
       if (body && body.textContent && body.textContent.trim().length > 0) break;
+      await delay(200);
+    }
+    // Then wait for image hydration in the body (or stable count for ~600ms).
+    let lastCount = -1;
+    let stableSince = 0;
+    while (Date.now() - start < timeoutMs) {
+      const body = document.querySelector('[data-testid="twitterArticleRichTextView"]');
+      if (!body) break;
+      const links = Array.from(body.querySelectorAll('a[href*="/media/"]'));
+      const allHydrated =
+        links.length === 0 ||
+        links.every((l) => {
+          const img = l.querySelector('img');
+          return !!img && !!img.getAttribute('src');
+        });
+      if (allHydrated) {
+        // Also require the img count to be stable for ~600ms in case more
+        // images are still streaming in.
+        const imgCount = body.querySelectorAll('img').length;
+        if (imgCount === lastCount) {
+          if (Date.now() - stableSince >= 600) break;
+        } else {
+          lastCount = imgCount;
+          stableSince = Date.now();
+        }
+      }
       await delay(200);
     }
   }

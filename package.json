@@ -8,13 +8,18 @@
     "build": "node build.mjs",
     "watch": "node build.mjs --watch",
     "package": "npm run build && cd dist && zip -r ../tweet2md.zip . && echo '📦 tweet2md.zip created'",
-    "clean": "rm -rf dist tweet2md.zip"
+    "clean": "rm -rf dist tweet2md.zip",
+    "test": "vitest run",
+    "test:watch": "vitest"
   },
   "devDependencies": {
-    "esbuild": "^0.25.0",
-    "typescript": "^5.7.0",
     "@types/chrome": "^0.0.287",
-    "@types/turndown": "^5.0.5"
+    "@types/jsdom": "^28.0.1",
+    "@types/turndown": "^5.0.5",
+    "esbuild": "^0.25.0",
+    "jsdom": "^29.1.1",
+    "typescript": "^5.7.0",
+    "vitest": "^4.1.5"
   },
   "dependencies": {
     "turndown": "^7.2.0"
