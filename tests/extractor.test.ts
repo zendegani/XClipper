@@ -98,6 +98,12 @@ function findHtmlForId(id: string): string | null {
 const mdFixtures = readdirSync(FIXTURES).filter((f) => f.endsWith('.md'));
 
 describe('extract() snapshot tests', () => {
+  if (mdFixtures.length === 0) {
+    it('has no markdown fixtures to compare', () => {
+      expect(mdFixtures).toEqual([]);
+    });
+  }
+
   for (const mdName of mdFixtures) {
     const mdPath = join(FIXTURES, mdName);
     const expectedRaw = readFileSync(mdPath, 'utf-8');
