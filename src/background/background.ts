@@ -4,7 +4,6 @@ import type { DownloadRequest } from '../types/messages';
 
 const MENU_SAVE = 'tweet2md-save';
 const MENU_COPY = 'tweet2md-copy';
-const STATUS_URL_PATTERN = /^https?:\/\/(?:www\.)?x\.com\/[^/]+\/status\/\d+/;
 
 // Strip any path beyond /status/<id> (e.g. /history, /photo/1, /analytics) and
 // drop any existing query/hash, so we always open the canonical permalink.

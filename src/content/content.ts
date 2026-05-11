@@ -138,6 +138,12 @@ async function runAutoExtract(
     });
   }
 
+  // In-place runs (inline button / context menu on the current page) get a
+  // brief toast since there's no popup UI or new tab to provide feedback.
+  if (!allowClose) {
+    showInPlaceToast(action === 'copy' ? 'Copied to clipboard' : 'Saved as Markdown');
+  }
+
   if (shouldClose) {
     await delay(400);
     window.close();
@@ -148,6 +154,39 @@ const autoMatch = window.location.hash.match(AUTO_MARKER_RE);
 if (autoMatch) {
   const action = autoMatch[1] === 'copy' ? 'copy' : 'download';
   autoExtract(action);
+}
+
+// ─── In-place toast ─────────────────────────────────────────────────
+
+function showInPlaceToast(text: string): void {
+  const t = document.createElement('div');
+  t.textContent = text;
+  t.style.cssText = [
+    'position:fixed',
+    'bottom:24px',
+    'left:50%',
+    'transform:translateX(-50%) translateY(8px)',
+    'background:rgba(15,20,25,0.92)',
+    'color:#fff',
+    'padding:10px 16px',
+    'border-radius:9999px',
+    'font:500 14px/1.2 system-ui,-apple-system,Segoe UI,sans-serif',
+    'box-shadow:0 4px 16px rgba(0,0,0,0.25)',
+    'z-index:2147483647',
+    'pointer-events:none',
+    'opacity:0',
+    'transition:opacity 180ms ease,transform 180ms ease',
+  ].join(';');
+  document.body.appendChild(t);
+  requestAnimationFrame(() => {
+    t.style.opacity = '1';
+    t.style.transform = 'translateX(-50%) translateY(0)';
+  });
+  setTimeout(() => {
+    t.style.opacity = '0';
+    t.style.transform = 'translateX(-50%) translateY(8px)';
+    setTimeout(() => t.remove(), 220);
+  }, 1500);
 }
 
 // ─── In-place triggers (same-tab extraction) ────────────────────────
