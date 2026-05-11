@@ -75,7 +75,7 @@
     "message": "Copiado!"
   },
   "opt_close_tab": {
-    "message": "Fechar a aba aberta após exportar"
+    "message": "Fechar a nova aba após exportar"
   },
   "opt_close_tab_title": {
     "message": "Quando ativado, a aba é fechada automaticamente após o tweet ser baixado ou copiado."

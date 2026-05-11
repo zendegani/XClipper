@@ -33,7 +33,7 @@
     "message": "Close the tab automatically after exporting from a tweet's inline button or right-click menu"
   },
   "opt_close_tab": {
-    "message": "Close opened tab after export"
+    "message": "Close the new tab after export"
   },
   "ctx_save_tweet": {
     "message": "Save tweet as Markdown"

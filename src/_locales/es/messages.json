@@ -75,7 +75,7 @@
     "message": "¡Copiado!"
   },
   "opt_close_tab": {
-    "message": "Cerrar la pestaña abierta después de exportar"
+    "message": "Cerrar la nueva pestaña después de exportar"
   },
   "opt_close_tab_title": {
     "message": "Cuando está activado, la pestaña se cierra automáticamente después de descargar o copiar el tweet."

@@ -75,7 +75,7 @@
     "message": "Kopiert!"
   },
   "opt_close_tab": {
-    "message": "Geöffneten Tab nach dem Export schließen"
+    "message": "Neuen Tab nach dem Export schließen"
   },
   "opt_close_tab_title": {
     "message": "Wenn aktiviert, wird der Tab automatisch geschlossen, nachdem der Tweet heruntergeladen oder kopiert wurde."

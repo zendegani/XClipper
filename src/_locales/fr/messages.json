@@ -75,7 +75,7 @@
     "message": "Copié !"
   },
   "opt_close_tab": {
-    "message": "Fermer l’onglet ouvert après l’export"
+    "message": "Fermer le nouvel onglet après l’export"
   },
   "opt_close_tab_title": {
     "message": "Lorsque cette option est activée, l’onglet se ferme automatiquement après le téléchargement ou la copie du tweet."

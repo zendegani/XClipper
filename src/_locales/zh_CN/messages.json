@@ -75,7 +75,7 @@
     "message": "已复制！"
   },
   "opt_close_tab": {
-    "message": "导出后关闭已打开的标签页"
+    "message": "导出后关闭新标签页"
   },
   "opt_close_tab_title": {
     "message": "启用后，下载或复制推文后会自动关闭当前标签页。"
