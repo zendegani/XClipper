@@ -13,7 +13,7 @@ tweet2md accesses the visible content of supported X.com status pages only after
 ## Data collection
 
 - **No personal data is collected.**
-- The extension accesses website content (text and images on supported X.com/Twitter.com pages) solely to convert it into Markdown and image files at your request.
+- The extension accesses website content (text and images on supported X.com pages) solely to convert it into Markdown and image files at your request.
 - **No browsing history is tracked.**
 - **No analytics or telemetry is sent.**
 - **No data is transmitted to any external server.**
@@ -30,21 +30,25 @@ All data processing happens **entirely within your browser**:
 
 No data leaves your browser at any point during this process. The extension does not store extracted content after the operation completes.
 
+When **Save images locally** is enabled, tweet2md only downloads image assets from expected X media hosts such as `pbs.twimg.com`, `video.twimg.com`, `abs.twimg.com`, and `abs-0.twimg.com`. Other external image URLs are not downloaded by the background worker.
+
 ## Permissions explained
 
 | Permission     | Purpose                                              |
 |----------------|------------------------------------------------------|
 | `activeTab`    | Allows reading the current tab's page content when you click the extension icon |
-| `downloads`    | Allows saving the generated Markdown file and images to your Downloads folder |
+| `downloads`    | Allows saving the generated Markdown file and allowed X media images to your Downloads folder |
 | `storage`      | Allows saving your popup configuration (toggle switches) locally on your device so settings are remembered between sessions |
 | `contextMenus` | Adds the **Save tweet as Markdown** and **Copy tweet as Markdown** items to the browser's right-click menu, scoped to X.com pages. The menu only fires when you click an item; no page content is read otherwise. |
 | `host` (X.com) | A content script is injected on X.com pages to (a) extract the visible post or article content when you trigger an action, and (b) draw the inline download button on tweet action bars. The script reads the DOM locally and never transmits data externally. |
 
 These are the minimum permissions required for the extension to function. No additional permissions are requested.
 
-### About the new entry points (v1.3.0)
+### Entry points and download safety
 
-The inline download button and right-click context menu introduced in v1.3.0 are convenience triggers — they perform the **same local extraction** as the popup. They do not collect, transmit, or store anything beyond what the popup already does. When you activate one of them, tweet2md opens the tweet's permalink in a new tab, runs the extractor, then saves to Downloads or copies to your clipboard, all inside your browser.
+The inline download button and right-click context menu are convenience triggers — they perform the **same local extraction** as the popup. They do not collect, transmit, or store anything beyond what the popup already does. When you activate one of them, tweet2md opens the tweet's permalink in a new tab (or runs in the current one if you're already on it), runs the extractor, then saves to Downloads or copies to your clipboard, all inside your browser.
+
+The background worker validates download messages before using privileged browser APIs. Requests must come from a trusted extension page or a supported X.com content script, and filenames are sanitized before they are passed to Chrome's download API.
 
 ## Third-party services
 

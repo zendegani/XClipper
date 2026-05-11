@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file.
 
-## [1.4.0] - 2026-05-??
+## [1.4.0] - 2026-05-11
 
 ### Added
 
@@ -11,6 +11,12 @@ All notable changes to this project will be documented in this file.
 - **Show Inline Button toggle**: A new popup toggle lets you hide the inline download icon on tweets if it conflicts visually with another extension. Off-state hides existing buttons live, no page reload needed.
 - **Show Engagement Stats Inline toggle**: Optional X-style stats row in the exported Markdown (e.g. `💬 284 · 🔁 1.5K · ❤️ 8K · 🔖 253 · 👁 100K`), independent of YAML frontmatter so you can have either or both.
 - **Grouped Settings**: Popup options are organized into *Export* and *Inline button & context menu* sections so 6 toggles stay scannable.
+
+### Security
+
+- Background download handling now validates the message sender before invoking privileged download APIs — requests are only honored from x.com content scripts or trusted extension pages.
+- Local image downloads are restricted to expected X media hosts (`pbs.twimg.com`, `video.twimg.com`, `abs.twimg.com`, `abs-0.twimg.com`); other external image URLs are left as remote Markdown links rather than downloaded.
+- Strengthened filename / path sanitization to drop `..` segments and absolute paths and to normalize unicode before passing to Chrome's download API.
 
 ### Changed
 
@@ -23,6 +29,7 @@ All notable changes to this project will be documented in this file.
 ### Fixed
 
 - **Iran Flag (and other glyph) Renders As Full Image**: SVG glyphs served from `abs.twimg.com/responsive-web/client-web/...` weren't recognized as emoji and were being rendered as full-size images in the Markdown. All `.svg` images on X are now treated as glyphs and resolve to their alt-text character.
+- **Tests on Fresh Checkouts**: The test suite now runs cleanly even when no local HTML/MD fixtures have been captured yet, so contributors can clone and `npm test` without setup.
 
 ## [1.3.0] - 2026-05-09
 
