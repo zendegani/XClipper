@@ -168,9 +168,9 @@ function showInPlaceToast(text: string): void {
   t.textContent = text;
   t.style.cssText = [
     'position:fixed',
-    'bottom:24px',
+    'top:24px',
     'left:50%',
-    'transform:translateX(-50%) translateY(8px)',
+    'transform:translateX(-50%) translateY(-8px)',
     'background:rgba(15,20,25,0.92)',
     'color:#fff',
     'padding:10px 16px',
@@ -189,9 +189,9 @@ function showInPlaceToast(text: string): void {
   });
   setTimeout(() => {
     t.style.opacity = '0';
-    t.style.transform = 'translateX(-50%) translateY(8px)';
+    t.style.transform = 'translateX(-50%) translateY(-8px)';
     setTimeout(() => t.remove(), 220);
-  }, 1500);
+  }, 2000);
 }
 
 // ─── In-place triggers (same-tab extraction) ────────────────────────
