@@ -1,4 +1,5 @@
 import type { ExtractedContent, TweetMetadata } from '../types/messages';
+import { isAllowedImageUrl } from './media';
 
 export interface PostProcessOptions {
   includeMetadata: boolean;
@@ -111,6 +112,10 @@ export function postProcess(
     finalMarkdown = finalMarkdown.replace(
       /!\[(.*?)\]\((https:\/\/[^)]+)\)/g,
       (match, alt, imgUrl) => {
+        if (!isAllowedImageUrl(imgUrl)) {
+          return match;
+        }
+
         try {
           const urlObj = new URL(imgUrl);
           let fname = urlObj.pathname.split('/').pop() || 'image';

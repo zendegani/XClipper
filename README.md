@@ -20,7 +20,7 @@
 - **X Articles** — Full support for long-form Articles (formerly Notes) with headings, lists, and code blocks
 - **Tweets & Threads** — Extract tweets, nested threads, and quote tweets into clean Markdown
 - **Quoted Posts** — Preserve quoted-post structure and context in a reusable format, with the original author's name and handle
-- **Local Image Downloads** — Download all embedded images locally alongside your `.md` file to prevent link rot
+- **Local Image Downloads** — Download embedded X media locally alongside your `.md` file to prevent link rot
 - **YAML Frontmatter** — Rich metadata with author, handle, date, source URL, content type, and engagement stats (likes, reposts, replies, bookmarks, views)
 - **Inline Engagement Stats** — Optional X-style row in the Markdown body: `💬 284 · 🔁 1.5K · ❤️ 8K · 🔖 253 · 👁 100K`
 - **Copy or Download** — Copy Markdown to clipboard or download as a file
@@ -89,7 +89,7 @@ Pick whichever entry point you prefer — they all run the same extractor and re
 
 Toggles available in the popup:
 
-- **Save images locally** — downloads embedded images alongside the `.md` file in a sibling folder
+- **Save images locally** — downloads embedded X media alongside the `.md` file in a sibling folder
 - **Show engagement stats inline** — renders likes / reposts / replies / bookmarks / views as a row in the Markdown body, X-style
 - **Include metadata** — adds YAML frontmatter (likes, reposts, replies, bookmarks, views, date)
 - **Show inline button on tweets** — toggle the per-tweet download icon on or off (useful if it visually conflicts with another extension)
@@ -104,7 +104,9 @@ Filenames: `@handle-tweetId.md` (tweets/threads) or `@handle-article-slug.md` (a
 - **Tweets/threads**: Turndown.js with custom rules (t.co resolution, emoji inlining, @mention cleanup)
 - **Articles**: Manual Draft.js block parsing for precise heading/list/code-block extraction
 - DOM is cloned and cleaned (engagement bars, follow buttons, navigation stripped) before conversion
-- Downloads via `chrome.downloads` API — nothing leaves your browser
+- Downloads via `chrome.downloads` API after the background worker validates the message sender and sanitizes download paths
+- Local image downloads are limited to expected X media hosts; external image URLs are left as remote Markdown links rather than downloaded
+- Nothing leaves your browser
 
 ## Current Limitations
 
@@ -118,7 +120,7 @@ Filenames: `@handle-tweetId.md` (tweets/threads) or `@handle-article-slug.md` (a
 | Permission     | Why                                                  |
 |----------------|------------------------------------------------------|
 | `activeTab`    | Read the current page's DOM when you click           |
-| `downloads`    | Save the `.md` file and images to Downloads          |
+| `downloads`    | Save the `.md` file and allowed X media images to Downloads |
 | `storage`      | Remember your popup toggle preferences               |
 | `contextMenus` | Add **Save / Copy tweet as Markdown** to the right-click menu (X.com only) |
 | `host` (X.com) | Inject a content script on X.com to extract post / article content and draw the inline download button |
@@ -162,7 +164,7 @@ npm run clean      # Clean build output
 
 ### Tests
 
-`tests/extractor.test.ts` runs the extractor against saved HTML fixtures and compares output against versioned `.md` snapshots (volatile frontmatter fields like `likes` and `date` are normalized). HTML fixtures are gitignored — capture them locally via `copy(document.documentElement.outerHTML)` in DevTools after the page is fully loaded.
+`tests/extractor.test.ts` runs the extractor against saved HTML fixtures and compares output against versioned `.md` snapshots (volatile frontmatter fields like `likes` and `date` are normalized). HTML fixtures are gitignored — capture them locally via `copy(document.documentElement.outerHTML)` in DevTools after the page is fully loaded. If no local fixtures are present, the suite keeps a passing baseline so fresh checkouts can still run tests.
 
 ## License
 

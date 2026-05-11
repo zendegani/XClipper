@@ -1,9 +1,4 @@
-const ALLOWED_IMAGE_HOSTS = new Set([
-  'pbs.twimg.com',
-  'video.twimg.com',
-  'abs.twimg.com',
-  'abs-0.twimg.com',
-]);
+export { isAllowedImageUrl } from '../shared/media';
 
 const DEFAULT_DOWNLOAD_FILENAME = 'tweet2md.md';
 const MAX_PATH_SEGMENT_LENGTH = 80;
@@ -55,11 +50,6 @@ export function isTrustedDownloadSender(
   extensionId: string
 ): boolean {
   return isTrustedXContentSender(sender) || isExtensionPageSender(sender, extensionId);
-}
-
-export function isAllowedImageUrl(raw: string): boolean {
-  const url = parseUrl(raw);
-  return !!url && url.protocol === 'https:' && ALLOWED_IMAGE_HOSTS.has(url.hostname);
 }
 
 function sanitizePathSegment(segment: string): string {
