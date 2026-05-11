@@ -62,32 +62,23 @@ try {
 const SVG_NS = 'http://www.w3.org/2000/svg';
 
 function buildIcon(): SVGElement {
+  // Mirrors X's own action-bar icon style: solid currentColor fill, no stroke.
+  // Arrow path is X's share-icon arrow flipped vertically (download direction);
+  // tray path is X's share-icon tray unchanged — it works as a "catch" tray.
   const svg = document.createElementNS(SVG_NS, 'svg');
   svg.setAttribute('viewBox', '0 0 24 24');
   svg.setAttribute('aria-hidden', 'true');
-  svg.setAttribute('fill', 'none');
-  svg.setAttribute('stroke', 'currentColor');
-  svg.setAttribute('stroke-width', '2');
-  svg.setAttribute('stroke-linecap', 'round');
-  svg.setAttribute('stroke-linejoin', 'round');
   svg.style.width = '1.25em';
   svg.style.height = '1.25em';
   svg.style.display = 'block';
+  svg.style.fill = 'currentColor';
 
-  const tray = document.createElementNS(SVG_NS, 'path');
-  tray.setAttribute('d', 'M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4');
-  svg.appendChild(tray);
-
-  const arrowHead = document.createElementNS(SVG_NS, 'polyline');
-  arrowHead.setAttribute('points', '7 10 12 15 17 10');
-  svg.appendChild(arrowHead);
-
-  const arrowShaft = document.createElementNS(SVG_NS, 'line');
-  arrowShaft.setAttribute('x1', '12');
-  arrowShaft.setAttribute('y1', '15');
-  arrowShaft.setAttribute('x2', '12');
-  arrowShaft.setAttribute('y2', '3');
-  svg.appendChild(arrowShaft);
+  const path = document.createElementNS(SVG_NS, 'path');
+  path.setAttribute(
+    'd',
+    'M12 16l5.7-5.7-1.41-1.42L13 12.18V2.59h-2V12.18l-3.3-3.3-1.41 1.42L12 16zM21 15l-.02 3.51c0 1.38-1.12 2.49-2.5 2.49H5.5C4.11 21 3 19.88 3 18.5V15h2v3.5c0 .28.22.5.5.5h12.98c.28 0 .5-.22.5-.5L19 15h2z'
+  );
+  svg.appendChild(path);
 
   return svg;
 }
@@ -167,7 +158,9 @@ function makeButton(onClick: (e: Event) => void): HTMLElement {
   });
   wrapper.addEventListener('mouseleave', () => {
     wrapper.style.backgroundColor = '';
-    wrapper.style.color = 'rgb(113,118,123)';
+    // Restore the per-context color measured from X's sibling icon, falling
+    // back to the timeline gray if measurement hasn't happened yet.
+    wrapper.style.color = wrapper.dataset.idleColor || 'rgb(113,118,123)';
   });
 
   const handler = (e: Event) => {
@@ -181,6 +174,33 @@ function makeButton(onClick: (e: Event) => void): HTMLElement {
   });
 
   return wrapper;
+}
+
+// X renders icons at different sizes and slightly different gray values
+// depending on context (focused tweet vs timeline, light vs dark theme).
+// Measure a sibling icon's actual rendered size and fill, and pin ours to
+// match — that way the inline button looks native in every surface X uses.
+function matchSiblingIcon(
+  actionBar: Element,
+  wrapper: HTMLElement,
+  ourSvg: SVGElement | null
+): void {
+  if (!ourSvg) return;
+  const ref = Array.from(actionBar.querySelectorAll('svg')).find(
+    (s) => !s.closest(`[${BUTTON_ATTR}]`)
+  );
+  if (!ref) return;
+  const r = ref.getBoundingClientRect();
+  if (r.width > 0) {
+    ourSvg.style.width = `${r.width}px`;
+    ourSvg.style.height = `${r.height}px`;
+  }
+  const fill = getComputedStyle(ref).fill;
+  if (fill && fill !== 'none') {
+    // Drive both idle and hover via currentColor on the wrapper.
+    wrapper.dataset.idleColor = fill;
+    wrapper.style.color = fill;
+  }
 }
 
 function decorateArticleActionBar(article: Element): void {
@@ -205,6 +225,8 @@ function decorateArticleActionBar(article: Element): void {
   container.style.cssText = 'display:flex;align-items:center;';
   container.appendChild(btn);
   actionBar.appendChild(container);
+
+  matchSiblingIcon(actionBar, btn, btn.querySelector('svg'));
 
   decorated.add(article);
 }
@@ -240,6 +262,7 @@ function decorateArticleTopBar(): void {
   container.style.cssText = 'display:flex;align-items:center;';
   container.appendChild(btn);
   candidate.appendChild(container);
+  matchSiblingIcon(candidate, btn, btn.querySelector('svg'));
   articleTopBarDecorated.add(candidate);
 }
 
