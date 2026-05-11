@@ -38,7 +38,13 @@ turndown.addRule('xImages', {
     const alt = img.getAttribute('alt') || 'Image';
     let src = img.getAttribute('src') || '';
 
-    if (src.includes('twimg.com/emoji') || src.includes('abs-0.twimg.com')) {
+    // Emoji and inline glyphs on X are served as .svg via <img>. Real media
+    // images live on pbs.twimg.com and are never .svg. Hashflags are PNG.
+    if (
+      src.includes('twimg.com/emoji') ||
+      src.includes('abs-0.twimg.com') ||
+      /\.svg($|\?)/.test(src)
+    ) {
       return alt;
     }
 
