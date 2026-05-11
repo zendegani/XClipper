@@ -83,6 +83,12 @@
   "opt_inline_copies": {
     "message": "Inline-Schaltfläche kopiert stattdessen"
   },
+  "opt_show_inline_title": {
+    "message": "Fügt einen Download-Button neben dem Teilen-Button in der Aktionsleiste jedes Tweets hinzu"
+  },
+  "opt_show_inline": {
+    "message": "Inline-Button auf Tweets anzeigen"
+  },
   "opt_inline_copies_title": {
     "message": "Wenn aktiviert, kopiert das Inline-Downloadsymbol das Markdown in die Zwischenablage, anstatt eine Datei herunterzuladen."
   },

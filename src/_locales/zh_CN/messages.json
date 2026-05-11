@@ -83,6 +83,12 @@
   "opt_inline_copies": {
     "message": "内联按钮改为复制"
   },
+  "opt_show_inline_title": {
+    "message": "在每条推文操作栏的分享按钮旁添加下载按钮"
+  },
+  "opt_show_inline": {
+    "message": "在推文上显示内联按钮"
+  },
   "opt_inline_copies_title": {
     "message": "启用后，内联下载图标会将 Markdown 复制到剪贴板，而不是下载文件。"
   },

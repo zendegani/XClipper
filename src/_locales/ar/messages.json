@@ -83,6 +83,12 @@
   "opt_inline_copies": {
     "message": "زر النسخ المضمن بدلاً من التنزيل"
   },
+  "opt_show_inline_title": {
+    "message": "يضيف زر تنزيل بجوار زر المشاركة في شريط إجراءات كل تغريدة"
+  },
+  "opt_show_inline": {
+    "message": "إظهار زر مدمج على التغريدات"
+  },
   "opt_inline_copies_title": {
     "message": "عند التفعيل، يقوم رمز التنزيل المضمن بنسخ Markdown إلى الحافظة بدلاً من تنزيل ملف."
   },

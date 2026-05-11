@@ -83,6 +83,12 @@
   "opt_inline_copies": {
     "message": "インラインボタンでコピーする"
   },
+  "opt_show_inline_title": {
+    "message": "各ツイートのアクションバーの共有ボタンの横にダウンロードボタンを追加します"
+  },
+  "opt_show_inline": {
+    "message": "ツイートにインラインボタンを表示"
+  },
   "opt_inline_copies_title": {
     "message": "有効にすると、インラインのダウンロードアイコンはファイルをダウンロードする代わりにMarkdownをクリップボードへコピーします。"
   },

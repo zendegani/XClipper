@@ -83,6 +83,12 @@
   "opt_inline_copies": {
     "message": "Le bouton inline copie à la place"
   },
+  "opt_show_inline_title": {
+    "message": "Ajoute un bouton de téléchargement à côté du bouton de partage sur chaque tweet"
+  },
+  "opt_show_inline": {
+    "message": "Afficher le bouton intégré sur les tweets"
+  },
   "opt_inline_copies_title": {
     "message": "Lorsque cette option est activée, l’icône de téléchargement inline copie le Markdown dans le presse-papiers au lieu de télécharger un fichier."
   },

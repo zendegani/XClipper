@@ -83,6 +83,12 @@
   "opt_inline_copies": {
     "message": "El botón inline copia en su lugar"
   },
+  "opt_show_inline_title": {
+    "message": "Añade un botón de descarga junto al de compartir en la barra de acciones de cada tweet"
+  },
+  "opt_show_inline": {
+    "message": "Mostrar botón integrado en los tweets"
+  },
   "opt_inline_copies_title": {
     "message": "Cuando está activado, el icono inline copia el Markdown al portapapeles en lugar de descargar un archivo."
   },

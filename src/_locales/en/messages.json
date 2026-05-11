@@ -41,6 +41,12 @@
   "ctx_copy_tweet": {
     "message": "Copy tweet as Markdown"
   },
+  "opt_show_inline_title": {
+    "message": "Add a download button next to share on each tweet's action bar"
+  },
+  "opt_show_inline": {
+    "message": "Show inline button on tweets"
+  },
   "opt_inline_copies_title": {
     "message": "When enabled, the inline icon on each tweet copies markdown to the clipboard instead of downloading a file"
   },

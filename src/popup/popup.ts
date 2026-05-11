@@ -16,6 +16,9 @@ const chkCloseTab = document.getElementById(
 const chkInlineCopies = document.getElementById(
   'chk-inline-copies'
 ) as HTMLInputElement;
+const chkShowInline = document.getElementById(
+  'chk-show-inline'
+) as HTMLInputElement;
 
 // ─── Initialize i18n ──────────────────────────────────────────────────
 
@@ -41,6 +44,7 @@ interface Settings {
   includeMetadata: boolean;
   closeTabAfterExport: boolean;
   inlineButtonCopies: boolean;
+  showInlineButton: boolean;
 }
 
 const DEFAULT_SETTINGS: Settings = {
@@ -48,6 +52,7 @@ const DEFAULT_SETTINGS: Settings = {
   includeMetadata: true, // on by default
   closeTabAfterExport: false,
   inlineButtonCopies: false, // inline button downloads by default
+  showInlineButton: true, // inline button visible by default
 };
 
 async function loadSettings(): Promise<Settings> {
@@ -63,12 +68,20 @@ function saveSettings(settings: Settings): void {
   chrome.storage.local.set({ [SETTINGS_KEY]: settings });
 }
 
+function updateInlineCopiesEnabled(): void {
+  const enabled = chkShowInline.checked;
+  chkInlineCopies.disabled = !enabled;
+  chkInlineCopies.closest('.toggle-label')?.classList.toggle('disabled', !enabled);
+}
+
 // Restore toggle states on popup open
 loadSettings().then((settings) => {
   chkDownloadImages.checked = settings.downloadImages;
   chkMetadata.checked = settings.includeMetadata;
   chkCloseTab.checked = settings.closeTabAfterExport;
   chkInlineCopies.checked = settings.inlineButtonCopies;
+  chkShowInline.checked = settings.showInlineButton;
+  updateInlineCopiesEnabled();
 });
 
 function persistAll(): void {
@@ -77,6 +90,7 @@ function persistAll(): void {
     includeMetadata: chkMetadata.checked,
     closeTabAfterExport: chkCloseTab.checked,
     inlineButtonCopies: chkInlineCopies.checked,
+    showInlineButton: chkShowInline.checked,
   });
 }
 
@@ -84,6 +98,10 @@ chkDownloadImages.addEventListener('change', persistAll);
 chkMetadata.addEventListener('change', persistAll);
 chkCloseTab.addEventListener('change', persistAll);
 chkInlineCopies.addEventListener('change', persistAll);
+chkShowInline.addEventListener('change', () => {
+  updateInlineCopiesEnabled();
+  persistAll();
+});
 
 // ─── Helpers ────────────────────────────────────────────────────────
 

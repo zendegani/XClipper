@@ -3,9 +3,19 @@
 // `#tweet2md=1` marker, which the main content script's bootstrap handles.
 
 const BUTTON_ATTR = 'data-tweet2md-injected';
-const decorated = new WeakSet<Element>();
+let decorated = new WeakSet<Element>();
 
 let inlineButtonCopies = false;
+let showInlineButton = true;
+
+function removeAllInjectedButtons(): void {
+  document.querySelectorAll(`[${BUTTON_ATTR}]`).forEach((btn) => {
+    // The button is wrapped in a flex container that we appended to the action bar.
+    (btn.parentElement || btn).remove();
+  });
+  decorated = new WeakSet<Element>();
+  articleTopBarDecorated = new WeakSet<Element>();
+}
 
 // True until the extension is disabled/reloaded. After that, chrome.* calls
 // from this orphaned content script throw "Extension context invalidated".
@@ -22,8 +32,18 @@ function loadInlineMode(): void {
   try {
     chrome.storage.local.get('tweet2md_settings', (result) => {
       if (chrome.runtime.lastError) return;
-      const s = (result['tweet2md_settings'] || {}) as { inlineButtonCopies?: boolean };
+      const s = (result['tweet2md_settings'] || {}) as {
+        inlineButtonCopies?: boolean;
+        showInlineButton?: boolean;
+      };
       inlineButtonCopies = s.inlineButtonCopies === true;
+      const wasShown = showInlineButton;
+      showInlineButton = s.showInlineButton !== false; // default true
+      if (wasShown && !showInlineButton) {
+        removeAllInjectedButtons();
+      } else if (!wasShown && showInlineButton) {
+        scan();
+      }
     });
   } catch {
     /* extension context gone */
@@ -191,7 +211,7 @@ function decorateArticleActionBar(article: Element): void {
 
 // On article (long-form) pages, X renders a top action bar above the content.
 // Inject the same button there so users don't have to scroll past long articles.
-const articleTopBarDecorated = new WeakSet<Element>();
+let articleTopBarDecorated = new WeakSet<Element>();
 function decorateArticleTopBar(): void {
   if (!window.location.pathname.includes('/status/')) return;
   const articleBody = document.querySelector('[data-testid="twitterArticleRichTextView"]')
@@ -225,6 +245,7 @@ function decorateArticleTopBar(): void {
 
 let scanScheduled = false;
 function scan(): void {
+  if (!showInlineButton) return;
   const articles = document.querySelectorAll('article[role="article"]');
   articles.forEach(decorateArticleActionBar);
   decorateArticleTopBar();

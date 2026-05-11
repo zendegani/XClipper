@@ -286,6 +286,15 @@ body {
   opacity: 0.9;
 }
 
+.toggle-label.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.toggle-label.disabled:hover {
+  opacity: 0.4;
+}
+
 .toggle-text {
   display: flex;
   align-items: center;
