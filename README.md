@@ -16,12 +16,13 @@
 
 ### Key Features
 
+- **Three Ways to Trigger** — Toolbar popup, inline button on every tweet's action bar, or the right-click context menu
 - **X Articles** — Full support for long-form Articles (formerly Notes) with headings, lists, and code blocks
 - **Tweets & Threads** — Extract tweets, nested threads, and quote tweets into clean Markdown
 - **Quoted Posts** — Preserve quoted-post structure and context in a reusable format, with the original author's name and handle
-- **Three Ways to Trigger** — Toolbar popup, inline button on every tweet's action bar, or the right-click context menu
 - **Local Image Downloads** — Download all embedded images locally alongside your `.md` file to prevent link rot
 - **YAML Frontmatter** — Rich metadata with author, handle, date, source URL, content type, and engagement stats (likes, reposts, replies, bookmarks, views)
+- **Inline Engagement Stats** — Optional X-style row in the Markdown body: `💬 284 · 🔁 1.5K · ❤️ 8K · 🔖 253 · 👁 100K`
 - **Copy or Download** — Copy Markdown to clipboard or download as a file
 - **Clean Output** — Automatically expand truncated posts and strip engagement buttons, follow prompts, and trackers
 - **Multi-Language UI** — Popup available in English, Spanish, German, French, Japanese, Portuguese (Brazil), Chinese (Simplified), Arabic, and Persian. Content extraction works on any language regardless of UI translation
@@ -89,9 +90,11 @@ Pick whichever entry point you prefer — they all run the same extractor and re
 Toggles available in the popup:
 
 - **Save images locally** — downloads embedded images alongside the `.md` file in a sibling folder
+- **Show engagement stats inline** — renders likes / reposts / replies / bookmarks / views as a row in the Markdown body, X-style
 - **Include metadata** — adds YAML frontmatter (likes, reposts, replies, bookmarks, views, date)
-- **Close tab after export** — auto-closes tabs opened by the inline button / context menu once extraction completes
+- **Show inline button on tweets** — toggle the per-tweet download icon on or off (useful if it visually conflicts with another extension)
 - **Inline button copies instead** — makes the inline icon copy to clipboard rather than download
+- **Close the new tab after export** — auto-closes tabs opened by the inline button / context menu once extraction completes
 
 Filenames: `@handle-tweetId.md` (tweets/threads) or `@handle-article-slug.md` (articles).
 

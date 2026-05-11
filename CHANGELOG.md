@@ -2,6 +2,28 @@
 
 All notable changes to this project will be documented in this file.
 
+## [1.4.0] - 2026-05-??
+
+### Added
+
+- **In-Place Extraction**: When you click the inline button or pick a context-menu action on a tweet you're already viewing (its permalink page), tweet2md extracts in the current tab instead of opening a duplicate one. The "Close the new tab after export" toggle never closes your active tab.
+- **In-Page Toast**: In-place extractions show a brief top-center toast confirming *Copied!* / *Downloaded!* — localized in all 9 supported languages — so you have feedback without the new-tab signal.
+- **Show Inline Button toggle**: A new popup toggle lets you hide the inline download icon on tweets if it conflicts visually with another extension. Off-state hides existing buttons live, no page reload needed.
+- **Show Engagement Stats Inline toggle**: Optional X-style stats row in the exported Markdown (e.g. `💬 284 · 🔁 1.5K · ❤️ 8K · 🔖 253 · 👁 100K`), independent of YAML frontmatter so you can have either or both.
+- **Grouped Settings**: Popup options are organized into *Export* and *Inline button & context menu* sections so 6 toggles stay scannable.
+
+### Changed
+
+- **Inline Button Visual Match**: Icon redesigned with X's solid-fill style (no more line-art stroke) and now reads the sibling action-bar icon at decoration time to match its exact rendered size and color in every X surface (timeline vs focused tweet, light vs dark theme).
+- **Cleaner Context Menu**: Save / Copy items now nest under an explicit "tweet2md" parent label instead of Chrome's auto-grouped full extension name. Also added a `short_name` in the manifest for other space-constrained UI surfaces.
+- **Toast Position**: Moved to top-center with a 2-second hold so it's harder to miss.
+- **Wording**: "Close tab after export" → "Close the new tab after export" — clearer that only the tab tweet2md opened will close, never your active one.
+- **Internal Refactor**: `content.ts` was split into focused modules (`markdown`, `dom`, `tweet`, `article`, `wait`), and the "copy never downloads images" rule was consolidated into one shared helper. No behavior change.
+
+### Fixed
+
+- **Iran Flag (and other glyph) Renders As Full Image**: SVG glyphs served from `abs.twimg.com/responsive-web/client-web/...` weren't recognized as emoji and were being rendered as full-size images in the Markdown. All `.svg` images on X are now treated as glyphs and resolve to their alt-text character.
+
 ## [1.3.0] - 2026-05-09
 
 ### Added
