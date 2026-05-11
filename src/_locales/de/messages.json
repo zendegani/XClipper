@@ -17,6 +17,12 @@
   "extracting": {
     "message": "Wird extrahiert…"
   },
+  "group_export": {
+    "message": "Export"
+  },
+  "group_inline": {
+    "message": "Inline-Button & Rechtsklick-Menü"
+  },
   "opt_save_images_title": {
     "message": "Bilder in einem Ordner neben der Markdown-Datei speichern"
   },

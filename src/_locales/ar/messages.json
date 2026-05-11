@@ -17,6 +17,12 @@
   "extracting": {
     "message": "جاري الاستخراج…"
   },
+  "group_export": {
+    "message": "التصدير"
+  },
+  "group_inline": {
+    "message": "الزر المدمج وقائمة النقر بالزر الأيمن"
+  },
   "opt_save_images_title": {
     "message": "تنزيل الصور إلى مجلد بجانب ملف Markdown"
   },

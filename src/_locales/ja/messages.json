@@ -17,6 +17,12 @@
   "extracting": {
     "message": "抽出中…"
   },
+  "group_export": {
+    "message": "エクスポート"
+  },
+  "group_inline": {
+    "message": "インラインボタン & 右クリックメニュー"
+  },
   "opt_save_images_title": {
     "message": "Markdownファイルと同じフォルダに画像をダウンロードする"
   },

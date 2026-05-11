@@ -17,6 +17,12 @@
   "extracting": {
     "message": "提取中…"
   },
+  "group_export": {
+    "message": "导出"
+  },
+  "group_inline": {
+    "message": "内联按钮和右键菜单"
+  },
   "opt_save_images_title": {
     "message": "将图片下载到 Markdown 文件旁的文件夹中"
   },

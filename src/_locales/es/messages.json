@@ -17,6 +17,12 @@
   "extracting": {
     "message": "Extrayendo…"
   },
+  "group_export": {
+    "message": "Exportación"
+  },
+  "group_inline": {
+    "message": "Botón integrado y menú contextual"
+  },
   "opt_save_images_title": {
     "message": "Descarga las imágenes en una carpeta junto al archivo Markdown"
   },

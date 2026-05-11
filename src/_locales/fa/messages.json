@@ -17,6 +17,12 @@
   "extracting": {
     "message": "در حال استخراج…"
   },
+  "group_export": {
+    "message": "خروجی گرفتن"
+  },
+  "group_inline": {
+    "message": "دکمه روی توییت و منوی راست‌کلیک"
+  },
   "opt_save_images_title": {
     "message": "دانلود تصاویر در پوشه‌ای در کنار فایل Markdown"
   },
