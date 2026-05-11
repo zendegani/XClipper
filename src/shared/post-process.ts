@@ -12,6 +12,16 @@ export interface PostProcessResult {
   images: { url: string; filename: string }[];
 }
 
+// Single source of truth: "Save images locally" only takes effect when the
+// action actually writes a file. Clipboard copies must keep absolute URLs
+// since they can't carry sibling files.
+export function resolveDownloadImages(
+  action: 'download' | 'copy',
+  userToggle: boolean
+): boolean {
+  return action === 'download' && userToggle === true;
+}
+
 export function buildFilename(data: ExtractedContent): string {
   const handle = data.author.handle.replace('@', '');
   const id = data.tweetId;

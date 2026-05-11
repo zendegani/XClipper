@@ -1,5 +1,5 @@
 import type { ExtractResponse, DownloadRequest } from '../types/messages';
-import { postProcess, type PostProcessResult } from '../shared/post-process';
+import { postProcess, resolveDownloadImages, type PostProcessResult } from '../shared/post-process';
 
 const btnDownload = document.getElementById('btn-download') as HTMLButtonElement;
 const btnCopy = document.getElementById('btn-copy') as HTMLButtonElement;
@@ -153,9 +153,7 @@ async function extractMarkdown(forAction: 'download' | 'copy' = 'download'): Pro
   }
 
   const includeMetadata = chkMetadata.checked;
-  // "Save images locally" only applies when downloading; copying to clipboard
-  // can't carry sibling files, so the markdown must keep absolute URLs.
-  const downloadImages = forAction === 'download' && chkDownloadImages.checked;
+  const downloadImages = resolveDownloadImages(forAction, chkDownloadImages.checked);
 
   const response: ExtractResponse = await chrome.tabs.sendMessage(tab.id, {
     action: 'EXTRACT',

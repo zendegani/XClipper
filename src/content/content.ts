@@ -1,6 +1,6 @@
 import TurndownService from 'turndown';
 import type { DownloadRequest, ExtractedContent, ExtractResponse, TweetMetadata } from '../types/messages';
-import { postProcess } from '../shared/post-process';
+import { postProcess, resolveDownloadImages } from '../shared/post-process';
 
 // ─── Turndown Instance ──────────────────────────────────────────────
 const turndown = new TurndownService({
@@ -1165,10 +1165,7 @@ async function autoExtract(action: 'download' | 'copy'): Promise<void> {
 
   const settings = await loadStoredSettings();
   const includeMetadata = settings.includeMetadata !== false; // default on
-  // Local image saving only makes sense when we're actually downloading a
-  // sibling file. For 'copy' the clipboard can't carry images, so keep
-  // absolute URLs in the markdown.
-  const downloadImages = action === 'download' && settings.downloadImages === true;
+  const downloadImages = resolveDownloadImages(action, settings.downloadImages === true);
   const shouldClose = settings.closeTabAfterExport === true; // default off
 
   const response = await extract({ includeMetadata });
