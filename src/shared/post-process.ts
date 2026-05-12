@@ -64,6 +64,14 @@ function stripSourceFooter(md: string): string {
   return md.replace(/\n+---\n+> Source:.*\n> Date:.*$/s, '');
 }
 
+function insertBeforeSourceFooter(md: string, block: string): string {
+  const footerRe = /\n+---\n+> Source:/;
+  if (footerRe.test(md)) {
+    return md.replace(footerRe, `\n\n${block}\n\n---\n> Source:`);
+  }
+  return md.replace(/\s*$/, '') + `\n\n${block}\n`;
+}
+
 export function postProcess(
   data: ExtractedContent,
   opts: PostProcessOptions
@@ -81,6 +89,19 @@ export function postProcess(
     lines.push(`source: "${data.sourceUrl}"`);
     lines.push(`date: ${data.date}`);
     lines.push(`type: ${data.type}`);
+    if (data.thread) {
+      lines.push(`thread_complete: ${data.thread.complete}`);
+      lines.push(`thread_stop_reason: "${data.thread.stopReason}"`);
+      lines.push(`thread_collected_count: ${data.thread.collectedCount}`);
+      lines.push(`thread_failed_count: ${data.thread.failedCount}`);
+      lines.push(`thread_steps: ${data.thread.steps}`);
+      lines.push(`thread_duration_ms: ${data.thread.durationMs}`);
+      // Single-post collections labeled type: thread to preserve diagnostics.
+      // The flag makes that disambiguation obvious to readers of the frontmatter.
+      if (!data.thread.complete && data.thread.collectedCount <= 1) {
+        lines.push(`thread_degraded: true`);
+      }
+    }
     if (m) {
       if (m.likes !== undefined) lines.push(`likes: ${m.likes}`);
       if (m.reposts !== undefined) lines.push(`reposts: ${m.reposts}`);
@@ -95,13 +116,20 @@ export function postProcess(
   if (opts.inlineStats && data.metadata) {
     const line = buildStatsLine(data.metadata);
     if (line) {
-      const footerRe = /\n+---\n+> Source:/;
-      if (footerRe.test(finalMarkdown)) {
-        finalMarkdown = finalMarkdown.replace(footerRe, `\n\n${line}\n\n---\n> Source:`);
-      } else {
-        finalMarkdown = finalMarkdown.replace(/\s*$/, '') + `\n\n${line}\n`;
-      }
+      finalMarkdown = insertBeforeSourceFooter(finalMarkdown, line);
     }
+  }
+
+  if (data.thread && !data.thread.complete) {
+    const comment =
+      `<!-- tweet2md: thread extraction may be incomplete; ` +
+      `tweet_id=${data.tweetId}; ` +
+      `stop_reason=${data.thread.stopReason}; ` +
+      `collected=${data.thread.collectedCount}; ` +
+      `failed=${data.thread.failedCount}; ` +
+      `steps=${data.thread.steps}; ` +
+      `duration_ms=${data.thread.durationMs} -->`;
+    finalMarkdown = insertBeforeSourceFooter(finalMarkdown, comment);
   }
 
   const imagesToDownload: { url: string; filename: string }[] = [];

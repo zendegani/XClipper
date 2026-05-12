@@ -11,6 +11,22 @@ export interface TweetMetadata {
   views?: number;
 }
 
+export type ThreadStopReason =
+  | 'reply_boundary'
+  | 'bottom'
+  | 'no_new_posts'
+  | 'max_steps'
+  | 'max_duration';
+
+export interface ThreadExtractionInfo {
+  complete: boolean;
+  stopReason: ThreadStopReason;
+  collectedCount: number;
+  failedCount: number;
+  steps: number;
+  durationMs: number;
+}
+
 export interface ExtractedContent {
   type: 'tweet' | 'thread' | 'article';
   author: AuthorInfo;
@@ -20,6 +36,7 @@ export interface ExtractedContent {
   date: string;
   tweetId: string;
   metadata?: TweetMetadata;
+  thread?: ThreadExtractionInfo;
 }
 
 export interface ExtractRequest {

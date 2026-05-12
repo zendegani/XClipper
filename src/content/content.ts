@@ -2,7 +2,11 @@ import type { DownloadRequest, ExtractResponse } from '../types/messages';
 import { postProcess, resolveDownloadImages } from '../shared/post-process';
 import { delay, isArticlePage } from './dom';
 import { extractArticle } from './article';
-import { extractTweetAsync, extractEngagementMetadata } from './tweet';
+import {
+  extractTweetAsync,
+  extractEngagementMetadata,
+  findTweetArticleByStatusId,
+} from './tweet';
 import { waitForArticle } from './wait';
 
 // ─── Main Extraction Entry Point ────────────────────────────────────
@@ -21,10 +25,13 @@ export async function extract(options?: {
     const isArticle = isArticlePage();
     const data = isArticle ? extractArticle() : await extractTweetAsync();
 
-    if (options?.includeMetadata) {
-      const firstArticle = document.querySelector('article[role="article"]');
-      if (firstArticle) {
-        data.metadata = extractEngagementMetadata(firstArticle);
+    if (options?.includeMetadata && !data.metadata) {
+      const metadataArticle = isArticle
+        ? document.querySelector('article[role="article"]')
+        : findTweetArticleByStatusId(data.tweetId) ||
+          document.querySelector('article[role="article"]');
+      if (metadataArticle) {
+        data.metadata = extractEngagementMetadata(metadataArticle);
       }
     }
 

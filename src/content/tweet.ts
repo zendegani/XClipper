@@ -2,7 +2,6 @@ import type { ExtractedContent, TweetMetadata } from '../types/messages';
 import { turndown, cleanupMarkdown } from './markdown';
 import {
   SELECTORS,
-  delay,
   extractAuthor,
   extractAuthorFromArticle,
   extractDate,
@@ -10,6 +9,10 @@ import {
   getTweetStatusId,
   cleanContentClone,
 } from './dom';
+import {
+  collectThreadTweets,
+  createBrowserThreadCollectorEnv,
+} from './thread-collector';
 
 /**
  * Extract engagement metadata from a tweet's role="group" aria-label.
@@ -26,22 +29,44 @@ export function extractEngagementMetadata(
 
   const meta: TweetMetadata = {};
 
-  const repliesMatch = label.match(/([\d,]+)\s*repl/i);
-  if (repliesMatch) meta.replies = parseInt(repliesMatch[1].replace(/,/g, ''), 10);
+  const replies = extractCount(label, 'repl');
+  if (replies !== undefined) meta.replies = replies;
 
-  const repostsMatch = label.match(/([\d,]+)\s*repost/i);
-  if (repostsMatch) meta.reposts = parseInt(repostsMatch[1].replace(/,/g, ''), 10);
+  const reposts = extractCount(label, 'repost');
+  if (reposts !== undefined) meta.reposts = reposts;
 
-  const likesMatch = label.match(/([\d,]+)\s*like/i);
-  if (likesMatch) meta.likes = parseInt(likesMatch[1].replace(/,/g, ''), 10);
+  const likes = extractCount(label, 'like');
+  if (likes !== undefined) meta.likes = likes;
 
-  const bookmarksMatch = label.match(/([\d,]+)\s*bookmark/i);
-  if (bookmarksMatch) meta.bookmarks = parseInt(bookmarksMatch[1].replace(/,/g, ''), 10);
+  const bookmarks = extractCount(label, 'bookmark');
+  if (bookmarks !== undefined) meta.bookmarks = bookmarks;
 
-  const viewsMatch = label.match(/([\d,]+)\s*view/i);
-  if (viewsMatch) meta.views = parseInt(viewsMatch[1].replace(/,/g, ''), 10);
+  const views = extractCount(label, 'view');
+  if (views !== undefined) meta.views = views;
 
   return Object.keys(meta).length > 0 ? meta : undefined;
+}
+
+function extractCount(label: string, metricPrefix: string): number | undefined {
+  const match = label.match(new RegExp(`([\\d,.]+\\s*[kmb]?)\\s*${metricPrefix}`, 'i'));
+  if (!match) return undefined;
+
+  const normalized = match[1].replace(/,/g, '').replace(/\s+/g, '').toLowerCase();
+  const countMatch = normalized.match(/^(\d+(?:\.\d+)?)([kmb])?$/);
+  if (!countMatch) return undefined;
+
+  const value = Number(countMatch[1]);
+  const suffix = countMatch[2];
+  const multiplier = suffix === 'm' ? 1_000_000 : suffix === 'k' ? 1_000 : 1;
+  return Math.round(value * multiplier);
+}
+
+export function findTweetArticleByStatusId(statusId: string): Element | null {
+  return (
+    Array.from(document.querySelectorAll('article[role="article"]')).find(
+      (article) => getTweetStatusId(article) === statusId
+    ) || null
+  );
 }
 
 function extractTextFromElement(textEl: Element): string {
@@ -197,11 +222,22 @@ function extractSingleTweetFromArticle(
 
   // Media
   const media: string[] = [];
+  const videos = Array.from(article.querySelectorAll('video'));
+  const videoPosters = new Set(
+    videos
+      .map((video) => video.getAttribute('poster'))
+      .filter((poster): poster is string => !!poster)
+  );
 
   const photos = article.querySelectorAll(`${SELECTORS.tweetPhoto} img`);
   photos.forEach((img) => {
     let src = (img as HTMLImageElement).src;
-    if (src && !src.includes('emoji') && !src.includes('profile_images')) {
+    if (
+      src &&
+      !videoPosters.has(src) &&
+      !src.includes('emoji') &&
+      !src.includes('profile_images')
+    ) {
       if (src.includes('pbs.twimg.com')) {
         src = src.replace(/&name=\w+/, '&name=large');
       }
@@ -209,7 +245,6 @@ function extractSingleTweetFromArticle(
     }
   });
 
-  const videos = article.querySelectorAll('video');
   videos.forEach((video) => {
     const poster = video.getAttribute('poster');
     if (poster) {
@@ -223,77 +258,44 @@ function extractSingleTweetFromArticle(
 /**
  * Scroll-aware thread extraction.
  *
- * X.com uses a virtualized list — only tweets near the viewport exist in the
- * DOM at any given moment. To capture a full thread we:
- *   1. Scroll to the very top of the page.
- *   2. Collect all visible thread-author tweets (stopping on a different-author
- *      tweet, which signals the start of the reply section).
- *   3. Scroll down a step and repeat, deduplicating by status ID.
- *   4. Stop once no new thread tweets appear after a scroll (thread complete)
- *      OR we hit a different-author tweet.
+ * X.com uses a virtualized list, so thread collection is bounded and waits for
+ * article mutations to settle after scrolls instead of relying on fixed sleeps.
  */
 export async function extractTweetAsync(): Promise<ExtractedContent> {
   const date = extractDate();
   const tweetId = extractTweetId();
   const sourceUrl = window.location.href;
+  const targetArticle = findTweetArticleByStatusId(tweetId);
+  const metadata = targetArticle ? extractEngagementMetadata(targetArticle) : undefined;
+
+  const collection = await collectThreadTweets(
+    createBrowserThreadCollectorEnv({
+      targetStatusId: tweetId,
+      targetAuthor: extractAuthor(),
+      getAuthor: extractAuthorFromArticle,
+      getStatusId: getTweetStatusId,
+      extractTweet: extractSingleTweetFromArticle,
+    })
+  );
 
   window.scrollTo({ top: 0, behavior: 'instant' });
-  await delay(600);
 
-  let allArticles = document.querySelectorAll('article[role="article"]');
-  if (allArticles.length === 0) {
-    const author = extractAuthor();
+  const threadTweets = collection.tweets;
+  const threadAuthor = collection.author || extractAuthor();
+
+  if (threadTweets.length === 0) {
     return {
       type: 'tweet',
-      author,
-      markdown: `# ${author.name} (${author.handle})\n\n*Could not extract tweet content.*\n\n---\n\n> Source: ${sourceUrl}\n> Date: ${date}`,
+      author: threadAuthor,
+      markdown: `# ${threadAuthor.name} (${threadAuthor.handle})\n\n*Could not extract tweet content.*\n\n---\n\n> Source: ${sourceUrl}\n> Date: ${date}`,
       sourceUrl,
       date,
       tweetId,
+      metadata,
     };
   }
 
-  const threadAuthor = extractAuthorFromArticle(allArticles[0]);
-
-  const collected = new Map<string, { text: string; media: string[] }>();
-  let threadDone = false;
-
-  const SCROLL_STEP = Math.max(window.innerHeight * 0.6, 400);
-  const MAX_STEPS = 60;
-
-  for (let step = 0; step < MAX_STEPS && !threadDone; step++) {
-    allArticles = document.querySelectorAll('article[role="article"]');
-    const sizeBefore = collected.size;
-
-    for (const article of allArticles) {
-      const articleAuthor = extractAuthorFromArticle(article);
-      if (
-        articleAuthor.handle.toLowerCase() !==
-        threadAuthor.handle.toLowerCase()
-      ) {
-        threadDone = true;
-        break;
-      }
-      const sid = getTweetStatusId(article);
-      if (!collected.has(sid)) {
-        collected.set(sid, extractSingleTweetFromArticle(article));
-      }
-    }
-
-    if (threadDone) break;
-
-    const atBottom =
-      window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 50;
-    if (atBottom && collected.size === sizeBefore) break;
-
-    window.scrollBy({ top: SCROLL_STEP, behavior: 'instant' });
-    await delay(400);
-  }
-
-  window.scrollTo({ top: 0, behavior: 'instant' });
-
-  const threadTweets = Array.from(collected.values());
-  const isThread = threadTweets.length > 1;
+  const isThread = threadTweets.length > 1 || !collection.info.complete;
   const parts: string[] = [
     `# ${threadAuthor.name} (${threadAuthor.handle})`,
     '',
@@ -320,5 +322,7 @@ export async function extractTweetAsync(): Promise<ExtractedContent> {
     sourceUrl,
     date,
     tweetId,
+    metadata,
+    thread: isThread ? collection.info : undefined,
   };
 }

@@ -101,7 +101,7 @@ Filenames: `@handle-tweetId.md` (tweets/threads) or `@handle-article-slug.md` (a
 ## How it works
 
 - Content script auto-injects on `x.com/*/status/*` pages
-- **Tweets/threads**: Turndown.js with custom rules (t.co resolution, emoji inlining, @mention cleanup)
+- **Tweets/threads**: Turndown.js with custom rules plus bounded DOM collection for virtualized thread timelines
 - **Articles**: Manual Draft.js block parsing for precise heading/list/code-block extraction
 - DOM is cloned and cleaned (engagement bars, follow buttons, navigation stripped) before conversion
 - Downloads via `chrome.downloads` API after the background worker validates the message sender and sanitizes download paths
@@ -113,6 +113,7 @@ Filenames: `@handle-tweetId.md` (tweets/threads) or `@handle-article-slug.md` (a
 - Focused on x.com content extraction
 - Videos and GIFs are not exported as playable media files
 - Requires a page reload if the extension was installed or updated after opening the tab
+- Thread extraction is DOM-based and bounded. Very long or unusually rendered threads may export partially; when that happens, metadata and an HTML comment include the stop reason and collected count. A degraded single-post extraction may be labeled `type: thread` so those diagnostics are preserved.
 - Some content may stop working if x.com changes its page structure significantly
 
 ## Permissions

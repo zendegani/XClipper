@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## Unreleased
+
+### Changed
+
+- **Thread extraction reliability**: Replaced fixed post-scroll sleeps with a bounded, article-aware collection loop and added diagnostics for incomplete thread exports.
+- **Locale-tolerant promoted-tweet detection**: The thread collector's "Promoted" label fallback now recognizes the modern bare `Ad` label and localized variants (`広告`, `プロモーション`, `Werbung`, `Patrocinado`, `Anuncio`, `广告`, and more), so ads no longer slip through on non-English X.com sessions.
+- **`thread_degraded` frontmatter flag**: Single-post collections that hit `max_steps`/`max_duration` are still labeled `type: thread` so diagnostics survive, but now carry an explicit `thread_degraded: true` field so the disambiguation is obvious to readers.
+
 ## [1.4.0] - 2026-05-11
 
 ### Added
