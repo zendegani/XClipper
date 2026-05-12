@@ -2,6 +2,26 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Added
+
+- **Promoted Tweet Skipping**: Thread extraction now recognises locale-aware "Ad" / "Promoted" labels (English, Japanese, German, Spanish, French, Chinese, Arabic, Persian) in the tweet header and skips them, so an ad injected mid-thread no longer ends collection at the reply boundary. (thanks @BigCactusLabs, #7)
+- **K/M/B Engagement Counts**: Engagement metrics are now parsed correctly when X compacts them (e.g. `1.5K likes`, `2M views`). Previously these were dropped from the YAML frontmatter and the inline stats row. (thanks @BigCactusLabs, #7)
+
+### Changed
+
+- **Quoted-Tweet Media Order**: When a tweet contains both its own media and a quoted tweet, the main tweet's images/videos now appear *before* the quoted block (matching X's visual order). Media belonging to the quoted tweet is nested inside the blockquote.
+
+### Fixed
+
+- **Duplicate Video Poster**: When X hydrated both a poster `<img>` and a full `<video>` element for the same clip (most visible in quoted tweets), the same thumbnail was emitted twice. Now deduplicated. (thanks @BigCactusLabs, #7)
+
+### Internal
+
+- Added a `CONTRIBUTING.md` with the snapshot-test discipline, fixture-capture procedure, and extractor scope conventions.
+- GitHub Actions CI workflow added for tests and build. `package.json` and lockfile aligned with Vitest's esbuild peer dependency. (thanks @BigCactusLabs, #8)
+
 ## [1.4.0] - 2026-05-11
 
 ### Added
@@ -17,6 +37,7 @@ All notable changes to this project will be documented in this file.
 - Background download handling now validates the message sender before invoking privileged download APIs — requests are only honored from x.com content scripts or trusted extension pages.
 - Local image downloads are restricted to expected X media hosts (`pbs.twimg.com`, `video.twimg.com`, `abs.twimg.com`, `abs-0.twimg.com`); other external image URLs are left as remote Markdown links rather than downloaded.
 - Strengthened filename / path sanitization to drop `..` segments and absolute paths and to normalize unicode before passing to Chrome's download API.
+- Contributed by [@BigCactusLabs] (#6).
 
 ### Changed
 
