@@ -22,7 +22,7 @@ dist/
 
 # Test HTML fixtures (large, regenerated locally; not worth versioning)
 tests/fixtures/*.html
-tests/fixtures/*.md
+
 # Logs and temp files
 *.log
 *.bak
