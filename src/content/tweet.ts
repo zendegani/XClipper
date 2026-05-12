@@ -197,23 +197,33 @@ function extractSingleTweetFromArticle(
 
   // Media
   const media: string[] = [];
+  const videos = Array.from(article.querySelectorAll('video'));
+  // Collect video poster URLs first so we can skip duplicate <img> entries —
+  // X often renders BOTH a poster <img> inside tweetPhoto and a hydrated
+  // <video poster=...> for the same content, especially in quoted tweets.
+  const videoPosters = new Set(
+    videos
+      .map((v) => v.getAttribute('poster'))
+      .filter((p): p is string => !!p)
+  );
 
   const photos = article.querySelectorAll(`${SELECTORS.tweetPhoto} img`);
   photos.forEach((img) => {
     let src = (img as HTMLImageElement).src;
-    if (src && !src.includes('emoji') && !src.includes('profile_images')) {
-      if (src.includes('pbs.twimg.com')) {
-        src = src.replace(/&name=\w+/, '&name=large');
-      }
-      media.push(`![Image](${src})`);
+    if (!src || src.includes('emoji') || src.includes('profile_images')) return;
+    if (videoPosters.has(src)) return; // covered by the video branch below
+    if (src.includes('pbs.twimg.com')) {
+      src = src.replace(/&name=\w+/, '&name=large');
     }
+    media.push(`![Image](${src})`);
   });
 
-  const videos = article.querySelectorAll('video');
   videos.forEach((video) => {
     const poster = video.getAttribute('poster');
     if (poster) {
-      media.push(`[🎥 Video](${poster})`);
+      // Use image markdown so the poster renders as a preview in viewers
+      // (Obsidian, GitHub, etc.). The 🎥 in alt-text signals it's video.
+      media.push(`![🎥 Video](${poster})`);
     }
   });
 
