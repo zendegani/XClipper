@@ -18,7 +18,7 @@
     "message": "Add to Obsidian"
   },
   "btn_obsidian_hint": {
-    "message": "Long threads or images you want archived? Use Download .md and drag the folder into your vault."
+    "message": "Long threads or images? Use Download .md instead"
   },
   "obsidian_opened": {
     "message": "Opening Obsidian…"
