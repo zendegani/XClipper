@@ -1,5 +1,6 @@
 import type { ExtractResponse, DownloadRequest } from '../types/messages';
 import { postProcess, resolveDownloadImages, type PostProcessResult } from '../shared/post-process';
+import { buildObsidianUrl } from '../shared/obsidian';
 
 const btnDownload = document.getElementById('btn-download') as HTMLButtonElement;
 const btnCopy = document.getElementById('btn-copy') as HTMLButtonElement;
@@ -305,19 +306,6 @@ btnDownload.addEventListener('click', async () => {
 // ─── Copy Flow ──────────────────────────────────────────────────────
 
 // ─── Add to Obsidian Flow ───────────────────────────────────────────
-
-function buildObsidianUrl(
-  content: string,
-  filename: string,
-  vault: string
-): string {
-  const fileNoExt = filename.replace(/\.md$/, '');
-  const params = new URLSearchParams();
-  if (vault) params.set('vault', vault);
-  params.set('file', fileNoExt);
-  params.set('content', content);
-  return `obsidian://new?${params.toString()}`;
-}
 
 btnObsidian.addEventListener('click', async () => {
   setLoading(true, 'obsidian');
