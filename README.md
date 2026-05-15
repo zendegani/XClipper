@@ -24,6 +24,7 @@
 - **X Articles** — Full support for long-form Articles (formerly Notes) with headings, lists, and code blocks
 - **Tweets & Threads** — Extract tweets, nested threads, and quote tweets into clean Markdown
 - **Quoted Posts** — Preserve quoted-post structure and context in a reusable format, with the original author's name and handle
+- **Link Cards** — Capture external link previews including the title, description, domain, and high-res Open Graph image
 - **Local Image Downloads** — Download embedded X media locally alongside your `.md` file to prevent link rot
 - **YAML Frontmatter** — Rich metadata with author, handle, date, source URL, content type, and engagement stats (likes, reposts, replies, bookmarks, views)
 - **Inline Engagement Stats** — Optional X-style row in the Markdown body: `💬 284 · 🔁 1.5K · ❤️ 8K · 🔖 253 · 👁 100K`

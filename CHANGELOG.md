@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [Unreleased]
+
+### Added
+
+- **Link Cards**: External link previews in tweets are now captured. Extracts the title, description, and source domain, and embeds the Open Graph preview image (which is intentionally kept as a remote URL to prevent downloading third-party thumbnails locally).
+
 ## [1.4.1] - 2026-05-12
 
 ### Added
