@@ -537,6 +537,23 @@ body {
   background: var(--accent);
 }
 
+/* Obsidian-friendly toggle: paint icon + switch in Obsidian purple when
+ * checked so the toggle, its icon, and the Add-to-Obsidian button share
+ * one visual identity. */
+.toggle-obsidian:has(.toggle-input:checked) .toggle-icon {
+  color: #7C3AED;
+  stroke: #7C3AED;
+}
+
+.toggle-obsidian .toggle-input:checked + .toggle-switch {
+  background: rgba(124, 58, 237, 0.3);
+  box-shadow: 0 0 8px rgba(124, 58, 237, 0.15);
+}
+
+.toggle-obsidian .toggle-input:checked + .toggle-switch::after {
+  background: #7C3AED;
+}
+
 /* ─── Text-field option (Obsidian vault, etc.) ──────────────── */
 .field-label {
   display: flex;
