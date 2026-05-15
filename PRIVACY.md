@@ -1,6 +1,6 @@
 # Privacy Policy — tweet2md
 
-**Last updated:** May 9, 2026
+**Last updated:** May 15, 2026
 
 ## Summary
 
@@ -32,13 +32,17 @@ No data leaves your browser at any point during this process. The extension does
 
 When **Save images locally** is enabled, tweet2md only downloads image assets from expected X media hosts such as `pbs.twimg.com`, `video.twimg.com`, `abs.twimg.com`, and `abs-0.twimg.com`. Other external image URLs are not downloaded by the background worker.
 
+### Add to Obsidian
+
+When you click **Add to Obsidian**, the extension builds an `obsidian://new?...` deeplink containing the rendered Markdown (and the optional vault name you configured in Settings) and navigates the popup window to that URL. Your operating system's URL handler then hands the data to the Obsidian desktop app, if installed. The handoff happens **locally on your device** — no network request is made and no external server is involved. Images remain as remote `pbs.twimg.com` URLs in the rendered Markdown so they display inline in Obsidian without writing copies to disk.
+
 ## Permissions explained
 
 | Permission     | Purpose                                              |
 |----------------|------------------------------------------------------|
 | `activeTab`    | Allows reading the current tab's page content when you click the extension icon |
 | `downloads`    | Allows saving the generated Markdown file and allowed X media images to your Downloads folder |
-| `storage`      | Allows saving your popup configuration (toggle switches) locally on your device so settings are remembered between sessions |
+| `storage`      | Allows saving your popup configuration locally on your device so settings are remembered between sessions. This includes the toggle states and the optional Obsidian vault name (if you set one in Settings). |
 | `contextMenus` | Adds the **Save tweet as Markdown** and **Copy tweet as Markdown** items to the browser's right-click menu, scoped to X.com pages. The menu only fires when you click an item; no page content is read otherwise. |
 | `host` (X.com) | A content script is injected on X.com pages to (a) extract the visible post or article content when you trigger an action, and (b) draw the inline download button on tweet action bars. The script reads the DOM locally and never transmits data externally. |
 

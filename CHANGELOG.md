@@ -2,18 +2,25 @@
 
 All notable changes to this project will be documented in this file.
 
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
+and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+---
+
 ## [Unreleased]
 
 ### Added
 
-- **Link Cards**: External link previews in tweets are now captured. Extracts the title, description, and source domain, and embeds the Open Graph preview image (which is intentionally kept as a remote URL to prevent downloading third-party thumbnails locally).
-- **Multi-View Popup**: The popup interface now separates the primary download/copy actions from configuration. A new "Settings" navigation flow keeps the main interface focused and uncluttered.
-- **Obsidian-friendly Frontmatter**: Added a new export option to generate Markdown frontmatter optimized for Obsidian. This includes wikilinked author handles (e.g. `[[@username]]`) for easy backlinking, a synthetic title, tags, and a prose description snippet extracted from the body.
-- **Obsidian Vault Setting**: Users can now specify their Obsidian vault name in settings to facilitate deeper integration (laying groundwork for URI-based interactions).
+- **Add to Obsidian**: One-click handoff that opens Obsidian via the `obsidian://new` URI scheme with the rendered Markdown prefilled. Forces Obsidian-friendly frontmatter and leaves images as remote URLs (local image downloads don't make sense for a URI handoff). The handoff is local — no network call.
+- **Obsidian-friendly Frontmatter**: Optional export schema with wikilinked author handles (e.g. `[[@username]]`) for backlinks, a synthesized title, `published` / `created` date split, prose `description` snippet, and a `tags: [clippings, x, <type>]` array. Engagement metrics remain at the bottom for Dataview queries. Toggle off = byte-for-byte identical to the previous schema.
+- **Obsidian Vault Setting**: Optional vault name field in Settings; included as `vault=` in the deeplink so notes land in a specific vault. Leave blank to let Obsidian pick the last-used vault.
+- **Link Cards**: External link previews in tweets are now captured. Extracts the title, source domain, and embeds the Open Graph preview image (intentionally kept as a remote URL to avoid pulling third-party thumbnails into local sibling folders).
+- **Multi-View Popup**: The popup now separates primary actions from configuration. The settings view sits behind a gear icon at the top-right of the popup; clicking it slides to the configuration panel.
 
 ### Changed
 
-- **Grouped Settings**: Relocated all configuration toggles to a dedicated settings view within the popup.
+- **Grouped Settings**: The "Inline button & context menu" toggles plus Obsidian settings (toggle + vault name) live in the dedicated settings view; the main popup view is focused on Download / Copy / Add to Obsidian and the per-export toggles.
+- **Popup Layout**: Buttons restructured into a half-width grid — Download / Copy on top, the Export options card below, then a half-width Obsidian button with its hint paragraph paired beside it.
 
 ## [1.4.1] - 2026-05-12
 

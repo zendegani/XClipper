@@ -24,7 +24,9 @@
 - **X Articles** — Full support for long-form Articles (formerly Notes) with headings, lists, and code blocks
 - **Tweets & Threads** — Extract tweets, nested threads, and quote tweets into clean Markdown
 - **Quoted Posts** — Preserve quoted-post structure and context in a reusable format, with the original author's name and handle
-- **Link Cards** — Capture external link previews including the title, description, domain, and high-res Open Graph image
+- **Link Cards** — Capture external link previews including the title, domain, and high-res Open Graph image
+- **Add to Obsidian** — One-click handoff to Obsidian via the `obsidian://` URI scheme, with an optional vault name for direct targeting
+- **Obsidian-friendly Frontmatter** — Optional schema with `[[@handle]]` wikilinks for backlinks, synthesized title, `published`/`created` dates, prose description, and `tags: [clippings, x, <type>]`
 - **Local Image Downloads** — Download embedded X media locally alongside your `.md` file to prevent link rot
 - **YAML Frontmatter** — Rich metadata with author, handle, date, source URL, content type, and engagement stats (likes, reposts, replies, bookmarks, views)
 - **Inline Engagement Stats** — Optional X-style row in the Markdown body: `💬 284 · 🔁 1.5K · ❤️ 8K · 🔖 253 · 👁 100K`
@@ -88,18 +90,25 @@ Install `tweet2md` from the [Chrome Web Store](https://chromewebstore.google.com
 
 Pick whichever entry point you prefer — they all run the same extractor and respect the same toggles:
 
-- **Toolbar popup** — Click the tweet2md icon, then **Download .md** or **Copy .md**.
+- **Toolbar popup** — Click the tweet2md icon, then **Download .md**, **Copy .md**, or **Add to Obsidian**.
 - **Inline button** — Click the download icon at the right of any tweet's action bar (and at the top of long-form articles). Opens the tweet in a new tab and exports automatically.
 - **Right-click menu** — Right-click any tweet and pick **Save tweet as Markdown** or **Copy tweet as Markdown**.
 
-Toggles available in the popup:
+Main-view toggles (configure per export):
 
 - **Save images locally** — downloads embedded X media alongside the `.md` file in a sibling folder
 - **Show engagement stats inline** — renders likes / reposts / replies / bookmarks / views as a row in the Markdown body, X-style
 - **Include metadata** — adds YAML frontmatter (likes, reposts, replies, bookmarks, views, date)
+
+Settings (gear icon, top-right of the popup):
+
+- **Obsidian-friendly frontmatter** — emits an Obsidian-optimized schema (`[[@handle]]` wikilink, synthesized title, `published`/`created` dates, description, tags). Off by default; current users see no change.
+- **Vault name** — optional. Used by **Add to Obsidian**: when set, notes land in that vault; when blank, Obsidian picks the last-used vault.
 - **Show inline button on tweets** — toggle the per-tweet download icon on or off (useful if it visually conflicts with another extension)
 - **Inline button copies instead** — makes the inline icon copy to clipboard rather than download
 - **Close the new tab after export** — auto-closes tabs opened by the inline button / context menu once extraction completes
+
+> **Add to Obsidian tip:** for long threads or content where you want the images permanently archived, use **Download .md** with **Save images locally** and drag the resulting folder into your vault. The Obsidian deeplink is best for quick capture — it has an OS-level URL-length limit and leaves images as remote URLs.
 
 Filenames: `@handle-tweetId.md` (tweets/threads) or `@handle-article-slug.md` (articles).
 
@@ -126,7 +135,7 @@ Filenames: `@handle-tweetId.md` (tweets/threads) or `@handle-article-slug.md` (a
 |----------------|------------------------------------------------------|
 | `activeTab`    | Read the current page's DOM when you click           |
 | `downloads`    | Save the `.md` file and allowed X media images to Downloads |
-| `storage`      | Remember your popup toggle preferences               |
+| `storage`      | Remember your popup toggle preferences and the optional Obsidian vault name |
 | `contextMenus` | Add **Save / Copy tweet as Markdown** to the right-click menu (X.com only) |
 | `host` (X.com) | Inject a content script on X.com to extract post / article content and draw the inline download button |
 
