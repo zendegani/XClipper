@@ -321,7 +321,7 @@ function extractSingleTweetFromArticle(
           parts.push(`🔗 **${title}**`);
         }
         if (description) parts.push(description);
-        if (domain) parts.push(`_${domain}_`);
+        if (domain) parts.push(`_From ${domain}_`);
         embeddedMd = `\n\n> ${parts.join('\n> \n> ')}`;
         embedContainers.push(cardWrapper);
       }
