@@ -3,6 +3,7 @@ import { postProcess, resolveDownloadImages, type PostProcessResult } from '../s
 
 const btnDownload = document.getElementById('btn-download') as HTMLButtonElement;
 const btnCopy = document.getElementById('btn-copy') as HTMLButtonElement;
+const btnObsidian = document.getElementById('btn-obsidian') as HTMLButtonElement;
 const statusEl = document.getElementById('status') as HTMLDivElement;
 const chkDownloadImages = document.getElementById(
   'chk-download-images'
@@ -168,9 +169,10 @@ function showStatus(
   }
 }
 
-function setLoading(loading: boolean, target?: 'download' | 'copy'): void {
+function setLoading(loading: boolean, target?: 'download' | 'copy' | 'obsidian'): void {
   btnDownload.disabled = loading;
   btnCopy.disabled = loading;
+  btnObsidian.disabled = loading;
 
   // Only animate the button that was actually clicked
   if (target === 'download' || !target) {
@@ -183,21 +185,31 @@ function setLoading(loading: boolean, target?: 'download' | 'copy'): void {
     const cpLabel = btnCopy.querySelector('.btn-label');
     if (cpLabel) cpLabel.textContent = loading ? (chrome.i18n.getMessage('extracting') || 'Extracting…') : (chrome.i18n.getMessage('btn_copy') || 'Copy .md');
   }
+  if (target === 'obsidian' || !target) {
+    btnObsidian.classList.toggle('loading', loading);
+    const obLabel = btnObsidian.querySelector('.btn-label');
+    if (obLabel) obLabel.textContent = loading ? (chrome.i18n.getMessage('extracting') || 'Extracting…') : (chrome.i18n.getMessage('btn_obsidian') || 'Add to Obsidian');
+  }
 
-  // When stopping, always reset both to default state
+  // When stopping, always reset all three to default state
   if (!loading) {
     btnDownload.classList.remove('loading');
     btnCopy.classList.remove('loading');
+    btnObsidian.classList.remove('loading');
     const dlLabel = btnDownload.querySelector('.btn-label');
     const cpLabel = btnCopy.querySelector('.btn-label');
+    const obLabel = btnObsidian.querySelector('.btn-label');
     if (dlLabel) dlLabel.textContent = chrome.i18n.getMessage('btn_download') || 'Download .md';
     if (cpLabel) cpLabel.textContent = chrome.i18n.getMessage('btn_copy') || 'Copy .md';
+    if (obLabel) obLabel.textContent = chrome.i18n.getMessage('btn_obsidian') || 'Add to Obsidian';
   }
 }
 
 // ─── Shared Extraction ──────────────────────────────────────────────
 
-async function extractMarkdown(forAction: 'download' | 'copy' = 'download'): Promise<PostProcessResult> {
+async function extractMarkdown(
+  forAction: 'download' | 'copy' | 'obsidian' = 'download',
+): Promise<PostProcessResult> {
   const [tab] = await chrome.tabs.query({
     active: true,
     currentWindow: true,
@@ -220,8 +232,15 @@ async function extractMarkdown(forAction: 'download' | 'copy' = 'download'): Pro
 
   const includeMetadata = chkMetadata.checked;
   const inlineStats = chkInlineStats.checked;
-  const obsidianFriendly = chkObsidianFriendly.checked;
-  const downloadImages = resolveDownloadImages(forAction, chkDownloadImages.checked);
+  // "Add to Obsidian" is *the* Obsidian path — force the Obsidian schema
+  // regardless of the toggle (the toggle exists for the Download/Copy
+  // flows where the user may or may not be heading to Obsidian).
+  const obsidianFriendly = forAction === 'obsidian' ? true : chkObsidianFriendly.checked;
+  // Local image folders make no sense for the deeplink — Obsidian receives
+  // markdown via URL, not a filesystem package, so leave images as remote
+  // URLs (Obsidian renders pbs.twimg.com inline fine).
+  const downloadImages =
+    forAction === 'obsidian' ? false : resolveDownloadImages(forAction, chkDownloadImages.checked);
 
   const response: ExtractResponse = await chrome.tabs.sendMessage(tab.id, {
     action: 'EXTRACT',
@@ -284,6 +303,41 @@ btnDownload.addEventListener('click', async () => {
 });
 
 // ─── Copy Flow ──────────────────────────────────────────────────────
+
+// ─── Add to Obsidian Flow ───────────────────────────────────────────
+
+function buildObsidianUrl(
+  content: string,
+  filename: string,
+  vault: string
+): string {
+  const fileNoExt = filename.replace(/\.md$/, '');
+  const params = new URLSearchParams();
+  if (vault) params.set('vault', vault);
+  params.set('file', fileNoExt);
+  params.set('content', content);
+  return `obsidian://new?${params.toString()}`;
+}
+
+btnObsidian.addEventListener('click', async () => {
+  setLoading(true, 'obsidian');
+  statusEl.className = 'status hidden';
+
+  try {
+    const result = await extractMarkdown('obsidian');
+    const vault = txtObsidianVault.value.trim();
+    const url = buildObsidianUrl(result.markdown, result.filename, vault);
+
+    // Navigate the popup itself to the obsidian:// URL. The OS handler picks
+    // it up; the popup closes either way, so we don't leave a blank tab.
+    window.location.href = url;
+
+    showStatus(`✓ ${chrome.i18n.getMessage('obsidian_opened') || 'Opening Obsidian…'}`, 'success');
+    setLoading(false);
+  } catch (err) {
+    handleExtractionError(err);
+  }
+});
 
 btnCopy.addEventListener('click', async () => {
   setLoading(true, 'copy');

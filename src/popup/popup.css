@@ -169,6 +169,28 @@ body {
   flex-shrink: 0;
 }
 
+/* Secondary action — full width, muted styling so primary save/copy stays
+ * visually dominant. Obsidian-purple accents the icon. */
+.btn-obsidian {
+  width: 100%;
+  background: var(--bg-elevated);
+  color: var(--text-primary);
+  border: 1px solid var(--border-subtle);
+}
+
+.btn-obsidian:hover {
+  background: var(--bg-hover);
+  box-shadow: none;
+}
+
+.btn-obsidian:active {
+  box-shadow: none;
+}
+
+.btn-obsidian .btn-icon {
+  color: #7C3AED;
+}
+
 /* ─── Loading State ─────────────────────────────────────────── */
 .btn-action.loading .btn-icon {
   animation: pulse 1s ease-in-out infinite;

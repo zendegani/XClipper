@@ -14,6 +14,12 @@
   "btn_copy": {
     "message": "Copy .md"
   },
+  "btn_obsidian": {
+    "message": "Add to Obsidian"
+  },
+  "obsidian_opened": {
+    "message": "Opening Obsidian…"
+  },
   "extracting": {
     "message": "Extracting…"
   },
