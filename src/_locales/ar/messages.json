@@ -86,6 +86,9 @@
   "ctx_copy_tweet": {
     "message": "نسخ التغريدة كـ Markdown"
   },
+  "ctx_obsidian_tweet": {
+    "message": "إضافة التغريدة إلى Obsidian"
+  },
   "opt_show_inline_title": {
     "message": "يضيف زر تنزيل بجوار زر المشاركة في شريط إجراءات كل تغريدة"
   },

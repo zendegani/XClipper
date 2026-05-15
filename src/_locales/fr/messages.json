@@ -86,6 +86,9 @@
   "ctx_copy_tweet": {
     "message": "Copier le tweet en Markdown"
   },
+  "ctx_obsidian_tweet": {
+    "message": "Ajouter le tweet à Obsidian"
+  },
   "opt_show_inline_title": {
     "message": "Ajoute un bouton de téléchargement à côté du bouton de partage sur chaque tweet"
   },

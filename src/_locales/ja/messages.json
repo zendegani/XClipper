@@ -86,6 +86,9 @@
   "ctx_copy_tweet": {
     "message": "ツイートをMarkdownとしてコピー"
   },
+  "ctx_obsidian_tweet": {
+    "message": "ツイートをObsidianに追加"
+  },
   "opt_show_inline_title": {
     "message": "各ツイートのアクションバーの共有ボタンの横にダウンロードボタンを追加します"
   },

@@ -1,9 +1,12 @@
 import type { DownloadRequest, ExtractResponse } from '../types/messages';
 import { postProcess, resolveDownloadImages } from '../shared/post-process';
+import { buildObsidianUrl } from '../shared/obsidian';
 import { delay, isArticlePage } from './dom';
 import { extractArticle } from './article';
 import { extractTweetAsync, extractEngagementMetadata } from './tweet';
 import { waitForArticle } from './wait';
+
+type AutoAction = 'download' | 'copy' | 'obsidian';
 
 // ─── Main Extraction Entry Point ────────────────────────────────────
 
@@ -51,13 +54,16 @@ chrome.runtime.onMessage.addListener((_message, _sender, sendResponse) => {
 // ─── Auto-extract bootstrap (#tweet2md=download | #tweet2md=copy) ───
 // Triggered when the page is opened from the inline button or context menu.
 
-const AUTO_MARKER_RE = /[#&]tweet2md=(download|copy|1)/;
+const AUTO_MARKER_RE = /[#&]tweet2md=(download|copy|obsidian|1)/;
+const AUTO_MARKER_STRIP_RE = /[#&]tweet2md=(?:download|copy|obsidian|1)/g;
 
 interface StoredSettings {
   downloadImages?: boolean;
   includeMetadata?: boolean;
   closeTabAfterExport?: boolean;
   inlineStats?: boolean;
+  obsidianFriendly?: boolean;
+  obsidianVault?: string;
 }
 
 function loadStoredSettings(): Promise<StoredSettings> {
@@ -71,7 +77,7 @@ function loadStoredSettings(): Promise<StoredSettings> {
 let autoExtractInFlight = false;
 
 async function autoExtract(
-  action: 'download' | 'copy',
+  action: AutoAction,
   opts: { allowClose?: boolean } = {}
 ): Promise<void> {
   if (autoExtractInFlight) return;
@@ -84,7 +90,7 @@ async function autoExtract(
 }
 
 async function runAutoExtract(
-  action: 'download' | 'copy',
+  action: AutoAction,
   opts: { allowClose?: boolean }
 ): Promise<void> {
   const allowClose = opts.allowClose !== false;
@@ -92,7 +98,7 @@ async function runAutoExtract(
   // Strip the marker from the URL so refreshes don't re-trigger.
   try {
     const cleanHash = window.location.hash
-      .replace(/[#&]tweet2md=(?:download|copy|1)/g, '')
+      .replace(AUTO_MARKER_STRIP_RE, '')
       .replace(/^#$/, '');
     history.replaceState(null, '', window.location.pathname + window.location.search + (cleanHash || ''));
   } catch {
@@ -105,14 +111,24 @@ async function runAutoExtract(
   const settings = await loadStoredSettings();
   const includeMetadata = settings.includeMetadata !== false; // default on
   const inlineStats = settings.inlineStats === true;
-  const downloadImages = resolveDownloadImages(action, settings.downloadImages === true);
+  // Obsidian is the dedicated Obsidian path — force its schema + skip local
+  // image downloads (the deeplink carries Markdown via URL, not a folder).
+  const obsidianFriendly =
+    action === 'obsidian' ? true : settings.obsidianFriendly === true;
+  const downloadImages =
+    action === 'obsidian' ? false : resolveDownloadImages(action, settings.downloadImages === true);
   const shouldClose = allowClose && settings.closeTabAfterExport === true;
 
   // Need engagement data if either renderer wants it.
   const response = await extract({ includeMetadata: includeMetadata || inlineStats });
   if (!response.success || !response.data) return;
 
-  const result = postProcess(response.data, { includeMetadata, downloadImages, inlineStats });
+  const result = postProcess(response.data, {
+    includeMetadata,
+    downloadImages,
+    inlineStats,
+    obsidianFriendly,
+  });
 
   if (action === 'copy') {
     try {
@@ -129,6 +145,19 @@ async function runAutoExtract(
       try { document.execCommand('copy'); } catch { /* ignore */ }
       ta.remove();
     }
+  } else if (action === 'obsidian') {
+    const vault = (settings.obsidianVault || '').trim();
+    const url = buildObsidianUrl(result.markdown, result.filename, vault);
+    if (allowClose) {
+      // New-tab flow: navigate the tab itself so the OS protocol handler
+      // picks it up; the closeTabAfterExport toggle cleans up the husk.
+      window.location.href = url;
+    } else {
+      // In-place flow (already on the tweet's permalink): don't navigate the
+      // user away from x.com. Pop a throwaway tab whose only job is to hand
+      // the URL off to the OS, then show a confirmation toast.
+      window.open(url, '_blank', 'noopener');
+    }
   } else {
     const downloadMsg: DownloadRequest = {
       action: 'DOWNLOAD_MD',
@@ -144,8 +173,14 @@ async function runAutoExtract(
   // In-place runs (inline button / context menu on the current page) get a
   // brief toast since there's no popup UI or new tab to provide feedback.
   if (!allowClose) {
-    const key = action === 'copy' ? 'copied' : 'downloaded';
-    const fallback = action === 'copy' ? 'Copied!' : 'Downloaded!';
+    const key =
+      action === 'copy' ? 'copied'
+      : action === 'obsidian' ? 'obsidian_opened'
+      : 'downloaded';
+    const fallback =
+      action === 'copy' ? 'Copied!'
+      : action === 'obsidian' ? 'Opening Obsidian…'
+      : 'Downloaded!';
     showInPlaceToast(chrome.i18n.getMessage(key) || fallback);
   }
 
@@ -157,7 +192,9 @@ async function runAutoExtract(
 
 const autoMatch = window.location.hash.match(AUTO_MARKER_RE);
 if (autoMatch) {
-  const action = autoMatch[1] === 'copy' ? 'copy' : 'download';
+  const raw = autoMatch[1];
+  const action: AutoAction =
+    raw === 'copy' ? 'copy' : raw === 'obsidian' ? 'obsidian' : 'download';
   autoExtract(action);
 }
 
@@ -198,16 +235,19 @@ function showInPlaceToast(text: string): void {
 // Used when the user clicks the inline button or context menu while
 // already on the tweet's permalink page — no point opening a new tab.
 
+function coerceAutoAction(raw: unknown): AutoAction {
+  return raw === 'copy' ? 'copy' : raw === 'obsidian' ? 'obsidian' : 'download';
+}
+
 window.addEventListener('tweet2md:autoextract', (e: Event) => {
   const detail = (e as CustomEvent).detail as { action?: string } | undefined;
-  const action = detail?.action === 'copy' ? 'copy' : 'download';
-  autoExtract(action, { allowClose: false });
+  autoExtract(coerceAutoAction(detail?.action), { allowClose: false });
 });
 
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg && msg.action === 'TWEET2MD_AUTOEXTRACT') {
-    const action = msg.subAction === 'copy' ? 'copy' : 'download';
-    autoExtract(action, { allowClose: false }).then(() => sendResponse({ ok: true }));
+    autoExtract(coerceAutoAction(msg.subAction), { allowClose: false })
+      .then(() => sendResponse({ ok: true }));
     return true;
   }
   return false;

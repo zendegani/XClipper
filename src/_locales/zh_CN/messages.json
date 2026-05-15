@@ -86,6 +86,9 @@
   "ctx_copy_tweet": {
     "message": "将推文复制为 Markdown"
   },
+  "ctx_obsidian_tweet": {
+    "message": "将推文添加到 Obsidian"
+  },
   "opt_show_inline_title": {
     "message": "在每条推文操作栏的分享按钮旁添加下载按钮"
   },

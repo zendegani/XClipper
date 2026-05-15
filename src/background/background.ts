@@ -11,6 +11,9 @@ import {
 const MENU_PARENT = 'tweet2md-root';
 const MENU_SAVE = 'tweet2md-save';
 const MENU_COPY = 'tweet2md-copy';
+const MENU_OBSIDIAN = 'tweet2md-obsidian';
+
+type MenuAction = 'download' | 'copy' | 'obsidian';
 
 // Strip any path beyond /status/<id> (e.g. /history, /photo/1, /analytics) and
 // drop any existing query/hash, so we always open the canonical permalink.
@@ -51,21 +54,37 @@ function registerContextMenus(): void {
       targetUrlPatterns: ['*://x.com/*/status/*'],
       documentUrlPatterns: ['*://x.com/*'],
     });
+    chrome.contextMenus.create({
+      id: MENU_OBSIDIAN,
+      parentId: MENU_PARENT,
+      title: chrome.i18n.getMessage('ctx_obsidian_tweet') || 'Add tweet to Obsidian',
+      contexts: ['link', 'page'],
+      targetUrlPatterns: ['*://x.com/*/status/*'],
+      documentUrlPatterns: ['*://x.com/*'],
+    });
   });
 }
 
 chrome.runtime.onInstalled.addListener(registerContextMenus);
 chrome.runtime.onStartup.addListener(registerContextMenus);
 
-function appendMarker(url: string, action: 'download' | 'copy'): string {
+function appendMarker(url: string, action: MenuAction): string {
   // Strip any existing tweet2md marker so we don't compound them.
-  const cleaned = url.replace(/[#&]tweet2md=(?:download|copy|1)/g, '').replace(/#$/, '');
+  const cleaned = url.replace(/[#&]tweet2md=(?:download|copy|obsidian|1)/g, '').replace(/#$/, '');
   const sep = cleaned.includes('#') ? '&' : '#';
   return cleaned + sep + 'tweet2md=' + action;
 }
 
+function menuItemAction(menuItemId: unknown): MenuAction | null {
+  if (menuItemId === MENU_SAVE) return 'download';
+  if (menuItemId === MENU_COPY) return 'copy';
+  if (menuItemId === MENU_OBSIDIAN) return 'obsidian';
+  return null;
+}
+
 chrome.contextMenus.onClicked.addListener((info, tab) => {
-  if (info.menuItemId !== MENU_SAVE && info.menuItemId !== MENU_COPY) return;
+  const action = menuItemAction(info.menuItemId);
+  if (!action) return;
 
   // Prefer an explicit link the user right-clicked on, then the URL the
   // injector reported for the tweet under the cursor, then the page URL.
@@ -78,7 +97,6 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     '';
   if (!target) return;
 
-  const action = info.menuItemId === MENU_COPY ? 'copy' : 'download';
   const pageNormalized = info.pageUrl ? normalizeStatusUrl(info.pageUrl) : null;
 
   // If the target tweet IS the current page, extract in place. Right-clicking
