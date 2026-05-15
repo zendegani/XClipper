@@ -49,7 +49,15 @@ Skip the popup. The download icon sits next to share on every tweet. One click o
   <img src="assets/feature-context-menu.png" alt="Right-click context menu with Save and Copy as Markdown items" width="700" />
 </p>
 
-Right-click anywhere on a tweet — the body, an image, or the timestamp — and pick **Save tweet as Markdown** or **Copy tweet as Markdown**. tweet2md figures out which tweet you meant.
+Right-click anywhere on a tweet — the body, an image, or the timestamp — and pick **Save tweet as Markdown**, **Copy tweet as Markdown**, or **Add tweet to Obsidian**. tweet2md figures out which tweet you meant.
+
+### Settings — tune behaviour once, forget about it
+
+<p align="center">
+  <img src="assets/Extension_and_Setting.png" alt="tweet2md popup and settings view side by side" width="700" />
+</p>
+
+The popup keeps the things you adjust per export — **Save images locally**, **Show engagement stats inline**, **Include metadata** — front and centre. Click the gear icon at the top-right to flip to **Settings**, where the set-once knobs live: the **Obsidian-friendly frontmatter** toggle, the optional **Vault name** for the *Add to Obsidian* button, and the inline-button & context-menu behaviour. Settings persist across sessions via `chrome.storage`.
 
 ### Great For
 
