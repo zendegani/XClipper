@@ -111,7 +111,11 @@ body {
   gap: 6px;
   flex: 1;
   padding: 12px 10px;
-  border: none;
+  /* Transparent 1px border so outlined variants (.btn-obsidian) have the
+   * same computed height as filled ones — border-box only includes the
+   * border when an explicit height is set; with height:auto, a border
+   * adds to total height. */
+  border: 1px solid transparent;
   border-radius: var(--radius);
   background: var(--accent);
   color: #ffffff;
@@ -175,14 +179,14 @@ body {
  * with its hint on the right so the disclaimer is spatially attached to
  * the button without making the button itself visually heavier. */
 .obsidian-row {
+  --obsidian: #7C3AED;
+  --obsidian-glow: rgba(124, 58, 237, 0.18);
   display: flex;
   gap: 8px;
   align-items: center;
 }
 
 .btn-obsidian {
-  --obsidian: #7C3AED;
-  --obsidian-glow: rgba(124, 58, 237, 0.18);
   flex: 1;
   background: transparent;
   color: var(--obsidian);
@@ -207,8 +211,8 @@ body {
   flex: 1;
   font-size: 11px;
   line-height: 1.4;
-  color: var(--text-secondary);
-  opacity: 0.8;
+  color: var(--obsidian);
+  opacity: 0.75;
   padding: 0 2px;
 }
 
