@@ -63,10 +63,12 @@ const btnBack = document.getElementById('btn-back');
 btnSettings?.addEventListener('click', () => {
   viewMain?.classList.add('hidden');
   viewSettings?.classList.remove('hidden');
+  btnSettings?.classList.add('hidden');
 });
 btnBack?.addEventListener('click', () => {
   viewSettings?.classList.add('hidden');
   viewMain?.classList.remove('hidden');
+  btnSettings?.classList.remove('hidden');
 });
 
 // ─── Settings Persistence ───────────────────────────────────────────

@@ -55,9 +55,10 @@ body {
 
 /* ─── Container ─────────────────────────────────────────────── */
 .popup-container {
+  position: relative;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
   padding: 20px;
 }
 
@@ -318,20 +319,58 @@ body {
 .popup-main {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 8px;
 }
 
 .popup-main.hidden {
   display: none;
 }
 
-/* ─── Nav link (Settings / Back) ────────────────────────────── */
+/* ─── Settings gear (top-right corner) ─────────────────────── */
+.btn-settings-icon {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: transparent;
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  color: var(--text-secondary);
+  opacity: 0.7;
+  transition: background var(--transition), color var(--transition), opacity var(--transition);
+  z-index: 1;
+}
+
+.btn-settings-icon:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  opacity: 1;
+}
+
+.btn-settings-icon.hidden {
+  display: none;
+}
+
+.btn-settings-icon svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* ─── Nav link (Back link in settings view) ────────────────── */
 .nav-link {
   display: flex;
   align-items: center;
   gap: 8px;
   width: 100%;
-  padding: 8px 12px;
+  /* Vertical padding is intentionally small — the popup-main flex `gap`
+   * handles inter-row spacing; padding only needs to provide a clickable
+   * hit area around the text. */
+  padding: 4px 12px;
   border: none;
   background: transparent;
   color: var(--text-secondary);
