@@ -169,26 +169,42 @@ body {
   flex-shrink: 0;
 }
 
-/* Secondary action — full width, muted styling so primary save/copy stays
- * visually dominant. Obsidian-purple accents the icon. */
+/* Tertiary "send elsewhere" action — purple outline matches Obsidian's
+ * brand and signals a different category from the primary blue Download
+ * / Copy buttons (which save content locally). */
 .btn-obsidian {
+  --obsidian: #7C3AED;
+  --obsidian-glow: rgba(124, 58, 237, 0.18);
   width: 100%;
-  background: var(--bg-elevated);
-  color: var(--text-primary);
-  border: 1px solid var(--border-subtle);
+  background: transparent;
+  color: var(--obsidian);
+  border: 1px solid var(--obsidian);
 }
 
 .btn-obsidian:hover {
-  background: var(--bg-hover);
-  box-shadow: none;
+  background: var(--obsidian-glow);
+  color: var(--obsidian);
+  box-shadow: 0 4px 16px var(--obsidian-glow);
 }
 
 .btn-obsidian:active {
-  box-shadow: none;
+  box-shadow: 0 2px 8px var(--obsidian-glow);
 }
 
 .btn-obsidian .btn-icon {
-  color: #7C3AED;
+  color: var(--obsidian);
+}
+
+/* Inline hint under the Obsidian button — pre-empts the URL-length failure
+ * mode and the "where are my images?" question without scaring users. */
+.btn-hint {
+  font-size: 11px;
+  line-height: 1.4;
+  color: var(--text-secondary);
+  opacity: 0.75;
+  text-align: center;
+  padding: 0 4px;
+  margin-top: -4px;
 }
 
 /* ─── Loading State ─────────────────────────────────────────── */
