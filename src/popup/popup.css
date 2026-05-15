@@ -259,6 +259,58 @@ body {
   margin-top: 4px;
 }
 
+/* ─── View Switching ────────────────────────────────────────── */
+.popup-main.hidden {
+  display: none;
+}
+
+/* ─── Nav link (Settings / Back) ────────────────────────────── */
+.nav-link {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  border-radius: var(--radius-sm);
+  transition:
+    background var(--transition),
+    color var(--transition);
+}
+
+.nav-link:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.nav-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  opacity: 0.7;
+}
+
+.nav-link:hover .nav-icon {
+  opacity: 1;
+}
+
+.nav-arrow {
+  margin-left: auto;
+  font-size: 14px;
+  opacity: 0.6;
+}
+
+.nav-back .nav-arrow {
+  margin-left: 0;
+  margin-right: 4px;
+}
+
 /* ─── Options Toggles ───────────────────────────────────────── */
 .options {
   display: flex;
