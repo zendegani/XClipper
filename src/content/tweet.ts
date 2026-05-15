@@ -270,6 +270,10 @@ function extractSingleTweetFromArticle(
       let title = '';
       let description = '';
 
+      const mediaBlock = cardWrapper.querySelector(
+        '[data-testid="card.layoutSmall.media"], [data-testid="card.layoutLarge.media"]'
+      );
+
       if (detail) {
         // Detail block holds domain / title / description as separate divs.
         const detailDivs = detail.querySelectorAll('div[dir="auto"]');
@@ -284,9 +288,6 @@ function extractSingleTweetFromArticle(
         // Media-only card: title sits as an overlay inside the media block
         // (often dir="ltr"); the domain isn't rendered inside the wrapper, so
         // derive it from the link's hostname.
-        const mediaBlock = cardWrapper.querySelector(
-          '[data-testid="card.layoutSmall.media"], [data-testid="card.layoutLarge.media"]'
-        );
         const overlay = mediaBlock?.querySelector('div[dir="ltr"], div[dir="auto"]');
         title = overlay?.textContent?.trim() || '';
         if (href) {
@@ -298,8 +299,22 @@ function extractSingleTweetFromArticle(
         }
       }
 
+      // OG preview image. Alt is the sentinel `Link card preview` so the
+      // download-images pass in post-process can leave it as a remote URL —
+      // we render it but don't pull it into the local sibling folder.
+      let previewImg = '';
+      const previewImgEl = mediaBlock?.querySelector('img');
+      if (previewImgEl) {
+        let src = (previewImgEl as HTMLImageElement).src || '';
+        if (src.includes('pbs.twimg.com')) {
+          src = src.replace(/&name=\w+/, '&name=large');
+        }
+        if (src) previewImg = `![Link card preview](${src})`;
+      }
+
       if (title) {
         const parts: string[] = [];
+        if (previewImg) parts.push(previewImg);
         if (href) {
           parts.push(`🔗 [**${title}**](${href})`);
         } else {

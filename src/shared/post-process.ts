@@ -115,6 +115,12 @@ export function postProcess(
         if (!isAllowedImageUrl(imgUrl)) {
           return match;
         }
+        // Link-card OG previews are belong to the destination site, not the
+        // tweet's own media — keep them as remote URLs so we don't accumulate
+        // third-party thumbnails on disk.
+        if (alt === 'Link card preview') {
+          return match;
+        }
 
         try {
           const urlObj = new URL(imgUrl);

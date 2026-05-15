@@ -14,6 +14,17 @@ function content(markdown: string): ExtractedContent {
 }
 
 describe('postProcess() image downloads', () => {
+  it('does not download link card preview images even on pbs.twimg.com', () => {
+    const cardUrl = 'https://pbs.twimg.com/media/HEut_fPXkAA_Opf?format=jpg&name=large';
+    const result = postProcess(
+      content(`> ![Link card preview](${cardUrl})`),
+      { includeMetadata: false, downloadImages: true }
+    );
+
+    expect(result.markdown).toContain(`![Link card preview](${cardUrl})`);
+    expect(result.images).toEqual([]);
+  });
+
   it('localizes only allowed X/Twitter media images', () => {
     const allowedUrl = 'https://pbs.twimg.com/media/example?format=jpg&name=large';
     const externalUrl = 'https://example.com/card.jpg';
