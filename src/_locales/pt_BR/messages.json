@@ -14,6 +14,15 @@
   "btn_copy": {
     "message": "Copiar .md"
   },
+  "btn_obsidian": {
+    "message": "Adicionar ao Obsidian"
+  },
+  "btn_obsidian_hint": {
+    "message": "Threads longas ou imagens? Use Baixar .md"
+  },
+  "obsidian_opened": {
+    "message": "Abrindo Obsidian…"
+  },
   "extracting": {
     "message": "Extraindo…"
   },
@@ -22,6 +31,30 @@
   },
   "group_inline": {
     "message": "Botão integrado e menu de contexto"
+  },
+  "nav_settings": {
+    "message": "Configurações"
+  },
+  "nav_back": {
+    "message": "Voltar"
+  },
+  "group_obsidian": {
+    "message": "Obsidian"
+  },
+  "opt_obsidian_friendly": {
+    "message": "Frontmatter otimizado para Obsidian"
+  },
+  "opt_obsidian_friendly_title": {
+    "message": "Gera frontmatter otimizado para Obsidian: autor em wikilink, tags e datas de publicação/criação"
+  },
+  "opt_obsidian_vault": {
+    "message": "Nome do vault"
+  },
+  "opt_obsidian_vault_title": {
+    "message": "Usado pelo botão 'Adicionar ao Obsidian'. Deixe em branco para o Obsidian usar o último vault utilizado."
+  },
+  "opt_obsidian_vault_placeholder": {
+    "message": "(opcional)"
   },
   "opt_save_images_title": {
     "message": "Baixar imagens para uma pasta ao lado do arquivo Markdown"
@@ -34,6 +67,36 @@
   },
   "opt_metadata": {
     "message": "Incluir metadados"
+  },
+  "opt_inline_stats_title": {
+    "message": "Renderizar curtidas, reposts, respostas, marcadores e visualizações como uma linha no Markdown"
+  },
+  "opt_inline_stats": {
+    "message": "Mostrar estatísticas de engajamento no texto"
+  },
+  "opt_close_tab_title": {
+    "message": "Quando ativado, a aba é fechada automaticamente após o tweet ser baixado ou copiado."
+  },
+  "opt_close_tab": {
+    "message": "Fechar a nova aba após exportar"
+  },
+  "ctx_save_tweet": {
+    "message": "Salvar tweet como Markdown"
+  },
+  "ctx_copy_tweet": {
+    "message": "Copiar tweet como Markdown"
+  },
+  "opt_show_inline_title": {
+    "message": "Adiciona um botão de download ao lado do botão de compartilhar em cada tweet"
+  },
+  "opt_show_inline": {
+    "message": "Mostrar botão integrado nos tweets"
+  },
+  "opt_inline_copies_title": {
+    "message": "Quando ativado, o ícone inline copia o Markdown para a área de transferência em vez de baixar um arquivo."
+  },
+  "opt_inline_copies": {
+    "message": "Botão inline copia em vez disso"
   },
   "footer_hint": {
     "message": "Abra um tweet ou artigo no X.com para começar"
@@ -79,35 +142,5 @@
   },
   "copied": {
     "message": "Copiado!"
-  },
-  "opt_close_tab": {
-    "message": "Fechar a nova aba após exportar"
-  },
-  "opt_inline_stats_title": {
-    "message": "Renderizar curtidas, reposts, respostas, marcadores e visualizações como uma linha no Markdown"
-  },
-  "opt_inline_stats": {
-    "message": "Mostrar estatísticas de engajamento no texto"
-  },
-  "opt_close_tab_title": {
-    "message": "Quando ativado, a aba é fechada automaticamente após o tweet ser baixado ou copiado."
-  },
-  "opt_inline_copies": {
-    "message": "Botão inline copia em vez disso"
-  },
-  "opt_show_inline_title": {
-    "message": "Adiciona um botão de download ao lado do botão de compartilhar em cada tweet"
-  },
-  "opt_show_inline": {
-    "message": "Mostrar botão integrado nos tweets"
-  },
-  "opt_inline_copies_title": {
-    "message": "Quando ativado, o ícone inline copia o Markdown para a área de transferência em vez de baixar um arquivo."
-  },
-  "ctx_save_tweet": {
-    "message": "Salvar tweet como Markdown"
-  },
-  "ctx_copy_tweet": {
-    "message": "Copiar tweet como Markdown"
   }
 }

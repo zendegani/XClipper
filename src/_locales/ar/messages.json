@@ -14,6 +14,15 @@
   "btn_copy": {
     "message": "نسخ .md"
   },
+  "btn_obsidian": {
+    "message": "إضافة إلى Obsidian"
+  },
+  "btn_obsidian_hint": {
+    "message": "سلاسل طويلة أو صور؟ استخدم تنزيل .md بدلاً من ذلك"
+  },
+  "obsidian_opened": {
+    "message": "جارٍ فتح Obsidian…"
+  },
   "extracting": {
     "message": "جاري الاستخراج…"
   },
@@ -22,6 +31,30 @@
   },
   "group_inline": {
     "message": "الزر المدمج وقائمة النقر بالزر الأيمن"
+  },
+  "nav_settings": {
+    "message": "الإعدادات"
+  },
+  "nav_back": {
+    "message": "رجوع"
+  },
+  "group_obsidian": {
+    "message": "Obsidian"
+  },
+  "opt_obsidian_friendly": {
+    "message": "مقدمة YAML متوافقة مع Obsidian"
+  },
+  "opt_obsidian_friendly_title": {
+    "message": "إنشاء YAML frontmatter محسّن لـ Obsidian: مؤلف بروابط wikilink، وسوم، وتواريخ النشر/الإنشاء"
+  },
+  "opt_obsidian_vault": {
+    "message": "اسم الـ Vault"
+  },
+  "opt_obsidian_vault_title": {
+    "message": "يُستخدم بواسطة زر 'إضافة إلى Obsidian'. اتركه فارغًا ليختار Obsidian آخر Vault مستخدم."
+  },
+  "opt_obsidian_vault_placeholder": {
+    "message": "(اختياري)"
   },
   "opt_save_images_title": {
     "message": "تنزيل الصور إلى مجلد بجانب ملف Markdown"
@@ -34,6 +67,36 @@
   },
   "opt_metadata": {
     "message": "تضمين البيانات الوصفية"
+  },
+  "opt_inline_stats_title": {
+    "message": "عرض الإعجابات وإعادات النشر والردود والإشارات المرجعية والمشاهدات كصف في نص Markdown"
+  },
+  "opt_inline_stats": {
+    "message": "عرض إحصائيات التفاعل ضمن النص"
+  },
+  "opt_close_tab_title": {
+    "message": "عند التفعيل، يتم إغلاق التبويب تلقائيًا بعد تنزيل التغريدة أو نسخها."
+  },
+  "opt_close_tab": {
+    "message": "إغلاق التبويب الجديد بعد التصدير"
+  },
+  "ctx_save_tweet": {
+    "message": "حفظ التغريدة كـ Markdown"
+  },
+  "ctx_copy_tweet": {
+    "message": "نسخ التغريدة كـ Markdown"
+  },
+  "opt_show_inline_title": {
+    "message": "يضيف زر تنزيل بجوار زر المشاركة في شريط إجراءات كل تغريدة"
+  },
+  "opt_show_inline": {
+    "message": "إظهار زر مدمج على التغريدات"
+  },
+  "opt_inline_copies_title": {
+    "message": "عند التفعيل، يقوم رمز التنزيل المضمن بنسخ Markdown إلى الحافظة بدلاً من تنزيل ملف."
+  },
+  "opt_inline_copies": {
+    "message": "زر النسخ المضمن بدلاً من التنزيل"
   },
   "footer_hint": {
     "message": "افتح تغريدة أو مقالة على X.com للبدء"
@@ -79,35 +142,5 @@
   },
   "copied": {
     "message": "تم النسخ!"
-  },
-  "opt_close_tab": {
-    "message": "إغلاق التبويب الجديد بعد التصدير"
-  },
-  "opt_inline_stats_title": {
-    "message": "عرض الإعجابات وإعادات النشر والردود والإشارات المرجعية والمشاهدات كصف في نص Markdown"
-  },
-  "opt_inline_stats": {
-    "message": "عرض إحصائيات التفاعل ضمن النص"
-  },
-  "opt_close_tab_title": {
-    "message": "عند التفعيل، يتم إغلاق التبويب تلقائيًا بعد تنزيل التغريدة أو نسخها."
-  },
-  "opt_inline_copies": {
-    "message": "زر النسخ المضمن بدلاً من التنزيل"
-  },
-  "opt_show_inline_title": {
-    "message": "يضيف زر تنزيل بجوار زر المشاركة في شريط إجراءات كل تغريدة"
-  },
-  "opt_show_inline": {
-    "message": "إظهار زر مدمج على التغريدات"
-  },
-  "opt_inline_copies_title": {
-    "message": "عند التفعيل، يقوم رمز التنزيل المضمن بنسخ Markdown إلى الحافظة بدلاً من تنزيل ملف."
-  },
-  "ctx_save_tweet": {
-    "message": "حفظ التغريدة كـ Markdown"
-  },
-  "ctx_copy_tweet": {
-    "message": "نسخ التغريدة كـ Markdown"
   }
 }

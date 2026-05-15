@@ -14,6 +14,15 @@
   "btn_copy": {
     "message": "کپی .md"
   },
+  "btn_obsidian": {
+    "message": "افزودن به Obsidian"
+  },
+  "btn_obsidian_hint": {
+    "message": "رشته‌های طولانی یا تصاویر؟ به‌جای آن از دانلود .md استفاده کنید"
+  },
+  "obsidian_opened": {
+    "message": "در حال باز کردن Obsidian…"
+  },
   "extracting": {
     "message": "در حال استخراج…"
   },
@@ -22,6 +31,30 @@
   },
   "group_inline": {
     "message": "دکمه روی توییت و منوی راست‌کلیک"
+  },
+  "nav_settings": {
+    "message": "تنظیمات"
+  },
+  "nav_back": {
+    "message": "بازگشت"
+  },
+  "group_obsidian": {
+    "message": "Obsidian"
+  },
+  "opt_obsidian_friendly": {
+    "message": "فرانت‌متر سازگار با Obsidian"
+  },
+  "opt_obsidian_friendly_title": {
+    "message": "تولید فرانت‌متر بهینه برای Obsidian: نویسنده با wikilink، برچسب‌ها، تاریخ انتشار/ایجاد"
+  },
+  "opt_obsidian_vault": {
+    "message": "نام Vault"
+  },
+  "opt_obsidian_vault_title": {
+    "message": "توسط دکمه «افزودن به Obsidian» استفاده می‌شود. برای انتخاب آخرین Vault استفاده‌شده توسط Obsidian، خالی بگذارید."
+  },
+  "opt_obsidian_vault_placeholder": {
+    "message": "(اختیاری)"
   },
   "opt_save_images_title": {
     "message": "دانلود تصاویر در پوشه‌ای در کنار فایل Markdown"
@@ -34,6 +67,36 @@
   },
   "opt_metadata": {
     "message": "شامل متادیتا"
+  },
+  "opt_inline_stats_title": {
+    "message": "نمایش لایک‌ها، بازنشرها، پاسخ‌ها، بوکمارک‌ها و بازدیدها به‌صورت یک ردیف داخل متن Markdown"
+  },
+  "opt_inline_stats": {
+    "message": "نمایش آمار تعامل به‌صورت خطی"
+  },
+  "opt_close_tab_title": {
+    "message": "در صورت فعال بودن، پس از دانلود یا کپی شدن توییت، تب به‌صورت خودکار بسته می‌شود."
+  },
+  "opt_close_tab": {
+    "message": "بستن تب جدید پس از خروجی گرفتن"
+  },
+  "ctx_save_tweet": {
+    "message": "ذخیره توییت به‌صورت Markdown"
+  },
+  "ctx_copy_tweet": {
+    "message": "کپی توییت به‌صورت Markdown"
+  },
+  "opt_show_inline_title": {
+    "message": "افزودن دکمه دانلود کنار دکمه اشتراک‌گذاری در نوار اقدامات هر توییت"
+  },
+  "opt_show_inline": {
+    "message": "نمایش دکمه روی توییت‌ها"
+  },
+  "opt_inline_copies_title": {
+    "message": "در صورت فعال بودن، آیکون دانلود درون‌خطی به‌جای دانلود فایل، Markdown را در کلیپ‌بورد کپی می‌کند."
+  },
+  "opt_inline_copies": {
+    "message": "دکمه درون‌خطی به‌جای دانلود کپی می‌کند"
   },
   "footer_hint": {
     "message": "برای شروع، یک توییت یا مقاله را در X.com باز کنید"
@@ -79,35 +142,5 @@
   },
   "copied": {
     "message": "کپی شد!"
-  },
-  "opt_close_tab": {
-    "message": "بستن تب جدید پس از خروجی گرفتن"
-  },
-  "opt_inline_stats_title": {
-    "message": "نمایش لایک‌ها، بازنشرها، پاسخ‌ها، بوکمارک‌ها و بازدیدها به‌صورت یک ردیف داخل متن Markdown"
-  },
-  "opt_inline_stats": {
-    "message": "نمایش آمار تعامل به‌صورت خطی"
-  },
-  "opt_close_tab_title": {
-    "message": "در صورت فعال بودن، پس از دانلود یا کپی شدن توییت، تب به‌صورت خودکار بسته می‌شود."
-  },
-  "opt_inline_copies": {
-    "message": "دکمه درون‌خطی به‌جای دانلود کپی می‌کند"
-  },
-  "opt_show_inline_title": {
-    "message": "افزودن دکمه دانلود کنار دکمه اشتراک‌گذاری در نوار اقدامات هر توییت"
-  },
-  "opt_show_inline": {
-    "message": "نمایش دکمه روی توییت‌ها"
-  },
-  "opt_inline_copies_title": {
-    "message": "در صورت فعال بودن، آیکون دانلود درون‌خطی به‌جای دانلود فایل، Markdown را در کلیپ‌بورد کپی می‌کند."
-  },
-  "ctx_save_tweet": {
-    "message": "ذخیره توییت به‌صورت Markdown"
-  },
-  "ctx_copy_tweet": {
-    "message": "کپی توییت به‌صورت Markdown"
   }
 }

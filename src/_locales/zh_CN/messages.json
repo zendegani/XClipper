@@ -14,6 +14,15 @@
   "btn_copy": {
     "message": "复制 .md"
   },
+  "btn_obsidian": {
+    "message": "添加到 Obsidian"
+  },
+  "btn_obsidian_hint": {
+    "message": "长线程或图片？请改用下载 .md"
+  },
+  "obsidian_opened": {
+    "message": "正在打开 Obsidian…"
+  },
   "extracting": {
     "message": "提取中…"
   },
@@ -22,6 +31,30 @@
   },
   "group_inline": {
     "message": "内联按钮和右键菜单"
+  },
+  "nav_settings": {
+    "message": "设置"
+  },
+  "nav_back": {
+    "message": "返回"
+  },
+  "group_obsidian": {
+    "message": "Obsidian"
+  },
+  "opt_obsidian_friendly": {
+    "message": "适用于 Obsidian 的 frontmatter"
+  },
+  "opt_obsidian_friendly_title": {
+    "message": "生成针对 Obsidian 优化的 frontmatter：wikilink 作者、标签、发布日期/创建日期"
+  },
+  "opt_obsidian_vault": {
+    "message": "Vault 名称"
+  },
+  "opt_obsidian_vault_title": {
+    "message": "由“添加到 Obsidian”按钮使用。留空可让 Obsidian 自动选择最近使用的 vault。"
+  },
+  "opt_obsidian_vault_placeholder": {
+    "message": "（可选）"
   },
   "opt_save_images_title": {
     "message": "将图片下载到 Markdown 文件旁的文件夹中"
@@ -34,6 +67,36 @@
   },
   "opt_metadata": {
     "message": "包含元数据"
+  },
+  "opt_inline_stats_title": {
+    "message": "将点赞、转发、回复、书签和浏览量作为一行渲染在 Markdown 正文中"
+  },
+  "opt_inline_stats": {
+    "message": "在正文中显示互动数据"
+  },
+  "opt_close_tab_title": {
+    "message": "启用后，下载或复制推文后会自动关闭当前标签页。"
+  },
+  "opt_close_tab": {
+    "message": "导出后关闭新标签页"
+  },
+  "ctx_save_tweet": {
+    "message": "将推文保存为 Markdown"
+  },
+  "ctx_copy_tweet": {
+    "message": "将推文复制为 Markdown"
+  },
+  "opt_show_inline_title": {
+    "message": "在每条推文操作栏的分享按钮旁添加下载按钮"
+  },
+  "opt_show_inline": {
+    "message": "在推文上显示内联按钮"
+  },
+  "opt_inline_copies_title": {
+    "message": "启用后，内联下载图标会将 Markdown 复制到剪贴板，而不是下载文件。"
+  },
+  "opt_inline_copies": {
+    "message": "内联按钮改为复制"
   },
   "footer_hint": {
     "message": "在 X.com 上打开推文或文章以开始使用"
@@ -79,35 +142,5 @@
   },
   "copied": {
     "message": "已复制！"
-  },
-  "opt_close_tab": {
-    "message": "导出后关闭新标签页"
-  },
-  "opt_inline_stats_title": {
-    "message": "将点赞、转发、回复、书签和浏览量作为一行渲染在 Markdown 正文中"
-  },
-  "opt_inline_stats": {
-    "message": "在正文中显示互动数据"
-  },
-  "opt_close_tab_title": {
-    "message": "启用后，下载或复制推文后会自动关闭当前标签页。"
-  },
-  "opt_inline_copies": {
-    "message": "内联按钮改为复制"
-  },
-  "opt_show_inline_title": {
-    "message": "在每条推文操作栏的分享按钮旁添加下载按钮"
-  },
-  "opt_show_inline": {
-    "message": "在推文上显示内联按钮"
-  },
-  "opt_inline_copies_title": {
-    "message": "启用后，内联下载图标会将 Markdown 复制到剪贴板，而不是下载文件。"
-  },
-  "ctx_save_tweet": {
-    "message": "将推文保存为 Markdown"
-  },
-  "ctx_copy_tweet": {
-    "message": "将推文复制为 Markdown"
   }
 }

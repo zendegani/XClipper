@@ -14,6 +14,15 @@
   "btn_copy": {
     "message": ".mdをコピー"
   },
+  "btn_obsidian": {
+    "message": "Obsidianに追加"
+  },
+  "btn_obsidian_hint": {
+    "message": "長いスレッドや画像がありますか？代わりに .md をダウンロードしてください"
+  },
+  "obsidian_opened": {
+    "message": "Obsidianを開いています…"
+  },
   "extracting": {
     "message": "抽出中…"
   },
@@ -22,6 +31,30 @@
   },
   "group_inline": {
     "message": "インラインボタン & 右クリックメニュー"
+  },
+  "nav_settings": {
+    "message": "設定"
+  },
+  "nav_back": {
+    "message": "戻る"
+  },
+  "group_obsidian": {
+    "message": "Obsidian"
+  },
+  "opt_obsidian_friendly": {
+    "message": "Obsidian向けフロントマター"
+  },
+  "opt_obsidian_friendly_title": {
+    "message": "Obsidian向けに最適化されたフロントマターを生成します：wikilink著者、タグ、公開日/作成日"
+  },
+  "opt_obsidian_vault": {
+    "message": "Vault名"
+  },
+  "opt_obsidian_vault_title": {
+    "message": "「Obsidianに追加」ボタンで使用されます。空欄にすると、Obsidianが最後に使用したVaultを選択します。"
+  },
+  "opt_obsidian_vault_placeholder": {
+    "message": "（任意）"
   },
   "opt_save_images_title": {
     "message": "Markdownファイルと同じフォルダに画像をダウンロードする"
@@ -34,6 +67,36 @@
   },
   "opt_metadata": {
     "message": "メタデータを含める"
+  },
+  "opt_inline_stats_title": {
+    "message": "いいね、リポスト、返信、ブックマーク、表示回数を Markdown 本文に1行で表示します"
+  },
+  "opt_inline_stats": {
+    "message": "エンゲージメント数を本文に表示"
+  },
+  "opt_close_tab_title": {
+    "message": "有効にすると、ツイートのダウンロードまたはコピー後にタブが自動的に閉じられます。"
+  },
+  "opt_close_tab": {
+    "message": "エクスポート後に新しいタブを閉じる"
+  },
+  "ctx_save_tweet": {
+    "message": "ツイートをMarkdownとして保存"
+  },
+  "ctx_copy_tweet": {
+    "message": "ツイートをMarkdownとしてコピー"
+  },
+  "opt_show_inline_title": {
+    "message": "各ツイートのアクションバーの共有ボタンの横にダウンロードボタンを追加します"
+  },
+  "opt_show_inline": {
+    "message": "ツイートにインラインボタンを表示"
+  },
+  "opt_inline_copies_title": {
+    "message": "有効にすると、インラインのダウンロードアイコンはファイルをダウンロードする代わりにMarkdownをクリップボードへコピーします。"
+  },
+  "opt_inline_copies": {
+    "message": "インラインボタンでコピーする"
   },
   "footer_hint": {
     "message": "X.comでツイートまたは記事を開いて開始してください"
@@ -79,35 +142,5 @@
   },
   "copied": {
     "message": "コピー完了！"
-  },
-  "opt_close_tab": {
-    "message": "エクスポート後に新しいタブを閉じる"
-  },
-  "opt_inline_stats_title": {
-    "message": "いいね、リポスト、返信、ブックマーク、表示回数を Markdown 本文に1行で表示します"
-  },
-  "opt_inline_stats": {
-    "message": "エンゲージメント数を本文に表示"
-  },
-  "opt_close_tab_title": {
-    "message": "有効にすると、ツイートのダウンロードまたはコピー後にタブが自動的に閉じられます。"
-  },
-  "opt_inline_copies": {
-    "message": "インラインボタンでコピーする"
-  },
-  "opt_show_inline_title": {
-    "message": "各ツイートのアクションバーの共有ボタンの横にダウンロードボタンを追加します"
-  },
-  "opt_show_inline": {
-    "message": "ツイートにインラインボタンを表示"
-  },
-  "opt_inline_copies_title": {
-    "message": "有効にすると、インラインのダウンロードアイコンはファイルをダウンロードする代わりにMarkdownをクリップボードへコピーします。"
-  },
-  "ctx_save_tweet": {
-    "message": "ツイートをMarkdownとして保存"
-  },
-  "ctx_copy_tweet": {
-    "message": "ツイートをMarkdownとしてコピー"
   }
 }
