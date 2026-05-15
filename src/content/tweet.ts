@@ -265,22 +265,36 @@ function extractSingleTweetFromArticle(
       const detail = cardWrapper.querySelector(
         '[data-testid="card.layoutSmall.detail"], [data-testid="card.layoutLarge.detail"]'
       );
-      const detailDivs = detail
-        ? detail.querySelectorAll('div[dir="auto"]')
-        : cardWrapper.querySelectorAll('div[dir="auto"]');
 
       let domain = '';
       let title = '';
       let description = '';
-      for (const d of detailDivs) {
-        const t = d.textContent?.trim() || '';
-        if (!t) continue;
-        if (!domain) {
-          domain = t;
-        } else if (!title) {
-          title = t;
-        } else if (!description) {
-          description = t;
+
+      if (detail) {
+        // Detail block holds domain / title / description as separate divs.
+        const detailDivs = detail.querySelectorAll('div[dir="auto"]');
+        for (const d of detailDivs) {
+          const t = d.textContent?.trim() || '';
+          if (!t) continue;
+          if (!domain) domain = t;
+          else if (!title) title = t;
+          else if (!description) description = t;
+        }
+      } else {
+        // Media-only card: title sits as an overlay inside the media block
+        // (often dir="ltr"); the domain isn't rendered inside the wrapper, so
+        // derive it from the link's hostname.
+        const mediaBlock = cardWrapper.querySelector(
+          '[data-testid="card.layoutSmall.media"], [data-testid="card.layoutLarge.media"]'
+        );
+        const overlay = mediaBlock?.querySelector('div[dir="ltr"], div[dir="auto"]');
+        title = overlay?.textContent?.trim() || '';
+        if (href) {
+          try {
+            domain = new URL(href).hostname.replace(/^www\./, '');
+          } catch {
+            // leave domain empty if href isn't a parseable URL
+          }
         }
       }
 
