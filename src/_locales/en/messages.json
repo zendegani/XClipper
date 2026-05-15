@@ -23,6 +23,12 @@
   "group_inline": {
     "message": "Inline button & context menu"
   },
+  "nav_settings": {
+    "message": "Settings"
+  },
+  "nav_back": {
+    "message": "Back"
+  },
   "opt_save_images_title": {
     "message": "Download images to a folder next to the Markdown file"
   },

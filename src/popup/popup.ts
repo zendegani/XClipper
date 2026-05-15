@@ -38,6 +38,22 @@ document.querySelectorAll('[data-i18n-title]').forEach((el) => {
   }
 });
 
+// ─── View switching: main ↔ settings ──────────────────────────────────
+
+const viewMain = document.getElementById('view-main');
+const viewSettings = document.getElementById('view-settings');
+const btnSettings = document.getElementById('btn-settings');
+const btnBack = document.getElementById('btn-back');
+
+btnSettings?.addEventListener('click', () => {
+  viewMain?.classList.add('hidden');
+  viewSettings?.classList.remove('hidden');
+});
+btnBack?.addEventListener('click', () => {
+  viewSettings?.classList.add('hidden');
+  viewMain?.classList.remove('hidden');
+});
+
 // ─── Settings Persistence ───────────────────────────────────────────
 
 const SETTINGS_KEY = 'tweet2md_settings';
