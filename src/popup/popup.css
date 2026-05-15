@@ -204,7 +204,7 @@ body {
   opacity: 0.75;
   text-align: center;
   padding: 0 4px;
-  margin-top: -4px;
+  margin-top: -6px;
 }
 
 /* ─── Loading State ─────────────────────────────────────────── */
@@ -298,6 +298,12 @@ body {
 }
 
 /* ─── View Switching ────────────────────────────────────────── */
+.popup-main {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
 .popup-main.hidden {
   display: none;
 }
@@ -353,7 +359,6 @@ body {
 .options {
   display: flex;
   flex-direction: column;
-  margin-top: 4px;
   padding: 10px 12px;
   background: var(--bg-elevated);
   border-radius: var(--radius-sm);
