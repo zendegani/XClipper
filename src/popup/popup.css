@@ -109,7 +109,12 @@ body {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  flex: 1;
+  /* Explicit half-width (minus half the row gap). flex: 1 with auto
+   * min-width let content sizing creep in and made the outlined Obsidian
+   * button render wider than the filled Download/Copy buttons, even though
+   * its label fit easily. Pinning the basis kills the asymmetry. */
+  flex: 0 0 calc(50% - 4px);
+  min-width: 0;
   padding: 12px 10px;
   /* Transparent 1px border so outlined variants (.btn-obsidian) have the
    * same computed height as filled ones — border-box only includes the
@@ -208,7 +213,10 @@ body {
 }
 
 .btn-hint {
-  flex: 1;
+  /* Mirror the explicit half-width so the hint never steals or yields
+   * pixels to its neighbor button. */
+  flex: 0 0 calc(50% - 4px);
+  min-width: 0;
   font-size: 11px;
   line-height: 1.4;
   color: var(--obsidian);
