@@ -27,3 +27,8 @@ const listeners = new Set<unknown>();
   i18n: { getMessage: (k: string) => k },
   downloads: { download: noop },
 };
+
+// jsdom doesn't implement scrollTo/scrollBy and logs a "Not implemented"
+// warning when extractor code auto-scrolls to load more tweets. Stub them.
+window.scrollTo = noop as typeof window.scrollTo;
+window.scrollBy = noop as typeof window.scrollBy;
