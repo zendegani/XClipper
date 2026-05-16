@@ -14,7 +14,7 @@
   },
   "devDependencies": {
     "@types/chrome": "^0.1.42",
-    "@types/jsdom": "^28.0.1",
+    "@types/jsdom": "^28.0.3",
     "@types/turndown": "^5.0.5",
     "esbuild": "^0.28.0",
     "jsdom": "^29.1.1",
