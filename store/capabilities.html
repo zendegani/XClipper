@@ -1,0 +1,507 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>tweet2md — capabilities</title>
+<style>
+  :root{
+    --bg: #eef2f6;
+    --ink: #0b1220;
+    --ink-2: #475569;
+    --ink-3: #94a3b8;
+    --card: #ffffff;
+    --line: #e2e8f0;
+    --line-2: #cbd5e1;
+    --brand: #1d9bf0;
+    --brand-deep: #0e7ec9;
+    --obsidian: #6f3df5;
+    --obsidian-soft: #efe7ff;
+    --term-bg: #0c1322;
+    --shadow-card: 0 1px 0 rgba(15,23,42,.04), 0 14px 36px -14px rgba(15,23,42,.20);
+  }
+
+  *{ box-sizing: border-box; }
+  html, body{ margin: 0; padding: 0; background: #d9dee5; }
+  body{
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Helvetica, Arial, sans-serif;
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: geometricPrecision;
+  }
+
+  .canvas{
+    width: 1280px;
+    height: 800px;
+    background: var(--bg);
+    background-image:
+      radial-gradient(1200px 600px at 50% -120px, #ffffff 0%, rgba(255,255,255,0) 60%),
+      radial-gradient(800px 500px at 110% 110%, #e2ebf5 0%, rgba(226,235,245,0) 60%);
+    padding: 48px;
+    overflow: hidden;
+  }
+
+  .grid{
+    height: 100%;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    gap: 24px;
+  }
+
+  .card{
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 18px;
+    box-shadow: var(--shadow-card);
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    position: relative;
+  }
+
+  .card .demo{
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+    position: relative;
+  }
+
+  .card .meta{
+    position: absolute;
+    top: 20px; right: 22px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11px; letter-spacing: .08em;
+    color: var(--ink-3);
+    z-index: 2;
+  }
+
+  .card h3{
+    margin: 14px 0 6px;
+    font-size: 22px; letter-spacing: -.02em; line-height: 1.15;
+    color: var(--ink); font-weight: 800;
+  }
+  .card p{
+    margin: 0;
+    font-size: 14.5px; line-height: 1.45;
+    color: var(--ink-2);
+  }
+  .card p code{
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 13px; color: var(--obsidian);
+    background: var(--obsidian-soft); padding: 1px 5px; border-radius: 4px;
+  }
+
+  /* ───────── Card 1 — Inline ↓ button ───────── */
+  .demo-inline{
+    width: 100%; max-width: 320px;
+    background: #ffffff;
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 14px 16px;
+    box-shadow: 0 1px 0 rgba(15,23,42,.04);
+  }
+  .demo-inline .head{
+    display: flex; align-items: center; gap: 10px;
+  }
+  .demo-inline .av{
+    width: 28px; height: 28px; border-radius: 50%; background: #0b1220;
+    display: grid; place-items: center;
+  }
+  .demo-inline .av svg{ width: 14px; height: 14px; stroke: white; fill: none; stroke-width: 1.6; }
+  .demo-inline .name{ font-size: 12.5px; font-weight: 700; color: var(--ink); }
+  .demo-inline .body{
+    margin: 10px 0 12px;
+    font-size: 12px; line-height: 1.4; color: var(--ink);
+  }
+  .demo-inline .row{
+    display: flex; align-items: center; justify-content: space-between;
+    padding-top: 10px;
+    border-top: 1px solid var(--line);
+    color: var(--ink-3);
+  }
+  .demo-inline .row .act{ display: flex; align-items: center; gap: 4px; font-size: 11.5px; }
+  .demo-inline .row .act svg{ width: 13px; height: 13px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+  .demo-inline .row .dl{
+    width: 30px; height: 30px; border-radius: 50%;
+    border: 2px solid var(--brand);
+    background: rgba(29,155,240,.08);
+    display: grid; place-items: center;
+    position: relative;
+  }
+  .demo-inline .row .dl svg{ stroke: var(--brand); width: 16px; height: 16px; }
+  .demo-inline .row .dl::after{
+    content: '';
+    position: absolute; inset: -8px;
+    border: 1.5px dashed var(--brand);
+    border-radius: 50%;
+    opacity: .55;
+  }
+
+  /* ───────── Card 2 — Right-click menu ───────── */
+  .demo-ctx{
+    width: 240px;
+    background: white;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    box-shadow: 0 12px 28px -10px rgba(15,23,42,.22);
+    overflow: hidden;
+  }
+  .demo-ctx .lbl{
+    background: #f3f6fa;
+    color: var(--ink-3);
+    font-size: 10px; letter-spacing: .16em; text-transform: uppercase;
+    font-weight: 700;
+    padding: 7px 14px;
+    border-bottom: 1px solid #eef2f7;
+  }
+  .demo-ctx .item{
+    display: flex; align-items: center; gap: 10px;
+    padding: 9px 14px;
+    font-size: 13px;
+    color: var(--brand-deep); font-weight: 600;
+    background: linear-gradient(90deg, rgba(29,155,240,.08), rgba(29,155,240,.02));
+    border-bottom: 1px solid #eef2f7;
+  }
+  .demo-ctx .item:last-child{ border-bottom: 0; }
+  .demo-ctx .item img{ width: 16px; height: 16px; border-radius: 50%; }
+  .demo-ctx .item .chev{ margin-left: auto; color: var(--ink-3); font-size: 14px; }
+
+  /* ───────── Card 3 — Popup & settings ───────── */
+  .demo-popup{
+    width: 264px;
+    background: white;
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    box-shadow: 0 14px 32px -10px rgba(15,23,42,.22);
+    padding: 16px;
+  }
+  .demo-popup .ph{ display: flex; align-items: center; justify-content: space-between; }
+  .demo-popup .ph .left{ display: flex; align-items: center; gap: 9px; }
+  .demo-popup .ph .pm{ width: 22px; height: 22px; border-radius: 50%; overflow: hidden; }
+  .demo-popup .ph .pm img{ width: 100%; height: 100%; display: block; }
+  .demo-popup .ph .pn{ font-weight: 800; font-size: 13px; color: var(--ink); letter-spacing: -.01em; }
+  .demo-popup .ph .pn b{ color: var(--brand); font-weight: 800; }
+  .demo-popup .ph .gear{ color: var(--ink-3); font-size: 13px; }
+  .demo-popup .pbtns{ margin-top: 12px; display: flex; gap: 7px; }
+  .demo-popup .pbtn{
+    flex: 1; height: 30px; border-radius: 8px;
+    background: var(--brand); color: white;
+    font-size: 11.5px; font-weight: 700;
+    display: grid; place-items: center;
+    letter-spacing: -.01em;
+  }
+  .demo-popup .pbtn.alt{ background: var(--brand-deep); }
+  .demo-popup .toggles{
+    margin-top: 11px;
+    background: #f3f6fa; border-radius: 8px;
+    padding: 9px 10px;
+    display: flex; flex-direction: column; gap: 7px;
+  }
+  .demo-popup .tg{ display: flex; align-items: center; gap: 8px; font-size: 11.5px; color: var(--ink-2); }
+  .demo-popup .tg .sw{
+    margin-left: auto;
+    width: 26px; height: 14px; background: #e2e8f0; border-radius: 8px; position: relative;
+  }
+  .demo-popup .tg .sw::after{
+    content: ''; position: absolute; top: 1.5px; left: 1.5px;
+    width: 11px; height: 11px; background: white; border-radius: 50%;
+    box-shadow: 0 1px 1px rgba(0,0,0,.12);
+  }
+  .demo-popup .tg.on .sw{ background: var(--brand); }
+  .demo-popup .tg.on .sw::after{ left: auto; right: 1.5px; }
+
+  /* ───────── Card 4 — YAML + images ───────── */
+  .demo-yaml{
+    width: 320px;
+    background: var(--term-bg);
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 14px 32px -10px rgba(15,23,42,.32);
+  }
+  .demo-yaml .bar{
+    height: 26px; background: #0a1020;
+    display: flex; align-items: center; padding: 0 10px; gap: 7px;
+  }
+  .demo-yaml .bar span{ width: 9px; height: 9px; border-radius: 50%; background: #1c2740; }
+  .demo-yaml .code{
+    padding: 14px 16px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12px; line-height: 1.55;
+    color: #cbd5e1;
+  }
+  .demo-yaml .code p{ margin: 0; color: #cbd5e1; }
+  .demo-yaml .yr{ color: #475569; }
+  .demo-yaml .k{ color: #94a3b8; }
+  .demo-yaml .s{ color: #fbbf24; }
+  .demo-yaml .n{ color: #f472b6; }
+  .demo-yaml .t{ color: #34d399; }
+  .demo-yaml .img{ color: #fbbf24; }
+  .demo-yaml .gap{ height: 6px; }
+
+  /* ───────── Card 5 — Add to Obsidian ───────── */
+  .demo-obs{
+    display: flex; flex-direction: column; align-items: center; gap: 14px;
+  }
+  .demo-obs .md-chip{
+    background: var(--term-bg); color: #cbd5e1;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    padding: 8px 14px; border-radius: 8px;
+    font-size: 12px;
+    box-shadow: 0 8px 18px -6px rgba(15,23,42,.3);
+    white-space: nowrap;
+  }
+  .demo-obs .md-chip b{ color: var(--brand); font-weight: 700; }
+  .demo-obs .arrow-down{
+    width: 0; height: 0;
+    border-left: 8px solid transparent;
+    border-right: 8px solid transparent;
+    border-top: 12px solid var(--ink-3);
+  }
+  .demo-obs .obs-btn{
+    background: white;
+    border: 2px solid var(--obsidian);
+    color: var(--obsidian);
+    font-weight: 700; font-size: 14px;
+    padding: 10px 22px; border-radius: 10px;
+    display: flex; align-items: center; gap: 9px;
+    box-shadow: 0 8px 20px -8px rgba(111,61,245,.35);
+  }
+  .demo-obs .obs-btn .gem{
+    width: 18px; height: 18px;
+    background: var(--obsidian); 
+    color: white;
+    border-radius: 4px;
+    display: grid; place-items: center;
+    font-size: 11px;
+  }
+
+  /* ───────── Card 6 — Tweets, threads & Articles ───────── */
+  .demo-types{
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: 12px;
+    width: 100%; max-width: 340px;
+  }
+  .type-card{
+    background: white;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 12px 10px;
+    display: flex; flex-direction: column; gap: 8px;
+    aspect-ratio: 1 / 1.2;
+    position: relative;
+    box-shadow: 0 1px 0 rgba(15,23,42,.04);
+  }
+  .type-card .top-row{ display: flex; align-items: center; gap: 6px; }
+  .type-card .av{ width: 18px; height: 18px; border-radius: 50%; background: #cbd5e1; }
+  .type-card .who{ display: flex; flex-direction: column; gap: 1px; }
+  .type-card .nm{ width: 38px; height: 5px; background: #475569; border-radius: 2px; }
+  .type-card .hd{ width: 24px; height: 4px; background: #cbd5e1; border-radius: 2px; margin-top: 2px; }
+  .type-card .line{ height: 5px; background: #e2e8f0; border-radius: 2px; }
+  .type-card .line.short{ width: 60%; }
+  .type-card .badge{
+    position: absolute; bottom: -7px; left: 50%; transform: translateX(-50%);
+    background: var(--ink); color: white;
+    font-size: 9px; letter-spacing: .12em; text-transform: uppercase;
+    padding: 4px 8px; border-radius: 999px; font-weight: 700;
+    white-space: nowrap;
+  }
+  .type-card.tweet .badge{ background: var(--ink); }
+  .type-card.thread .badge{ background: var(--brand-deep); }
+  .type-card.article .badge{ background: var(--obsidian); }
+
+  /* thread variant — show stacked replies */
+  .type-card.thread{ gap: 5px; padding-top: 10px; }
+  .type-card.thread .reply{
+    display: flex; gap: 5px; align-items: flex-start;
+    padding-left: 6px;
+    border-left: 2px solid #cbd5e1;
+    margin-left: 7px;
+  }
+  .type-card.thread .reply .av{ width: 12px; height: 12px; flex-shrink: 0; }
+  .type-card.thread .reply .lines{ flex: 1; display: flex; flex-direction: column; gap: 3px; }
+  .type-card.thread .reply .lines .line{ height: 3px; }
+
+  /* article variant — show H1 + body */
+  .type-card.article{ padding-top: 10px; }
+  .type-card.article .article-title{
+    width: 80%; height: 8px; background: var(--ink); border-radius: 2px;
+    margin-bottom: 4px;
+  }
+
+</style>
+</head>
+<body>
+  <div class="canvas" id="cap">
+    <div class="grid">
+
+      <!-- ───────── Card 1 — Inline ↓ button ───────── -->
+      <div class="card">
+        <div class="meta">01</div>
+        <div class="demo">
+          <div class="demo-inline">
+            <div class="head">
+              <div class="av">
+                <svg viewBox="0 0 24 24" stroke-linecap="round"><path d="M3 18 L21 6 M21 6 H15 M21 6 V12"/></svg>
+              </div>
+              <div class="name">@SpaceX</div>
+            </div>
+            <div class="body">33 Raptor engines powering the Super Heavy booster off the pad…</div>
+            <div class="row">
+              <div class="act"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>917</div>
+              <div class="act"><svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>4K</div>
+              <div class="act"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>27K</div>
+              <div class="dl">
+                <svg viewBox="0 0 24 24" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              </div>
+            </div>
+          </div>
+        </div>
+        <h3>Inline ↓ button</h3>
+        <p>One click on any tweet — no popup, no menu hunting.</p>
+      </div>
+
+      <!-- ───────── Card 2 — Right-click menu ───────── -->
+      <div class="card">
+        <div class="meta">02</div>
+        <div class="demo">
+          <div class="demo-ctx">
+            <div class="lbl">Right-click menu</div>
+            <div class="item"><img src="../src/icons/icon-128.png" alt="">Save tweet as Markdown<span class="chev">›</span></div>
+            <div class="item"><img src="../src/icons/icon-128.png" alt="">Copy tweet as Markdown</div>
+            <div class="item"><img src="../src/icons/icon-128.png" alt="">Add tweet to Obsidian</div>
+          </div>
+        </div>
+        <h3>Right-click menu</h3>
+        <p>Save, Copy, or send straight to Obsidian — anywhere a tweet renders.</p>
+      </div>
+
+      <!-- ───────── Card 3 — Popup & settings ───────── -->
+      <div class="card">
+        <div class="meta">03</div>
+        <div class="demo">
+          <div class="demo-popup">
+            <div class="ph">
+              <div class="left">
+                <div class="pm"><img src="../src/icons/icon-128.png" alt=""></div>
+                <div class="pn">tweet<b>2md</b></div>
+              </div>
+              <div class="gear">⚙</div>
+            </div>
+            <div class="pbtns">
+              <div class="pbtn">↓ Download .md</div>
+              <div class="pbtn alt">⧉ Copy .md</div>
+            </div>
+            <div class="toggles">
+              <div class="tg"><span>Save images locally</span><span class="sw"></span></div>
+              <div class="tg"><span>Show engagement stats</span><span class="sw"></span></div>
+              <div class="tg on"><span>Include metadata</span><span class="sw"></span></div>
+            </div>
+          </div>
+        </div>
+        <h3>Popup &amp; settings</h3>
+        <p>Per-export toggles for images, stats, and YAML — plus a set-once Obsidian vault.</p>
+      </div>
+
+      <!-- ───────── Card 4 — YAML + images ───────── -->
+      <div class="card">
+        <div class="meta">04</div>
+        <div class="demo">
+          <div class="demo-yaml">
+            <div class="bar"><span></span><span></span><span></span></div>
+            <div class="code">
+              <p><span class="yr">---</span></p>
+              <p><span class="k">author:</span> <span class="s">"@SpaceX"</span></p>
+              <p><span class="k">source:</span> <span class="s">https://x.com/…</span></p>
+              <p><span class="k">date:</span> <span class="n">2024-11-21</span></p>
+              <p><span class="k">likes:</span> <span class="n">682K</span> &nbsp;<span class="k">views:</span> <span class="n">37.3M</span></p>
+              <p><span class="k">tags:</span> <span class="t">[clippings, x, tweet]</span></p>
+              <p><span class="yr">---</span></p>
+              <div class="gap"></div>
+              <p><span class="img">![image](./media/001.jpg)</span></p>
+            </div>
+          </div>
+        </div>
+        <h3>YAML + local images</h3>
+        <p>Rich frontmatter, engagement stats, and embedded media saved alongside — no link rot.</p>
+      </div>
+
+      <!-- ───────── Card 5 — Add to Obsidian ───────── -->
+      <div class="card">
+        <div class="meta">05</div>
+        <div class="demo">
+          <div class="demo-obs">
+            <div class="md-chip">@SpaceX-1859.<b>md</b></div>
+            <div class="arrow-down"></div>
+            <div class="obs-btn">
+              <div class="gem">◆</div>
+              Add to Obsidian
+            </div>
+          </div>
+        </div>
+        <h3>Add to Obsidian</h3>
+        <p>One-click handoff with <code>[[@handle]]</code> wikilinks and Obsidian-friendly frontmatter.</p>
+      </div>
+
+      <!-- ───────── Card 6 — Tweets, threads & Articles ───────── -->
+      <div class="card">
+        <div class="meta">06</div>
+        <div class="demo">
+          <div class="demo-types">
+            <!-- TWEET -->
+            <div class="type-card tweet">
+              <div class="top-row">
+                <div class="av"></div>
+                <div class="who">
+                  <div class="nm"></div>
+                  <div class="hd"></div>
+                </div>
+              </div>
+              <div class="line"></div>
+              <div class="line"></div>
+              <div class="line short"></div>
+              <div class="badge">Tweet</div>
+            </div>
+            <!-- THREAD -->
+            <div class="type-card thread">
+              <div class="top-row">
+                <div class="av"></div>
+                <div class="who">
+                  <div class="nm"></div>
+                  <div class="hd"></div>
+                </div>
+              </div>
+              <div class="line"></div>
+              <div class="reply">
+                <div class="av"></div>
+                <div class="lines"><div class="line"></div><div class="line short"></div></div>
+              </div>
+              <div class="reply">
+                <div class="av"></div>
+                <div class="lines"><div class="line"></div></div>
+              </div>
+              <div class="badge">Thread</div>
+            </div>
+            <!-- ARTICLE -->
+            <div class="type-card article">
+              <div class="article-title"></div>
+              <div class="line"></div>
+              <div class="line"></div>
+              <div class="line"></div>
+              <div class="line short"></div>
+              <div class="line"></div>
+              <div class="badge">Article</div>
+            </div>
+          </div>
+        </div>
+        <h3>Tweets, threads &amp; Articles</h3>
+        <p>Single posts, nested replies, and long-form X Articles — all extracted cleanly.</p>
+      </div>
+
+    </div>
+  </div>
+</body>
+</html>

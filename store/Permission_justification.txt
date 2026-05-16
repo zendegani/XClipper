@@ -1,0 +1,27 @@
+# Descriptions
+
+## Single purpose
+
+tweet2md converts X.com posts and articles into clean Markdown. When the user visits a supported page and triggers an action (via the popup, the inline button, or the right-click context menu), the extension extracts the visible content and lets the user save it as a .md file, copy it to the clipboard, or hand it off to the Obsidian desktop app via the obsidian:// URI scheme. All processing happens locally in the browser and no data is transmitted to any external server.
+
+## Permission justification
+
+### activeTab
+
+The "activeTab" permission allows the extension to access the currently active tab when the user interacts with the extension. It is used to coordinate content extraction and initiate Markdown generation.
+
+### contextMenus
+
+The contextMenus permission is used to add "Save tweet as Markdown", "Copy tweet as Markdown", and "Add tweet to Obsidian" entries to the right-click menu on X.com pages. It lets users export a tweet without opening the popup. Selecting an item opens the tweet's permalink and runs the same local extraction as the popup; the Obsidian entry additionally constructs an obsidian:// URL that the operating system hands off to the Obsidian desktop app, if installed. No data is transmitted to any external server.
+
+### downloads
+
+The "downloads" permission is required to save the generated Markdown file to the user's device as a .md file.
+
+### storage
+
+The "storage" permission is used exclusively to save the user's configuration preferences locally on their device so they are remembered between sessions. This includes the toggle states (such as enabling image downloads or tweet metadata) and the optional Obsidian vault name string entered in the Settings panel. No user content, browsing history, or personally identifying information is stored.
+
+### Host permission
+
+The extension injects a content script on X.com status pages in order to extract the visible post or article content. This content is converted into Markdown locally in the browser when the user initiates the action. No data is transmitted externally.
