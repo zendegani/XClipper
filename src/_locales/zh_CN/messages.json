@@ -3,7 +3,7 @@
     "message": "tweet2md：X 线程与文章转 Markdown"
   },
   "extensionDescription": {
-    "message": "将 X (Twitter) 线程、推文和文章导出为包含图片和元数据的干净 Markdown。无需 API。"
+    "message": "将 X (Twitter) 线程、推文和文章导出为干净的 Markdown — 直接发送到 Obsidian 或本地保存。无需 API。"
   },
   "tagline": {
     "message": "将推文和文章转换为 Markdown"

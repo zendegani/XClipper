@@ -1,6 +1,6 @@
 {
   "name": "tweet2md",
-  "version": "1.5.0",
+  "version": "1.5.1",
   "description": "One-click export of X (Twitter) threads, tweets, and articles to clean Markdown with images and metadata. Perfect for Obsidian, Notion, and AI/RAG workflows. Works locally—no API, no tracking.",
   "private": true,
   "type": "module",

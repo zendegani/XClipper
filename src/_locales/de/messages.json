@@ -3,7 +3,7 @@
     "message": "tweet2md: X-Threads und Artikel zu Markdown"
   },
   "extensionDescription": {
-    "message": "Exportiere X (Twitter) Threads, Tweets und Artikel als sauberes Markdown mit Bildern und Metadaten. Keine API erforderlich."
+    "message": "Exportiere X (Twitter) Threads, Tweets und Artikel als sauberes Markdown — direkt nach Obsidian oder lokal speichern. Keine API nötig."
   },
   "tagline": {
     "message": "Threads und Artikel in Markdown konvertieren"

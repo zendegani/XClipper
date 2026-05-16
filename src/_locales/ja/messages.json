@@ -3,7 +3,7 @@
     "message": "tweet2md: Xスレッド・記事をMarkdownへ変換"
   },
   "extensionDescription": {
-    "message": "X (Twitter) のスレッド、ツイート、記事を画像とメタデータ付きのクリーンなMarkdownにエクスポート。API不要。"
+    "message": "X (Twitter) のスレッド、ツイート、記事をクリーンなMarkdownにエクスポート。Obsidianに直接送信、またはローカル保存。API不要。"
   },
   "tagline": {
     "message": "スレッドや記事をMarkdownに変換"

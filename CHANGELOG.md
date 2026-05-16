@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Hostname Sanitization**: Replaced substring-based host checks (e.g. `url.includes('pbs.twimg.com')`) with proper URL parsing via a new `hostMatches` helper that compares parsed hostnames exactly. Fixes 9 CodeQL `js/incomplete-url-substring-sanitization` alerts across `content/article.ts`, `content/markdown.ts`, `content/tweet.ts`, and `popup/popup.ts`. The popup's "are we on x.com?" gate is tightened from a substring test to an exact host match against the manifest's allowed hosts.
 
+### Changed
+
+- **Extension Description**: The Chrome Web Store / manifest description now mentions the Obsidian handoff. Updated across all 9 supported locales.
+
 ## [1.5.0] - 2026-05-15
 
 ### Added

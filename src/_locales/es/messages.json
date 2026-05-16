@@ -3,7 +3,7 @@
     "message": "tweet2md: Hilos y artículos de X a Markdown"
   },
   "extensionDescription": {
-    "message": "Exporta hilos, tweets y artículos de X (Twitter) a Markdown limpio con imágenes y metadatos. Sin API."
+    "message": "Exporta hilos, tweets y artículos de X (Twitter) a Markdown limpio — envía a Obsidian o guarda localmente. Sin API."
   },
   "tagline": {
     "message": "Convierte hilos y artículos a Markdown"

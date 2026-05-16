@@ -3,7 +3,7 @@
     "message": "tweet2md: X Threads Articles to Markdown"
   },
   "extensionDescription": {
-    "message": "Export X (Twitter) threads, tweets, and articles to clean Markdown with images and metadata. No API required."
+    "message": "Export X (Twitter) threads, tweets, and articles to clean Markdown — send to Obsidian or save locally. No API required."
   },
   "tagline": {
     "message": "Convert threads & articles to Markdown"
