@@ -123,6 +123,18 @@ chrome.runtime.onMessage.addListener((msg, sender, _sendResponse) => {
 
 // ─── Download handler ───────────────────────────────────────────────
 
+const SETTINGS_KEY = 'tweet2md_settings';
+
+function loadDownloadFolder(): Promise<string> {
+  return new Promise((resolve) => {
+    chrome.storage.local.get(SETTINGS_KEY, (result) => {
+      const settings = result[SETTINGS_KEY] as { downloadFolder?: unknown } | undefined;
+      const folder = settings && typeof settings.downloadFolder === 'string' ? settings.downloadFolder : '';
+      resolve(folder);
+    });
+  });
+}
+
 chrome.runtime.onMessage.addListener(
   (message: DownloadRequest, sender, sendResponse) => {
     if (!message || message.action !== 'DOWNLOAD_MD') return false;
@@ -132,42 +144,49 @@ chrome.runtime.onMessage.addListener(
       return false;
     }
 
-    // First download any required images
-    if (message.images && message.images.length > 0) {
-      for (const img of message.images) {
-        if (!img || typeof img.url !== 'string' || !isAllowedImageUrl(img.url)) {
-          continue;
-        }
+    // Prepend the user-configured subfolder before sanitization so the
+    // existing `..` / leading-slash / illegal-char stripping in
+    // `sanitizeFilePath` applies to the combined path too.
+    loadDownloadFolder().then((folder) => {
+      const prefix = folder ? folder + '/' : '';
 
-        chrome.downloads.download({
-          url: img.url,
-          filename: sanitizeFilePath(img.filename),
-          saveAs: false,
-        });
-      }
-    }
+      // First download any required images
+      if (message.images && message.images.length > 0) {
+        for (const img of message.images) {
+          if (!img || typeof img.url !== 'string' || !isAllowedImageUrl(img.url)) {
+            continue;
+          }
 
-    const dataUrl =
-      'data:text/markdown;charset=utf-8,' +
-      encodeURIComponent(message.content);
-
-    chrome.downloads.download(
-      {
-        url: dataUrl,
-        filename: sanitizeFilePath(message.filename),
-        saveAs: false,
-      },
-      (downloadId) => {
-        if (chrome.runtime.lastError) {
-          sendResponse({
-            success: false,
-            error: chrome.runtime.lastError.message,
+          chrome.downloads.download({
+            url: img.url,
+            filename: sanitizeFilePath(prefix + img.filename),
+            saveAs: false,
           });
-        } else {
-          sendResponse({ success: true, downloadId });
         }
       }
-    );
+
+      const dataUrl =
+        'data:text/markdown;charset=utf-8,' +
+        encodeURIComponent(message.content);
+
+      chrome.downloads.download(
+        {
+          url: dataUrl,
+          filename: sanitizeFilePath(prefix + message.filename),
+          saveAs: false,
+        },
+        (downloadId) => {
+          if (chrome.runtime.lastError) {
+            sendResponse({
+              success: false,
+              error: chrome.runtime.lastError.message,
+            });
+          } else {
+            sendResponse({ success: true, downloadId });
+          }
+        }
+      );
+    });
 
     return true; // keep channel open for async sendResponse
   }

@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Added
+
+- **Downloads Subfolder**: New setting under **Downloads** that places exported Markdown and images inside a subfolder of the browser's Downloads folder, instead of dumping everything at the top level. Leave blank for the previous behavior. Traversal (`..`), leading slashes, and illegal filename characters are stripped before the path is handed to `chrome.downloads.download`. (#17)
+- **Obsidian Vault Subfolder**: New setting under **Obsidian** that creates the note inside a specified subfolder of the vault (e.g. `Tweets` or `Inbox/Tweets`) via the `file=` parameter of the `obsidian://new` URI. Traversal segments and stray slashes are stripped. Leave blank to keep notes at the vault root. (#18)
+
+### Fixed
+
+- **Obsidian handoff vs. close-after-export**: When *Add tweet to Obsidian* was triggered from the context menu on a timeline (which opens a new tab) with **Close the new tab after export** enabled, the tab was closed before the browser's "Open Obsidian.app?" prompt could be confirmed, dropping the handoff. The auto-close now skips the Obsidian action so the user can answer the prompt; download/copy actions still respect the toggle. (#16)
+
 ## [1.5.1] - 2026-05-16
 
 ### Security

@@ -110,6 +110,14 @@
 
       <div class="options">
         <div class="option-group">
+          <div class="option-group-label" data-i18n="group_downloads">Downloads</div>
+          <label class="field-label" title="Save Markdown and images under this subfolder inside your Downloads folder. Leave blank to save directly in Downloads." data-i18n-title="opt_download_folder_title">
+            <span class="field-text" data-i18n="opt_download_folder">Subfolder</span>
+            <input type="text" id="txt-download-folder" class="field-input" autocomplete="off" spellcheck="false" placeholder="e.g. tweet2md" data-i18n-placeholder="opt_download_folder_placeholder" />
+          </label>
+        </div>
+
+        <div class="option-group">
           <div class="option-group-label" data-i18n="group_obsidian">Obsidian</div>
           <label class="toggle-label toggle-obsidian" title="Emit frontmatter optimized for Obsidian: wikilink author, tags, published/created dates" data-i18n-title="opt_obsidian_friendly_title">
             <span class="toggle-text">
@@ -124,6 +132,10 @@
           <label class="field-label" title="Used by the 'Add to Obsidian' button. Leave blank to let Obsidian pick the last-used vault." data-i18n-title="opt_obsidian_vault_title">
             <span class="field-text" data-i18n="opt_obsidian_vault">Vault name</span>
             <input type="text" id="txt-obsidian-vault" class="field-input" autocomplete="off" spellcheck="false" placeholder="(optional)" data-i18n-placeholder="opt_obsidian_vault_placeholder" />
+          </label>
+          <label class="field-label" title="Create the note inside this subfolder of the vault (e.g. Tweets or Inbox/Tweets). Leave blank to create at the vault root." data-i18n-title="opt_obsidian_folder_title">
+            <span class="field-text" data-i18n="opt_obsidian_folder">Subfolder</span>
+            <input type="text" id="txt-obsidian-folder" class="field-input" autocomplete="off" spellcheck="false" placeholder="e.g. Tweets" data-i18n-placeholder="opt_obsidian_folder_placeholder" />
           </label>
         </div>
 

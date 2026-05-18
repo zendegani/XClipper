@@ -64,6 +64,7 @@ interface StoredSettings {
   inlineStats?: boolean;
   obsidianFriendly?: boolean;
   obsidianVault?: string;
+  obsidianFolder?: string;
 }
 
 function loadStoredSettings(): Promise<StoredSettings> {
@@ -147,7 +148,8 @@ async function runAutoExtract(
     }
   } else if (action === 'obsidian') {
     const vault = (settings.obsidianVault || '').trim();
-    const url = buildObsidianUrl(result.markdown, result.filename, vault);
+    const folder = (settings.obsidianFolder || '').trim();
+    const url = buildObsidianUrl(result.markdown, result.filename, vault, folder);
     if (allowClose) {
       // New-tab flow: navigate the tab itself so the OS protocol handler
       // picks it up.

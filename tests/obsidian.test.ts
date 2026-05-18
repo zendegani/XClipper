@@ -26,4 +26,30 @@ describe('buildObsidianUrl()', () => {
     const url = buildObsidianUrl('a & b = c', 'f.md', '');
     expect(url).toContain('content=a%20%26%20b%20%3D%20c');
   });
+
+  it('prepends a vault subfolder to the file path', () => {
+    const url = buildObsidianUrl('x', 'note.md', '', 'Tweets');
+    expect(url).toContain('file=Tweets%2Fnote');
+  });
+
+  it('supports nested subfolders', () => {
+    const url = buildObsidianUrl('x', 'note.md', '', 'Inbox/Tweets');
+    expect(url).toContain('file=Inbox%2FTweets%2Fnote');
+  });
+
+  it('strips leading/trailing slashes and collapses doubles in the subfolder', () => {
+    const url = buildObsidianUrl('x', 'note.md', '', '//Inbox//Tweets//');
+    expect(url).toContain('file=Inbox%2FTweets%2Fnote');
+  });
+
+  it('blocks .. traversal segments in the subfolder', () => {
+    const url = buildObsidianUrl('x', 'note.md', '', '../../etc/Tweets');
+    expect(url).toContain('file=etc%2FTweets%2Fnote');
+  });
+
+  it('omits the subfolder when blank or unusable', () => {
+    expect(buildObsidianUrl('x', 'note.md', '', '')).toContain('file=note');
+    expect(buildObsidianUrl('x', 'note.md', '', '   ')).toContain('file=note');
+    expect(buildObsidianUrl('x', 'note.md', '', '..')).toContain('file=note');
+  });
 });

@@ -29,6 +29,18 @@
   "group_export": {
     "message": "Export"
   },
+  "group_downloads": {
+    "message": "Downloads"
+  },
+  "opt_download_folder": {
+    "message": "Subfolder"
+  },
+  "opt_download_folder_title": {
+    "message": "Save Markdown and images under this subfolder inside your Downloads folder. Leave blank to save directly in Downloads."
+  },
+  "opt_download_folder_placeholder": {
+    "message": "e.g. tweet2md"
+  },
   "group_inline": {
     "message": "Inline button & context menu"
   },
@@ -55,6 +67,15 @@
   },
   "opt_obsidian_vault_placeholder": {
     "message": "(optional)"
+  },
+  "opt_obsidian_folder": {
+    "message": "Subfolder"
+  },
+  "opt_obsidian_folder_title": {
+    "message": "Create the note inside this subfolder of the vault (e.g. Tweets or Inbox/Tweets). Leave blank to create at the vault root."
+  },
+  "opt_obsidian_folder_placeholder": {
+    "message": "e.g. Tweets"
   },
   "opt_save_images_title": {
     "message": "Download images to a folder next to the Markdown file"

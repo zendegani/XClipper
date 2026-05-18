@@ -31,6 +31,12 @@ const chkObsidianFriendly = document.getElementById(
 const txtObsidianVault = document.getElementById(
   'txt-obsidian-vault'
 ) as HTMLInputElement;
+const txtDownloadFolder = document.getElementById(
+  'txt-download-folder'
+) as HTMLInputElement;
+const txtObsidianFolder = document.getElementById(
+  'txt-obsidian-folder'
+) as HTMLInputElement;
 
 // ─── Initialize i18n ──────────────────────────────────────────────────
 
@@ -85,6 +91,8 @@ interface Settings {
   inlineStats: boolean;
   obsidianFriendly: boolean;
   obsidianVault: string;
+  obsidianFolder: string;
+  downloadFolder: string;
 }
 
 const DEFAULT_SETTINGS: Settings = {
@@ -96,6 +104,8 @@ const DEFAULT_SETTINGS: Settings = {
   inlineStats: false, // off — changes visible content, opt-in
   obsidianFriendly: false, // off — changes frontmatter shape, opt-in
   obsidianVault: '', // empty → let Obsidian pick the last-used vault
+  obsidianFolder: '', // empty → create note at the vault root
+  downloadFolder: '', // empty → save directly in Downloads
 };
 
 async function loadSettings(): Promise<Settings> {
@@ -127,6 +137,8 @@ loadSettings().then((settings) => {
   chkInlineStats.checked = settings.inlineStats;
   chkObsidianFriendly.checked = settings.obsidianFriendly;
   txtObsidianVault.value = settings.obsidianVault;
+  txtObsidianFolder.value = settings.obsidianFolder;
+  txtDownloadFolder.value = settings.downloadFolder;
   updateInlineCopiesEnabled();
 });
 
@@ -140,6 +152,8 @@ function persistAll(): void {
     inlineStats: chkInlineStats.checked,
     obsidianFriendly: chkObsidianFriendly.checked,
     obsidianVault: txtObsidianVault.value.trim(),
+    obsidianFolder: txtObsidianFolder.value.trim(),
+    downloadFolder: txtDownloadFolder.value.trim(),
   });
 }
 
@@ -155,6 +169,10 @@ chkInlineStats.addEventListener('change', persistAll);
 chkObsidianFriendly.addEventListener('change', persistAll);
 txtObsidianVault.addEventListener('change', persistAll);
 txtObsidianVault.addEventListener('blur', persistAll);
+txtDownloadFolder.addEventListener('change', persistAll);
+txtDownloadFolder.addEventListener('blur', persistAll);
+txtObsidianFolder.addEventListener('change', persistAll);
+txtObsidianFolder.addEventListener('blur', persistAll);
 
 // ─── Helpers ────────────────────────────────────────────────────────
 
@@ -317,7 +335,8 @@ btnObsidian.addEventListener('click', async () => {
   try {
     const result = await extractMarkdown('obsidian');
     const vault = txtObsidianVault.value.trim();
-    const url = buildObsidianUrl(result.markdown, result.filename, vault);
+    const folder = txtObsidianFolder.value.trim();
+    const url = buildObsidianUrl(result.markdown, result.filename, vault, folder);
 
     // Navigate the popup itself to the obsidian:// URL. The OS handler picks
     // it up; the popup closes either way, so we don't leave a blank tab.
