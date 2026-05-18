@@ -1,6 +1,6 @@
 {
   "extensionName": {
-    "message": "tweet2md: تبدیل رشته‌ها و مقالات X به Markdown"
+    "message": "رشته‌ها و مقالات X به Markdown یا Obsidian"
   },
   "extensionDescription": {
     "message": "خروجی گرفتن از رشته‌ها، توییت‌ها و مقالات ایکس (توییتر) به Markdown تمیز — ارسال به ابسیدین یا ذخیره محلی. بدون API."

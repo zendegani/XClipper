@@ -1,6 +1,6 @@
 {
   "extensionName": {
-    "message": "tweet2md: X-Threads und Artikel zu Markdown"
+    "message": "X-Threads und Artikel zu Markdown oder Obsidian"
   },
   "extensionDescription": {
     "message": "Exportiere X (Twitter) Threads, Tweets und Artikel als sauberes Markdown — direkt nach Obsidian oder lokal speichern. Keine API nötig."

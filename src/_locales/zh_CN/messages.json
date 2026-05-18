@@ -1,6 +1,6 @@
 {
   "extensionName": {
-    "message": "tweet2md：X 线程与文章转 Markdown"
+    "message": "X 线程与文章转 Markdown 或 Obsidian"
   },
   "extensionDescription": {
     "message": "将 X (Twitter) 线程、推文和文章导出为干净的 Markdown — 直接发送到 Obsidian 或本地保存。无需 API。"

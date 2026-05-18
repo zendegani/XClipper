@@ -1,6 +1,6 @@
 {
   "manifest_version": 3,
-  "name": "tweet2md: X Threads Articles to Markdown",
+  "name": "__MSG_extensionName__",
   "short_name": "tweet2md",
   "version": "1.5.1",
   "description": "__MSG_extensionDescription__",

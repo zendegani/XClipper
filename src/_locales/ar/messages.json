@@ -1,6 +1,6 @@
 {
   "extensionName": {
-    "message": "tweet2md: تحويل سلاسل ومقالات X إلى Markdown"
+    "message": "سلاسل ومقالات X إلى Markdown أو Obsidian"
   },
   "extensionDescription": {
     "message": "تصدير سلاسل وتغريدات ومقالات X (تويتر) إلى Markdown نظيف — أرسلها إلى Obsidian أو احفظها محلياً. بدون API."
