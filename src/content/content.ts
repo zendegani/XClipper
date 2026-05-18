@@ -150,7 +150,7 @@ async function runAutoExtract(
     const url = buildObsidianUrl(result.markdown, result.filename, vault);
     if (allowClose) {
       // New-tab flow: navigate the tab itself so the OS protocol handler
-      // picks it up; the closeTabAfterExport toggle cleans up the husk.
+      // picks it up.
       window.location.href = url;
     } else {
       // In-place flow (already on the tweet's permalink): don't navigate the
@@ -184,7 +184,11 @@ async function runAutoExtract(
     showInPlaceToast(chrome.i18n.getMessage(key) || fallback);
   }
 
-  if (shouldClose) {
+  // The Obsidian flow navigates the tab to an `obsidian://` URL, which triggers
+  // an OS-level "Open Obsidian.app?" prompt that the user must confirm. Closing
+  // the tab here would dismiss that prompt before they can answer it, so the
+  // close-after-export toggle is intentionally skipped for this action.
+  if (shouldClose && action !== 'obsidian') {
     await delay(400);
     window.close();
   }
