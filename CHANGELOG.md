@@ -7,12 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [Unreleased]
+## [1.6.0] - 2026-05-18
 
 ### Added
 
 - **Downloads Subfolder**: New setting under **Downloads** that places exported Markdown and images inside a subfolder of the browser's Downloads folder, instead of dumping everything at the top level. Leave blank for the previous behavior. Traversal (`..`), leading slashes, and illegal filename characters are stripped before the path is handed to `chrome.downloads.download`. (#17)
 - **Obsidian Vault Subfolder**: New setting under **Obsidian** that creates the note inside a specified subfolder of the vault (e.g. `Tweets` or `Inbox/Tweets`) via the `file=` parameter of the `obsidian://new` URI. Traversal segments and stray slashes are stripped. Leave blank to keep notes at the vault root. (#18)
+
+### Changed
+
+- **Extension Name**: Renamed to *X Threads Articles to Markdown or Obsidian* across all 9 supported locales for better Chrome Web Store search match. The manifest now references `__MSG_extensionName__` so each locale ships a translated name; `short_name` stays as `tweet2md` for the OS-level short label.
 
 ### Fixed
 
