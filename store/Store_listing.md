@@ -14,6 +14,7 @@ Key features:
 - Three ways to trigger: toolbar popup, inline download button on every tweet's action bar, or right-click context menu (Save / Copy as Markdown / Add to Obsidian)
 - Copy Markdown to clipboard, download as a file, or hand off to Obsidian
 - One-click Add to Obsidian button — opens Obsidian via the obsidian:// URI scheme with the rendered Markdown prefilled; optional vault name to target a specific vault
+- Optional vault subfolder for the Obsidian handoff so notes land inside a specific folder (e.g. Tweets or Inbox/Tweets) — leave blank to use the vault root
 - Obsidian-friendly frontmatter (opt-in): wikilinked [[@handle]] author for instant backlinks, synthesized title, published/created date split, prose description snippet, and a tags array — plus all the existing engagement metadata for Dataview queries
 - Capture link cards from tweets: title, source domain, and the Open Graph preview image
 - Full support for long-form X Articles (formerly Notes) with headings, lists, and code blocks
@@ -24,6 +25,7 @@ Key features:
 - Inline button can be configured to copy to clipboard instead of download
 - Optional auto-close of new tabs opened via the inline button or context menu after export
 - Download embedded X media locally alongside your md file to prevent link rot
+- Optional Downloads subfolder so Markdown files and images land inside a chosen subfolder of your Downloads folder, instead of cluttering the root
 - Rich YAML frontmatter with author, handle, date, source URL, content type, and engagement stats (likes, reposts, replies, bookmarks, views)
 - Optional X-style engagement row directly in the Markdown body (likes, reposts, replies, bookmarks, views) — toggle independently of the YAML frontmatter
 - Automatically expand truncated posts and strip engagement buttons, follow prompts, and trackers
@@ -73,6 +75,7 @@ Características principales:
 - Tres formas de activación: popup de la barra de herramientas, botón inline en la barra de acciones de cada tweet o menú contextual con clic derecho (Guardar / Copiar como Markdown / Añadir a Obsidian)
 - Copia Markdown al portapapeles, descárgalo como archivo o envíalo a Obsidian
 - Botón "Añadir a Obsidian" con un clic: abre Obsidian mediante el esquema obsidian:// con el Markdown renderizado ya rellenado; nombre de vault opcional para apuntar a un vault específico
+- Subcarpeta opcional del vault para la integración con Obsidian: crea las notas dentro de una carpeta específica (ej. Tweets o Inbox/Tweets) — déjala vacía para usar la raíz del vault
 - Frontmatter compatible con Obsidian (opcional): autor [[@handle]] con wikilinks para backlinks instantáneos, título generado, separación entre fecha de publicación y creación, fragmento descriptivo y array de etiquetas, además de todos los metadatos de interacción existentes para consultas Dataview
 - Captura tarjetas de enlaces de tweets: título, dominio de origen e imagen Open Graph
 - Compatibilidad completa con artículos largos de X (antes Notes), incluyendo encabezados, listas y bloques de código
@@ -83,6 +86,7 @@ Características principales:
 - El botón inline puede configurarse para copiar al portapapeles en lugar de descargar
 - Cierre automático opcional de pestañas nuevas abiertas mediante el botón inline o menú contextual después de exportar
 - Descarga medios incrustados de X localmente junto al archivo md para evitar enlaces rotos
+- Subcarpeta opcional de Descargas: los archivos Markdown y las imágenes se guardan en una subcarpeta elegida en lugar de mezclarse con el resto de Descargas
 - YAML frontmatter enriquecido con autor, handle, fecha, URL fuente, tipo de contenido y estadísticas de interacción (likes, reposts, respuestas, marcadores, vistas)
 - Fila opcional de interacciones estilo X directamente en el cuerpo Markdown (likes, reposts, respuestas, marcadores, vistas), configurable independientemente del YAML frontmatter
 - Expande automáticamente publicaciones truncadas y elimina botones de interacción, sugerencias de seguimiento y rastreadores
@@ -131,7 +135,8 @@ Hauptfunktionen:
 
 - Drei Möglichkeiten zum Auslösen: Toolbar-Popup, Inline-Download-Button bei jedem Tweet oder Rechtsklick-Kontextmenü (Als Markdown speichern / kopieren / Zu Obsidian hinzufügen)
 - Markdown in die Zwischenablage kopieren, als Datei herunterladen oder an Obsidian übergeben
-- Ein-Klick-Button „Zu Obsidian hinzufügen“: öffnet Obsidian über das obsidian://-URI-Schema mit vorausgefülltem Markdown; optionaler Vault-Name
+- Ein-Klick-Button „Zu Obsidian hinzufügen”: öffnet Obsidian über das obsidian://-URI-Schema mit vorausgefülltem Markdown; optionaler Vault-Name
+- Optionaler Vault-Unterordner für die Obsidian-Übergabe: Notizen werden in einem bestimmten Ordner abgelegt (z. B. Tweets oder Inbox/Tweets) — leer lassen für das Vault-Stammverzeichnis
 - Obsidian-freundliches Frontmatter (optional): wikiverlinkter [[@handle]]-Autor, generierter Titel, getrennte Veröffentlichungs- und Erstellungsdaten, Beschreibungsauszug und Tags-Array sowie bestehende Engagement-Metadaten für Dataview-Abfragen
 - Erfasst Linkkarten aus Tweets: Titel, Quelldomain und Open-Graph-Vorschaubild
 - Vollständige Unterstützung für lange X-Artikel (ehemals Notes) mit Überschriften, Listen und Codeblöcken
@@ -142,6 +147,7 @@ Hauptfunktionen:
 - Inline-Button kann so konfiguriert werden, dass Markdown kopiert statt heruntergeladen wird
 - Optionales automatisches Schließen neuer Tabs nach dem Export
 - Lädt eingebettete X-Medien lokal zusammen mit der md-Datei herunter, um Linkverlust zu vermeiden
+- Optionaler Downloads-Unterordner: Markdown-Dateien und Bilder landen in einem ausgewählten Unterordner statt direkt im Downloads-Verzeichnis
 - Umfangreiches YAML-Frontmatter mit Autor, Handle, Datum, Quell-URL, Inhaltstyp und Engagement-Statistiken
 - Optionale X-ähnliche Engagement-Zeile direkt im Markdown-Text
 - Erweitert automatisch gekürzte Beiträge und entfernt Engagement-Buttons, Follow-Hinweise und Tracker
@@ -191,6 +197,7 @@ https://github.com/zendegani/tweet2md/blob/main/CHANGELOG.md
 - 3つの起動方法: ツールバーのポップアップ、各ツイートのアクションバー上のインラインボタン、右クリックコンテキストメニュー
 - Markdown をクリップボードへコピー、ファイルとしてダウンロード、または Obsidian へ送信
 - ワンクリックで Obsidian に追加: obsidian:// URI スキーム経由で Markdown を入力済みの状態で Obsidian を開く
+- Obsidian 用 Vault サブフォルダ（任意）: 指定したフォルダ（例: Tweets や Inbox/Tweets）にノートを保存。空欄で Vault のルートに作成
 - Obsidian 向け frontmatter（オプション）
 - ツイート内リンクカードの取得
 - 長文 X Articles（旧 Notes）を完全サポート
@@ -201,6 +208,7 @@ https://github.com/zendegani/tweet2md/blob/main/CHANGELOG.md
 - インラインボタンをコピー動作に変更可能
 - エクスポート後に新規タブを自動クローズ可能
 - 埋め込み画像やメディアをローカル保存
+- ダウンロード用サブフォルダ（任意）: Markdown ファイルや画像をダウンロードフォルダ内の指定サブフォルダに保存
 - YAML frontmatter に各種メタデータを追加
 - Markdown 本文に X 風のエンゲージメント行を追加可能
 - 切り詰められた投稿を自動展開
@@ -250,6 +258,7 @@ Fonctionnalités principales :
 - Trois méthodes de déclenchement : popup de barre d’outils, bouton inline sur chaque tweet ou menu contextuel clic droit
 - Copier le Markdown dans le presse-papiers, télécharger un fichier ou envoyer vers Obsidian
 - Bouton « Ajouter à Obsidian » en un clic
+- Sous-dossier de vault optionnel pour la liaison Obsidian : les notes sont créées dans un dossier spécifique (ex. Tweets ou Inbox/Tweets) — laissez vide pour utiliser la racine du vault
 - Frontmatter compatible Obsidian
 - Capture des cartes de liens de tweets
 - Support complet des longs articles X
@@ -260,6 +269,7 @@ Fonctionnalités principales :
 - Le bouton inline peut copier au lieu de télécharger
 - Fermeture automatique optionnelle des onglets après export
 - Téléchargement local des médias intégrés
+- Sous-dossier de téléchargements optionnel : les fichiers Markdown et images sont enregistrés dans un sous-dossier choisi au lieu d'encombrer la racine
 - YAML frontmatter enrichi avec métadonnées et statistiques
 - Ligne d’engagement optionnelle dans le corps Markdown
 - Expansion automatique des publications tronquées
@@ -309,6 +319,7 @@ Principais recursos:
 - Três formas de ativação: popup da barra de ferramentas, botão inline em tweets ou menu de contexto
 - Copiar Markdown, baixar arquivo ou enviar para Obsidian
 - Botão “Adicionar ao Obsidian” com um clique
+- Subpasta opcional de vault para a integração com Obsidian: notas criadas em uma pasta específica (ex.: Tweets ou Inbox/Tweets) — deixe em branco para usar a raiz do vault
 - Frontmatter amigável ao Obsidian
 - Captura cartões de links de tweets
 - Suporte completo para artigos longos do X
@@ -319,6 +330,7 @@ Principais recursos:
 - Botão inline pode copiar em vez de baixar
 - Fechamento automático opcional de abas após exportação
 - Download local de imagens e mídias incorporadas
+- Subpasta opcional de Downloads: arquivos Markdown e imagens são salvos em uma subpasta escolhida em vez da raiz
 - YAML frontmatter rico com metadados e estatísticas
 - Linha opcional de engajamento estilo X
 - Expansão automática de posts truncados
@@ -368,6 +380,7 @@ https://github.com/zendegani/tweet2md/blob/main/CHANGELOG.md
 - 三种触发方式：工具栏弹窗、推文内联按钮、右键菜单
 - 复制 Markdown、下载文件或发送到 Obsidian
 - 一键添加到 Obsidian
+- 可选的 Obsidian vault 子文件夹：笔记保存到指定文件夹（如 Tweets 或 Inbox/Tweets），留空则使用 vault 根目录
 - 面向 Obsidian 的 frontmatter
 - 捕获推文链接卡片
 - 完整支持长篇 X Articles
@@ -378,6 +391,7 @@ https://github.com/zendegani/tweet2md/blob/main/CHANGELOG.md
 - 内联按钮可改为复制模式
 - 导出后自动关闭标签页
 - 本地下载图片与媒体
+- 可选的下载子文件夹：Markdown 文件与图片保存到所选子文件夹中，不再直接堆放在下载根目录
 - 丰富的 YAML frontmatter 元数据
 - 可选 X 风格互动统计行
 - 自动展开被截断内容
@@ -427,6 +441,7 @@ https://github.com/zendegani/tweet2md/blob/main/CHANGELOG.md
 - ثلاث طرق للتشغيل: نافذة منبثقة، زر مدمج داخل التغريدة، أو قائمة النقر بزر الفأرة الأيمن
 - نسخ Markdown أو تنزيله أو إرساله إلى Obsidian
 - زر إضافة إلى Obsidian بنقرة واحدة
+- مجلد فرعي اختياري داخل الـ Vault لربط Obsidian: تُحفظ الملاحظات داخل مجلد محدد (مثل Tweets أو Inbox/Tweets) — اتركه فارغًا لاستخدام جذر الـ Vault
 - frontmatter متوافق مع Obsidian
 - التقاط بطاقات الروابط داخل التغريدات
 - دعم كامل لمقالات X الطويلة
@@ -437,6 +452,7 @@ https://github.com/zendegani/tweet2md/blob/main/CHANGELOG.md
 - إمكانية نسخ Markdown بدل تنزيله
 - إغلاق التبويبات تلقائيًا بعد التصدير
 - تنزيل الصور والوسائط محليًا
+- مجلد فرعي اختياري داخل التنزيلات: تُحفظ ملفات Markdown والصور داخل مجلد فرعي مختار بدلاً من مجلد التنزيلات مباشرةً
 - YAML frontmatter غني بالبيانات الوصفية
 - صف تفاعلات اختياري بأسلوب X
 - توسيع المنشورات المقتطعة تلقائيًا
@@ -486,6 +502,7 @@ https://github.com/zendegani/tweet2md/blob/main/CHANGELOG.md
 - سه روش اجرا: پنجره افزونه، دکمه درون‌خطی در توییت‌ها و منوی راست‌کلیک
 - کپی Markdown، دانلود فایل یا ارسال به Obsidian
 - افزودن به Obsidian تنها با یک کلیک
+- زیرپوشهٔ اختیاری Vault برای ارسال به Obsidian: یادداشت‌ها در پوشهٔ مشخص ذخیره می‌شوند (مثلاً Tweets یا Inbox/Tweets) — برای ریشهٔ Vault خالی بگذارید
 - frontmatter سازگار با Obsidian
 - دریافت کارت لینک‌های توییت
 - پشتیبانی کامل از مقالات بلند X
@@ -496,6 +513,7 @@ https://github.com/zendegani/tweet2md/blob/main/CHANGELOG.md
 - امکان کپی به‌جای دانلود توسط دکمه درون‌خطی
 - بستن خودکار تب‌ها پس از خروجی گرفتن
 - دانلود محلی تصاویر و رسانه‌ها
+- زیرپوشهٔ اختیاری دانلودها: فایل‌های Markdown و تصاویر در زیرپوشهٔ انتخاب‌شده ذخیره می‌شوند به‌جای پوشهٔ اصلی بارگیری‌ها
 - YAML frontmatter غنی همراه با متادیتا
 - ردیف آماری شبیه X به‌صورت اختیاری
 - باز کردن خودکار پست‌های کوتاه‌شده
