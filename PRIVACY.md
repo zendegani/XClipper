@@ -1,6 +1,6 @@
 # Privacy Policy — tweet2md
 
-**Last updated:** May 15, 2026
+**Last updated:** May 18, 2026
 
 ## Summary
 
@@ -8,7 +8,7 @@ tweet2md does **not** collect, store externally, or transmit any user data. Ever
 
 ## What this extension does
 
-tweet2md accesses the visible content of supported X.com status pages only after the user explicitly requests an action — by clicking the toolbar icon, by clicking the inline download button on a tweet, or by selecting one of the **Save / Copy tweet as Markdown** items in the right-click menu. It converts the visible page content (tweet, thread, or article text) into Markdown, which can be copied to your clipboard or saved to your local Downloads folder using Chrome's built-in download API.
+tweet2md accesses the visible content of supported X.com status pages only after the user explicitly requests an action — by clicking the toolbar icon, by clicking the inline download button on a tweet, or by selecting one of the **Save tweet as Markdown**, **Copy tweet as Markdown**, or **Add tweet to Obsidian** items in the right-click menu. It converts the visible page content (tweet, thread, or article text) into Markdown, which can be copied to your clipboard, saved to your local Downloads folder using Chrome's built-in download API, or handed off to the Obsidian desktop app via the `obsidian://new` URI scheme.
 
 ## Data collection
 
