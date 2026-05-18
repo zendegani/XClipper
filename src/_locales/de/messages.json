@@ -29,6 +29,18 @@
   "group_export": {
     "message": "Export"
   },
+  "group_downloads": {
+    "message": "Downloads"
+  },
+  "opt_download_folder": {
+    "message": "Unterordner"
+  },
+  "opt_download_folder_title": {
+    "message": "Speichert Markdown-Dateien und Bilder in diesem Unterordner innerhalb deines Downloads-Ordners. Leer lassen, um direkt in Downloads zu speichern."
+  },
+  "opt_download_folder_placeholder": {
+    "message": "z. B. tweet2md"
+  },
   "group_inline": {
     "message": "Inline-Button & Rechtsklick-Menü"
   },
@@ -55,6 +67,15 @@
   },
   "opt_obsidian_vault_placeholder": {
     "message": "(optional)"
+  },
+  "opt_obsidian_folder": {
+    "message": "Unterordner"
+  },
+  "opt_obsidian_folder_title": {
+    "message": "Erstellt die Notiz in diesem Unterordner des Vaults (z. B. Tweets oder Inbox/Tweets). Leer lassen, um sie im Vault-Stammverzeichnis zu erstellen."
+  },
+  "opt_obsidian_folder_placeholder": {
+    "message": "z. B. Tweets"
   },
   "opt_save_images_title": {
     "message": "Bilder in einem Ordner neben der Markdown-Datei speichern"

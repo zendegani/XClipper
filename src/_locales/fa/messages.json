@@ -29,6 +29,18 @@
   "group_export": {
     "message": "خروجی گرفتن"
   },
+  "group_downloads": {
+    "message": "بارگیری‌ها"
+  },
+  "opt_download_folder": {
+    "message": "زیرپوشه"
+  },
+  "opt_download_folder_title": {
+    "message": "فایل‌های Markdown و تصاویر را در این زیرپوشه از پوشه بارگیری‌ها ذخیره می‌کند. برای ذخیره مستقیم در بارگیری‌ها، خالی بگذارید."
+  },
+  "opt_download_folder_placeholder": {
+    "message": "مثلاً tweet2md"
+  },
   "group_inline": {
     "message": "دکمه روی توییت و منوی راست‌کلیک"
   },
@@ -55,6 +67,15 @@
   },
   "opt_obsidian_vault_placeholder": {
     "message": "(اختیاری)"
+  },
+  "opt_obsidian_folder": {
+    "message": "زیرپوشه"
+  },
+  "opt_obsidian_folder_title": {
+    "message": "یادداشت را در این زیرپوشه از Vault می‌سازد (مثلاً Tweets یا Inbox/Tweets). برای ساختن در ریشهٔ Vault، خالی بگذارید."
+  },
+  "opt_obsidian_folder_placeholder": {
+    "message": "مثلاً Tweets"
   },
   "opt_save_images_title": {
     "message": "دانلود تصاویر در پوشه‌ای در کنار فایل Markdown"

@@ -29,6 +29,18 @@
   "group_export": {
     "message": "导出"
   },
+  "group_downloads": {
+    "message": "下载"
+  },
+  "opt_download_folder": {
+    "message": "子文件夹"
+  },
+  "opt_download_folder_title": {
+    "message": "将 Markdown 文件和图片保存到下载文件夹中的此子文件夹下。留空则直接保存到下载文件夹。"
+  },
+  "opt_download_folder_placeholder": {
+    "message": "例如 tweet2md"
+  },
   "group_inline": {
     "message": "内联按钮和右键菜单"
   },
@@ -55,6 +67,15 @@
   },
   "opt_obsidian_vault_placeholder": {
     "message": "（可选）"
+  },
+  "opt_obsidian_folder": {
+    "message": "子文件夹"
+  },
+  "opt_obsidian_folder_title": {
+    "message": "在 vault 的此子文件夹中创建笔记（如 Tweets 或 Inbox/Tweets）。留空则在 vault 根目录创建。"
+  },
+  "opt_obsidian_folder_placeholder": {
+    "message": "例如 Tweets"
   },
   "opt_save_images_title": {
     "message": "将图片下载到 Markdown 文件旁的文件夹中"

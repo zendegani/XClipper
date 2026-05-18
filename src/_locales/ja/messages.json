@@ -29,6 +29,18 @@
   "group_export": {
     "message": "エクスポート"
   },
+  "group_downloads": {
+    "message": "ダウンロード"
+  },
+  "opt_download_folder": {
+    "message": "サブフォルダ"
+  },
+  "opt_download_folder_title": {
+    "message": "Markdownファイルと画像をダウンロードフォルダ内のこのサブフォルダに保存します。空欄にすると、ダウンロードフォルダ直下に保存されます。"
+  },
+  "opt_download_folder_placeholder": {
+    "message": "例: tweet2md"
+  },
   "group_inline": {
     "message": "インラインボタン & 右クリックメニュー"
   },
@@ -55,6 +67,15 @@
   },
   "opt_obsidian_vault_placeholder": {
     "message": "（任意）"
+  },
+  "opt_obsidian_folder": {
+    "message": "サブフォルダ"
+  },
+  "opt_obsidian_folder_title": {
+    "message": "Vault内のこのサブフォルダにノートを作成します（例: Tweets または Inbox/Tweets）。空欄にするとVaultのルートに作成されます。"
+  },
+  "opt_obsidian_folder_placeholder": {
+    "message": "例: Tweets"
   },
   "opt_save_images_title": {
     "message": "Markdownファイルと同じフォルダに画像をダウンロードする"

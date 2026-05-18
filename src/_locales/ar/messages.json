@@ -29,6 +29,18 @@
   "group_export": {
     "message": "التصدير"
   },
+  "group_downloads": {
+    "message": "التنزيلات"
+  },
+  "opt_download_folder": {
+    "message": "مجلد فرعي"
+  },
+  "opt_download_folder_title": {
+    "message": "احفظ ملفات Markdown والصور داخل هذا المجلد الفرعي ضمن مجلد التنزيلات. اتركه فارغًا للحفظ مباشرة في التنزيلات."
+  },
+  "opt_download_folder_placeholder": {
+    "message": "مثال: tweet2md"
+  },
   "group_inline": {
     "message": "الزر المدمج وقائمة النقر بالزر الأيمن"
   },
@@ -55,6 +67,15 @@
   },
   "opt_obsidian_vault_placeholder": {
     "message": "(اختياري)"
+  },
+  "opt_obsidian_folder": {
+    "message": "مجلد فرعي"
+  },
+  "opt_obsidian_folder_title": {
+    "message": "أنشئ الملاحظة داخل هذا المجلد الفرعي من الـ Vault (مثل Tweets أو Inbox/Tweets). اتركه فارغًا لإنشائها في جذر الـ Vault."
+  },
+  "opt_obsidian_folder_placeholder": {
+    "message": "مثال: Tweets"
   },
   "opt_save_images_title": {
     "message": "تنزيل الصور إلى مجلد بجانب ملف Markdown"
