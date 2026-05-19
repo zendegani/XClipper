@@ -53,6 +53,33 @@
   "opt_filename_preview": {
     "message": "Preview:"
   },
+  "opt_filename_template_info": {
+    "message": "Show filename template placeholders"
+  },
+  "opt_filename_template_hint_title": {
+    "message": "Placeholders"
+  },
+  "opt_filename_hint_date": {
+    "message": "publish date (YYYY-MM-DD)"
+  },
+  "opt_filename_hint_datetime": {
+    "message": "publish date + time"
+  },
+  "opt_filename_hint_handle": {
+    "message": "author handle without @"
+  },
+  "opt_filename_hint_author": {
+    "message": "author display name"
+  },
+  "opt_filename_hint_id": {
+    "message": "tweet ID"
+  },
+  "opt_filename_hint_slug": {
+    "message": "short text preview"
+  },
+  "opt_filename_hint_type": {
+    "message": "tweet / thread / article"
+  },
   "group_inline": {
     "message": "Inline button & context menu"
   },

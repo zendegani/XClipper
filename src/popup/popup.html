@@ -118,15 +118,29 @@
           <label class="field-label field-label-stacked">
             <span class="field-text">
               <span data-i18n="opt_filename_template">Filename template</span>
-              <span class="field-info"
-                title="Template for the exported filename. Placeholders: {date}, {datetime}, {handle}, {author}, {id}, {slug}, {type}. Leave blank for the default."
-                data-i18n-title="opt_filename_template_title">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <circle cx="12" cy="12" r="10" />
-                  <line x1="12" y1="16" x2="12" y2="12" />
-                  <line x1="12" y1="8" x2="12.01" y2="8" />
-                </svg>
+              <span class="field-info-wrap">
+                <button type="button" id="btn-filename-info" class="field-info" aria-expanded="false"
+                  aria-controls="filename-template-hint" aria-label="Show filename template placeholders"
+                  data-i18n-aria-label="opt_filename_template_info">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="16" x2="12" y2="12" />
+                    <line x1="12" y1="8" x2="12.01" y2="8" />
+                  </svg>
+                </button>
+                <div id="filename-template-hint" class="field-hint" role="tooltip">
+                  <div class="field-hint-title" data-i18n="opt_filename_template_hint_title">Placeholders</div>
+                  <ul class="field-hint-list">
+                    <li><code>{date}</code><span data-i18n="opt_filename_hint_date">publish date (YYYY-MM-DD)</span></li>
+                    <li><code>{datetime}</code><span data-i18n="opt_filename_hint_datetime">publish date + time</span></li>
+                    <li><code>{handle}</code><span data-i18n="opt_filename_hint_handle">author handle without @</span></li>
+                    <li><code>{author}</code><span data-i18n="opt_filename_hint_author">author display name</span></li>
+                    <li><code>{id}</code><span data-i18n="opt_filename_hint_id">tweet ID</span></li>
+                    <li><code>{slug}</code><span data-i18n="opt_filename_hint_slug">short text preview</span></li>
+                    <li><code>{type}</code><span data-i18n="opt_filename_hint_type">tweet / thread / article</span></li>
+                  </ul>
+                </div>
               </span>
             </span>
             <input type="text" id="txt-filename-template" class="field-input" autocomplete="off" spellcheck="false" placeholder="{handle}-{id}.md" data-i18n-placeholder="opt_filename_template_placeholder" />

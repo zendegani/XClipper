@@ -611,20 +611,31 @@ body {
   gap: 6px;
 }
 
+.field-info-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
 .field-info {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
+  padding: 0;
+  border: none;
+  background: transparent;
   color: var(--text-secondary);
   opacity: 0.6;
-  cursor: help;
+  cursor: pointer;
+  border-radius: 50%;
   transition: opacity var(--transition), color var(--transition);
 }
 
 .field-info:hover,
-.field-info:focus-visible {
+.field-info:focus-visible,
+.field-info[aria-expanded="true"] {
   opacity: 1;
   color: var(--accent);
   outline: none;
@@ -633,6 +644,75 @@ body {
 .field-info svg {
   width: 14px;
   height: 14px;
+}
+
+.field-hint {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: -8px;
+  z-index: 10;
+  min-width: 230px;
+  max-width: 280px;
+  padding: 10px 12px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  font-size: 11.5px;
+  color: var(--text-primary);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-2px);
+  transition: opacity var(--transition), transform var(--transition), visibility var(--transition);
+  pointer-events: none;
+}
+
+.field-info-wrap:hover .field-hint,
+.field-info:focus-visible + .field-hint,
+.field-info[aria-expanded="true"] + .field-hint {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.field-hint-title {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+
+.field-hint-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.field-hint-list li {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  line-height: 1.35;
+}
+
+.field-hint-list code {
+  flex-shrink: 0;
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 11px;
+  padding: 1px 5px;
+  background: var(--bg-hover, var(--bg-secondary, rgba(0, 0, 0, 0.06)));
+  border-radius: var(--radius-sm);
+  color: var(--accent);
+}
+
+.field-hint-list span {
+  color: var(--text-secondary);
 }
 
 .field-preview {

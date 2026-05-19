@@ -53,6 +53,33 @@
   "opt_filename_preview": {
     "message": "Vista previa:"
   },
+  "opt_filename_template_info": {
+    "message": "Mostrar marcadores de la plantilla de nombre de archivo"
+  },
+  "opt_filename_template_hint_title": {
+    "message": "Marcadores"
+  },
+  "opt_filename_hint_date": {
+    "message": "fecha de publicación (AAAA-MM-DD)"
+  },
+  "opt_filename_hint_datetime": {
+    "message": "fecha + hora de publicación"
+  },
+  "opt_filename_hint_handle": {
+    "message": "usuario del autor sin @"
+  },
+  "opt_filename_hint_author": {
+    "message": "nombre del autor"
+  },
+  "opt_filename_hint_id": {
+    "message": "ID del tweet"
+  },
+  "opt_filename_hint_slug": {
+    "message": "vista previa breve del texto"
+  },
+  "opt_filename_hint_type": {
+    "message": "tweet / thread / article"
+  },
   "group_inline": {
     "message": "Botón integrado y menú contextual"
   },

@@ -53,6 +53,33 @@
   "opt_filename_preview": {
     "message": "预览："
   },
+  "opt_filename_template_info": {
+    "message": "显示文件名模板占位符"
+  },
+  "opt_filename_template_hint_title": {
+    "message": "占位符"
+  },
+  "opt_filename_hint_date": {
+    "message": "发布日期 (YYYY-MM-DD)"
+  },
+  "opt_filename_hint_datetime": {
+    "message": "发布日期 + 时间"
+  },
+  "opt_filename_hint_handle": {
+    "message": "作者用户名（不含 @）"
+  },
+  "opt_filename_hint_author": {
+    "message": "作者显示名称"
+  },
+  "opt_filename_hint_id": {
+    "message": "推文 ID"
+  },
+  "opt_filename_hint_slug": {
+    "message": "简短文本预览"
+  },
+  "opt_filename_hint_type": {
+    "message": "tweet / thread / article"
+  },
   "group_inline": {
     "message": "内联按钮和右键菜单"
   },

@@ -53,6 +53,33 @@
   "opt_filename_preview": {
     "message": "پیش‌نمایش:"
   },
+  "opt_filename_template_info": {
+    "message": "نمایش نگه‌دارنده‌های الگوی نام فایل"
+  },
+  "opt_filename_template_hint_title": {
+    "message": "نگه‌دارنده‌ها"
+  },
+  "opt_filename_hint_date": {
+    "message": "تاریخ انتشار (YYYY-MM-DD)"
+  },
+  "opt_filename_hint_datetime": {
+    "message": "تاریخ انتشار + زمان"
+  },
+  "opt_filename_hint_handle": {
+    "message": "نام کاربری بدون @"
+  },
+  "opt_filename_hint_author": {
+    "message": "نام نمایشی نویسنده"
+  },
+  "opt_filename_hint_id": {
+    "message": "شناسه توییت"
+  },
+  "opt_filename_hint_slug": {
+    "message": "پیش‌نمایش متنی کوتاه"
+  },
+  "opt_filename_hint_type": {
+    "message": "tweet / thread / article"
+  },
   "group_inline": {
     "message": "دکمه روی توییت و منوی راست‌کلیک"
   },

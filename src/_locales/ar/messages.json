@@ -53,6 +53,33 @@
   "opt_filename_preview": {
     "message": "معاينة:"
   },
+  "opt_filename_template_info": {
+    "message": "عرض العناصر النائبة لقالب اسم الملف"
+  },
+  "opt_filename_template_hint_title": {
+    "message": "العناصر النائبة"
+  },
+  "opt_filename_hint_date": {
+    "message": "تاريخ النشر (YYYY-MM-DD)"
+  },
+  "opt_filename_hint_datetime": {
+    "message": "تاريخ النشر + الوقت"
+  },
+  "opt_filename_hint_handle": {
+    "message": "اسم المستخدم بدون @"
+  },
+  "opt_filename_hint_author": {
+    "message": "الاسم الظاهر للمؤلف"
+  },
+  "opt_filename_hint_id": {
+    "message": "معرّف التغريدة"
+  },
+  "opt_filename_hint_slug": {
+    "message": "معاينة نصية قصيرة"
+  },
+  "opt_filename_hint_type": {
+    "message": "tweet / thread / article"
+  },
   "group_inline": {
     "message": "الزر المدمج وقائمة النقر بالزر الأيمن"
   },

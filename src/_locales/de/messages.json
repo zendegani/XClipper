@@ -53,6 +53,33 @@
   "opt_filename_preview": {
     "message": "Vorschau:"
   },
+  "opt_filename_template_info": {
+    "message": "Platzhalter der Dateinamen-Vorlage anzeigen"
+  },
+  "opt_filename_template_hint_title": {
+    "message": "Platzhalter"
+  },
+  "opt_filename_hint_date": {
+    "message": "Veröffentlichungsdatum (JJJJ-MM-TT)"
+  },
+  "opt_filename_hint_datetime": {
+    "message": "Veröffentlichungsdatum + Uhrzeit"
+  },
+  "opt_filename_hint_handle": {
+    "message": "Autor-Handle ohne @"
+  },
+  "opt_filename_hint_author": {
+    "message": "Anzeigename des Autors"
+  },
+  "opt_filename_hint_id": {
+    "message": "Tweet-ID"
+  },
+  "opt_filename_hint_slug": {
+    "message": "kurze Textvorschau"
+  },
+  "opt_filename_hint_type": {
+    "message": "tweet / thread / article"
+  },
   "group_inline": {
     "message": "Inline-Button & Rechtsklick-Menü"
   },

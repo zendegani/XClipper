@@ -65,6 +65,13 @@ document.querySelectorAll('[data-i18n-placeholder]').forEach((el) => {
     if (msg) el.setAttribute('placeholder', msg);
   }
 });
+document.querySelectorAll('[data-i18n-aria-label]').forEach((el) => {
+  const key = el.getAttribute('data-i18n-aria-label');
+  if (key) {
+    const msg = chrome.i18n.getMessage(key);
+    if (msg) el.setAttribute('aria-label', msg);
+  }
+});
 
 // ─── View switching: main ↔ settings ──────────────────────────────────
 
@@ -204,6 +211,29 @@ txtObsidianFolder.addEventListener('blur', persistAll);
 txtFilenameTemplate.addEventListener('input', updateFilenamePreview);
 txtFilenameTemplate.addEventListener('change', persistAll);
 txtFilenameTemplate.addEventListener('blur', persistAll);
+
+// ─── Filename template hint popover ────────────────────────────────
+
+const btnFilenameInfo = document.getElementById('btn-filename-info') as HTMLButtonElement | null;
+btnFilenameInfo?.addEventListener('click', (e) => {
+  e.preventDefault();
+  const expanded = btnFilenameInfo.getAttribute('aria-expanded') === 'true';
+  btnFilenameInfo.setAttribute('aria-expanded', expanded ? 'false' : 'true');
+});
+document.addEventListener('click', (e) => {
+  if (!btnFilenameInfo) return;
+  if (btnFilenameInfo.getAttribute('aria-expanded') !== 'true') return;
+  const target = e.target as Node;
+  if (btnFilenameInfo.contains(target)) return;
+  const hint = document.getElementById('filename-template-hint');
+  if (hint?.contains(target)) return;
+  btnFilenameInfo.setAttribute('aria-expanded', 'false');
+});
+document.addEventListener('keydown', (e) => {
+  if (e.key === 'Escape' && btnFilenameInfo?.getAttribute('aria-expanded') === 'true') {
+    btnFilenameInfo.setAttribute('aria-expanded', 'false');
+  }
+});
 
 // ─── Helpers ────────────────────────────────────────────────────────
 

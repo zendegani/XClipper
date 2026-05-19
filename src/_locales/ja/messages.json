@@ -53,6 +53,33 @@
   "opt_filename_preview": {
     "message": "プレビュー:"
   },
+  "opt_filename_template_info": {
+    "message": "ファイル名テンプレートのプレースホルダーを表示"
+  },
+  "opt_filename_template_hint_title": {
+    "message": "プレースホルダー"
+  },
+  "opt_filename_hint_date": {
+    "message": "公開日 (YYYY-MM-DD)"
+  },
+  "opt_filename_hint_datetime": {
+    "message": "公開日 + 時刻"
+  },
+  "opt_filename_hint_handle": {
+    "message": "@なしの著者ハンドル"
+  },
+  "opt_filename_hint_author": {
+    "message": "著者の表示名"
+  },
+  "opt_filename_hint_id": {
+    "message": "ツイートID"
+  },
+  "opt_filename_hint_slug": {
+    "message": "短いテキストプレビュー"
+  },
+  "opt_filename_hint_type": {
+    "message": "tweet / thread / article"
+  },
   "group_inline": {
     "message": "インラインボタン & 右クリックメニュー"
   },
