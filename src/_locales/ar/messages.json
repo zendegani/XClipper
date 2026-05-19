@@ -89,6 +89,9 @@
   "nav_back": {
     "message": "رجوع"
   },
+  "settings_help": {
+    "message": "مرّر فوق التسميات لمزيد من المعلومات"
+  },
   "group_obsidian": {
     "message": "Obsidian"
   },

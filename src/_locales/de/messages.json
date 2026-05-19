@@ -89,6 +89,9 @@
   "nav_back": {
     "message": "Zurück"
   },
+  "settings_help": {
+    "message": "Mit der Maus über Bezeichnungen fahren für mehr Infos"
+  },
   "group_obsidian": {
     "message": "Obsidian"
   },

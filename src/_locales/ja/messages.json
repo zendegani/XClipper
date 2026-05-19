@@ -89,6 +89,9 @@
   "nav_back": {
     "message": "戻る"
   },
+  "settings_help": {
+    "message": "ラベルにマウスを合わせると詳細が表示されます"
+  },
   "group_obsidian": {
     "message": "Obsidian"
   },

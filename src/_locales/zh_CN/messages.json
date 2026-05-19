@@ -89,6 +89,9 @@
   "nav_back": {
     "message": "返回"
   },
+  "settings_help": {
+    "message": "将鼠标悬停在标签上以查看更多信息"
+  },
   "group_obsidian": {
     "message": "Obsidian"
   },

@@ -89,6 +89,9 @@
   "nav_back": {
     "message": "Retour"
   },
+  "settings_help": {
+    "message": "Survolez les libellés pour plus d’informations"
+  },
   "group_obsidian": {
     "message": "Obsidian"
   },

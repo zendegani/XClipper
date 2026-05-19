@@ -89,6 +89,9 @@
   "nav_back": {
     "message": "Atrás"
   },
+  "settings_help": {
+    "message": "Pasa el cursor sobre las etiquetas para ver más información"
+  },
   "group_obsidian": {
     "message": "Obsidian"
   },

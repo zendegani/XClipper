@@ -89,6 +89,9 @@
   "nav_back": {
     "message": "بازگشت"
   },
+  "settings_help": {
+    "message": "برای اطلاعات بیشتر، نشانگر را روی برچسب‌ها نگه دارید"
+  },
   "group_obsidian": {
     "message": "Obsidian"
   },

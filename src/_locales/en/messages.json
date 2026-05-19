@@ -89,6 +89,9 @@
   "nav_back": {
     "message": "Back"
   },
+  "settings_help": {
+    "message": "Hover over labels for more info"
+  },
   "group_obsidian": {
     "message": "Obsidian"
   },

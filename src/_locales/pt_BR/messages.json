@@ -89,6 +89,9 @@
   "nav_back": {
     "message": "Voltar"
   },
+  "settings_help": {
+    "message": "Passe o cursor sobre os rótulos para mais informações"
+  },
   "group_obsidian": {
     "message": "Obsidian"
   },
