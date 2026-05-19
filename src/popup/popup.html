@@ -115,6 +115,14 @@
             <span class="field-text" data-i18n="opt_download_folder">Subfolder</span>
             <input type="text" id="txt-download-folder" class="field-input" autocomplete="off" spellcheck="false" placeholder="e.g. tweet2md" data-i18n-placeholder="opt_download_folder_placeholder" />
           </label>
+          <label class="field-label field-label-stacked" title="Template for the exported filename. Placeholders: {date}, {datetime}, {handle}, {author}, {id}, {slug}, {type}. Leave blank for the default." data-i18n-title="opt_filename_template_title">
+            <span class="field-text" data-i18n="opt_filename_template">Filename template</span>
+            <input type="text" id="txt-filename-template" class="field-input" autocomplete="off" spellcheck="false" placeholder="{date}-{handle}-{slug}.md" data-i18n-placeholder="opt_filename_template_placeholder" />
+          </label>
+          <div class="field-preview">
+            <span class="field-preview-label" data-i18n="opt_filename_preview">Preview:</span>
+            <code id="filename-preview" class="field-preview-value"></code>
+          </div>
         </div>
 
         <div class="option-group">

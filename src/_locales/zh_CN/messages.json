@@ -41,6 +41,18 @@
   "opt_download_folder_placeholder": {
     "message": "例如 tweet2md"
   },
+  "opt_filename_template": {
+    "message": "文件名模板"
+  },
+  "opt_filename_template_title": {
+    "message": "导出文件名的模板。占位符：{date}, {datetime}, {handle}, {author}, {id}, {slug}, {type}。留空使用默认。"
+  },
+  "opt_filename_template_placeholder": {
+    "message": "{date}-{handle}-{slug}.md"
+  },
+  "opt_filename_preview": {
+    "message": "预览："
+  },
   "group_inline": {
     "message": "内联按钮和右键菜单"
   },

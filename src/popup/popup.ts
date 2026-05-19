@@ -1,5 +1,5 @@
 import type { ExtractResponse, DownloadRequest } from '../types/messages';
-import { postProcess, resolveDownloadImages, type PostProcessResult } from '../shared/post-process';
+import { postProcess, resolveDownloadImages, buildFilename, type PostProcessResult } from '../shared/post-process';
 import { buildObsidianUrl } from '../shared/obsidian';
 import { hostMatches } from '../shared/media';
 
@@ -37,6 +37,12 @@ const txtDownloadFolder = document.getElementById(
 const txtObsidianFolder = document.getElementById(
   'txt-obsidian-folder'
 ) as HTMLInputElement;
+const txtFilenameTemplate = document.getElementById(
+  'txt-filename-template'
+) as HTMLInputElement;
+const filenamePreview = document.getElementById(
+  'filename-preview'
+) as HTMLElement;
 
 // ─── Initialize i18n ──────────────────────────────────────────────────
 
@@ -93,6 +99,7 @@ interface Settings {
   obsidianVault: string;
   obsidianFolder: string;
   downloadFolder: string;
+  filenameTemplate: string;
 }
 
 const DEFAULT_SETTINGS: Settings = {
@@ -106,6 +113,7 @@ const DEFAULT_SETTINGS: Settings = {
   obsidianVault: '', // empty → let Obsidian pick the last-used vault
   obsidianFolder: '', // empty → create note at the vault root
   downloadFolder: '', // empty → save directly in Downloads
+  filenameTemplate: '', // empty → legacy {handle}-{id}.md / {handle}-{slug}.md
 };
 
 async function loadSettings(): Promise<Settings> {
@@ -139,6 +147,8 @@ loadSettings().then((settings) => {
   txtObsidianVault.value = settings.obsidianVault;
   txtObsidianFolder.value = settings.obsidianFolder;
   txtDownloadFolder.value = settings.downloadFolder;
+  txtFilenameTemplate.value = settings.filenameTemplate;
+  updateFilenamePreview();
   updateInlineCopiesEnabled();
 });
 
@@ -154,7 +164,25 @@ function persistAll(): void {
     obsidianVault: txtObsidianVault.value.trim(),
     obsidianFolder: txtObsidianFolder.value.trim(),
     downloadFolder: txtDownloadFolder.value.trim(),
+    filenameTemplate: txtFilenameTemplate.value.trim(),
   });
+}
+
+// ─── Filename template preview ─────────────────────────────────────
+
+const PREVIEW_SAMPLE = {
+  type: 'thread' as const,
+  author: { name: 'Jane Doe', handle: '@janedoe' },
+  markdown: '# Jane Doe (@janedoe)\n\nThe quick brown fox jumps over the lazy dog.',
+  sourceUrl: 'https://x.com/janedoe/status/1234567890',
+  date: '2026-05-19T14:30:00.000Z',
+  tweetId: '1234567890',
+};
+
+function updateFilenamePreview(): void {
+  if (!filenamePreview) return;
+  const template = txtFilenameTemplate.value.trim();
+  filenamePreview.textContent = buildFilename(PREVIEW_SAMPLE, template);
 }
 
 chkDownloadImages.addEventListener('change', persistAll);
@@ -173,6 +201,9 @@ txtDownloadFolder.addEventListener('change', persistAll);
 txtDownloadFolder.addEventListener('blur', persistAll);
 txtObsidianFolder.addEventListener('change', persistAll);
 txtObsidianFolder.addEventListener('blur', persistAll);
+txtFilenameTemplate.addEventListener('input', updateFilenamePreview);
+txtFilenameTemplate.addEventListener('change', persistAll);
+txtFilenameTemplate.addEventListener('blur', persistAll);
 
 // ─── Helpers ────────────────────────────────────────────────────────
 
@@ -274,7 +305,13 @@ async function extractMarkdown(
     throw new Error(response.error || chrome.i18n.getMessage('error_failed') || 'Failed to extract content.');
   }
 
-  return postProcess(response.data, { includeMetadata, downloadImages, inlineStats, obsidianFriendly });
+  return postProcess(response.data, {
+    includeMetadata,
+    downloadImages,
+    inlineStats,
+    obsidianFriendly,
+    filenameTemplate: txtFilenameTemplate.value.trim(),
+  });
 }
 
 function handleExtractionError(err: unknown): void {

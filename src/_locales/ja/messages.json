@@ -41,6 +41,18 @@
   "opt_download_folder_placeholder": {
     "message": "例: tweet2md"
   },
+  "opt_filename_template": {
+    "message": "ファイル名テンプレート"
+  },
+  "opt_filename_template_title": {
+    "message": "エクスポートされるファイル名のテンプレート。プレースホルダー: {date}, {datetime}, {handle}, {author}, {id}, {slug}, {type}。空欄でデフォルト。"
+  },
+  "opt_filename_template_placeholder": {
+    "message": "{date}-{handle}-{slug}.md"
+  },
+  "opt_filename_preview": {
+    "message": "プレビュー:"
+  },
   "group_inline": {
     "message": "インラインボタン & 右クリックメニュー"
   },

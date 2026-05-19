@@ -6,7 +6,10 @@ export interface PostProcessOptions {
   downloadImages: boolean;
   inlineStats?: boolean;
   obsidianFriendly?: boolean;
+  filenameTemplate?: string;
 }
+
+export const FILENAME_PLACEHOLDERS = ['date', 'datetime', 'handle', 'author', 'id', 'slug', 'type'] as const;
 
 const DESCRIPTION_MAX_CHARS = 200;
 
@@ -96,17 +99,85 @@ export function resolveDownloadImages(
   return action === 'download' && userToggle === true;
 }
 
-export function buildFilename(data: ExtractedContent): string {
+// Strip characters that would break a filename on at least one major FS.
+// Leaves Unicode letters/digits alone — Chrome's downloads.download sanitizes
+// further on Windows, but we want to keep e.g. CJK handles readable.
+function sanitizeFilenamePart(s: string): string {
+  return s.replace(/[/\\:*?"<>|]/g, '').replace(/\s+/g, ' ').trim();
+}
+
+function slugify(text: string, max = 60): string {
+  return text
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '')
+    .slice(0, max);
+}
+
+// Compact filesystem-safe datetime: YYYY-MM-DD_HHMM (UTC). Avoids colons
+// (Windows) and spaces.
+function isoToDateTime(iso: string): string {
+  const d = new Date(iso);
+  if (isNaN(d.getTime())) return isoToDateOnly(iso);
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return (
+    `${d.getUTCFullYear()}-${pad(d.getUTCMonth() + 1)}-${pad(d.getUTCDate())}` +
+    `_${pad(d.getUTCHours())}${pad(d.getUTCMinutes())}`
+  );
+}
+
+// Plain-text preview for {slug} on non-article tweets: drop frontmatter, the
+// author H1, blockquote markers, and link/image syntax so the slug reads like
+// the tweet body.
+function previewForSlug(data: ExtractedContent): string {
+  if (data.type === 'article' && data.title) return data.title;
+  let body = data.markdown.replace(/^---[\s\S]*?---\s*/m, '');
+  body = body.replace(/^# .*$/m, '');
+  body = body.replace(/!\[[^\]]*\]\([^)]+\)/g, '');
+  body = body.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
+  body = body.replace(/^[>\s-]+/gm, '');
+  body = body.replace(/[*_`]/g, '');
+  return body.replace(/\s+/g, ' ').trim();
+}
+
+const FILENAME_MAX_CHARS = 120;
+
+export function applyFilenameTemplate(template: string, data: ExtractedContent): string {
+  const handle = data.author.handle.replace('@', '');
+  const replacements: Record<string, string> = {
+    date: isoToDateOnly(data.date),
+    datetime: isoToDateTime(data.date),
+    handle,
+    author: data.author.name,
+    id: data.tweetId,
+    slug: slugify(previewForSlug(data)),
+    type: data.type,
+  };
+
+  let rendered = template.replace(
+    /\{(date|datetime|handle|author|id|slug|type)\}/g,
+    (_, key: string) => sanitizeFilenamePart(replacements[key] ?? '')
+  );
+  rendered = rendered.replace(/\.md$/i, '');
+  rendered = rendered.replace(/[/\\:*?"<>|]/g, '');
+  rendered = rendered.replace(/\s+/g, ' ').trim();
+  if (rendered.length > FILENAME_MAX_CHARS) {
+    rendered = rendered.slice(0, FILENAME_MAX_CHARS).trim();
+  }
+  return rendered ? `${rendered}.md` : '';
+}
+
+export function buildFilename(data: ExtractedContent, template?: string): string {
+  if (template && template.trim()) {
+    const fromTemplate = applyFilenameTemplate(template.trim(), data);
+    if (fromTemplate) return fromTemplate;
+  }
+
   const handle = data.author.handle.replace('@', '');
   const id = data.tweetId;
 
   if (data.type === 'article' && data.title) {
-    const slug = data.title
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '-')
-      .replace(/^-|-$/g, '')
-      .slice(0, 60);
-    return `${handle}-${slug}.md`;
+    return `${handle}-${slugify(data.title)}.md`;
   }
 
   return `${handle}-${id}.md`;
@@ -120,7 +191,7 @@ export function postProcess(
   data: ExtractedContent,
   opts: PostProcessOptions
 ): PostProcessResult {
-  const baseFilename = buildFilename(data);
+  const baseFilename = buildFilename(data, opts.filenameTemplate);
   let finalMarkdown = data.markdown;
 
   if (opts.includeMetadata) {

@@ -65,6 +65,7 @@ interface StoredSettings {
   obsidianFriendly?: boolean;
   obsidianVault?: string;
   obsidianFolder?: string;
+  filenameTemplate?: string;
 }
 
 function loadStoredSettings(): Promise<StoredSettings> {
@@ -129,6 +130,7 @@ async function runAutoExtract(
     downloadImages,
     inlineStats,
     obsidianFriendly,
+    filenameTemplate: (settings.filenameTemplate || '').trim(),
   });
 
   if (action === 'copy') {

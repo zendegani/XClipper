@@ -41,6 +41,18 @@
   "opt_download_folder_placeholder": {
     "message": "e.g. tweet2md"
   },
+  "opt_filename_template": {
+    "message": "Filename template"
+  },
+  "opt_filename_template_title": {
+    "message": "Template for the exported filename. Placeholders: {date}, {datetime}, {handle}, {author}, {id}, {slug}, {type}. Leave blank for the default."
+  },
+  "opt_filename_template_placeholder": {
+    "message": "{date}-{handle}-{slug}.md"
+  },
+  "opt_filename_preview": {
+    "message": "Preview:"
+  },
   "group_inline": {
     "message": "Inline button & context menu"
   },

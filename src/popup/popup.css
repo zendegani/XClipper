@@ -601,6 +601,44 @@ body {
   box-shadow: 0 0 0 3px var(--accent-glow);
 }
 
+.field-label-stacked {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+}
+
+.field-label-stacked .field-input {
+  width: 100%;
+}
+
+.field-preview {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  padding: 2px 0 4px;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.field-preview-label {
+  flex-shrink: 0;
+  opacity: 0.75;
+}
+
+.field-preview-value {
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 11px;
+  color: var(--text-primary);
+  background: var(--bg-primary);
+  padding: 1px 6px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-subtle);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
+}
+
 /* ─── Animations ────────────────────────────────────────────── */
 @keyframes fadeIn {
   from {

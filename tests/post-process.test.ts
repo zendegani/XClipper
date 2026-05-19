@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { postProcess } from '../src/shared/post-process';
+import { postProcess, buildFilename, applyFilenameTemplate } from '../src/shared/post-process';
 import type { ExtractedContent } from '../src/types/messages';
 
 function content(markdown: string): ExtractedContent {
@@ -86,5 +86,104 @@ describe('postProcess() image downloads', () => {
     expect(result.images).toEqual([
       { url: allowedUrl, filename: 'example-123/example.jpg' },
     ]);
+  });
+});
+
+describe('buildFilename() default behavior', () => {
+  it('falls back to {handle}-{id}.md for tweets when no template is provided', () => {
+    const data: ExtractedContent = {
+      type: 'tweet',
+      author: { name: 'Example', handle: '@example' },
+      markdown: '# Example (@example)\n\nHi.',
+      sourceUrl: 'https://x.com/example/status/123',
+      date: '2026-05-11T00:00:00.000Z',
+      tweetId: '123',
+    };
+    expect(buildFilename(data)).toBe('example-123.md');
+  });
+
+  it('keeps the legacy article filename when template is empty string', () => {
+    const data: ExtractedContent = {
+      type: 'article',
+      author: { name: 'A', handle: '@a' },
+      title: 'Hello, World!',
+      markdown: '# Hello, World!\n\nBody.',
+      sourceUrl: 'https://x.com/a/status/9',
+      date: '2026-05-11T00:00:00.000Z',
+      tweetId: '9',
+    };
+    expect(buildFilename(data, '')).toBe('a-hello-world.md');
+  });
+});
+
+describe('applyFilenameTemplate()', () => {
+  const sample: ExtractedContent = {
+    type: 'thread',
+    author: { name: 'Jane Doe', handle: '@janedoe' },
+    markdown: '# Jane Doe (@janedoe)\n\nThe quick brown fox jumps over the lazy dog.',
+    sourceUrl: 'https://x.com/janedoe/status/42',
+    date: '2026-05-19T14:30:00.000Z',
+    tweetId: '42',
+  };
+
+  it('substitutes the documented placeholders', () => {
+    expect(applyFilenameTemplate('{date}-{handle}-{slug}', sample))
+      .toBe('2026-05-19-janedoe-the-quick-brown-fox-jumps-over-the-lazy-dog.md');
+  });
+
+  it('supports {datetime}, {author}, {id}, {type}', () => {
+    expect(applyFilenameTemplate('{datetime}_{author}_{type}_{id}', sample))
+      .toBe('2026-05-19_1430_Jane Doe_thread_42.md');
+  });
+
+  it('strips filesystem-invalid characters from placeholder values', () => {
+    const dirty: ExtractedContent = {
+      ...sample,
+      author: { name: 'A/B:C*D?E"F<G>H|I', handle: '@x' },
+    };
+    expect(applyFilenameTemplate('{author}-{id}', dirty)).toBe('ABCDEFGHI-42.md');
+  });
+
+  it('caps total length around 120 chars before the .md extension', () => {
+    const long: ExtractedContent = {
+      ...sample,
+      markdown: 'x '.repeat(200),
+    };
+    const out = applyFilenameTemplate('{slug}', long);
+    // slug itself is capped to 60, so this is naturally short — verify cap with
+    // a literal long template instead.
+    const literal = 'a'.repeat(200);
+    const capped = applyFilenameTemplate(literal, long);
+    expect(capped.length).toBeLessThanOrEqual(123); // 120 + '.md'
+    expect(capped.endsWith('.md')).toBe(true);
+    expect(out.endsWith('.md')).toBe(true);
+  });
+
+  it('ignores a trailing .md in the user-supplied template', () => {
+    expect(applyFilenameTemplate('{handle}-{id}.md', sample))
+      .toBe('janedoe-42.md');
+  });
+
+  it('returns empty string when the template renders to nothing', () => {
+    expect(applyFilenameTemplate('   ', sample)).toBe('');
+  });
+});
+
+describe('postProcess() filename template', () => {
+  it('uses the template when provided via options', () => {
+    const data: ExtractedContent = {
+      type: 'tweet',
+      author: { name: 'Example', handle: '@example' },
+      markdown: '# Example (@example)\n\nHello world',
+      sourceUrl: 'https://x.com/example/status/123',
+      date: '2026-05-19T00:00:00.000Z',
+      tweetId: '123',
+    };
+    const result = postProcess(data, {
+      includeMetadata: false,
+      downloadImages: false,
+      filenameTemplate: '{date}-{handle}-{id}',
+    });
+    expect(result.filename).toBe('2026-05-19-example-123.md');
   });
 });
