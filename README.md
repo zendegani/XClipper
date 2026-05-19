@@ -28,6 +28,7 @@
 - **Add to Obsidian** — One-click handoff to Obsidian via the `obsidian://` URI scheme, with an optional vault name for direct targeting
 - **Obsidian-friendly Frontmatter** — Optional schema with `[[@handle]]` wikilinks for backlinks, synthesized title, `published`/`created` dates, prose description, and `tags: [clippings, x, <type>]`
 - **Local Image Downloads** — Download embedded X media locally alongside your `.md` file to prevent link rot
+- **Customizable Filename Template** — Configure the exported filename with placeholders (`{date}`, `{datetime}`, `{handle}`, `{author}`, `{id}`, `{slug}`, `{type}`); live preview in Settings. Default keeps the existing behaviour
 - **YAML Frontmatter** — Rich metadata with author, handle, date, source URL, content type, and engagement stats (likes, reposts, replies, bookmarks, views)
 - **Inline Engagement Stats** — Optional X-style row in the Markdown body: `💬 284 · 🔁 1.5K · ❤️ 8K · 🔖 253 · 👁 100K`
 - **Copy or Download** — Copy Markdown to clipboard or download as a file
@@ -57,7 +58,7 @@ Right-click anywhere on a tweet — the body, an image, or the timestamp — and
   <img src="assets/Extension_and_Setting.png" alt="tweet2md popup and settings view side by side" width="700" />
 </p>
 
-The popup keeps the things you adjust per export — **Save images locally**, **Show engagement stats inline**, **Include metadata** — front and centre. Click the gear icon at the top-right to flip to **Settings**, where the set-once knobs live: the **Obsidian-friendly frontmatter** toggle, the optional **Vault name** for the *Add to Obsidian* button, and the inline-button & context-menu behaviour. Settings persist across sessions via `chrome.storage`.
+The popup keeps the things you adjust per export — **Save images locally**, **Show engagement stats inline**, **Include metadata** — front and centre. Click the gear icon at the top-right to flip to **Settings**, where the set-once knobs live: the **Downloads subfolder** and **Filename template** (with placeholders like `{date}`, `{handle}`, `{slug}` and a live preview), the **Obsidian-friendly frontmatter** toggle, the optional **Vault name** for the *Add to Obsidian* button, and the inline-button & context-menu behaviour. Settings persist across sessions via `chrome.storage`.
 
 ### Great For
 

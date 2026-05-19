@@ -7,6 +7,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Added
+
+- **Filename Template**: New setting under **Downloads** that takes a template for the exported filename. Supported placeholders: `{date}`, `{datetime}`, `{handle}`, `{author}`, `{id}`, `{slug}`, `{type}`. Each value is sanitized for filesystem-invalid characters (`/\:*?"<>|`), the final filename is capped at 120 characters, and the settings view shows a live preview. Leave blank to keep the previous default (`{handle}-{id}.md` for tweets/threads, `{handle}-{slug}.md` for articles). An info popover next to the field lists every placeholder with a short description. Combines with the **Downloads Subfolder** setting from 1.6.0. (#24)
+
+### Changed
+
+- **Settings View Polish**: Hides the popup header (logo, tagline, hint) on the Settings view to keep the panel compact, and adds a small "Hover over labels for more info" hint near the top so the existing per-label tooltips are easier to discover.
+
 ## [1.6.0] - 2026-05-18
 
 ### Added
