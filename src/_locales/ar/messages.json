@@ -48,7 +48,7 @@
     "message": "قالب اسم الملف المُصدَّر. العناصر النائبة: {date}, {datetime}, {handle}, {author}, {id}, {slug}, {type}. اتركه فارغًا للقيمة الافتراضية."
   },
   "opt_filename_template_placeholder": {
-    "message": "{date}-{handle}-{slug}.md"
+    "message": "{handle}-{id}.md"
   },
   "opt_filename_preview": {
     "message": "معاينة:"

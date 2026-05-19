@@ -99,17 +99,11 @@ body {
   letter-spacing: 0.02em;
 }
 
-/* Settings view is a focused config panel — drop the intro copy so the box
-   stays compact. `:has()` is fine for an extension targeting modern Chrome. */
-.popup-container:has(#view-settings:not(.hidden)) .tagline,
-.popup-container:has(#view-settings:not(.hidden)) .hint {
+/* Settings view is a focused config panel — drop the intro copy AND the
+   header logo so the box stays compact. `:has()` is fine for an extension
+   targeting modern Chrome. */
+.popup-container:has(#view-settings:not(.hidden)) .popup-header {
   display: none;
-}
-
-/* The 6px under the logo-row is breathing room for the tagline (which is
-   hidden on this view), so pull the rest of the panel closer to the header. */
-.popup-container:has(#view-settings:not(.hidden)) .logo-row {
-  margin-bottom: 0;
 }
 
 /* ─── Button Group ─────────────────────────────────────────── */
@@ -609,6 +603,36 @@ body {
 
 .field-label-stacked .field-input {
   width: 100%;
+}
+
+.field-label-stacked .field-text {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.field-info {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  color: var(--text-secondary);
+  opacity: 0.6;
+  cursor: help;
+  transition: opacity var(--transition), color var(--transition);
+}
+
+.field-info:hover,
+.field-info:focus-visible {
+  opacity: 1;
+  color: var(--accent);
+  outline: none;
+}
+
+.field-info svg {
+  width: 14px;
+  height: 14px;
 }
 
 .field-preview {

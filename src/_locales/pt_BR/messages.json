@@ -48,7 +48,7 @@
     "message": "Modelo para o nome do arquivo exportado. Marcadores: {date}, {datetime}, {handle}, {author}, {id}, {slug}, {type}. Deixe em branco para o padrão."
   },
   "opt_filename_template_placeholder": {
-    "message": "{date}-{handle}-{slug}.md"
+    "message": "{handle}-{id}.md"
   },
   "opt_filename_preview": {
     "message": "Pré-visualização:"

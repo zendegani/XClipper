@@ -115,9 +115,21 @@
             <span class="field-text" data-i18n="opt_download_folder">Subfolder</span>
             <input type="text" id="txt-download-folder" class="field-input" autocomplete="off" spellcheck="false" placeholder="e.g. tweet2md" data-i18n-placeholder="opt_download_folder_placeholder" />
           </label>
-          <label class="field-label field-label-stacked" title="Template for the exported filename. Placeholders: {date}, {datetime}, {handle}, {author}, {id}, {slug}, {type}. Leave blank for the default." data-i18n-title="opt_filename_template_title">
-            <span class="field-text" data-i18n="opt_filename_template">Filename template</span>
-            <input type="text" id="txt-filename-template" class="field-input" autocomplete="off" spellcheck="false" placeholder="{date}-{handle}-{slug}.md" data-i18n-placeholder="opt_filename_template_placeholder" />
+          <label class="field-label field-label-stacked">
+            <span class="field-text">
+              <span data-i18n="opt_filename_template">Filename template</span>
+              <span class="field-info"
+                title="Template for the exported filename. Placeholders: {date}, {datetime}, {handle}, {author}, {id}, {slug}, {type}. Leave blank for the default."
+                data-i18n-title="opt_filename_template_title">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="16" x2="12" y2="12" />
+                  <line x1="12" y1="8" x2="12.01" y2="8" />
+                </svg>
+              </span>
+            </span>
+            <input type="text" id="txt-filename-template" class="field-input" autocomplete="off" spellcheck="false" placeholder="{handle}-{id}.md" data-i18n-placeholder="opt_filename_template_placeholder" />
           </label>
           <div class="field-preview">
             <span class="field-preview-label" data-i18n="opt_filename_preview">Preview:</span>
