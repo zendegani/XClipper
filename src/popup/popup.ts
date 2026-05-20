@@ -200,6 +200,7 @@ loadSettings().then((settings) => {
   frontmatterFieldsObsidian = { ...settings.frontmatterFieldsObsidian };
   syncFieldCheckboxes();
   updateFieldPickerMode();
+  updateFieldPickerEnabled();
   updateFilenamePreview();
   updateInlineCopiesEnabled();
 });
@@ -245,6 +246,21 @@ function updateFieldPickerMode(): void {
   });
 }
 
+// Grey out the whole picker when Include metadata is off — without
+// frontmatter there's nothing to filter, and a live-looking control would
+// suggest otherwise.
+function updateFieldPickerEnabled(): void {
+  const enabled = chkMetadata.checked;
+  const picker = document.querySelector<HTMLElement>('.fm-picker');
+  picker?.classList.toggle('disabled', !enabled);
+  fieldCheckboxes.forEach((cb) => {
+    cb.disabled = !enabled;
+  });
+  document.querySelectorAll<HTMLButtonElement>('.fm-picker-select-all').forEach((btn) => {
+    btn.disabled = !enabled;
+  });
+}
+
 fieldCheckboxes.forEach((cb) => {
   cb.addEventListener('change', () => {
     const mode = cb.dataset.mode === 'obsidian' ? 'obsidian' : 'default';
@@ -285,7 +301,10 @@ function updateFilenamePreview(): void {
 }
 
 chkDownloadImages.addEventListener('change', persistAll);
-chkMetadata.addEventListener('change', persistAll);
+chkMetadata.addEventListener('change', () => {
+  updateFieldPickerEnabled();
+  persistAll();
+});
 chkCloseTab.addEventListener('change', persistAll);
 chkInlineCopies.addEventListener('change', persistAll);
 chkShowInline.addEventListener('change', () => {
