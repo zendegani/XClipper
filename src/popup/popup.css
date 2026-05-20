@@ -764,6 +764,15 @@ body {
   gap: 0;
 }
 
+.fm-picker.disabled {
+  opacity: 0.45;
+}
+
+.fm-picker.disabled .fm-field,
+.fm-picker.disabled .fm-picker-select-all {
+  cursor: not-allowed;
+}
+
 .fm-picker-summary {
   display: flex;
   align-items: center;
