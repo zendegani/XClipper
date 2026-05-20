@@ -754,6 +754,115 @@ body {
   max-width: 100%;
 }
 
+/* ─── Frontmatter field picker (collapsible) ────────────────── */
+.fm-picker {
+  /* `details` defaults to block — keep the flex column from .option-group
+   * but suppress the gap when closed so the summary alone sits flush. */
+}
+
+.fm-picker:not([open]) {
+  gap: 0;
+}
+
+.fm-picker-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  list-style: none;
+  padding: 2px 0;
+}
+
+.fm-picker-summary::-webkit-details-marker {
+  display: none;
+}
+
+.fm-picker-summary .option-group-label {
+  margin-bottom: 0;
+}
+
+.fm-picker-chevron {
+  width: 14px;
+  height: 14px;
+  color: var(--text-secondary);
+  opacity: 0.7;
+  transition: transform var(--transition);
+}
+
+.fm-picker[open] .fm-picker-chevron {
+  transform: rotate(180deg);
+}
+
+.fm-picker-help {
+  margin: 4px 0 6px;
+  font-size: 11.5px;
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.fm-picker-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px 12px;
+  margin-bottom: 4px;
+}
+
+.fm-picker-list[hidden] {
+  display: none;
+}
+
+.fm-picker-mode-label {
+  grid-column: 1 / -1;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+  opacity: 0.7;
+  margin-top: 4px;
+}
+
+.fm-picker-select-all {
+  grid-column: 1 / -1;
+  justify-self: end;
+  font-family: inherit;
+  font-size: 11px;
+  color: var(--accent);
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 2px 8px;
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition);
+}
+
+.fm-picker-select-all:hover {
+  border-color: var(--accent);
+  background: var(--accent-glow);
+}
+
+.fm-field {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  user-select: none;
+}
+
+.fm-field:has(.fm-field-input:checked) {
+  color: var(--text-primary);
+}
+
+.fm-field-input {
+  width: 13px;
+  height: 13px;
+  accent-color: var(--accent);
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
 /* ─── Animations ────────────────────────────────────────────── */
 @keyframes fadeIn {
   from {

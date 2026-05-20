@@ -7,7 +7,43 @@ export interface PostProcessOptions {
   inlineStats?: boolean;
   obsidianFriendly?: boolean;
   filenameTemplate?: string;
+  // Per-field opt-out for the YAML frontmatter. Undefined → emit every field
+  // (legacy behavior). A `false` entry suppresses that field; missing keys are
+  // treated as enabled so newly-added fields don't silently disappear for
+  // users with an older saved map.
+  frontmatterFields?: Record<string, boolean>;
 }
+
+export const FRONTMATTER_FIELDS_DEFAULT = [
+  'author',
+  'handle',
+  'source',
+  'date',
+  'type',
+  'likes',
+  'reposts',
+  'replies',
+  'bookmarks',
+  'views',
+] as const;
+
+export const FRONTMATTER_FIELDS_OBSIDIAN = [
+  'title',
+  'source',
+  'author',
+  'author_name',
+  'handle',
+  'published',
+  'created',
+  'type',
+  'description',
+  'tags',
+  'likes',
+  'reposts',
+  'replies',
+  'bookmarks',
+  'views',
+] as const;
 
 export const FILENAME_PLACEHOLDERS = ['date', 'datetime', 'handle', 'author', 'id', 'slug', 'type'] as const;
 
@@ -198,37 +234,41 @@ export function postProcess(
     finalMarkdown = stripSourceFooter(finalMarkdown);
 
     const m = data.metadata;
+    const fields = opts.frontmatterFields;
+    const includeField = (key: string) => !fields || fields[key] !== false;
     const lines = ['---'];
 
     if (opts.obsidianFriendly) {
       // Obsidian-friendly schema: wikilink author for backlinks, split
       // published/created dates, synthesized title, tags array. Engagement
       // metrics still emitted at the bottom for Dataview queries.
-      lines.push(`title: ${yamlEscape(buildTitle(data))}`);
-      lines.push(`source: "${data.sourceUrl}"`);
-      lines.push(`author: "[[${data.author.handle}]]"`);
-      lines.push(`author_name: ${yamlEscape(data.author.name)}`);
-      lines.push(`handle: "${data.author.handle}"`);
-      lines.push(`published: ${isoToDateOnly(data.date)}`);
-      lines.push(`created: ${todayISODate()}`);
-      lines.push(`type: ${data.type}`);
-      const desc = buildDescription(finalMarkdown);
-      if (desc) lines.push(`description: ${yamlEscape(desc)}`);
-      lines.push(`tags: [clippings, x, ${data.type}]`);
+      if (includeField('title')) lines.push(`title: ${yamlEscape(buildTitle(data))}`);
+      if (includeField('source')) lines.push(`source: "${data.sourceUrl}"`);
+      if (includeField('author')) lines.push(`author: "[[${data.author.handle}]]"`);
+      if (includeField('author_name')) lines.push(`author_name: ${yamlEscape(data.author.name)}`);
+      if (includeField('handle')) lines.push(`handle: "${data.author.handle}"`);
+      if (includeField('published')) lines.push(`published: ${isoToDateOnly(data.date)}`);
+      if (includeField('created')) lines.push(`created: ${todayISODate()}`);
+      if (includeField('type')) lines.push(`type: ${data.type}`);
+      if (includeField('description')) {
+        const desc = buildDescription(finalMarkdown);
+        if (desc) lines.push(`description: ${yamlEscape(desc)}`);
+      }
+      if (includeField('tags')) lines.push(`tags: [clippings, x, ${data.type}]`);
     } else {
-      lines.push(`author: "${data.author.name}"`);
-      lines.push(`handle: "${data.author.handle}"`);
-      lines.push(`source: "${data.sourceUrl}"`);
-      lines.push(`date: ${data.date}`);
-      lines.push(`type: ${data.type}`);
+      if (includeField('author')) lines.push(`author: "${data.author.name}"`);
+      if (includeField('handle')) lines.push(`handle: "${data.author.handle}"`);
+      if (includeField('source')) lines.push(`source: "${data.sourceUrl}"`);
+      if (includeField('date')) lines.push(`date: ${data.date}`);
+      if (includeField('type')) lines.push(`type: ${data.type}`);
     }
 
     if (m) {
-      if (m.likes !== undefined) lines.push(`likes: ${m.likes}`);
-      if (m.reposts !== undefined) lines.push(`reposts: ${m.reposts}`);
-      if (m.replies !== undefined) lines.push(`replies: ${m.replies}`);
-      if (m.bookmarks !== undefined) lines.push(`bookmarks: ${m.bookmarks}`);
-      if (m.views !== undefined) lines.push(`views: ${m.views}`);
+      if (m.likes !== undefined && includeField('likes')) lines.push(`likes: ${m.likes}`);
+      if (m.reposts !== undefined && includeField('reposts')) lines.push(`reposts: ${m.reposts}`);
+      if (m.replies !== undefined && includeField('replies')) lines.push(`replies: ${m.replies}`);
+      if (m.bookmarks !== undefined && includeField('bookmarks')) lines.push(`bookmarks: ${m.bookmarks}`);
+      if (m.views !== undefined && includeField('views')) lines.push(`views: ${m.views}`);
     }
     lines.push('---', '');
     finalMarkdown = lines.join('\n') + finalMarkdown;

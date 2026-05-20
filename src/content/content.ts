@@ -66,6 +66,8 @@ interface StoredSettings {
   obsidianVault?: string;
   obsidianFolder?: string;
   filenameTemplate?: string;
+  frontmatterFields?: Record<string, boolean>;
+  frontmatterFieldsObsidian?: Record<string, boolean>;
 }
 
 function loadStoredSettings(): Promise<StoredSettings> {
@@ -125,12 +127,17 @@ async function runAutoExtract(
   const response = await extract({ includeMetadata: includeMetadata || inlineStats });
   if (!response.success || !response.data) return;
 
+  const frontmatterFields = obsidianFriendly
+    ? settings.frontmatterFieldsObsidian
+    : settings.frontmatterFields;
+
   const result = postProcess(response.data, {
     includeMetadata,
     downloadImages,
     inlineStats,
     obsidianFriendly,
     filenameTemplate: (settings.filenameTemplate || '').trim(),
+    frontmatterFields,
   });
 
   if (action === 'copy') {

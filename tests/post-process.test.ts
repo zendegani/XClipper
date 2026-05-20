@@ -169,6 +169,56 @@ describe('applyFilenameTemplate()', () => {
   });
 });
 
+describe('postProcess() frontmatter field filtering', () => {
+  const data: ExtractedContent = {
+    type: 'tweet',
+    author: { name: 'Example', handle: '@example' },
+    markdown: '# Example (@example)\n\nHi.',
+    sourceUrl: 'https://x.com/example/status/123',
+    date: '2026-05-11T00:00:00.000Z',
+    tweetId: '123',
+    metadata: { likes: 10, reposts: 2, views: 100 },
+  };
+
+  it('omits default-mode fields whose entry is false', () => {
+    const result = postProcess(data, {
+      includeMetadata: true,
+      downloadImages: false,
+      frontmatterFields: { author: false, handle: true, source: true, date: false, type: true, likes: false, reposts: true, views: true },
+    });
+    expect(result.markdown).not.toContain('author:');
+    expect(result.markdown).not.toContain('\ndate:');
+    expect(result.markdown).not.toContain('likes:');
+    expect(result.markdown).toContain('handle: "@example"');
+    expect(result.markdown).toContain('reposts: 2');
+    expect(result.markdown).toContain('views: 100');
+  });
+
+  it('treats missing keys as enabled (forward compat for new fields)', () => {
+    const result = postProcess(data, {
+      includeMetadata: true,
+      downloadImages: false,
+      // Older saved map without the newly-added `views` key — it should still
+      // be emitted rather than silently dropped.
+      frontmatterFields: { author: true, handle: true },
+    });
+    expect(result.markdown).toContain('views: 100');
+  });
+
+  it('filters obsidian-mode fields independently', () => {
+    const result = postProcess(data, {
+      includeMetadata: true,
+      downloadImages: false,
+      obsidianFriendly: true,
+      frontmatterFields: { title: false, tags: false, source: true, author: true, handle: true, published: true, created: true, type: true, description: true, author_name: true, likes: true, reposts: true, replies: true, bookmarks: true, views: true },
+    });
+    expect(result.markdown).not.toContain('title:');
+    expect(result.markdown).not.toContain('tags:');
+    expect(result.markdown).toContain('author: "[[@example]]"');
+    expect(result.markdown).toContain('published: 2026-05-11');
+  });
+});
+
 describe('postProcess() filename template', () => {
   it('uses the template when provided via options', () => {
     const data: ExtractedContent = {

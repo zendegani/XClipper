@@ -83,6 +83,21 @@
   "group_inline": {
     "message": "Inline button & context menu"
   },
+  "group_frontmatter": {
+    "message": "Frontmatter fields"
+  },
+  "opt_frontmatter_help": {
+    "message": "Pick which entries appear in the YAML frontmatter. Selections are saved per mode."
+  },
+  "opt_frontmatter_mode_default": {
+    "message": "Default mode"
+  },
+  "opt_frontmatter_mode_obsidian": {
+    "message": "Obsidian-friendly mode"
+  },
+  "opt_frontmatter_select_all": {
+    "message": "Select all"
+  },
   "nav_settings": {
     "message": "Settings"
   },

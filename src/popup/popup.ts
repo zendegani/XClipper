@@ -1,5 +1,12 @@
 import type { ExtractResponse, DownloadRequest } from '../types/messages';
-import { postProcess, resolveDownloadImages, buildFilename, type PostProcessResult } from '../shared/post-process';
+import {
+  postProcess,
+  resolveDownloadImages,
+  buildFilename,
+  FRONTMATTER_FIELDS_DEFAULT,
+  FRONTMATTER_FIELDS_OBSIDIAN,
+  type PostProcessResult,
+} from '../shared/post-process';
 import { buildObsidianUrl } from '../shared/obsidian';
 import { hostMatches } from '../shared/media';
 
@@ -95,6 +102,8 @@ btnBack?.addEventListener('click', () => {
 
 const SETTINGS_KEY = 'tweet2md_settings';
 
+type FieldMap = Record<string, boolean>;
+
 interface Settings {
   downloadImages: boolean;
   includeMetadata: boolean;
@@ -107,6 +116,12 @@ interface Settings {
   obsidianFolder: string;
   downloadFolder: string;
   filenameTemplate: string;
+  frontmatterFields: FieldMap;
+  frontmatterFieldsObsidian: FieldMap;
+}
+
+function allEnabled(keys: readonly string[]): FieldMap {
+  return Object.fromEntries(keys.map((k) => [k, true]));
 }
 
 const DEFAULT_SETTINGS: Settings = {
@@ -121,13 +136,32 @@ const DEFAULT_SETTINGS: Settings = {
   obsidianFolder: '', // empty → create note at the vault root
   downloadFolder: '', // empty → save directly in Downloads
   filenameTemplate: '', // empty → legacy {handle}-{id}.md / {handle}-{slug}.md
+  frontmatterFields: allEnabled(FRONTMATTER_FIELDS_DEFAULT),
+  frontmatterFieldsObsidian: allEnabled(FRONTMATTER_FIELDS_OBSIDIAN),
 };
 
 async function loadSettings(): Promise<Settings> {
   return new Promise((resolve) => {
     chrome.storage.local.get(SETTINGS_KEY, (result) => {
-      const saved = result[SETTINGS_KEY] as Partial<Settings> | undefined;
-      resolve({ ...DEFAULT_SETTINGS, ...saved });
+      const saved = (result[SETTINGS_KEY] || {}) as Partial<Settings>;
+      // Merge field maps key-by-key: a saved map from an older version is
+      // missing newly-added fields, and a hard spread would leave those keys
+      // undefined → they'd render unchecked. Defaulting missing keys to true
+      // keeps the rule "no saved choice = include the field".
+      const frontmatterFields = {
+        ...DEFAULT_SETTINGS.frontmatterFields,
+        ...(saved.frontmatterFields || {}),
+      };
+      const frontmatterFieldsObsidian = {
+        ...DEFAULT_SETTINGS.frontmatterFieldsObsidian,
+        ...(saved.frontmatterFieldsObsidian || {}),
+      };
+      resolve({
+        ...DEFAULT_SETTINGS,
+        ...saved,
+        frontmatterFields,
+        frontmatterFieldsObsidian,
+      });
     });
   });
 }
@@ -142,6 +176,13 @@ function updateInlineCopiesEnabled(): void {
   chkInlineCopies.closest('.toggle-label')?.classList.toggle('disabled', !enabled);
 }
 
+// In-memory snapshot of field selections — the source of truth that gets
+// persisted. Checkbox `checked` state mirrors whichever mode is currently
+// visible; the other mode's choices live here so toggling Obsidian doesn't
+// lose them.
+let frontmatterFields: FieldMap = { ...DEFAULT_SETTINGS.frontmatterFields };
+let frontmatterFieldsObsidian: FieldMap = { ...DEFAULT_SETTINGS.frontmatterFieldsObsidian };
+
 // Restore toggle states on popup open
 loadSettings().then((settings) => {
   chkDownloadImages.checked = settings.downloadImages;
@@ -155,6 +196,10 @@ loadSettings().then((settings) => {
   txtObsidianFolder.value = settings.obsidianFolder;
   txtDownloadFolder.value = settings.downloadFolder;
   txtFilenameTemplate.value = settings.filenameTemplate;
+  frontmatterFields = { ...settings.frontmatterFields };
+  frontmatterFieldsObsidian = { ...settings.frontmatterFieldsObsidian };
+  syncFieldCheckboxes();
+  updateFieldPickerMode();
   updateFilenamePreview();
   updateInlineCopiesEnabled();
 });
@@ -172,8 +217,55 @@ function persistAll(): void {
     obsidianFolder: txtObsidianFolder.value.trim(),
     downloadFolder: txtDownloadFolder.value.trim(),
     filenameTemplate: txtFilenameTemplate.value.trim(),
+    frontmatterFields,
+    frontmatterFieldsObsidian,
   });
 }
+
+// ─── Frontmatter field picker ──────────────────────────────────────
+
+const fieldCheckboxes = Array.from(
+  document.querySelectorAll<HTMLInputElement>('.fm-field-input')
+);
+
+function syncFieldCheckboxes(): void {
+  for (const cb of fieldCheckboxes) {
+    const mode = cb.dataset.mode === 'obsidian' ? 'obsidian' : 'default';
+    const field = cb.dataset.field || '';
+    const map = mode === 'obsidian' ? frontmatterFieldsObsidian : frontmatterFields;
+    cb.checked = map[field] !== false;
+  }
+}
+
+function updateFieldPickerMode(): void {
+  const obsidian = chkObsidianFriendly.checked;
+  document.querySelectorAll<HTMLElement>('.fm-picker-list').forEach((list) => {
+    const mode = list.dataset.mode === 'obsidian' ? 'obsidian' : 'default';
+    list.hidden = (mode === 'obsidian') !== obsidian;
+  });
+}
+
+fieldCheckboxes.forEach((cb) => {
+  cb.addEventListener('change', () => {
+    const mode = cb.dataset.mode === 'obsidian' ? 'obsidian' : 'default';
+    const field = cb.dataset.field || '';
+    if (!field) return;
+    const map = mode === 'obsidian' ? frontmatterFieldsObsidian : frontmatterFields;
+    map[field] = cb.checked;
+    persistAll();
+  });
+});
+
+document.querySelectorAll<HTMLButtonElement>('.fm-picker-select-all').forEach((btn) => {
+  btn.addEventListener('click', () => {
+    const mode = btn.dataset.mode === 'obsidian' ? 'obsidian' : 'default';
+    const keys = mode === 'obsidian' ? FRONTMATTER_FIELDS_OBSIDIAN : FRONTMATTER_FIELDS_DEFAULT;
+    const map = mode === 'obsidian' ? frontmatterFieldsObsidian : frontmatterFields;
+    for (const key of keys) map[key] = true;
+    syncFieldCheckboxes();
+    persistAll();
+  });
+});
 
 // ─── Filename template preview ─────────────────────────────────────
 
@@ -201,7 +293,10 @@ chkShowInline.addEventListener('change', () => {
   persistAll();
 });
 chkInlineStats.addEventListener('change', persistAll);
-chkObsidianFriendly.addEventListener('change', persistAll);
+chkObsidianFriendly.addEventListener('change', () => {
+  updateFieldPickerMode();
+  persistAll();
+});
 txtObsidianVault.addEventListener('change', persistAll);
 txtObsidianVault.addEventListener('blur', persistAll);
 txtDownloadFolder.addEventListener('change', persistAll);
@@ -341,6 +436,7 @@ async function extractMarkdown(
     inlineStats,
     obsidianFriendly,
     filenameTemplate: txtFilenameTemplate.value.trim(),
+    frontmatterFields: obsidianFriendly ? frontmatterFieldsObsidian : frontmatterFields,
   });
 }
 
