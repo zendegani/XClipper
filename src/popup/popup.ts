@@ -313,6 +313,13 @@ chkShowInline.addEventListener('change', () => {
 });
 chkInlineStats.addEventListener('change', persistAll);
 chkObsidianFriendly.addEventListener('change', () => {
+  // Obsidian-friendly only reshapes the frontmatter — turning it on while
+  // Include metadata is off would leave nothing to reshape. Flip metadata on
+  // alongside so the toggle does the obviously-intended thing.
+  if (chkObsidianFriendly.checked && !chkMetadata.checked) {
+    chkMetadata.checked = true;
+    updateFieldPickerEnabled();
+  }
   updateFieldPickerMode();
   persistAll();
 });
