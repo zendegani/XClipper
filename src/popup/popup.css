@@ -449,6 +449,48 @@ body {
   border-top: 1px solid var(--border-subtle);
 }
 
+/* When the group is a <details>, collapse the inter-row gap when closed so
+ * the summary sits flush against the next section's top border. */
+details.option-group:not([open]) {
+  gap: 0;
+}
+
+.option-group-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  cursor: pointer;
+  list-style: none;
+  padding: 2px 0;
+  user-select: none;
+}
+
+.option-group-summary::-webkit-details-marker {
+  display: none;
+}
+
+.option-group-summary .option-group-label {
+  margin-bottom: 0;
+}
+
+.option-group-chevron {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: var(--text-secondary);
+  opacity: 0.7;
+  transition: transform var(--transition);
+}
+
+details.option-group[open] .option-group-chevron {
+  transform: rotate(180deg);
+}
+
+.option-group-summary:hover .option-group-chevron {
+  opacity: 1;
+}
+
 .option-group-label {
   font-size: 10px;
   font-weight: 600;
@@ -754,16 +796,7 @@ body {
   max-width: 100%;
 }
 
-/* ─── Frontmatter field picker (collapsible) ────────────────── */
-.fm-picker {
-  /* `details` defaults to block — keep the flex column from .option-group
-   * but suppress the gap when closed so the summary alone sits flush. */
-}
-
-.fm-picker:not([open]) {
-  gap: 0;
-}
-
+/* ─── Frontmatter field picker ──────────────────────────────── */
 .fm-picker.disabled {
   opacity: 0.45;
 }
@@ -773,35 +806,6 @@ body {
   cursor: not-allowed;
 }
 
-.fm-picker-summary {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  cursor: pointer;
-  list-style: none;
-  padding: 2px 0;
-}
-
-.fm-picker-summary::-webkit-details-marker {
-  display: none;
-}
-
-.fm-picker-summary .option-group-label {
-  margin-bottom: 0;
-}
-
-.fm-picker-chevron {
-  width: 14px;
-  height: 14px;
-  color: var(--text-secondary);
-  opacity: 0.7;
-  transition: transform var(--transition);
-}
-
-.fm-picker[open] .fm-picker-chevron {
-  transform: rotate(180deg);
-}
-
 .fm-picker-help {
   margin: 4px 0 6px;
   font-size: 11.5px;
@@ -809,38 +813,32 @@ body {
   line-height: 1.4;
 }
 
-.fm-picker-list {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4px 12px;
-  margin-bottom: 4px;
-}
-
-.fm-picker-list[hidden] {
-  display: none;
+.fm-picker-mode-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 4px;
+  margin-bottom: 2px;
 }
 
 .fm-picker-mode-label {
-  grid-column: 1 / -1;
   font-size: 10px;
   font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   color: var(--text-secondary);
   opacity: 0.7;
-  margin-top: 4px;
 }
 
 .fm-picker-select-all {
-  grid-column: 1 / -1;
-  justify-self: end;
   font-family: inherit;
-  font-size: 11px;
+  font-size: 10.5px;
   color: var(--accent);
   background: transparent;
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
-  padding: 2px 8px;
+  padding: 1px 8px;
   cursor: pointer;
   transition: background var(--transition), border-color var(--transition);
 }
@@ -850,26 +848,89 @@ body {
   background: var(--accent-glow);
 }
 
+.fm-picker-list {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px 14px;
+  margin-bottom: 4px;
+}
+
+.fm-picker-list[hidden] {
+  display: none;
+}
+
+.fm-picker-list .fm-picker-mode-header {
+  grid-column: 1 / -1;
+}
+
 .fm-field {
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 2px 0;
   font-size: 12px;
   color: var(--text-secondary);
   cursor: pointer;
   user-select: none;
 }
 
-.fm-field:has(.fm-field-input:checked) {
+.fm-field:has(.fm-field-input:checked) .fm-field-name {
   color: var(--text-primary);
 }
 
+.fm-field-name {
+  font-family: var(--font-mono, ui-monospace, SFMono-Regular, Menlo, monospace);
+  font-size: 11.5px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* The checkbox itself is hidden — clicks land on the label, the visual
+ * .toggle-switch-mini reflects the state. */
 .fm-field-input {
-  width: 13px;
-  height: 13px;
-  accent-color: var(--accent);
-  cursor: pointer;
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+  pointer-events: none;
+}
+
+.toggle-switch-mini {
+  position: relative;
+  width: 22px;
+  height: 12px;
+  background: var(--toggle-off-bg);
+  border-radius: 7px;
   flex-shrink: 0;
+  transition: background var(--transition), box-shadow var(--transition);
+}
+
+.toggle-switch-mini::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 8px;
+  height: 8px;
+  background: var(--toggle-off-knob);
+  border-radius: 50%;
+  transition: transform var(--transition), background var(--transition);
+}
+
+.fm-field-input:checked + .toggle-switch-mini {
+  background: rgba(29, 155, 240, 0.3);
+  box-shadow: 0 0 6px rgba(29, 155, 240, 0.15);
+}
+
+.fm-field-input:checked + .toggle-switch-mini::after {
+  transform: translateX(10px);
+  background: var(--accent);
+}
+
+.fm-field-input:disabled + .toggle-switch-mini {
+  cursor: not-allowed;
 }
 
 /* ─── Animations ────────────────────────────────────────────── */
