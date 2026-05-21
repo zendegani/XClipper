@@ -424,6 +424,38 @@ body {
   height: 14px;
 }
 
+/* CSS tooltip: instant, contained inside the popup. Native title tooltips
+ * have a ~500ms delay and render via the OS, which lets them spill outside
+ * the Chrome extension popup window. */
+.settings-help-hint {
+  position: absolute;
+  top: 28px;
+  right: 0;
+  z-index: 20;
+  width: max-content;
+  max-width: 240px;
+  padding: 8px 10px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: var(--text-primary);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-2px);
+  transition: opacity var(--transition), transform var(--transition), visibility var(--transition);
+  pointer-events: none;
+}
+
+.settings-help-wrap:hover .settings-help-hint,
+.settings-help-icon:focus-visible + .settings-help-hint {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+}
+
 .nav-link {
   display: inline-flex;
   align-items: center;
