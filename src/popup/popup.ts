@@ -59,10 +59,10 @@ document.querySelectorAll('[data-i18n]').forEach((el) => {
     el.textContent = chrome.i18n.getMessage(key) || el.textContent;
   }
 });
-document.querySelectorAll('[data-i18n-title]').forEach((el) => {
-  const key = el.getAttribute('data-i18n-title');
+document.querySelectorAll('[data-i18n-tooltip]').forEach((el) => {
+  const key = el.getAttribute('data-i18n-tooltip');
   if (key) {
-    el.setAttribute('title', chrome.i18n.getMessage(key) || el.getAttribute('title')!);
+    el.setAttribute('data-tooltip', chrome.i18n.getMessage(key) || el.getAttribute('data-tooltip') || '');
   }
 });
 document.querySelectorAll('[data-i18n-placeholder]').forEach((el) => {
