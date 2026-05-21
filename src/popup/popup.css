@@ -120,7 +120,8 @@ body {
 /* Settings view is a focused config panel — drop the intro copy AND the
    header logo so the box stays compact. `:has()` is fine for an extension
    targeting modern Chrome. */
-.popup-container:has(#view-settings:not(.hidden)) .popup-header {
+.popup-container:has(#view-settings:not(.hidden)) .popup-header,
+.popup-container:has(#view-settings:not(.hidden)) .popup-footer {
   display: none;
 }
 

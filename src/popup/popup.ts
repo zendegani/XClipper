@@ -86,19 +86,16 @@ const viewMain = document.getElementById('view-main');
 const viewSettings = document.getElementById('view-settings');
 const btnSettings = document.getElementById('btn-settings');
 const btnBack = document.getElementById('btn-back');
-const popupFooter = document.getElementById('popup-footer');
 
 btnSettings?.addEventListener('click', () => {
   viewMain?.classList.add('hidden');
   viewSettings?.classList.remove('hidden');
   btnSettings?.classList.add('hidden');
-  popupFooter?.classList.add('hidden');
 });
 btnBack?.addEventListener('click', () => {
   viewSettings?.classList.add('hidden');
   viewMain?.classList.remove('hidden');
   btnSettings?.classList.remove('hidden');
-  popupFooter?.classList.remove('hidden');
 });
 
 // ─── Settings Persistence ───────────────────────────────────────────
