@@ -303,12 +303,24 @@ body {
 
 /* ─── Footer ────────────────────────────────────────────────── */
 .popup-footer {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
   gap: 6px;
   padding-top: 4px;
   border-top: 1px solid var(--border-subtle);
+}
+
+/* Pulled out of the flex flow so the centered "Issues…" cluster stays
+ * actually centered relative to the popup width. */
+.footer-version {
+  position: absolute;
+  left: 0;
+  font-size: 10.5px;
+  color: var(--text-secondary);
+  opacity: 0.5;
+  font-variant-numeric: tabular-nums;
 }
 
 .footer-feedback {

@@ -51,6 +51,13 @@ const filenamePreview = document.getElementById(
   'filename-preview'
 ) as HTMLElement;
 
+// ─── Footer version ───────────────────────────────────────────────────
+
+const footerVersion = document.getElementById('footer-version');
+if (footerVersion) {
+  footerVersion.textContent = `v${chrome.runtime.getManifest().version}`;
+}
+
 // ─── Initialize i18n ──────────────────────────────────────────────────
 
 document.querySelectorAll('[data-i18n]').forEach((el) => {
