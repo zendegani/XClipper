@@ -445,7 +445,9 @@ body {
   opacity: 0;
   visibility: hidden;
   transform: translateY(-2px);
-  transition: opacity var(--transition), transform var(--transition), visibility var(--transition);
+  /* Faster than the default 200ms — the hint is essentially a label, no
+   * reason for it to "fade in". */
+  transition: opacity 80ms ease-out, transform 80ms ease-out, visibility 80ms ease-out;
   pointer-events: none;
 }
 
