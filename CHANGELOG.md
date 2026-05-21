@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Filename Template**: New setting under **Downloads** that takes a template for the exported filename. Supported placeholders: `{date}`, `{datetime}`, `{handle}`, `{author}`, `{id}`, `{slug}`, `{type}`. Each value is sanitized for filesystem-invalid characters (`/\:*?"<>|`), the final filename is capped at 120 characters, and the settings view shows a live preview. Leave blank to keep the previous default (`{handle}-{id}.md` for tweets/threads, `{handle}-{slug}.md` for articles). An info popover next to the field lists every placeholder with a short description. Combines with the **Downloads Subfolder** setting from 1.6.0. (#24)
+- **Frontmatter Field Picker**: New collapsible **Frontmatter fields** section in Settings that lets you pick exactly which entries appear in the YAML frontmatter (e.g. drop `views` or `bookmarks` if your notes don't need engagement counts). Selections are saved separately for the default schema and the Obsidian-friendly schema, so flipping the toggle preserves each set. A **Select all** button restores every field for the active mode. The picker greys out when **Include metadata** is off (no frontmatter to filter); flipping **Obsidian-friendly frontmatter** on automatically enables **Include metadata** so the toggle does what it implies. Saved maps treat missing keys as enabled, so newly-added fields in future versions won't silently disappear. (#25)
 
 ### Changed
 
