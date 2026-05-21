@@ -124,7 +124,7 @@ interface Settings {
 }
 
 const SECTION_IDS = ['downloads', 'obsidian', 'frontmatter', 'inline'] as const;
-const SECTION_MAX_OPEN = 3;
+const SECTION_MAX_OPEN = 2;
 
 function allEnabled(keys: readonly string[]): FieldMap {
   return Object.fromEntries(keys.map((k) => [k, true]));
@@ -260,7 +260,7 @@ document.querySelectorAll<HTMLDetailsElement>('details.option-group[data-section
 // listener and corrupt the MRU list.
 let sectionsSyncing = false;
 
-function applySettingsSections(): void {
+function syncSectionDom(): void {
   sectionsSyncing = true;
   for (const [id, el] of sectionDetailsById) {
     el.open = settingsSectionsOpen.includes(id);
@@ -268,25 +268,44 @@ function applySettingsSections(): void {
   sectionsSyncing = false;
 }
 
+function applySettingsSections(): void {
+  reconcileSections();
+  syncSectionDom();
+}
+
+// Enforce two invariants on the open-list:
+//   1. Frontmatter requires Obsidian (its toggle picks which Frontmatter mode
+//      is visible — orphaning Frontmatter would hide that choice).
+//   2. Length ≤ SECTION_MAX_OPEN. Evict from the head (oldest), but never
+//      evict Obsidian while Frontmatter is still open.
+function reconcileSections(): void {
+  if (settingsSectionsOpen.includes('frontmatter') && !settingsSectionsOpen.includes('obsidian')) {
+    const fmIdx = settingsSectionsOpen.indexOf('frontmatter');
+    settingsSectionsOpen.splice(fmIdx, 0, 'obsidian');
+  }
+  while (settingsSectionsOpen.length > SECTION_MAX_OPEN) {
+    const fmOpen = settingsSectionsOpen.includes('frontmatter');
+    const evictIdx = fmOpen && settingsSectionsOpen[0] === 'obsidian' ? 1 : 0;
+    settingsSectionsOpen.splice(evictIdx, 1);
+  }
+}
+
 function handleSectionToggle(id: string, opened: boolean): void {
   if (sectionsSyncing) return;
   if (opened) {
-    // Move-to-end on re-open; evict from the head if we'd exceed the cap.
+    // Move-to-end on re-open.
     settingsSectionsOpen = settingsSectionsOpen.filter((x) => x !== id);
     settingsSectionsOpen.push(id);
-    while (settingsSectionsOpen.length > SECTION_MAX_OPEN) {
-      const evicted = settingsSectionsOpen.shift();
-      if (!evicted) break;
-      const el = sectionDetailsById.get(evicted);
-      if (el && el.open) {
-        sectionsSyncing = true;
-        el.open = false;
-        sectionsSyncing = false;
-      }
-    }
   } else {
     settingsSectionsOpen = settingsSectionsOpen.filter((x) => x !== id);
+    // Closing Obsidian implicitly closes Frontmatter — Frontmatter can't
+    // stand alone (see invariant 1 in reconcileSections).
+    if (id === 'obsidian') {
+      settingsSectionsOpen = settingsSectionsOpen.filter((x) => x !== 'frontmatter');
+    }
   }
+  reconcileSections();
+  syncSectionDom();
   persistAll();
 }
 
