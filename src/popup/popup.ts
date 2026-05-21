@@ -392,6 +392,12 @@ function updateFilenamePreview(): void {
 
 chkDownloadImages.addEventListener('change', persistAll);
 chkMetadata.addEventListener('change', () => {
+  // Mirror of the Obsidian-friendly → metadata rule: if metadata goes off,
+  // Obsidian-friendly has nothing to reshape, so flip it off too.
+  if (!chkMetadata.checked && chkObsidianFriendly.checked) {
+    chkObsidianFriendly.checked = false;
+    updateFieldPickerMode();
+  }
   updateFieldPickerEnabled();
   persistAll();
 });
