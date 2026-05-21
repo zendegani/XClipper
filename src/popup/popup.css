@@ -18,6 +18,11 @@
   --radius: 12px;
   --radius-sm: 8px;
   --transition: 200ms cubic-bezier(0.25, 0.1, 0.25, 1);
+  /* How long the tooltip waits before appearing on hover (mirrors native
+   * title= behavior). Reverts to 0 on mouse-leave so the tooltip
+   * disappears immediately rather than lingering. */
+  --tooltip-delay: 500ms;
+  --tooltip-fade: 120ms;
   --font: "Segoe UI", -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
 }
 
@@ -445,9 +450,10 @@ body {
   opacity: 0;
   visibility: hidden;
   transform: translateY(-2px);
-  /* Faster than the default 200ms — the hint is essentially a label, no
-   * reason for it to "fade in". */
-  transition: opacity 80ms ease-out, transform 80ms ease-out, visibility 80ms ease-out;
+  /* No delay on the hide side — when the user moves away the tooltip
+   * disappears without a hangover. The 500ms delay only kicks in when
+   * we transition INTO the hover state. */
+  transition: opacity var(--tooltip-fade), transform var(--tooltip-fade), visibility 0s linear var(--tooltip-fade);
   pointer-events: none;
 }
 
@@ -456,6 +462,7 @@ body {
   opacity: 1;
   visibility: visible;
   transform: translateY(0);
+  transition: opacity var(--tooltip-fade) var(--tooltip-delay), transform var(--tooltip-fade) var(--tooltip-delay), visibility 0s linear var(--tooltip-delay);
 }
 
 /* ─── Generic in-popup tooltip ([data-tooltip]) ─────────────── */
@@ -492,7 +499,7 @@ body {
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
-  transition: opacity 80ms ease-out, transform 80ms ease-out, visibility 80ms ease-out;
+  transition: opacity var(--tooltip-fade), transform var(--tooltip-fade), visibility 0s linear var(--tooltip-fade);
 }
 
 [data-tooltip]:hover::after,
@@ -500,11 +507,19 @@ body {
   opacity: 1;
   visibility: visible;
   transform: translateX(-50%) translateY(0);
+  transition: opacity var(--tooltip-fade) var(--tooltip-delay), transform var(--tooltip-fade) var(--tooltip-delay), visibility 0s linear var(--tooltip-delay);
 }
 
 /* Gear button sits at the top-right with top:14px — its tooltip would be
  * clipped above the popup. Anchor below and to the right edge so the
  * label extends leftward into the popup instead of off-screen. */
+.btn-settings-icon[data-tooltip] {
+  /* Re-assert the gear's own positioning — the generic [data-tooltip]
+   * rule above sets position:relative, which would otherwise win on
+   * source order and drop the gear into normal flow. */
+  position: absolute;
+}
+
 .btn-settings-icon[data-tooltip]::after {
   bottom: auto;
   top: calc(100% + 4px);
@@ -855,7 +870,7 @@ details.option-group[open] .option-group-chevron {
   opacity: 0;
   visibility: hidden;
   transform: translateY(-2px);
-  transition: opacity var(--transition), transform var(--transition), visibility var(--transition);
+  transition: opacity var(--tooltip-fade), transform var(--tooltip-fade), visibility 0s linear var(--tooltip-fade);
   pointer-events: none;
 }
 
@@ -867,6 +882,7 @@ details.option-group[open] .option-group-chevron {
   visibility: visible;
   transform: translateY(0);
   pointer-events: auto;
+  transition: opacity var(--tooltip-fade) var(--tooltip-delay), transform var(--tooltip-fade) var(--tooltip-delay), visibility 0s linear var(--tooltip-delay);
 }
 
 .field-hint-title {
