@@ -111,8 +111,14 @@
       <p class="settings-help" data-i18n="settings_help">Hover over labels for more info</p>
 
       <div class="options">
-        <div class="option-group">
-          <div class="option-group-label" data-i18n="group_downloads">Downloads</div>
+        <details class="option-group" data-section-id="downloads">
+          <summary class="option-group-summary">
+            <span class="option-group-label" data-i18n="group_downloads">Downloads</span>
+            <svg class="option-group-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </summary>
           <label class="field-label" title="Save Markdown and images under this subfolder inside your Downloads folder. Leave blank to save directly in Downloads." data-i18n-title="opt_download_folder_title">
             <span class="field-text" data-i18n="opt_download_folder">Subfolder</span>
             <input type="text" id="txt-download-folder" class="field-input" autocomplete="off" spellcheck="false" placeholder="e.g. tweet2md" data-i18n-placeholder="opt_download_folder_placeholder" />
@@ -151,10 +157,16 @@
             <span class="field-preview-label" data-i18n="opt_filename_preview">Preview:</span>
             <code id="filename-preview" class="field-preview-value"></code>
           </div>
-        </div>
+        </details>
 
-        <div class="option-group">
-          <div class="option-group-label" data-i18n="group_obsidian">Obsidian</div>
+        <details class="option-group" data-section-id="obsidian">
+          <summary class="option-group-summary">
+            <span class="option-group-label" data-i18n="group_obsidian">Obsidian</span>
+            <svg class="option-group-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </summary>
           <label class="toggle-label toggle-obsidian" title="Emit frontmatter optimized for Obsidian: wikilink author, tags, published/created dates" data-i18n-title="opt_obsidian_friendly_title">
             <span class="toggle-text">
               <svg class="toggle-icon" viewBox="0 0 24 24" aria-hidden="true" fill="currentColor">
@@ -173,54 +185,64 @@
             <span class="field-text" data-i18n="opt_obsidian_folder">Subfolder</span>
             <input type="text" id="txt-obsidian-folder" class="field-input" autocomplete="off" spellcheck="false" placeholder="e.g. Tweets" data-i18n-placeholder="opt_obsidian_folder_placeholder" />
           </label>
-        </div>
+        </details>
 
-        <details class="option-group fm-picker">
-          <summary class="fm-picker-summary">
+        <details class="option-group fm-picker" data-section-id="frontmatter">
+          <summary class="option-group-summary">
             <span class="option-group-label" data-i18n="group_frontmatter">Frontmatter fields</span>
-            <svg class="fm-picker-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            <svg class="option-group-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <polyline points="6 9 12 15 18 9" />
             </svg>
           </summary>
           <p class="fm-picker-help" data-i18n="opt_frontmatter_help">Pick which entries appear in the YAML frontmatter. Selections are saved per mode.</p>
           <div class="fm-picker-list" data-mode="default">
-            <div class="fm-picker-mode-label" data-i18n="opt_frontmatter_mode_default">Default mode</div>
-            <button type="button" class="fm-picker-select-all" data-mode="default" data-i18n="opt_frontmatter_select_all">Select all</button>
-            <label class="fm-field"><input type="checkbox" class="fm-field-input" data-mode="default" data-field="author"><span>author</span></label>
-            <label class="fm-field"><input type="checkbox" class="fm-field-input" data-mode="default" data-field="handle"><span>handle</span></label>
-            <label class="fm-field"><input type="checkbox" class="fm-field-input" data-mode="default" data-field="source"><span>source</span></label>
-            <label class="fm-field"><input type="checkbox" class="fm-field-input" data-mode="default" data-field="date"><span>date</span></label>
-            <label class="fm-field"><input type="checkbox" class="fm-field-input" data-mode="default" data-field="type"><span>type</span></label>
-            <label class="fm-field"><input type="checkbox" class="fm-field-input" data-mode="default" data-field="likes"><span>likes</span></label>
-            <label class="fm-field"><input type="checkbox" class="fm-field-input" data-mode="default" data-field="reposts"><span>reposts</span></label>
-            <label class="fm-field"><input type="checkbox" class="fm-field-input" data-mode="default" data-field="replies"><span>replies</span></label>
-            <label class="fm-field"><input type="checkbox" class="fm-field-input" data-mode="default" data-field="bookmarks"><span>bookmarks</span></label>
-            <label class="fm-field"><input type="checkbox" class="fm-field-input" data-mode="default" data-field="views"><span>views</span></label>
+            <div class="fm-picker-mode-header">
+              <span class="fm-picker-mode-label" data-i18n="opt_frontmatter_mode_default">Default mode</span>
+              <button type="button" class="fm-picker-select-all" data-mode="default" data-i18n="opt_frontmatter_select_all">Select all</button>
+            </div>
+            <label class="fm-field"><span class="fm-field-name">author</span><input type="checkbox" class="fm-field-input" data-mode="default" data-field="author"><span class="toggle-switch-mini"></span></label>
+            <label class="fm-field"><span class="fm-field-name">handle</span><input type="checkbox" class="fm-field-input" data-mode="default" data-field="handle"><span class="toggle-switch-mini"></span></label>
+            <label class="fm-field"><span class="fm-field-name">source</span><input type="checkbox" class="fm-field-input" data-mode="default" data-field="source"><span class="toggle-switch-mini"></span></label>
+            <label class="fm-field"><span class="fm-field-name">date</span><input type="checkbox" class="fm-field-input" data-mode="default" data-field="date"><span class="toggle-switch-mini"></span></label>
+            <label class="fm-field"><span class="fm-field-name">type</span><input type="checkbox" class="fm-field-input" data-mode="default" data-field="type"><span class="toggle-switch-mini"></span></label>
+            <label class="fm-field"><span class="fm-field-name">likes</span><input type="checkbox" class="fm-field-input" data-mode="default" data-field="likes"><span class="toggle-switch-mini"></span></label>
+            <label class="fm-field"><span class="fm-field-name">reposts</span><input type="checkbox" class="fm-field-input" data-mode="default" data-field="reposts"><span class="toggle-switch-mini"></span></label>
+            <label class="fm-field"><span class="fm-field-name">replies</span><input type="checkbox" class="fm-field-input" data-mode="default" data-field="replies"><span class="toggle-switch-mini"></span></label>
+            <label class="fm-field"><span class="fm-field-name">bookmarks</span><input type="checkbox" class="fm-field-input" data-mode="default" data-field="bookmarks"><span class="toggle-switch-mini"></span></label>
+            <label class="fm-field"><span class="fm-field-name">views</span><input type="checkbox" class="fm-field-input" data-mode="default" data-field="views"><span class="toggle-switch-mini"></span></label>
           </div>
           <div class="fm-picker-list" data-mode="obsidian" hidden>
-            <div class="fm-picker-mode-label" data-i18n="opt_frontmatter_mode_obsidian">Obsidian-friendly mode</div>
-            <button type="button" class="fm-picker-select-all" data-mode="obsidian" data-i18n="opt_frontmatter_select_all">Select all</button>
-            <label class="fm-field"><input type="checkbox" class="fm-field-input" data-mode="obsidian" data-field="title"><span>title</span></label>
-            <label class="fm-field"><input type="checkbox" class="fm-field-input" data-mode="obsidian" data-field="source"><span>source</span></label>
-            <label class="fm-field"><input type="checkbox" class="fm-field-input" data-mode="obsidian" data-field="author"><span>author</span></label>
-            <label class="fm-field"><input type="checkbox" class="fm-field-input" data-mode="obsidian" data-field="author_name"><span>author_name</span></label>
-            <label class="fm-field"><input type="checkbox" class="fm-field-input" data-mode="obsidian" data-field="handle"><span>handle</span></label>
-            <label class="fm-field"><input type="checkbox" class="fm-field-input" data-mode="obsidian" data-field="published"><span>published</span></label>
-            <label class="fm-field"><input type="checkbox" class="fm-field-input" data-mode="obsidian" data-field="created"><span>created</span></label>
-            <label class="fm-field"><input type="checkbox" class="fm-field-input" data-mode="obsidian" data-field="type"><span>type</span></label>
-            <label class="fm-field"><input type="checkbox" class="fm-field-input" data-mode="obsidian" data-field="description"><span>description</span></label>
-            <label class="fm-field"><input type="checkbox" class="fm-field-input" data-mode="obsidian" data-field="tags"><span>tags</span></label>
-            <label class="fm-field"><input type="checkbox" class="fm-field-input" data-mode="obsidian" data-field="likes"><span>likes</span></label>
-            <label class="fm-field"><input type="checkbox" class="fm-field-input" data-mode="obsidian" data-field="reposts"><span>reposts</span></label>
-            <label class="fm-field"><input type="checkbox" class="fm-field-input" data-mode="obsidian" data-field="replies"><span>replies</span></label>
-            <label class="fm-field"><input type="checkbox" class="fm-field-input" data-mode="obsidian" data-field="bookmarks"><span>bookmarks</span></label>
-            <label class="fm-field"><input type="checkbox" class="fm-field-input" data-mode="obsidian" data-field="views"><span>views</span></label>
+            <div class="fm-picker-mode-header">
+              <span class="fm-picker-mode-label" data-i18n="opt_frontmatter_mode_obsidian">Obsidian-friendly mode</span>
+              <button type="button" class="fm-picker-select-all" data-mode="obsidian" data-i18n="opt_frontmatter_select_all">Select all</button>
+            </div>
+            <label class="fm-field"><span class="fm-field-name">title</span><input type="checkbox" class="fm-field-input" data-mode="obsidian" data-field="title"><span class="toggle-switch-mini"></span></label>
+            <label class="fm-field"><span class="fm-field-name">source</span><input type="checkbox" class="fm-field-input" data-mode="obsidian" data-field="source"><span class="toggle-switch-mini"></span></label>
+            <label class="fm-field"><span class="fm-field-name">author</span><input type="checkbox" class="fm-field-input" data-mode="obsidian" data-field="author"><span class="toggle-switch-mini"></span></label>
+            <label class="fm-field"><span class="fm-field-name">author_name</span><input type="checkbox" class="fm-field-input" data-mode="obsidian" data-field="author_name"><span class="toggle-switch-mini"></span></label>
+            <label class="fm-field"><span class="fm-field-name">handle</span><input type="checkbox" class="fm-field-input" data-mode="obsidian" data-field="handle"><span class="toggle-switch-mini"></span></label>
+            <label class="fm-field"><span class="fm-field-name">published</span><input type="checkbox" class="fm-field-input" data-mode="obsidian" data-field="published"><span class="toggle-switch-mini"></span></label>
+            <label class="fm-field"><span class="fm-field-name">created</span><input type="checkbox" class="fm-field-input" data-mode="obsidian" data-field="created"><span class="toggle-switch-mini"></span></label>
+            <label class="fm-field"><span class="fm-field-name">type</span><input type="checkbox" class="fm-field-input" data-mode="obsidian" data-field="type"><span class="toggle-switch-mini"></span></label>
+            <label class="fm-field"><span class="fm-field-name">description</span><input type="checkbox" class="fm-field-input" data-mode="obsidian" data-field="description"><span class="toggle-switch-mini"></span></label>
+            <label class="fm-field"><span class="fm-field-name">tags</span><input type="checkbox" class="fm-field-input" data-mode="obsidian" data-field="tags"><span class="toggle-switch-mini"></span></label>
+            <label class="fm-field"><span class="fm-field-name">likes</span><input type="checkbox" class="fm-field-input" data-mode="obsidian" data-field="likes"><span class="toggle-switch-mini"></span></label>
+            <label class="fm-field"><span class="fm-field-name">reposts</span><input type="checkbox" class="fm-field-input" data-mode="obsidian" data-field="reposts"><span class="toggle-switch-mini"></span></label>
+            <label class="fm-field"><span class="fm-field-name">replies</span><input type="checkbox" class="fm-field-input" data-mode="obsidian" data-field="replies"><span class="toggle-switch-mini"></span></label>
+            <label class="fm-field"><span class="fm-field-name">bookmarks</span><input type="checkbox" class="fm-field-input" data-mode="obsidian" data-field="bookmarks"><span class="toggle-switch-mini"></span></label>
+            <label class="fm-field"><span class="fm-field-name">views</span><input type="checkbox" class="fm-field-input" data-mode="obsidian" data-field="views"><span class="toggle-switch-mini"></span></label>
           </div>
         </details>
 
-        <div class="option-group">
-          <div class="option-group-label" data-i18n="group_inline">Inline button &amp; context menu</div>
+        <details class="option-group" data-section-id="inline">
+          <summary class="option-group-summary">
+            <span class="option-group-label" data-i18n="group_inline">Inline button &amp; context menu</span>
+            <svg class="option-group-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </summary>
           <label class="toggle-label" title="Add a download button next to share on each tweet's action bar" data-i18n-title="opt_show_inline_title">
             <span class="toggle-text">
               <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -258,7 +280,7 @@
             <input type="checkbox" id="chk-close-tab" class="toggle-input" />
             <span class="toggle-switch"></span>
           </label>
-        </div>
+        </details>
       </div>
     </main>
 

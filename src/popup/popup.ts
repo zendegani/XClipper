@@ -118,7 +118,13 @@ interface Settings {
   filenameTemplate: string;
   frontmatterFields: FieldMap;
   frontmatterFieldsObsidian: FieldMap;
+  // Section ids in most-recently-opened order (max length = SECTION_MAX_OPEN).
+  // Persisted so the user's last layout is restored on the next popup open.
+  settingsSectionsOpen: string[];
 }
+
+const SECTION_IDS = ['downloads', 'obsidian', 'frontmatter', 'inline'] as const;
+const SECTION_MAX_OPEN = 3;
 
 function allEnabled(keys: readonly string[]): FieldMap {
   return Object.fromEntries(keys.map((k) => [k, true]));
@@ -138,6 +144,7 @@ const DEFAULT_SETTINGS: Settings = {
   filenameTemplate: '', // empty → legacy {handle}-{id}.md / {handle}-{slug}.md
   frontmatterFields: allEnabled(FRONTMATTER_FIELDS_DEFAULT),
   frontmatterFieldsObsidian: allEnabled(FRONTMATTER_FIELDS_OBSIDIAN),
+  settingsSectionsOpen: ['downloads', 'obsidian'],
 };
 
 async function loadSettings(): Promise<Settings> {
@@ -156,11 +163,20 @@ async function loadSettings(): Promise<Settings> {
         ...DEFAULT_SETTINGS.frontmatterFieldsObsidian,
         ...(saved.frontmatterFieldsObsidian || {}),
       };
+      const rawSections = Array.isArray(saved.settingsSectionsOpen)
+        ? saved.settingsSectionsOpen.filter((id): id is string =>
+            typeof id === 'string' && (SECTION_IDS as readonly string[]).includes(id)
+          )
+        : DEFAULT_SETTINGS.settingsSectionsOpen;
+      // Deduplicate while preserving order, then trim to the cap.
+      const settingsSectionsOpen = Array.from(new Set(rawSections)).slice(0, SECTION_MAX_OPEN);
+
       resolve({
         ...DEFAULT_SETTINGS,
         ...saved,
         frontmatterFields,
         frontmatterFieldsObsidian,
+        settingsSectionsOpen,
       });
     });
   });
@@ -183,6 +199,11 @@ function updateInlineCopiesEnabled(): void {
 let frontmatterFields: FieldMap = { ...DEFAULT_SETTINGS.frontmatterFields };
 let frontmatterFieldsObsidian: FieldMap = { ...DEFAULT_SETTINGS.frontmatterFieldsObsidian };
 
+// MRU list of expanded section ids. Mutated by handleSectionToggle below; read
+// by persistAll. Trailing items are the most recently opened — when length
+// would exceed SECTION_MAX_OPEN we evict from the head.
+let settingsSectionsOpen: string[] = [...DEFAULT_SETTINGS.settingsSectionsOpen];
+
 // Restore toggle states on popup open
 loadSettings().then((settings) => {
   chkDownloadImages.checked = settings.downloadImages;
@@ -198,6 +219,8 @@ loadSettings().then((settings) => {
   txtFilenameTemplate.value = settings.filenameTemplate;
   frontmatterFields = { ...settings.frontmatterFields };
   frontmatterFieldsObsidian = { ...settings.frontmatterFieldsObsidian };
+  settingsSectionsOpen = [...settings.settingsSectionsOpen];
+  applySettingsSections();
   syncFieldCheckboxes();
   updateFieldPickerMode();
   updateFieldPickerEnabled();
@@ -220,8 +243,56 @@ function persistAll(): void {
     filenameTemplate: txtFilenameTemplate.value.trim(),
     frontmatterFields,
     frontmatterFieldsObsidian,
+    settingsSectionsOpen,
   });
 }
+
+// ─── Collapsible settings sections (LRU cap = SECTION_MAX_OPEN) ────
+
+const sectionDetailsById = new Map<string, HTMLDetailsElement>();
+document.querySelectorAll<HTMLDetailsElement>('details.option-group[data-section-id]').forEach((el) => {
+  const id = el.dataset.sectionId;
+  if (id) sectionDetailsById.set(id, el);
+});
+
+// Suppress the `toggle` listener while we programmatically open/close to
+// reconcile state — without this flag, evicting a section would re-enter the
+// listener and corrupt the MRU list.
+let sectionsSyncing = false;
+
+function applySettingsSections(): void {
+  sectionsSyncing = true;
+  for (const [id, el] of sectionDetailsById) {
+    el.open = settingsSectionsOpen.includes(id);
+  }
+  sectionsSyncing = false;
+}
+
+function handleSectionToggle(id: string, opened: boolean): void {
+  if (sectionsSyncing) return;
+  if (opened) {
+    // Move-to-end on re-open; evict from the head if we'd exceed the cap.
+    settingsSectionsOpen = settingsSectionsOpen.filter((x) => x !== id);
+    settingsSectionsOpen.push(id);
+    while (settingsSectionsOpen.length > SECTION_MAX_OPEN) {
+      const evicted = settingsSectionsOpen.shift();
+      if (!evicted) break;
+      const el = sectionDetailsById.get(evicted);
+      if (el && el.open) {
+        sectionsSyncing = true;
+        el.open = false;
+        sectionsSyncing = false;
+      }
+    }
+  } else {
+    settingsSectionsOpen = settingsSectionsOpen.filter((x) => x !== id);
+  }
+  persistAll();
+}
+
+sectionDetailsById.forEach((el, id) => {
+  el.addEventListener('toggle', () => handleSectionToggle(id, el.open));
+});
 
 // ─── Frontmatter field picker ──────────────────────────────────────
 
