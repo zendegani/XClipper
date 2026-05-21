@@ -30,6 +30,7 @@
 - **Local Image Downloads** — Download embedded X media locally alongside your `.md` file to prevent link rot
 - **Customizable Filename Template** — Configure the exported filename with placeholders (`{date}`, `{datetime}`, `{handle}`, `{author}`, `{id}`, `{slug}`, `{type}`); live preview in Settings. Default keeps the existing behaviour
 - **YAML Frontmatter** — Rich metadata with author, handle, date, source URL, content type, and engagement stats (likes, reposts, replies, bookmarks, views)
+- **Frontmatter Field Picker** — Per-field toggle switches in Settings to include or omit each YAML entry (e.g. drop `views` and `bookmarks` if you don't need them). Saved separately for the default schema and the Obsidian-friendly schema, so flipping the schema toggle preserves both sets
 - **Inline Engagement Stats** — Optional X-style row in the Markdown body: `💬 284 · 🔁 1.5K · ❤️ 8K · 🔖 253 · 👁 100K`
 - **Copy or Download** — Copy Markdown to clipboard or download as a file
 - **Clean Output** — Automatically expand truncated posts and strip engagement buttons, follow prompts, and trackers
@@ -58,7 +59,7 @@ Right-click anywhere on a tweet — the body, an image, or the timestamp — and
   <img src="assets/Extension_and_Setting.png" alt="tweet2md popup and settings view side by side" width="700" />
 </p>
 
-The popup keeps the things you adjust per export — **Save images locally**, **Show engagement stats inline**, **Include metadata** — front and centre. Click the gear icon at the top-right to flip to **Settings**, where the set-once knobs live: the **Downloads subfolder** and **Filename template** (with placeholders like `{date}`, `{handle}`, `{slug}` and a live preview), the **Obsidian-friendly frontmatter** toggle, the optional **Vault name** for the *Add to Obsidian* button, and the inline-button & context-menu behaviour. Settings persist across sessions via `chrome.storage`.
+The popup keeps the things you adjust per export — **Save images locally**, **Show engagement stats inline**, **Include metadata** — front and centre. Click the gear icon at the top-right to flip to **Settings**, where the set-once knobs live in four collapsible sections: **Downloads** (subfolder + filename template with placeholders like `{date}`, `{handle}`, `{slug}` and a live preview), **Obsidian** (the Obsidian-friendly frontmatter toggle, optional vault name, optional vault subfolder), **Frontmatter fields** (per-field toggle switches that decide which YAML entries land in the export — saved per schema so flipping Obsidian-friendly preserves both selections), and **Inline button & context menu**. At most two sections stay expanded at once so the panel never gets unwieldy; the last layout is remembered. Settings persist across sessions via `chrome.storage`.
 
 ### Great For
 
