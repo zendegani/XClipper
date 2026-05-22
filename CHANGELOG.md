@@ -26,114 +26,114 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Downloads Subfolder**: New setting under **Downloads** that places exported Markdown and images inside a subfolder of the browser's Downloads folder, instead of dumping everything at the top level. Leave blank for the previous behavior. Traversal (`..`), leading slashes, and illegal filename characters are stripped before the path is handed to `chrome.downloads.download`. (#17)
-- **Obsidian Vault Subfolder**: New setting under **Obsidian** that creates the note inside a specified subfolder of the vault (e.g. `Tweets` or `Inbox/Tweets`) via the `file=` parameter of the `obsidian://new` URI. Traversal segments and stray slashes are stripped. Leave blank to keep notes at the vault root. (#18)
+- **Downloads Subfolder**: New **Downloads** setting that places exported Markdown and images inside a subfolder of your Downloads folder. Leave blank for the previous behaviour. (#17)
+- **Obsidian Vault Subfolder**: New **Obsidian** setting that creates the note inside a vault subfolder (e.g. `Tweets` or `Inbox/Tweets`). Leave blank to keep notes at the vault root. (#18)
 
 ### Changed
 
-- **Extension Name**: Renamed to *X Threads Articles to Markdown or Obsidian* across all 9 supported locales for better Chrome Web Store search match. The manifest now references `__MSG_extensionName__` so each locale ships a translated name; `short_name` stays as `tweet2md` for the OS-level short label.
+- **Extension Name**: Renamed to *X Threads Articles to Markdown or Obsidian* across all 9 locales for better Chrome Web Store search match. `short_name` remains `tweet2md`.
 
 ### Fixed
 
-- **Obsidian handoff vs. close-after-export**: When *Add tweet to Obsidian* was triggered from the context menu on a timeline (which opens a new tab) with **Close the new tab after export** enabled, the tab was closed before the browser's "Open Obsidian.app?" prompt could be confirmed, dropping the handoff. The auto-close now skips the Obsidian action so the user can answer the prompt; download/copy actions still respect the toggle. (#16)
+- **Obsidian handoff vs. close-after-export**: The new-tab auto-close used to fire before Chrome's "Open Obsidian.app?" prompt and dropped the handoff. The auto-close now skips the Obsidian action; download/copy still respect it. (#16)
 
 ## [1.5.1] - 2026-05-16
 
 ### Security
 
-- **Hostname Sanitization**: Replaced substring-based host checks (e.g. `url.includes('pbs.twimg.com')`) with proper URL parsing via a new `hostMatches` helper that compares parsed hostnames exactly. Fixes 9 CodeQL `js/incomplete-url-substring-sanitization` alerts across `content/article.ts`, `content/markdown.ts`, `content/tweet.ts`, and `popup/popup.ts`. The popup's "are we on x.com?" gate is tightened from a substring test to an exact host match against the manifest's allowed hosts.
+- **Hostname Sanitization**: Replaced substring-based host checks with a `hostMatches` helper that compares parsed hostnames exactly. Closes 9 CodeQL `js/incomplete-url-substring-sanitization` alerts and tightens the popup's x.com gate.
 
 ### Changed
 
-- **Extension Description**: The Chrome Web Store / manifest description now mentions the Obsidian handoff. Updated across all 9 supported locales.
+- **Extension Description**: The Web Store description now mentions the Obsidian handoff. Updated across all 9 locales.
 
 ## [1.5.0] - 2026-05-15
 
 ### Added
 
-- **Add to Obsidian**: One-click handoff that opens Obsidian via the `obsidian://new` URI scheme with the rendered Markdown prefilled. Forces Obsidian-friendly frontmatter and leaves images as remote URLs (local image downloads don't make sense for a URI handoff). The handoff is local — no network call.
-- **Obsidian-friendly Frontmatter**: Optional export schema with wikilinked author handles (e.g. `[[@username]]`) for backlinks, a synthesized title, `published` / `created` date split, prose `description` snippet, and a `tags: [clippings, x, <type>]` array. Engagement metrics remain at the bottom for Dataview queries. Toggle off = byte-for-byte identical to the previous schema.
-- **Obsidian Vault Setting**: Optional vault name field in Settings; included as `vault=` in the deeplink so notes land in a specific vault. Leave blank to let Obsidian pick the last-used vault.
-- **Link Cards**: External link previews in tweets are now captured. Extracts the title, source domain, and embeds the Open Graph preview image (intentionally kept as a remote URL to avoid pulling third-party thumbnails into local sibling folders).
-- **Multi-View Popup**: The popup now separates primary actions from configuration. The settings view sits behind a gear icon at the top-right of the popup; clicking it slides to the configuration panel.
+- **Add to Obsidian**: One-click handoff via the `obsidian://new` URI scheme with the rendered Markdown prefilled. Local — no network call. Forces Obsidian-friendly frontmatter; images stay as remote URLs.
+- **Obsidian-friendly Frontmatter**: Optional export schema with wikilinked author handles (`[[@username]]`), synthesized title, `published`/`created` dates, prose `description`, and `tags: [clippings, x, <type>]`. Toggle off = identical to the previous schema.
+- **Obsidian Vault Setting**: Optional vault name in Settings; included in the deeplink so notes land in a specific vault. Blank = Obsidian picks the last-used vault.
+- **Link Cards**: External link previews in tweets are now captured (title, source domain, Open Graph image — kept as a remote URL).
+- **Multi-View Popup**: A gear icon at the top-right slides over to a dedicated settings view, separating per-export controls from set-once configuration.
 
 ### Changed
 
-- **Grouped Settings**: The "Inline button & context menu" toggles plus Obsidian settings (toggle + vault name) live in the dedicated settings view; the main popup view is focused on Download / Copy / Add to Obsidian and the per-export toggles.
-- **Popup Layout**: Buttons restructured into a half-width grid — Download / Copy on top, the Export options card below, then a half-width Obsidian button with its hint paragraph paired beside it.
+- **Grouped Settings**: Inline-button / context-menu toggles and Obsidian settings moved into the settings view; the main view focuses on Download / Copy / Add to Obsidian and per-export toggles.
+- **Popup Layout**: Download/Copy split into a half-width grid on top, Export options card below, and a half-width Obsidian button paired with its hint paragraph.
 
 ## [1.4.1] - 2026-05-12
 
 ### Added
 
-- **Promoted Tweet Skipping**: Thread extraction now recognises locale-aware "Ad" / "Promoted" labels (English, Japanese, German, Spanish, French, Chinese, Arabic, Persian) in the tweet header and skips them, so an ad injected mid-thread no longer ends collection at the reply boundary. (thanks @BigCactusLabs, #7)
-- **K/M/B Engagement Counts**: Engagement metrics are now parsed correctly when X compacts them (e.g. `1.5K likes`, `2M views`). Previously these were dropped from the YAML frontmatter and the inline stats row. (thanks @BigCactusLabs, #7)
+- **Promoted Tweet Skipping**: Thread extraction recognises locale-aware "Ad" / "Promoted" labels and skips them, so a mid-thread ad no longer cuts collection short. (thanks @BigCactusLabs, #7)
+- **K/M/B Engagement Counts**: Compact metrics like `1.5K likes` or `2M views` are now parsed instead of dropped. (thanks @BigCactusLabs, #7)
 
 ### Changed
 
-- **Quoted-Tweet Media Order**: When a tweet contains both its own media and a quoted tweet, the main tweet's images/videos now appear *before* the quoted block (matching X's visual order). Media belonging to the quoted tweet is nested inside the blockquote.
+- **Quoted-Tweet Media Order**: A tweet's own media now renders before the quoted block, matching X's visual order. Quoted media stays nested inside the blockquote.
 
 ### Fixed
 
-- **Duplicate Video Poster**: When X hydrated both a poster `<img>` and a full `<video>` element for the same clip (most visible in quoted tweets), the same thumbnail was emitted twice. Now deduplicated. (thanks @BigCactusLabs, #7)
+- **Duplicate Video Poster**: Deduplicated cases where X hydrated both a poster `<img>` and a `<video>` for the same clip. (thanks @BigCactusLabs, #7)
 
 ### Internal
 
-- Added a `CONTRIBUTING.md` with the snapshot-test discipline, fixture-capture procedure, and extractor scope conventions.
-- GitHub Actions CI workflow added for tests and build. `package.json` and lockfile aligned with Vitest's esbuild peer dependency. (thanks @BigCactusLabs, #8)
+- Added `CONTRIBUTING.md` covering snapshot-test discipline and fixture capture.
+- GitHub Actions CI for tests and build. (thanks @BigCactusLabs, #8)
 
 ## [1.4.0] - 2026-05-11
 
 ### Added
 
-- **In-Place Extraction**: When you click the inline button or pick a context-menu action on a tweet you're already viewing (its permalink page), tweet2md extracts in the current tab instead of opening a duplicate one. The "Close the new tab after export" toggle never closes your active tab.
-- **In-Page Toast**: In-place extractions show a brief top-center toast confirming *Copied!* / *Downloaded!* — localized in all 9 supported languages — so you have feedback without the new-tab signal.
-- **Show Inline Button toggle**: A new popup toggle lets you hide the inline download icon on tweets if it conflicts visually with another extension. Off-state hides existing buttons live, no page reload needed.
-- **Show Engagement Stats Inline toggle**: Optional X-style stats row in the exported Markdown (e.g. `💬 284 · 🔁 1.5K · ❤️ 8K · 🔖 253 · 👁 100K`), independent of YAML frontmatter so you can have either or both.
-- **Grouped Settings**: Popup options are organized into *Export* and *Inline button & context menu* sections so 6 toggles stay scannable.
+- **In-Place Extraction**: Triggering the inline button or context menu on a tweet's permalink page now extracts in the current tab instead of opening a duplicate. The auto-close toggle never closes your active tab.
+- **In-Page Toast**: Brief top-center *Copied!* / *Downloaded!* confirmation for in-place extractions, localized in all 9 languages.
+- **Show Inline Button toggle**: Hide the inline icon if it conflicts visually with another extension. Takes effect live, no reload.
+- **Show Engagement Stats Inline toggle**: Optional X-style stats row in the Markdown (`💬 284 · 🔁 1.5K · ❤️ 8K · 🔖 253 · 👁 100K`), independent of YAML frontmatter.
+- **Grouped Settings**: Popup options split into *Export* and *Inline button & context menu* sections so 6 toggles stay scannable.
 
 ### Security
 
-- Background download handling now validates the message sender before invoking privileged download APIs — requests are only honored from x.com content scripts or trusted extension pages.
-- Local image downloads are restricted to expected X media hosts (`pbs.twimg.com`, `video.twimg.com`, `abs.twimg.com`, `abs-0.twimg.com`); other external image URLs are left as remote Markdown links rather than downloaded.
-- Strengthened filename / path sanitization to drop `..` segments and absolute paths and to normalize unicode before passing to Chrome's download API.
+- Background download handler now validates message sender — only x.com content scripts and trusted extension pages can trigger downloads.
+- Local image downloads restricted to known X media hosts; everything else stays as remote Markdown links.
+- Filename/path sanitization strengthened: drops `..` and absolute paths, normalizes unicode before download.
 - Contributed by [@BigCactusLabs] (#6).
 
 ### Changed
 
-- **Inline Button Visual Match**: Icon redesigned with X's solid-fill style (no more line-art stroke) and now reads the sibling action-bar icon at decoration time to match its exact rendered size and color in every X surface (timeline vs focused tweet, light vs dark theme).
-- **Cleaner Context Menu**: Save / Copy items now nest under an explicit "tweet2md" parent label instead of Chrome's auto-grouped full extension name. Also added a `short_name` in the manifest for other space-constrained UI surfaces.
-- **Toast Position**: Moved to top-center with a 2-second hold so it's harder to miss.
-- **Wording**: "Close tab after export" → "Close the new tab after export" — clearer that only the tab tweet2md opened will close, never your active one.
-- **Internal Refactor**: `content.ts` was split into focused modules (`markdown`, `dom`, `tweet`, `article`, `wait`), and the "copy never downloads images" rule was consolidated into one shared helper. No behavior change.
+- **Inline Button Visual Match**: Icon redesigned with X's solid-fill style and now mirrors the sibling action-bar icon's exact size and color across every X surface (timeline, focused tweet, light, dark).
+- **Cleaner Context Menu**: Save / Copy items nest under an explicit "tweet2md" parent label instead of Chrome's auto-grouped full extension name.
+- **Toast Position**: Top-center with a 2-second hold so it's harder to miss.
+- **Wording**: "Close tab after export" → "Close the new tab after export" — clearer that only the tweet2md-opened tab closes.
+- **Internal Refactor**: `content.ts` split into focused modules; the "copy never downloads images" rule consolidated into one helper. No behavior change.
 
 ### Fixed
 
-- **Iran Flag (and other glyph) Renders As Full Image**: SVG glyphs served from `abs.twimg.com/responsive-web/client-web/...` weren't recognized as emoji and were being rendered as full-size images in the Markdown. All `.svg` images on X are now treated as glyphs and resolve to their alt-text character.
-- **Tests on Fresh Checkouts**: The test suite now runs cleanly even when no local HTML/MD fixtures have been captured yet, so contributors can clone and `npm test` without setup.
+- **SVG glyphs rendered as full images**: All `.svg` images on X (incl. the Iran flag) are now treated as glyphs and resolve to their alt-text character.
+- **Tests on Fresh Checkouts**: Suite runs cleanly without any local HTML/MD fixtures captured yet.
 
 ## [1.3.0] - 2026-05-09
 
 ### Added
 
-- **Inline Save Button**: A download icon now sits next to the share button on every tweet's action bar. One click opens the tweet's permalink in a new tab and exports it automatically — no popup required. Long-form articles also get a button at the top so you don't have to scroll.
-- **Right-Click Context Menu**: Right-click any tweet (body, image, or timestamp) and pick **Save tweet as Markdown** or **Copy tweet as Markdown**. Works across timeline, profile, and search pages.
-- **Two New Toggles**: *Close tab after export* (auto-closes the new tab once extraction completes) and *Inline button copies instead* (makes the inline icon copy to clipboard rather than download).
-- **Author Attribution on Quoted Tweets**: Quoted-tweet blocks now lead with the original author's name and handle.
-- **Automated Test Suite**: Vitest + JSDOM snapshot tests against saved HTML fixtures cover article, tweet, quoted-tweet, and thread cases — locking the extractor's output against regressions.
+- **Inline Save Button**: Download icon next to share on every tweet's action bar — one click opens the permalink in a new tab and exports automatically. Long-form articles get one at the top.
+- **Right-Click Context Menu**: Right-click any tweet (body, image, or timestamp) and pick **Save tweet as Markdown** or **Copy tweet as Markdown**. Works on timeline, profile, and search pages.
+- **Two New Toggles**: *Close tab after export* and *Inline button copies instead*.
+- **Author Attribution on Quoted Tweets**: Quoted blocks now lead with the original author's name and handle.
+- **Automated Test Suite**: Vitest + JSDOM snapshot tests against saved HTML fixtures (article, tweet, quoted, thread) lock the extractor against regressions.
 
 ### Fixed
 
-- **Article Image Extraction**: Long-form article body images (not just the banner) now extract reliably, including via inline button / context menu where image hydration was previously racing the extractor.
-- **Right-Click on Permalink Pages**: Resolved a bug where right-clicking a long-form article that contained a quoted tweet would open the *quoted* tweet instead of the page's main one.
-- **Article List Continuation**: Fixed bullet/numbered lists where the next paragraph was incorrectly folded into the last list item.
-- **Copy vs. Save Image Settings**: The "Save images locally" toggle no longer rewrites image URLs to nonexistent local paths when copying to clipboard — copy now always emits absolute URLs.
-- **Orphaned Script Errors**: Inline-button injector now silently disconnects when the extension is reloaded or disabled, eliminating "Extension context invalidated" console noise.
+- **Article Image Extraction**: Body images extract reliably even from inline-button / context-menu triggers where hydration used to race the extractor.
+- **Right-Click on Permalink Pages**: Fixed cases where right-clicking an article containing a quoted tweet opened the *quoted* tweet instead of the page's main one.
+- **Article List Continuation**: Following paragraphs no longer get folded into the previous list item.
+- **Copy vs. Save Image Settings**: Copy-to-clipboard always emits absolute image URLs, even when "Save images locally" is on.
+- **Orphaned Script Errors**: Inline-button injector now disconnects cleanly when the extension reloads — no more "Extension context invalidated" console noise.
 
 ### Changed
 
-- **Permission Added**: New `contextMenus` permission required for the right-click menu. No data collection, telemetry, or external requests are introduced — see [PRIVACY.md](PRIVACY.md).
-- **Localization**: Added translations for the new settings and context-menu items across all 9 supported languages.
+- **Permission Added**: New `contextMenus` permission for the right-click menu. No data collection, telemetry, or network calls — see [PRIVACY.md](PRIVACY.md).
+- **Localization**: Translations for the new settings and context-menu items added across all 9 languages.
 
 ## [1.2.1] - 2026-04-19
 
