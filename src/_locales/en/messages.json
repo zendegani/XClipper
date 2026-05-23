@@ -164,6 +164,9 @@
   "ctx_copy_tweet": {
     "message": "Copy tweet as Markdown"
   },
+  "ctx_copy_just_this_tweet": {
+    "message": "Copy just this tweet (no thread)"
+  },
   "ctx_obsidian_tweet": {
     "message": "Add tweet to Obsidian"
   },

@@ -12,6 +12,7 @@ type AutoAction = 'download' | 'copy' | 'obsidian';
 
 export async function extract(options?: {
   includeMetadata?: boolean;
+  singleTweet?: boolean;
 }): Promise<ExtractResponse> {
   try {
     if (!window.location.pathname.includes('/status/')) {
@@ -22,7 +23,9 @@ export async function extract(options?: {
     }
 
     const isArticle = isArticlePage();
-    const data = isArticle ? extractArticle() : await extractTweetAsync();
+    const data = isArticle
+      ? extractArticle()
+      : await extractTweetAsync({ singleTweet: options?.singleTweet });
 
     if (options?.includeMetadata) {
       const firstArticle = document.querySelector('article[role="article"]');
@@ -46,6 +49,7 @@ chrome.runtime.onMessage.addListener((_message, _sender, sendResponse) => {
   if (_message.action === 'EXTRACT') {
     extract({
       includeMetadata: _message.includeMetadata || false,
+      singleTweet: _message.singleTweet === true,
     }).then(sendResponse);
   }
   return true; // keep channel open for async sendResponse
@@ -55,7 +59,8 @@ chrome.runtime.onMessage.addListener((_message, _sender, sendResponse) => {
 // Triggered when the page is opened from the inline button or context menu.
 
 const AUTO_MARKER_RE = /[#&]tweet2md=(download|copy|obsidian|1)/;
-const AUTO_MARKER_STRIP_RE = /[#&]tweet2md=(?:download|copy|obsidian|1)/g;
+const AUTO_SINGLE_MARKER_RE = /[#&]tweet2md_single=1/;
+const AUTO_MARKER_STRIP_RE = /[#&]tweet2md(?:_single)?=(?:download|copy|obsidian|1)/g;
 
 interface StoredSettings {
   downloadImages?: boolean;
@@ -82,7 +87,7 @@ let autoExtractInFlight = false;
 
 async function autoExtract(
   action: AutoAction,
-  opts: { allowClose?: boolean } = {}
+  opts: { allowClose?: boolean; singleTweet?: boolean } = {}
 ): Promise<void> {
   if (autoExtractInFlight) return;
   autoExtractInFlight = true;
@@ -95,9 +100,10 @@ async function autoExtract(
 
 async function runAutoExtract(
   action: AutoAction,
-  opts: { allowClose?: boolean }
+  opts: { allowClose?: boolean; singleTweet?: boolean }
 ): Promise<void> {
   const allowClose = opts.allowClose !== false;
+  const singleTweet = opts.singleTweet === true;
 
   // Strip the marker from the URL so refreshes don't re-trigger.
   try {
@@ -124,7 +130,10 @@ async function runAutoExtract(
   const shouldClose = allowClose && settings.closeTabAfterExport === true;
 
   // Need engagement data if either renderer wants it.
-  const response = await extract({ includeMetadata: includeMetadata || inlineStats });
+  const response = await extract({
+    includeMetadata: includeMetadata || inlineStats,
+    singleTweet,
+  });
   if (!response.success || !response.data) return;
 
   const frontmatterFields = obsidianFriendly
@@ -210,7 +219,8 @@ if (autoMatch) {
   const raw = autoMatch[1];
   const action: AutoAction =
     raw === 'copy' ? 'copy' : raw === 'obsidian' ? 'obsidian' : 'download';
-  autoExtract(action);
+  const singleTweet = AUTO_SINGLE_MARKER_RE.test(window.location.hash);
+  autoExtract(action, { singleTweet });
 }
 
 // ─── In-place toast ─────────────────────────────────────────────────
@@ -255,14 +265,21 @@ function coerceAutoAction(raw: unknown): AutoAction {
 }
 
 window.addEventListener('tweet2md:autoextract', (e: Event) => {
-  const detail = (e as CustomEvent).detail as { action?: string } | undefined;
-  autoExtract(coerceAutoAction(detail?.action), { allowClose: false });
+  const detail = (e as CustomEvent).detail as
+    | { action?: string; single?: boolean }
+    | undefined;
+  autoExtract(coerceAutoAction(detail?.action), {
+    allowClose: false,
+    singleTweet: detail?.single === true,
+  });
 });
 
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg && msg.action === 'TWEET2MD_AUTOEXTRACT') {
-    autoExtract(coerceAutoAction(msg.subAction), { allowClose: false })
-      .then(() => sendResponse({ ok: true }));
+    autoExtract(coerceAutoAction(msg.subAction), {
+      allowClose: false,
+      singleTweet: msg.single === true,
+    }).then(() => sendResponse({ ok: true }));
     return true;
   }
   return false;

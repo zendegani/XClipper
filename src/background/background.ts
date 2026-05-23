@@ -11,6 +11,7 @@ import {
 const MENU_PARENT = 'tweet2md-root';
 const MENU_SAVE = 'tweet2md-save';
 const MENU_COPY = 'tweet2md-copy';
+const MENU_COPY_SINGLE = 'tweet2md-copy-single';
 const MENU_OBSIDIAN = 'tweet2md-obsidian';
 
 type MenuAction = 'download' | 'copy' | 'obsidian';
@@ -55,6 +56,16 @@ function registerContextMenus(): void {
       documentUrlPatterns: ['*://x.com/*'],
     });
     chrome.contextMenus.create({
+      id: MENU_COPY_SINGLE,
+      parentId: MENU_PARENT,
+      title:
+        chrome.i18n.getMessage('ctx_copy_just_this_tweet') ||
+        'Copy just this tweet (no thread)',
+      contexts: ['link', 'page'],
+      targetUrlPatterns: ['*://x.com/*/status/*'],
+      documentUrlPatterns: ['*://x.com/*'],
+    });
+    chrome.contextMenus.create({
       id: MENU_OBSIDIAN,
       parentId: MENU_PARENT,
       title: chrome.i18n.getMessage('ctx_obsidian_tweet') || 'Add tweet to Obsidian',
@@ -68,23 +79,30 @@ function registerContextMenus(): void {
 chrome.runtime.onInstalled.addListener(registerContextMenus);
 chrome.runtime.onStartup.addListener(registerContextMenus);
 
-function appendMarker(url: string, action: MenuAction): string {
+function appendMarker(url: string, action: MenuAction, single: boolean): string {
   // Strip any existing tweet2md marker so we don't compound them.
-  const cleaned = url.replace(/[#&]tweet2md=(?:download|copy|obsidian|1)/g, '').replace(/#$/, '');
+  const cleaned = url
+    .replace(/[#&]tweet2md(?:_single)?=(?:download|copy|obsidian|1)/g, '')
+    .replace(/#$/, '');
   const sep = cleaned.includes('#') ? '&' : '#';
-  return cleaned + sep + 'tweet2md=' + action;
+  const singleSuffix = single ? '&tweet2md_single=1' : '';
+  return cleaned + sep + 'tweet2md=' + action + singleSuffix;
 }
 
-function menuItemAction(menuItemId: unknown): MenuAction | null {
-  if (menuItemId === MENU_SAVE) return 'download';
-  if (menuItemId === MENU_COPY) return 'copy';
-  if (menuItemId === MENU_OBSIDIAN) return 'obsidian';
+function menuItemAction(
+  menuItemId: unknown
+): { action: MenuAction; single: boolean } | null {
+  if (menuItemId === MENU_SAVE) return { action: 'download', single: false };
+  if (menuItemId === MENU_COPY) return { action: 'copy', single: false };
+  if (menuItemId === MENU_COPY_SINGLE) return { action: 'copy', single: true };
+  if (menuItemId === MENU_OBSIDIAN) return { action: 'obsidian', single: false };
   return null;
 }
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
-  const action = menuItemAction(info.menuItemId);
-  if (!action) return;
+  const picked = menuItemAction(info.menuItemId);
+  if (!picked) return;
+  const { action, single } = picked;
 
   // Prefer an explicit link the user right-clicked on, then the URL the
   // injector reported for the tweet under the cursor, then the page URL.
@@ -106,11 +124,12 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     chrome.tabs.sendMessage(tab.id, {
       action: 'TWEET2MD_AUTOEXTRACT',
       subAction: action,
+      single,
     });
     return;
   }
 
-  chrome.tabs.create({ url: appendMarker(target, action) });
+  chrome.tabs.create({ url: appendMarker(target, action, single) });
 });
 
 chrome.runtime.onMessage.addListener((msg, sender, _sendResponse) => {

@@ -113,23 +113,37 @@ function getStatusUrl(article: Element): string | null {
   return anyStatus?.href ? normalizeStatusUrl(anyStatus.href) : null;
 }
 
-function openWithMarker(url: string, action: 'download' | 'copy'): void {
+function openWithMarker(
+  url: string,
+  action: 'download' | 'copy',
+  single: boolean
+): void {
   const sep = url.includes('#') ? '&' : '#';
-  window.open(url + sep + 'tweet2md=' + action, '_blank', 'noopener');
+  const singleSuffix = single ? '&tweet2md_single=1' : '';
+  window.open(url + sep + 'tweet2md=' + action + singleSuffix, '_blank', 'noopener');
 }
 
 // If the target tweet is the current page, extract in place rather than
 // opening a duplicate tab. Otherwise fall through to the new-tab flow.
-function triggerExtract(url: string, action: 'download' | 'copy'): void {
+function triggerExtract(
+  url: string,
+  action: 'download' | 'copy',
+  single: boolean
+): void {
   const target = normalizeStatusUrl(url);
   const page = normalizeStatusUrl(window.location.href);
   if (target && page && target === page) {
     window.dispatchEvent(
-      new CustomEvent('tweet2md:autoextract', { detail: { action } })
+      new CustomEvent('tweet2md:autoextract', { detail: { action, single } })
     );
     return;
   }
-  openWithMarker(url, action);
+  openWithMarker(url, action, single);
+}
+
+function singleFromEvent(e: Event): boolean {
+  const me = e as MouseEvent | KeyboardEvent;
+  return me.shiftKey === true || me.altKey === true;
 }
 
 function makeButton(onClick: (e: Event) => void): HTMLElement {
@@ -138,7 +152,7 @@ function makeButton(onClick: (e: Event) => void): HTMLElement {
   wrapper.setAttribute('role', 'button');
   wrapper.setAttribute('tabindex', '0');
   wrapper.setAttribute('aria-label', 'Save as Markdown');
-  wrapper.title = 'Save as Markdown (tweet2md)';
+  wrapper.title = 'Save as Markdown (tweet2md)\nShift/Alt-click: just this tweet';
   wrapper.style.cssText = [
     'display:inline-flex',
     'align-items:center',
@@ -217,9 +231,13 @@ function decorateArticleActionBar(article: Element): void {
   const url = getStatusUrl(article);
   if (!url) return;
 
-  const btn = makeButton(() => {
+  const btn = makeButton((e) => {
     const fresh = getStatusUrl(article) || url;
-    triggerExtract(fresh, inlineButtonCopies ? 'copy' : 'download');
+    triggerExtract(
+      fresh,
+      inlineButtonCopies ? 'copy' : 'download',
+      singleFromEvent(e)
+    );
   });
   const container = document.createElement('div');
   container.style.cssText = 'display:flex;align-items:center;';
@@ -257,7 +275,13 @@ function decorateArticleTopBar(): void {
     return;
   }
 
-  const btn = makeButton(() => triggerExtract(window.location.href, inlineButtonCopies ? 'copy' : 'download'));
+  const btn = makeButton((e) =>
+    triggerExtract(
+      window.location.href,
+      inlineButtonCopies ? 'copy' : 'download',
+      singleFromEvent(e)
+    )
+  );
   const container = document.createElement('div');
   container.style.cssText = 'display:flex;align-items:center;';
   container.appendChild(btn);

@@ -353,11 +353,20 @@ function extractSingleTweetFromArticle(
  *   3. Scroll down a step and repeat, deduplicating by status ID.
  *   4. Stop once no new thread tweets appear after a scroll (thread complete)
  *      OR we hit a different-author tweet.
+ *
+ * When `singleTweet` is set, the scroll/collect loop is skipped and only the
+ * focused article (the one whose status id matches the page url) is extracted.
  */
-export async function extractTweetAsync(): Promise<ExtractedContent> {
+export async function extractTweetAsync(
+  opts: { singleTweet?: boolean } = {}
+): Promise<ExtractedContent> {
   const date = extractDate();
   const tweetId = extractTweetId();
   const sourceUrl = window.location.href;
+
+  if (opts.singleTweet) {
+    return extractFocusedTweet({ tweetId, sourceUrl, date });
+  }
 
   window.scrollTo({ top: 0, behavior: 'instant' });
   await delay(600);
@@ -441,6 +450,49 @@ export async function extractTweetAsync(): Promise<ExtractedContent> {
   return {
     type: isThread ? 'thread' : 'tweet',
     author: threadAuthor,
+    markdown: parts.join('\n'),
+    sourceUrl,
+    date,
+    tweetId,
+  };
+}
+
+// Single-tweet path: skip the scroll loop and only render the focused article
+// (the one whose status id matches the page URL). Falls back to the first
+// non-promoted article if no id-matched article is in the DOM.
+function extractFocusedTweet(
+  ctx: { tweetId: string; sourceUrl: string; date: string }
+): ExtractedContent {
+  const { tweetId, sourceUrl, date } = ctx;
+  const articles = Array.from(document.querySelectorAll('article[role="article"]'));
+
+  if (articles.length === 0) {
+    const author = extractAuthor();
+    return {
+      type: 'tweet',
+      author,
+      markdown: `# ${author.name} (${author.handle})\n\n*Could not extract tweet content.*\n\n---\n\n> Source: ${sourceUrl}\n> Date: ${date}`,
+      sourceUrl,
+      date,
+      tweetId,
+    };
+  }
+
+  const matched = articles.find(
+    (a) => !isPromotedArticle(a) && getTweetStatusId(a) === tweetId
+  );
+  const focused = matched || articles.find((a) => !isPromotedArticle(a)) || articles[0];
+  const author = extractAuthorFromArticle(focused);
+  const { text, media } = extractSingleTweetFromArticle(focused);
+
+  const parts: string[] = [`# ${author.name} (${author.handle})`, ''];
+  if (text) parts.push(text);
+  if (media.length > 0) parts.push('', ...media);
+  parts.push('', '---', '', `> Source: ${sourceUrl}`, `> Date: ${date}`);
+
+  return {
+    type: 'tweet',
+    author,
     markdown: parts.join('\n'),
     sourceUrl,
     date,
