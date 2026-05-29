@@ -1,39 +1,39 @@
-tweet2md è un'estensione Chrome open source che trasforma thread, post e articoli di X/Twitter in Markdown pulito per Obsidian, ricerca, workflow di IA e archiviazione offline.
+tweet2md è un'estensione Chrome open source che trasforma thread, post e articoli di X/Twitter in Markdown pulito per Obsidian, ricerca, workflow AI e archiviazione offline.
 
 Esporta i contenuti con un clic:
 
 - Salva come Markdown
 - Copia il Markdown negli appunti
 - Invia direttamente a Obsidian
-- Scarica le immagini in locale insieme al tuo file .md
+- Scarica le immagini in locale insieme al file .md
 
-Funziona interamente nel tuo browser. Niente chiavi API, niente account, niente tracking, niente analytics.
+Funziona interamente nel browser. Nessuna chiave API, nessun account, nessun tracking, nessuna analytics.
 
 Caratteristiche principali:
 
-- Esporta tweet, thread, citazioni, thread annidati e articoli lunghi di X (in precedenza Notes)
+- Esporta tweet, thread, tweet citati, thread annidati e lunghi X Articles (ex Notes)
 - Markdown pulito compatibile con Obsidian, Logseq, Notion, Hugo e altri workflow basati su Markdown
-- Pulsante "Aggiungi a Obsidian" con un clic tramite lo schema URI obsidian://
-- frontmatter YAML completo con autore, handle, date, URL di origine, tipo di contenuto e statistiche di interazione
-- frontmatter opzionale ottimizzato per Obsidian: autori con wikilink [[@handle]], metadati compatibili con Dataview, titoli e descrizioni generati
-- Scarica le immagini incorporate in locale per evitare i link rotti
-- Cattura le card dei link con titolo, dominio di origine e immagine di anteprima
-- Cattura i sondaggi con opzioni, percentuali dei risultati e la riga del totale voti/stato
-- Preserva la struttura e l'attribuzione dei tweet citati
+- Pulsante "Aggiungi a Obsidian" con un clic tramite schema URI obsidian://
+- Rich YAML frontmatter con autore, handle, date, source URL, tipo di contenuto e metriche di engagement
+- Frontmatter opzionale ottimizzato per Obsidian: autori con wikilink [[@handle]], metadata compatibili con Dataview, e titoli e descrizioni generate automaticamente
+- Scarica le immagini incorporate in locale per evitare link rotti
+- Cattura link card con titolo, dominio sorgente e immagine di anteprima
+- Cattura sondaggi con opzioni, percentuali dei risultati e riga totale voti/stato
+- Mantiene struttura e attribuzione dei tweet citati
 - Esporta un singolo tweet o un intero thread
-- Pulsante di esportazione inline direttamente dentro x.com, più popup nella barra degli strumenti e menu contestuale del tasto destro
-- Modelli di nome file personalizzabili con segnaposto come {date}, {handle}, {slug} e {type}
-- Targeting opzionale del vault e sottocartella del vault per Obsidian
-- Sottocartella opzionale per download di Markdown e media
+- Pulsante di esportazione inline direttamente dentro x.com, più popup della toolbar e menu contestuale del tasto destro
+- Template di nomi file personalizzabili con placeholder come {date}, {handle}, {slug} e {type}
+- Supporto opzionale per vault Obsidian e relative sottocartelle
+- Sottocartella opzionale per i download di Markdown e file multimediali
 - Interfaccia multilingue: inglese, spagnolo, tedesco, francese, italiano, russo, giapponese, portoghese (Brasile), cinese (semplificato), hindi, arabo e persiano
-- Modalità chiara e scura
+- Supporto per modalità chiara e scura
 
 Ideale per:
 
 - Workflow Obsidian e PKM
 - Ricerca e archiviazione di riferimenti
-- Prompt per IA e pipeline RAG
-- Costruire un secondo cervello consultabile
+- Prompt AI e pipeline RAG
+- Creare un "second brain" ricercabile
 - Conservare offline contenuti lunghi di X
 
 Limitazioni attuali:
