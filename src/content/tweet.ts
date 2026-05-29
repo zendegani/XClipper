@@ -158,25 +158,26 @@ function collectMediaFrom(
   return out;
 }
 
-// Polls render inside data-testid="cardPoll": a <ul> of choices (each with a
-// label and, once results are shown, a percentage) followed by a
-// "N votes · <status>" line. Pre-vote polls omit the percentages, so render
-// choices-only gracefully.
+// Polls render inside data-testid="cardPoll" followed by a "N votes · <status>"
+// line. Voted polls show results as <li role="listitem"> choices (label + %);
+// unvoted polls show clickable <div role="radio"> choices (label only).
 function extractPoll(article: Element): string {
   const pollEl = article.querySelector('[data-testid="cardPoll"]');
   if (!pollEl) return '';
 
   const lines: string[] = [];
-  for (const li of pollEl.querySelectorAll('li[role="listitem"]')) {
+  for (const choice of pollEl.querySelectorAll(
+    'li[role="listitem"], [role="radio"]'
+  )) {
     let pct = '';
-    for (const el of li.querySelectorAll('span, div')) {
+    for (const el of choice.querySelectorAll('span, div')) {
       const t = (el.textContent || '').trim();
       if (/^\d+(?:\.\d+)?%$/.test(t)) {
         pct = t;
         break;
       }
     }
-    let label = (li.textContent || '').replace(/\s+/g, ' ').trim();
+    let label = (choice.textContent || '').replace(/\s+/g, ' ').trim();
     if (pct && label.endsWith(pct)) {
       label = label.slice(0, label.length - pct.length).trim();
     }
@@ -185,9 +186,15 @@ function extractPoll(article: Element): string {
   }
   if (lines.length === 0) return '';
 
-  // Footer = everything in the card outside the choices list (votes + status).
+  // Footer = the "N votes · <status>" line. Drop the choices, plus the
+  // "selection cannot be changed" notice (linked via the radiogroup's
+  // aria-describedby), so only the tally + status remain.
   const clone = pollEl.cloneNode(true) as Element;
-  clone.querySelectorAll('ul').forEach((ul) => ul.remove());
+  clone.querySelectorAll('ul, [role="radiogroup"]').forEach((el) => el.remove());
+  const noticeId = pollEl
+    .querySelector('[role="radiogroup"]')
+    ?.getAttribute('aria-describedby');
+  if (noticeId) clone.querySelector(`[id="${noticeId}"]`)?.remove();
   const footer = (clone.textContent || '')
     .replace(/\s+/g, ' ')
     .replace(/\s*·\s*/g, ' · ')
