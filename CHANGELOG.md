@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.7.0] - 2026-05-29
+
+### Added
+
+- **Single-Tweet Export**: New **Copy just this tweet (no thread)** context-menu item, plus Shift- or Alt-clicking the inline button, exports only the focused tweet instead of the whole thread. Default behaviour is unchanged.
+
 ## [1.6.1] - 2026-05-21
 
 ### Added
