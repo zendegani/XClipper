@@ -321,6 +321,13 @@ body {
   color: var(--text-secondary);
   opacity: 0.5;
   font-variant-numeric: tabular-nums;
+  text-decoration: none;
+  transition: opacity var(--transition);
+}
+
+.footer-version:hover {
+  opacity: 1;
+  text-decoration: underline;
 }
 
 .footer-feedback {
