@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **Polls**: Tweet polls are now captured — choices with their result percentages and the vote total/status line. Previously they were dropped entirely. (#28)
+- **Polls**: Tweet polls are now captured — choices, result percentages once voted, and the vote total/status line. Previously they were dropped entirely. (#28)
 
 ## [1.6.1] - 2026-05-21
 
