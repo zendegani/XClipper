@@ -135,7 +135,6 @@ Filenames: `@handle-tweetId.md` (tweets/threads) or `@handle-article-slug.md` (a
 
 ## Current Limitations
 
-- Focused on x.com content extraction
 - Videos and GIFs are not exported as playable media files
 - Requires a page reload if the extension was installed or updated after opening the tab
 - Some content may stop working if x.com changes its page structure significantly

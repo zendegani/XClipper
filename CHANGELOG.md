@@ -7,15 +7,18 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [1.7.0] - 2026-05-29
+## [1.7.0] - 2026-05-30
 
 ### Added
 
 - **Single-Tweet Export**: New **Copy just this tweet (no thread)** context-menu item, plus Shift- or Alt-clicking the inline button, exports only the focused tweet instead of the whole thread. Default behaviour is unchanged.
+- **Three new UI languages**: Hindi, Italian, and Russian — bringing the popup UI to 12 supported locales.
+- **Footer version link**: The popup footer version (e.g. `v1.7.0`) now links to this changelog on GitHub.
 
 ### Fixed
 
 - **Polls**: Tweet polls are now captured — choices, result percentages once voted, and the vote total/status line. Previously they were dropped entirely. (#28)
+- **Translation gaps**: Corrected a stale tooltip in 7 locales (the **Close the tab after export** option still described old behaviour), filled in 5 Frontmatter fields strings missing since 1.6.1 across the existing non-English locales, and polished hi/it/ru/fr wording per native review.
 
 ## [1.6.1] - 2026-05-21
 
