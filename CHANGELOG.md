@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Polls**: Tweet polls are now captured — choices, result percentages once voted, and the vote total/status line. Previously they were dropped entirely. (#28)
 - **Translation gaps**: Corrected a stale tooltip in 7 locales (the **Close the tab after export** option still described old behaviour), filled in 5 Frontmatter fields strings missing since 1.6.1 across the existing non-English locales, and polished hi/it/ru/fr wording per native review.
+- **Thread completeness on deep-link permalinks**: Opening a mid-thread reply (e.g. the 10th tweet in a chain) now walks up to the thread root before exporting, so all parent tweets are captured. Tombstone articles (deleted or hidden parents) are skipped instead of terminating the walk. (#22)
 
 ## [1.6.1] - 2026-05-21
 

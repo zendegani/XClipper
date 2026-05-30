@@ -400,16 +400,20 @@ function extractSingleTweetFromArticle(
  * Scroll-aware thread extraction.
  *
  * X.com uses a virtualized list — only tweets near the viewport exist in the
- * DOM at any given moment. To capture a full thread we:
- *   1. Scroll to the very top of the page.
- *   2. Collect all visible thread-author tweets (stopping on a different-author
- *      tweet, which signals the start of the reply section).
- *   3. Scroll down a step and repeat, deduplicating by status ID.
- *   4. Stop once no new thread tweets appear after a scroll (thread complete)
- *      OR we hit a different-author tweet.
+ * DOM at any given moment. Deep-link permalinks (e.g. /status/<reply_id>)
+ * also anchor the viewport to the focused tweet; ancestor tweets above it
+ * are lazy-loaded only when the user scrolls up past that anchor.
  *
- * When `singleTweet` is set, the scroll/collect loop is skipped and only the
- * focused article (the one whose status id matches the page url) is extracted.
+ * To capture a full thread we:
+ *   1. Walk UP: repeatedly scrollTo(0) until the DOM stops growing above —
+ *      this coaxes X into hydrating ancestors all the way to the thread root.
+ *   2. Pick the topmost non-promoted article as the thread author.
+ *   3. Walk DOWN, collecting same-author tweets (deduped by status id) until
+ *      a different-author tweet appears (start of the reply section), or
+ *      scrolling yields nothing new (thread complete).
+ *
+ * When `singleTweet` is set, the walk is skipped and only the focused article
+ * (the one whose status id matches the page url) is extracted.
  */
 export async function extractTweetAsync(
   opts: { singleTweet?: boolean } = {}
@@ -422,8 +426,18 @@ export async function extractTweetAsync(
     return extractFocusedTweet({ tweetId, sourceUrl, date });
   }
 
-  window.scrollTo({ top: 0, behavior: 'instant' });
-  await delay(600);
+  // ── Upward walk: coax X into loading any ancestors above the focused tweet.
+  const MAX_UP_STEPS = 30;
+  const UP_SETTLE_DELAY = 500;
+  for (let step = 0; step < MAX_UP_STEPS; step++) {
+    const beforeCount = document.querySelectorAll('article[role="article"]').length;
+    const beforeHeight = document.documentElement.scrollHeight;
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    await delay(UP_SETTLE_DELAY);
+    const afterCount = document.querySelectorAll('article[role="article"]').length;
+    const afterHeight = document.documentElement.scrollHeight;
+    if (afterCount === beforeCount && afterHeight === beforeHeight) break;
+  }
 
   let allArticles = document.querySelectorAll('article[role="article"]');
   if (allArticles.length === 0) {
@@ -438,6 +452,7 @@ export async function extractTweetAsync(
     };
   }
 
+  // After the upward walk the topmost non-ad article is the thread root.
   const firstNonAd =
     Array.from(allArticles).find((a) => !isPromotedArticle(a)) || allArticles[0];
   const threadAuthor = extractAuthorFromArticle(firstNonAd);
@@ -455,6 +470,11 @@ export async function extractTweetAsync(
     for (const article of allArticles) {
       if (isPromotedArticle(article)) continue;
       const articleAuthor = extractAuthorFromArticle(article);
+      // Tombstones (deleted parents, hidden replies) render without a
+      // User-Name and resolve to handle "unknown". Treat them as skip-but-
+      // continue rather than the reply boundary, so they don't prematurely
+      // terminate collection.
+      if (articleAuthor.handle === 'unknown') continue;
       if (
         articleAuthor.handle.toLowerCase() !==
         threadAuthor.handle.toLowerCase()
