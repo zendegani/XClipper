@@ -13,6 +13,9 @@ import { hostMatches } from '../shared/media';
 const btnDownload = document.getElementById('btn-download') as HTMLButtonElement;
 const btnCopy = document.getElementById('btn-copy') as HTMLButtonElement;
 const btnObsidian = document.getElementById('btn-obsidian') as HTMLButtonElement;
+const btnNotebookLM = document.getElementById('btn-notebooklm') as HTMLButtonElement;
+
+const NOTEBOOKLM_URL = 'https://notebooklm.google.com/';
 const statusEl = document.getElementById('status') as HTMLDivElement;
 const chkDownloadImages = document.getElementById(
   'chk-download-images'
@@ -476,10 +479,11 @@ function showStatus(
   }
 }
 
-function setLoading(loading: boolean, target?: 'download' | 'copy' | 'obsidian'): void {
+function setLoading(loading: boolean, target?: 'download' | 'copy' | 'obsidian' | 'notebooklm'): void {
   btnDownload.disabled = loading;
   btnCopy.disabled = loading;
   btnObsidian.disabled = loading;
+  btnNotebookLM.disabled = loading;
 
   // Only animate the button that was actually clicked
   if (target === 'download' || !target) {
@@ -497,25 +501,33 @@ function setLoading(loading: boolean, target?: 'download' | 'copy' | 'obsidian')
     const obLabel = btnObsidian.querySelector('.btn-label');
     if (obLabel) obLabel.textContent = loading ? (chrome.i18n.getMessage('extracting') || 'Extracting…') : (chrome.i18n.getMessage('btn_obsidian') || 'Add to Obsidian');
   }
+  if (target === 'notebooklm' || !target) {
+    btnNotebookLM.classList.toggle('loading', loading);
+    const nlLabel = btnNotebookLM.querySelector('.btn-label');
+    if (nlLabel) nlLabel.textContent = loading ? (chrome.i18n.getMessage('extracting') || 'Extracting…') : (chrome.i18n.getMessage('btn_notebooklm') || 'Add to NotebookLM');
+  }
 
-  // When stopping, always reset all three to default state
+  // When stopping, always reset all buttons to default state
   if (!loading) {
     btnDownload.classList.remove('loading');
     btnCopy.classList.remove('loading');
     btnObsidian.classList.remove('loading');
+    btnNotebookLM.classList.remove('loading');
     const dlLabel = btnDownload.querySelector('.btn-label');
     const cpLabel = btnCopy.querySelector('.btn-label');
     const obLabel = btnObsidian.querySelector('.btn-label');
+    const nlLabel = btnNotebookLM.querySelector('.btn-label');
     if (dlLabel) dlLabel.textContent = chrome.i18n.getMessage('btn_download') || 'Download .md';
     if (cpLabel) cpLabel.textContent = chrome.i18n.getMessage('btn_copy') || 'Copy .md';
     if (obLabel) obLabel.textContent = chrome.i18n.getMessage('btn_obsidian') || 'Add to Obsidian';
+    if (nlLabel) nlLabel.textContent = chrome.i18n.getMessage('btn_notebooklm') || 'Add to NotebookLM';
   }
 }
 
 // ─── Shared Extraction ──────────────────────────────────────────────
 
 async function extractMarkdown(
-  forAction: 'download' | 'copy' | 'obsidian' = 'download',
+  forAction: 'download' | 'copy' | 'obsidian' | 'notebooklm' = 'download',
 ): Promise<PostProcessResult> {
   const [tab] = await chrome.tabs.query({
     active: true,
@@ -545,9 +557,12 @@ async function extractMarkdown(
   const obsidianFriendly = forAction === 'obsidian' ? true : chkObsidianFriendly.checked;
   // Local image folders make no sense for the deeplink — Obsidian receives
   // markdown via URL, not a filesystem package, so leave images as remote
-  // URLs (Obsidian renders pbs.twimg.com inline fine).
+  // URLs (Obsidian renders pbs.twimg.com inline fine). NotebookLM gets pasted
+  // text so it can't carry local files either.
   const downloadImages =
-    forAction === 'obsidian' ? false : resolveDownloadImages(forAction, chkDownloadImages.checked);
+    forAction === 'obsidian' || forAction === 'notebooklm'
+      ? false
+      : resolveDownloadImages(forAction, chkDownloadImages.checked);
 
   const response: ExtractResponse = await chrome.tabs.sendMessage(tab.id, {
     action: 'EXTRACT',
@@ -657,6 +672,31 @@ btnCopy.addEventListener('click', async () => {
     };
     const label = typeLabels[result.type] || chrome.i18n.getMessage('copied') || 'Copied!';
     showStatus(`✓ ${label}`, 'success');
+    setLoading(false);
+  } catch (err) {
+    handleExtractionError(err);
+  }
+});
+
+// ─── Add to NotebookLM Flow ─────────────────────────────────────────
+// NotebookLM has no public API and reverse-engineering its internal RPCs is
+// brittle + risks ToS issues, so the hand-off is intentionally low-tech:
+// copy the markdown to the clipboard, open NotebookLM, ask the user to paste.
+
+btnNotebookLM.addEventListener('click', async () => {
+  setLoading(true, 'notebooklm');
+  statusEl.className = 'status hidden';
+
+  try {
+    const result = await extractMarkdown('notebooklm');
+
+    await navigator.clipboard.writeText(result.markdown);
+    chrome.tabs.create({ url: NOTEBOOKLM_URL });
+
+    showStatus(
+      `✓ ${chrome.i18n.getMessage('notebooklm_opened') || 'Markdown copied — paste it into NotebookLM'}`,
+      'success'
+    );
     setLoading(false);
   } catch (err) {
     handleExtractionError(err);

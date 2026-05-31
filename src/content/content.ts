@@ -6,7 +6,9 @@ import { extractArticle } from './article';
 import { extractTweetAsync, extractEngagementMetadata } from './tweet';
 import { waitForArticle } from './wait';
 
-type AutoAction = 'download' | 'copy' | 'obsidian';
+type AutoAction = 'download' | 'copy' | 'obsidian' | 'notebooklm';
+
+const NOTEBOOKLM_URL = 'https://notebooklm.google.com/';
 
 // ─── Main Extraction Entry Point ────────────────────────────────────
 
@@ -58,9 +60,9 @@ chrome.runtime.onMessage.addListener((_message, _sender, sendResponse) => {
 // ─── Auto-extract bootstrap (#tweet2md=download | #tweet2md=copy) ───
 // Triggered when the page is opened from the inline button or context menu.
 
-const AUTO_MARKER_RE = /[#&]tweet2md=(download|copy|obsidian|1)/;
+const AUTO_MARKER_RE = /[#&]tweet2md=(download|copy|obsidian|notebooklm|1)/;
 const AUTO_SINGLE_MARKER_RE = /[#&]tweet2md_single=1/;
-const AUTO_MARKER_STRIP_RE = /[#&]tweet2md(?:_single)?=(?:download|copy|obsidian|1)/g;
+const AUTO_MARKER_STRIP_RE = /[#&]tweet2md(?:_single)?=(?:download|copy|obsidian|notebooklm|1)/g;
 
 interface StoredSettings {
   downloadImages?: boolean;
@@ -126,7 +128,9 @@ async function runAutoExtract(
   const obsidianFriendly =
     action === 'obsidian' ? true : settings.obsidianFriendly === true;
   const downloadImages =
-    action === 'obsidian' ? false : resolveDownloadImages(action, settings.downloadImages === true);
+    action === 'obsidian' || action === 'notebooklm'
+      ? false
+      : resolveDownloadImages(action, settings.downloadImages === true);
   const shouldClose = allowClose && settings.closeTabAfterExport === true;
 
   // Need engagement data if either renderer wants it.
@@ -149,7 +153,7 @@ async function runAutoExtract(
     frontmatterFields,
   });
 
-  if (action === 'copy') {
+  if (action === 'copy' || action === 'notebooklm') {
     try {
       await navigator.clipboard.writeText(result.markdown);
     } catch {
@@ -163,6 +167,16 @@ async function runAutoExtract(
       ta.select();
       try { document.execCommand('copy'); } catch { /* ignore */ }
       ta.remove();
+    }
+    if (action === 'notebooklm') {
+      // New-tab flow (X.com tab opened just for extraction): navigate it to
+      // NotebookLM. In-place flow (already reading the tweet): open a new tab
+      // so the user can return to X.
+      if (allowClose) {
+        window.location.href = NOTEBOOKLM_URL;
+      } else {
+        window.open(NOTEBOOKLM_URL, '_blank', 'noopener');
+      }
     }
   } else if (action === 'obsidian') {
     const vault = (settings.obsidianVault || '').trim();
@@ -196,10 +210,12 @@ async function runAutoExtract(
     const key =
       action === 'copy' ? 'copied'
       : action === 'obsidian' ? 'obsidian_opened'
+      : action === 'notebooklm' ? 'notebooklm_opened'
       : 'downloaded';
     const fallback =
       action === 'copy' ? 'Copied!'
       : action === 'obsidian' ? 'Opening Obsidian…'
+      : action === 'notebooklm' ? 'Markdown copied — paste it into NotebookLM'
       : 'Downloaded!';
     showInPlaceToast(chrome.i18n.getMessage(key) || fallback);
   }
@@ -208,7 +224,9 @@ async function runAutoExtract(
   // an OS-level "Open Obsidian.app?" prompt that the user must confirm. Closing
   // the tab here would dismiss that prompt before they can answer it, so the
   // close-after-export toggle is intentionally skipped for this action.
-  if (shouldClose && action !== 'obsidian') {
+  // NotebookLM hands the tab off to notebooklm.google.com — closing the tab
+  // before the user pastes would defeat the whole flow.
+  if (shouldClose && action !== 'obsidian' && action !== 'notebooklm') {
     await delay(400);
     window.close();
   }
@@ -218,7 +236,10 @@ const autoMatch = window.location.hash.match(AUTO_MARKER_RE);
 if (autoMatch) {
   const raw = autoMatch[1];
   const action: AutoAction =
-    raw === 'copy' ? 'copy' : raw === 'obsidian' ? 'obsidian' : 'download';
+    raw === 'copy' ? 'copy'
+      : raw === 'obsidian' ? 'obsidian'
+      : raw === 'notebooklm' ? 'notebooklm'
+      : 'download';
   const singleTweet = AUTO_SINGLE_MARKER_RE.test(window.location.hash);
   autoExtract(action, { singleTweet });
 }
@@ -261,7 +282,10 @@ function showInPlaceToast(text: string): void {
 // already on the tweet's permalink page — no point opening a new tab.
 
 function coerceAutoAction(raw: unknown): AutoAction {
-  return raw === 'copy' ? 'copy' : raw === 'obsidian' ? 'obsidian' : 'download';
+  if (raw === 'copy') return 'copy';
+  if (raw === 'obsidian') return 'obsidian';
+  if (raw === 'notebooklm') return 'notebooklm';
+  return 'download';
 }
 
 window.addEventListener('tweet2md:autoextract', (e: Event) => {

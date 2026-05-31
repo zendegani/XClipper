@@ -239,6 +239,35 @@ body {
   color: var(--obsidian);
 }
 
+.notebooklm-row {
+  --notebooklm: #1A73E8;
+  --notebooklm-glow: rgba(26, 115, 232, 0.18);
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.btn-notebooklm {
+  flex: 1;
+  background: transparent;
+  color: var(--notebooklm);
+  border: 1px solid var(--notebooklm);
+}
+
+.btn-notebooklm:hover {
+  background: var(--notebooklm-glow);
+  color: var(--notebooklm);
+  box-shadow: 0 4px 16px var(--notebooklm-glow);
+}
+
+.btn-notebooklm:active {
+  box-shadow: 0 2px 8px var(--notebooklm-glow);
+}
+
+.btn-notebooklm .btn-icon {
+  color: var(--notebooklm);
+}
+
 .btn-hint {
   /* Mirror the explicit half-width so the hint never steals or yields
    * pixels to its neighbor button. */

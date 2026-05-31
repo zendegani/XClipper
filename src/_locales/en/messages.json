@@ -23,6 +23,15 @@
   "obsidian_opened": {
     "message": "Opening Obsidian…"
   },
+  "btn_notebooklm": {
+    "message": "Add to NotebookLM"
+  },
+  "btn_notebooklm_hint": {
+    "message": "Opens NotebookLM with the markdown on your clipboard — just paste"
+  },
+  "notebooklm_opened": {
+    "message": "Markdown copied — paste it into NotebookLM"
+  },
   "extracting": {
     "message": "Extracting…"
   },
@@ -169,6 +178,9 @@
   },
   "ctx_obsidian_tweet": {
     "message": "Add tweet to Obsidian"
+  },
+  "ctx_notebooklm_tweet": {
+    "message": "Add tweet to NotebookLM"
   },
   "opt_show_inline_title": {
     "message": "Add a download button next to share on each tweet's action bar"
