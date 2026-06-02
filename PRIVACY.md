@@ -42,7 +42,7 @@ When you click **Add to Obsidian**, the extension builds an `obsidian://new?...`
 |----------------|------------------------------------------------------|
 | `activeTab`    | Allows reading the current tab's page content when you click the extension icon |
 | `downloads`    | Allows saving the generated Markdown file and allowed X media images to your Downloads folder |
-| `storage`      | Allows saving your popup configuration locally on your device so settings are remembered between sessions. This includes the toggle states and the optional Obsidian vault name (if you set one in Settings). |
+| `storage`      | Allows saving your popup configuration locally on your device so settings are remembered between sessions. This covers every choice you make in the popup or Settings view — UI toggle states, any text or template fields you fill in, and per-field selections from the Frontmatter picker. All values stay on your device; nothing is transmitted. |
 | `contextMenus` | Adds the **Save tweet as Markdown** and **Copy tweet as Markdown** items to the browser's right-click menu, scoped to X.com pages. The menu only fires when you click an item; no page content is read otherwise. |
 | `host` (X.com) | A content script is injected on X.com pages to (a) extract the visible post or article content when you trigger an action, and (b) draw the inline download button on tweet action bars. The script reads the DOM locally and never transmits data externally. |
 
