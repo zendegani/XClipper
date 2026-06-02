@@ -134,6 +134,18 @@
   "opt_obsidian_folder_placeholder": {
     "message": "जैसे Tweets"
   },
+  "opt_obsidian_tags": {
+    "message": "टैग्स"
+  },
+  "opt_obsidian_tags_title": {
+    "message": "Obsidian-friendly frontmatter में emit होने वाले अल्पविराम से अलग किए गए टैग। placeholder डालने के लिए { टाइप करें। खाली रखें = डिफ़ॉल्ट (clippings, x, {type})।"
+  },
+  "opt_obsidian_tags_placeholder": {
+    "message": "clippings, x, {type}"
+  },
+  "opt_obsidian_tags_reset": {
+    "message": "रीसेट"
+  },
   "opt_save_images_title": {
     "message": "Markdown फ़ाइल के बगल वाले फ़ोल्डर में इमेज डाउनलोड करें"
   },

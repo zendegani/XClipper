@@ -3,8 +3,11 @@ import {
   postProcess,
   resolveDownloadImages,
   buildFilename,
+  applyTagsTemplate,
   FRONTMATTER_FIELDS_DEFAULT,
   FRONTMATTER_FIELDS_OBSIDIAN,
+  DEFAULT_TAGS_TEMPLATE,
+  TAGS_PLACEHOLDERS,
   type PostProcessResult,
 } from '../shared/post-process';
 import { buildObsidianUrl } from '../shared/obsidian';
@@ -44,6 +47,21 @@ const txtDownloadFolder = document.getElementById(
 const txtObsidianFolder = document.getElementById(
   'txt-obsidian-folder'
 ) as HTMLInputElement;
+const txtObsidianTags = document.getElementById(
+  'txt-obsidian-tags'
+) as HTMLInputElement;
+const tagsPreview = document.getElementById(
+  'obsidian-tags-preview'
+) as HTMLElement;
+const btnTagsReset = document.getElementById(
+  'btn-obsidian-tags-reset'
+) as HTMLButtonElement;
+const tagsAutocomplete = document.getElementById(
+  'obsidian-tags-autocomplete'
+) as HTMLDivElement;
+const tagsFieldLabel = document.getElementById(
+  'obsidian-tags-label'
+) as HTMLLabelElement;
 const txtFilenameTemplate = document.getElementById(
   'txt-filename-template'
 ) as HTMLInputElement;
@@ -134,6 +152,7 @@ interface Settings {
   obsidianFriendly: boolean;
   obsidianVault: string;
   obsidianFolder: string;
+  obsidianTagsTemplate: string;
   downloadFolder: string;
   filenameTemplate: string;
   frontmatterFields: FieldMap;
@@ -160,6 +179,7 @@ const DEFAULT_SETTINGS: Settings = {
   obsidianFriendly: false, // off — changes frontmatter shape, opt-in
   obsidianVault: '', // empty → let Obsidian pick the last-used vault
   obsidianFolder: '', // empty → create note at the vault root
+  obsidianTagsTemplate: '', // empty → use DEFAULT_TAGS_TEMPLATE in post-process
   downloadFolder: '', // empty → save directly in Downloads
   filenameTemplate: '', // empty → legacy {handle}-{id}.md / {handle}-{slug}.md
   frontmatterFields: allEnabled(FRONTMATTER_FIELDS_DEFAULT),
@@ -235,6 +255,7 @@ loadSettings().then((settings) => {
   chkObsidianFriendly.checked = settings.obsidianFriendly;
   txtObsidianVault.value = settings.obsidianVault;
   txtObsidianFolder.value = settings.obsidianFolder;
+  txtObsidianTags.value = settings.obsidianTagsTemplate;
   txtDownloadFolder.value = settings.downloadFolder;
   txtFilenameTemplate.value = settings.filenameTemplate;
   frontmatterFields = { ...settings.frontmatterFields };
@@ -246,6 +267,8 @@ loadSettings().then((settings) => {
   updateFieldPickerEnabled();
   updateFilenamePreview();
   updateInlineCopiesEnabled();
+  updateTagsTemplateEnabled();
+  updateTagsPreview();
 });
 
 function persistAll(): void {
@@ -259,6 +282,7 @@ function persistAll(): void {
     obsidianFriendly: chkObsidianFriendly.checked,
     obsidianVault: txtObsidianVault.value.trim(),
     obsidianFolder: txtObsidianFolder.value.trim(),
+    obsidianTagsTemplate: txtObsidianTags.value.trim(),
     downloadFolder: txtDownloadFolder.value.trim(),
     filenameTemplate: txtFilenameTemplate.value.trim(),
     frontmatterFields,
@@ -378,6 +402,7 @@ fieldCheckboxes.forEach((cb) => {
     if (!field) return;
     const map = mode === 'obsidian' ? frontmatterFieldsObsidian : frontmatterFields;
     map[field] = cb.checked;
+    if (mode === 'obsidian' && field === 'tags') updateTagsTemplateEnabled();
     persistAll();
   });
 });
@@ -389,6 +414,7 @@ document.querySelectorAll<HTMLButtonElement>('.fm-picker-select-all').forEach((b
     const map = mode === 'obsidian' ? frontmatterFieldsObsidian : frontmatterFields;
     for (const key of keys) map[key] = true;
     syncFieldCheckboxes();
+    if (mode === 'obsidian') updateTagsTemplateEnabled();
     persistAll();
   });
 });
@@ -410,6 +436,166 @@ function updateFilenamePreview(): void {
   filenamePreview.textContent = buildFilename(PREVIEW_SAMPLE, template);
 }
 
+// ─── Tags template: preview, enable/disable, autocomplete ──────────
+
+function isTagsFieldEnabledInPicker(): boolean {
+  // The user can hide the tags YAML entry from the Obsidian-friendly mode via
+  // the Frontmatter-fields picker. When hidden the tags template is irrelevant
+  // so we mirror that state into the input.
+  return frontmatterFieldsObsidian.tags !== false;
+}
+
+function updateTagsTemplateEnabled(): void {
+  if (!tagsFieldLabel) return;
+  const enabled = chkObsidianFriendly.checked && chkMetadata.checked && isTagsFieldEnabledInPicker();
+  tagsFieldLabel.classList.toggle('disabled', !enabled);
+  txtObsidianTags.disabled = !enabled;
+  btnTagsReset.disabled = !enabled;
+}
+
+function updateTagsPreview(): void {
+  if (!tagsPreview) return;
+  const template = txtObsidianTags.value.trim() || DEFAULT_TAGS_TEMPLATE;
+  const tags = applyTagsTemplate(template, PREVIEW_SAMPLE);
+  tagsPreview.replaceChildren(
+    ...tags.map((t) => {
+      const chip = document.createElement('span');
+      chip.className = 'tag-chip';
+      chip.textContent = `#${t}`;
+      return chip;
+    })
+  );
+}
+
+txtObsidianTags.addEventListener('input', () => {
+  updateTagsPreview();
+  handleTagsAutocompleteOnInput();
+});
+txtObsidianTags.addEventListener('change', persistAll);
+txtObsidianTags.addEventListener('blur', () => {
+  // Delay just enough to let an autocomplete click register before the popover
+  // is forced shut by the blur.
+  setTimeout(() => {
+    closeTagsAutocomplete();
+    persistAll();
+  }, 120);
+});
+
+btnTagsReset.addEventListener('click', (e) => {
+  e.preventDefault();
+  txtObsidianTags.value = '';
+  updateTagsPreview();
+  closeTagsAutocomplete();
+  persistAll();
+});
+
+// ─── Placeholder autocomplete (`{` opens, filters as user types) ──
+
+interface AutocompleteState {
+  triggerStart: number; // index of the `{` in the input
+  highlighted: number; // index of the currently highlighted option
+  items: readonly string[]; // placeholders without braces
+}
+
+let autocompleteState: AutocompleteState | null = null;
+
+function closeTagsAutocomplete(): void {
+  autocompleteState = null;
+  tagsAutocomplete.hidden = true;
+  tagsAutocomplete.replaceChildren();
+}
+
+function renderAutocomplete(items: readonly string[], highlighted: number): void {
+  tagsAutocomplete.replaceChildren(
+    ...items.map((name, i) => {
+      const opt = document.createElement('button');
+      opt.type = 'button';
+      opt.className = 'placeholder-autocomplete-item' + (i === highlighted ? ' highlighted' : '');
+      opt.textContent = `{${name}}`;
+      opt.addEventListener('mousedown', (e) => {
+        // mousedown (not click) so the input's blur doesn't race with selection
+        e.preventDefault();
+        applyAutocompleteChoice(i);
+      });
+      return opt;
+    })
+  );
+  tagsAutocomplete.hidden = false;
+}
+
+function handleTagsAutocompleteOnInput(): void {
+  const caret = txtObsidianTags.selectionStart ?? txtObsidianTags.value.length;
+  // Walk back from the caret to the most recent `{` not yet closed.
+  const head = txtObsidianTags.value.slice(0, caret);
+  const open = head.lastIndexOf('{');
+  if (open < 0) {
+    closeTagsAutocomplete();
+    return;
+  }
+  const fragment = head.slice(open + 1);
+  // A `}` between the `{` and the caret means the placeholder is already
+  // closed; the next `{` (if any) will open a new context on a later keystroke.
+  if (fragment.includes('}')) {
+    closeTagsAutocomplete();
+    return;
+  }
+  const filtered = TAGS_PLACEHOLDERS.filter((p) => p.startsWith(fragment));
+  if (filtered.length === 0) {
+    closeTagsAutocomplete();
+    return;
+  }
+  autocompleteState = { triggerStart: open, highlighted: 0, items: filtered };
+  renderAutocomplete(filtered, 0);
+}
+
+function applyAutocompleteChoice(index: number): void {
+  if (!autocompleteState) return;
+  const choice = autocompleteState.items[index];
+  if (!choice) return;
+  const value = txtObsidianTags.value;
+  const caret = txtObsidianTags.selectionStart ?? value.length;
+  const before = value.slice(0, autocompleteState.triggerStart);
+  const after = value.slice(caret);
+  const insertion = `{${choice}}`;
+  txtObsidianTags.value = before + insertion + after;
+  const newCaret = before.length + insertion.length;
+  txtObsidianTags.setSelectionRange(newCaret, newCaret);
+  closeTagsAutocomplete();
+  updateTagsPreview();
+  persistAll();
+  txtObsidianTags.focus();
+}
+
+txtObsidianTags.addEventListener('keydown', (e) => {
+  if (!autocompleteState) return;
+  switch (e.key) {
+    case 'ArrowDown': {
+      e.preventDefault();
+      const next = (autocompleteState.highlighted + 1) % autocompleteState.items.length;
+      autocompleteState.highlighted = next;
+      renderAutocomplete(autocompleteState.items, next);
+      break;
+    }
+    case 'ArrowUp': {
+      e.preventDefault();
+      const len = autocompleteState.items.length;
+      const next = (autocompleteState.highlighted - 1 + len) % len;
+      autocompleteState.highlighted = next;
+      renderAutocomplete(autocompleteState.items, next);
+      break;
+    }
+    case 'Enter':
+    case 'Tab':
+      e.preventDefault();
+      applyAutocompleteChoice(autocompleteState.highlighted);
+      break;
+    case 'Escape':
+      e.preventDefault();
+      closeTagsAutocomplete();
+      break;
+  }
+});
+
 chkDownloadImages.addEventListener('change', persistAll);
 chkMetadata.addEventListener('change', () => {
   // Mirror of the Obsidian-friendly → metadata rule: if metadata goes off,
@@ -419,6 +605,7 @@ chkMetadata.addEventListener('change', () => {
     updateFieldPickerMode();
   }
   updateFieldPickerEnabled();
+  updateTagsTemplateEnabled();
   persistAll();
 });
 chkCloseTab.addEventListener('change', persistAll);
@@ -437,6 +624,7 @@ chkObsidianFriendly.addEventListener('change', () => {
     updateFieldPickerEnabled();
   }
   updateFieldPickerMode();
+  updateTagsTemplateEnabled();
   persistAll();
 });
 txtObsidianVault.addEventListener('change', persistAll);
@@ -578,6 +766,7 @@ async function extractMarkdown(
     inlineStats,
     obsidianFriendly,
     filenameTemplate: txtFilenameTemplate.value.trim(),
+    obsidianTagsTemplate: txtObsidianTags.value.trim(),
     frontmatterFields: obsidianFriendly ? frontmatterFieldsObsidian : frontmatterFields,
   });
 }

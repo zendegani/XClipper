@@ -211,6 +211,17 @@
             <span class="field-text" data-i18n="opt_obsidian_folder">Subfolder</span>
             <input type="text" id="txt-obsidian-folder" class="field-input" autocomplete="off" spellcheck="false" placeholder="e.g. Tweets" data-i18n-placeholder="opt_obsidian_folder_placeholder" />
           </label>
+          <label class="field-label field-label-stacked" id="obsidian-tags-label" data-tooltip="Comma-separated list of tags emitted in the Obsidian-friendly frontmatter. Type { to insert a placeholder." data-i18n-tooltip="opt_obsidian_tags_title">
+            <span class="field-text">
+              <span data-i18n="opt_obsidian_tags">Tags</span>
+              <button type="button" id="btn-obsidian-tags-reset" class="field-inline-action" data-i18n="opt_obsidian_tags_reset">Reset</button>
+            </span>
+            <span class="field-with-popover">
+              <input type="text" id="txt-obsidian-tags" class="field-input" autocomplete="off" spellcheck="false" placeholder="clippings, x, {type}" data-i18n-placeholder="opt_obsidian_tags_placeholder" />
+              <div id="obsidian-tags-autocomplete" class="placeholder-autocomplete" role="listbox" hidden></div>
+            </span>
+            <div id="obsidian-tags-preview" class="tag-preview" aria-live="polite"></div>
+          </label>
         </details>
 
         <details class="option-group fm-picker" data-section-id="frontmatter">

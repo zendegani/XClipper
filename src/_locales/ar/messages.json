@@ -134,6 +134,18 @@
   "opt_obsidian_folder_placeholder": {
     "message": "مثال: Tweets"
   },
+  "opt_obsidian_tags": {
+    "message": "الوسوم"
+  },
+  "opt_obsidian_tags_title": {
+    "message": "وسوم مفصولة بفواصل تُضاف إلى الـ frontmatter الخاص بـ Obsidian. اكتب { لإدراج عنصر نائب. اتركه فارغًا للقيم الافتراضية (clippings, x, {type})."
+  },
+  "opt_obsidian_tags_placeholder": {
+    "message": "clippings, x, {type}"
+  },
+  "opt_obsidian_tags_reset": {
+    "message": "إعادة تعيين"
+  },
   "opt_save_images_title": {
     "message": "تنزيل الصور إلى مجلد بجانب ملف Markdown"
   },

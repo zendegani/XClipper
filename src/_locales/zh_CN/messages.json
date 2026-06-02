@@ -134,6 +134,18 @@
   "opt_obsidian_folder_placeholder": {
     "message": "例如 Tweets"
   },
+  "opt_obsidian_tags": {
+    "message": "标签"
+  },
+  "opt_obsidian_tags_title": {
+    "message": "Obsidian 友好的 frontmatter 中输出的标签（逗号分隔）。输入 { 可插入占位符。留空则使用默认值 (clippings, x, {type})。"
+  },
+  "opt_obsidian_tags_placeholder": {
+    "message": "clippings, x, {type}"
+  },
+  "opt_obsidian_tags_reset": {
+    "message": "重置"
+  },
   "opt_save_images_title": {
     "message": "将图片下载到 Markdown 文件旁的文件夹中"
   },
