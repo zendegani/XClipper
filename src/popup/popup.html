@@ -211,9 +211,33 @@
             <span class="field-text" data-i18n="opt_obsidian_folder">Subfolder</span>
             <input type="text" id="txt-obsidian-folder" class="field-input" autocomplete="off" spellcheck="false" placeholder="e.g. Tweets" data-i18n-placeholder="opt_obsidian_folder_placeholder" />
           </label>
-          <label class="field-label field-label-stacked" id="obsidian-tags-label" data-tooltip="Comma-separated list of tags emitted in the Obsidian-friendly frontmatter. Type { to insert a placeholder." data-i18n-tooltip="opt_obsidian_tags_title">
+          <label class="field-label field-label-stacked" id="obsidian-tags-label">
             <span class="field-text">
-              <span data-i18n="opt_obsidian_tags">Tags</span>
+              <span class="field-text-label" data-tooltip="Comma-separated list of tags emitted in the Obsidian-friendly frontmatter. Type { to insert a placeholder." data-i18n-tooltip="opt_obsidian_tags_title" data-i18n="opt_obsidian_tags">Tags</span>
+              <span class="field-info-wrap">
+                <button type="button" id="btn-obsidian-tags-info" class="field-info" aria-expanded="false"
+                  aria-controls="obsidian-tags-hint" aria-label="Show tag placeholders"
+                  data-i18n-aria-label="opt_obsidian_tags_info">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                    stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="16" x2="12" y2="12" />
+                    <line x1="12" y1="8" x2="12.01" y2="8" />
+                  </svg>
+                </button>
+                <div id="obsidian-tags-hint" class="field-hint" role="tooltip">
+                  <div class="field-hint-title" data-i18n="opt_filename_template_hint_title">Placeholders</div>
+                  <ul class="field-hint-list">
+                    <li><code>{date}</code><span data-i18n="opt_filename_hint_date">publish date (YYYY-MM-DD)</span></li>
+                    <li><code>{datetime}</code><span data-i18n="opt_filename_hint_datetime">publish date + time</span></li>
+                    <li><code>{handle}</code><span data-i18n="opt_filename_hint_handle">author handle without @</span></li>
+                    <li><code>{author}</code><span data-i18n="opt_filename_hint_author">author display name</span></li>
+                    <li><code>{id}</code><span data-i18n="opt_filename_hint_id">tweet ID</span></li>
+                    <li><code>{slug}</code><span data-i18n="opt_filename_hint_slug">short text preview</span></li>
+                    <li><code>{type}</code><span data-i18n="opt_filename_hint_type">tweet / thread / article</span></li>
+                  </ul>
+                </div>
+              </span>
               <button type="button" id="btn-obsidian-tags-reset" class="field-inline-action" data-i18n="opt_obsidian_tags_reset">Reset</button>
             </span>
             <span class="field-with-popover">

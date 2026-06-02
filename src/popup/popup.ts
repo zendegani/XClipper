@@ -637,27 +637,22 @@ txtFilenameTemplate.addEventListener('input', updateFilenamePreview);
 txtFilenameTemplate.addEventListener('change', persistAll);
 txtFilenameTemplate.addEventListener('blur', persistAll);
 
-// ─── Filename template hint popover ────────────────────────────────
+// ─── ⓘ placeholder-list popovers (filename template, Obsidian tags) ──
 
-const btnFilenameInfo = document.getElementById('btn-filename-info') as HTMLButtonElement | null;
-btnFilenameInfo?.addEventListener('click', (e) => {
-  e.preventDefault();
-  const expanded = btnFilenameInfo.getAttribute('aria-expanded') === 'true';
-  btnFilenameInfo.setAttribute('aria-expanded', expanded ? 'false' : 'true');
-});
-document.addEventListener('click', (e) => {
-  if (!btnFilenameInfo) return;
-  if (btnFilenameInfo.getAttribute('aria-expanded') !== 'true') return;
-  const target = e.target as Node;
-  if (btnFilenameInfo.contains(target)) return;
-  const hint = document.getElementById('filename-template-hint');
-  if (hint?.contains(target)) return;
-  btnFilenameInfo.setAttribute('aria-expanded', 'false');
-});
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && btnFilenameInfo?.getAttribute('aria-expanded') === 'true') {
-    btnFilenameInfo.setAttribute('aria-expanded', 'false');
-  }
+// Show the popover only while the cursor / keyboard focus is literally on the
+// ⓘ button. CSS `:hover` could leak via wrap/label sizing; explicit listeners
+// keep the trigger surface limited to the icon. Click is a no-op so the
+// surrounding `<label>` doesn't react.
+document.querySelectorAll<HTMLButtonElement>('button.field-info').forEach((btn) => {
+  const hint = btn.nextElementSibling;
+  if (!(hint instanceof HTMLElement) || !hint.classList.contains('field-hint')) return;
+  const show = (): void => { hint.setAttribute('data-show', 'true'); };
+  const hide = (): void => { hint.removeAttribute('data-show'); };
+  btn.addEventListener('mouseenter', show);
+  btn.addEventListener('mouseleave', hide);
+  btn.addEventListener('focus', show);
+  btn.addEventListener('blur', hide);
+  btn.addEventListener('click', (e) => e.preventDefault());
 });
 
 // ─── Helpers ────────────────────────────────────────────────────────

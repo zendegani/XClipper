@@ -146,6 +146,9 @@
   "opt_obsidian_tags_reset": {
     "message": "Zurücksetzen"
   },
+  "opt_obsidian_tags_info": {
+    "message": "Tag-Platzhalter anzeigen"
+  },
   "opt_save_images_title": {
     "message": "Bilder in einem Ordner neben der Markdown-Datei speichern"
   },

@@ -146,6 +146,9 @@
   "opt_obsidian_tags_reset": {
     "message": "重置"
   },
+  "opt_obsidian_tags_info": {
+    "message": "显示标签占位符"
+  },
   "opt_save_images_title": {
     "message": "将图片下载到 Markdown 文件旁的文件夹中"
   },

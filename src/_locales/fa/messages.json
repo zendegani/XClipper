@@ -146,6 +146,9 @@
   "opt_obsidian_tags_reset": {
     "message": "بازنشانی"
   },
+  "opt_obsidian_tags_info": {
+    "message": "نمایش placeholder های برچسب"
+  },
   "opt_save_images_title": {
     "message": "دانلود تصاویر در پوشه‌ای در کنار فایل Markdown"
   },

@@ -146,6 +146,9 @@
   "opt_obsidian_tags_reset": {
     "message": "إعادة تعيين"
   },
+  "opt_obsidian_tags_info": {
+    "message": "إظهار عناصر الوسوم النائبة"
+  },
   "opt_save_images_title": {
     "message": "تنزيل الصور إلى مجلد بجانب ملف Markdown"
   },

@@ -598,6 +598,17 @@ body {
 /* Gear button sits at the top-right with top:14px — its tooltip would be
  * clipped above the popup. Anchor below and to the right edge so the
  * label extends leftward into the popup instead of off-screen. */
+/* Field-label tooltips sit close to the popup's start edge — anchor them to
+ * the host's start (not centered) so long messages don't overflow off-screen. */
+.field-text-label[data-tooltip]::after {
+  inset-inline-start: 0;
+  transform: translateX(0) translateY(2px);
+}
+.field-text-label[data-tooltip]:hover::after,
+.field-text-label[data-tooltip]:focus-visible::after {
+  transform: translateX(0) translateY(0);
+}
+
 .btn-settings-icon[data-tooltip] {
   /* Re-assert the gear's own positioning — the generic [data-tooltip]
    * rule above sets position:relative, which would otherwise win on
@@ -1064,14 +1075,14 @@ details.option-group[open] .option-group-chevron {
   pointer-events: none;
 }
 
-.field-label-stacked .field-text:hover .field-hint,
-.field-info-wrap:hover .field-hint,
-.field-info:focus-visible + .field-hint,
-.field-info[aria-expanded="true"] + .field-hint {
+.field-hint[data-show="true"] {
+  /* Visibility is toggled in JS via mouseenter/mouseleave/focus/blur on the
+   * adjacent ⓘ button. CSS `:hover` could leak in subtle ways depending on
+   * layout/flex sizing of the icon's hit box; explicit listeners guarantee
+   * the popover only appears while the cursor is on the ⓘ itself. */
   opacity: 1;
   visibility: visible;
   transform: translateY(0);
-  pointer-events: auto;
   transition: opacity var(--tooltip-fade) var(--tooltip-delay), transform var(--tooltip-fade) var(--tooltip-delay), visibility 0s linear var(--tooltip-delay);
 }
 

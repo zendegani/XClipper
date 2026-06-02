@@ -146,6 +146,9 @@
   "opt_obsidian_tags_reset": {
     "message": "リセット"
   },
+  "opt_obsidian_tags_info": {
+    "message": "タグのプレースホルダーを表示"
+  },
   "opt_save_images_title": {
     "message": "Markdownファイルと同じフォルダに画像をダウンロードする"
   },

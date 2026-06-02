@@ -146,6 +146,9 @@
   "opt_obsidian_tags_reset": {
     "message": "रीसेट"
   },
+  "opt_obsidian_tags_info": {
+    "message": "टैग placeholders दिखाएँ"
+  },
   "opt_save_images_title": {
     "message": "Markdown फ़ाइल के बगल वाले फ़ोल्डर में इमेज डाउनलोड करें"
   },

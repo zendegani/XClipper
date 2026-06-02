@@ -146,6 +146,9 @@
   "opt_obsidian_tags_reset": {
     "message": "Сброс"
   },
+  "opt_obsidian_tags_info": {
+    "message": "Показать плейсхолдеры тегов"
+  },
   "opt_save_images_title": {
     "message": "Скачивать изображения в папку рядом с Markdown-файлом"
   },

@@ -146,6 +146,9 @@
   "opt_obsidian_tags_reset": {
     "message": "Réinitialiser"
   },
+  "opt_obsidian_tags_info": {
+    "message": "Afficher les placeholders de tags"
+  },
   "opt_save_images_title": {
     "message": "Télécharger les images dans un dossier à côté du fichier Markdown"
   },
