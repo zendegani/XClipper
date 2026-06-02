@@ -134,6 +134,18 @@
   "opt_obsidian_folder_placeholder": {
     "message": "ej. Tweets"
   },
+  "opt_obsidian_tags": {
+    "message": "Etiquetas"
+  },
+  "opt_obsidian_tags_title": {
+    "message": "Etiquetas separadas por comas para el frontmatter de Obsidian. Escribe { para insertar un marcador. Vacío = predeterminado (clippings, x, {type})."
+  },
+  "opt_obsidian_tags_placeholder": {
+    "message": "clippings, x, {type}"
+  },
+  "opt_obsidian_tags_reset": {
+    "message": "Restablecer"
+  },
   "opt_save_images_title": {
     "message": "Descarga las imágenes en una carpeta junto al archivo Markdown"
   },

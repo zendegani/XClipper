@@ -134,6 +134,18 @@
   "opt_obsidian_folder_placeholder": {
     "message": "напр. Tweets"
   },
+  "opt_obsidian_tags": {
+    "message": "Теги"
+  },
+  "opt_obsidian_tags_title": {
+    "message": "Теги через запятую в Obsidian-совместимом frontmatter. Введите { для вставки плейсхолдера. Пусто — значения по умолчанию (clippings, x, {type})."
+  },
+  "opt_obsidian_tags_placeholder": {
+    "message": "clippings, x, {type}"
+  },
+  "opt_obsidian_tags_reset": {
+    "message": "Сброс"
+  },
   "opt_save_images_title": {
     "message": "Скачивать изображения в папку рядом с Markdown-файлом"
   },

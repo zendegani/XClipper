@@ -134,6 +134,18 @@
   "opt_obsidian_folder_placeholder": {
     "message": "例: Tweets"
   },
+  "opt_obsidian_tags": {
+    "message": "タグ"
+  },
+  "opt_obsidian_tags_title": {
+    "message": "Obsidian-friendly フロントマターに出力されるタグ（カンマ区切り）。{ を入力するとプレースホルダーを挿入できます。空欄でデフォルト (clippings, x, {type}) になります。"
+  },
+  "opt_obsidian_tags_placeholder": {
+    "message": "clippings, x, {type}"
+  },
+  "opt_obsidian_tags_reset": {
+    "message": "リセット"
+  },
   "opt_save_images_title": {
     "message": "Markdownファイルと同じフォルダに画像をダウンロードする"
   },

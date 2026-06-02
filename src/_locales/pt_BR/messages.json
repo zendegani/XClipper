@@ -134,6 +134,18 @@
   "opt_obsidian_folder_placeholder": {
     "message": "ex.: Tweets"
   },
+  "opt_obsidian_tags": {
+    "message": "Tags"
+  },
+  "opt_obsidian_tags_title": {
+    "message": "Tags separadas por vírgula no frontmatter compatível com Obsidian. Digite { para inserir um placeholder. Vazio = padrão (clippings, x, {type})."
+  },
+  "opt_obsidian_tags_placeholder": {
+    "message": "clippings, x, {type}"
+  },
+  "opt_obsidian_tags_reset": {
+    "message": "Redefinir"
+  },
   "opt_save_images_title": {
     "message": "Baixar imagens para uma pasta ao lado do arquivo Markdown"
   },

@@ -134,6 +134,18 @@
   "opt_obsidian_folder_placeholder": {
     "message": "e.g. Tweets"
   },
+  "opt_obsidian_tags": {
+    "message": "Tags"
+  },
+  "opt_obsidian_tags_title": {
+    "message": "Comma-separated tags emitted in the Obsidian-friendly frontmatter. Type { to insert a placeholder. Leave empty for the default (clippings, x, {type})."
+  },
+  "opt_obsidian_tags_placeholder": {
+    "message": "clippings, x, {type}"
+  },
+  "opt_obsidian_tags_reset": {
+    "message": "Reset"
+  },
   "opt_save_images_title": {
     "message": "Download images to a folder next to the Markdown file"
   },

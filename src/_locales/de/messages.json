@@ -134,6 +134,18 @@
   "opt_obsidian_folder_placeholder": {
     "message": "z. B. Tweets"
   },
+  "opt_obsidian_tags": {
+    "message": "Tags"
+  },
+  "opt_obsidian_tags_title": {
+    "message": "Kommagetrennte Tags im Obsidian-freundlichen Frontmatter. Tippe { für einen Platzhalter. Leer = Standard (clippings, x, {type})."
+  },
+  "opt_obsidian_tags_placeholder": {
+    "message": "clippings, x, {type}"
+  },
+  "opt_obsidian_tags_reset": {
+    "message": "Zurücksetzen"
+  },
   "opt_save_images_title": {
     "message": "Bilder in einem Ordner neben der Markdown-Datei speichern"
   },

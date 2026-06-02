@@ -910,6 +910,104 @@ details.option-group[open] .option-group-chevron {
   gap: 6px;
 }
 
+/* ─── Inline "Reset" action inside a stacked field label ──────────── */
+.field-inline-action {
+  margin-inline-start: auto;
+  font-family: inherit;
+  font-size: 10.5px;
+  color: var(--accent);
+  background: transparent;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  padding: 1px 8px;
+  cursor: pointer;
+  transition: background var(--transition), border-color var(--transition);
+}
+
+.field-inline-action:hover {
+  border-color: var(--accent);
+  background: var(--accent-glow);
+}
+
+.field-inline-action:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
+}
+
+/* ─── Tag chips (preview underneath the tags input) ─────────────── */
+.tag-preview {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  min-height: 18px;
+  margin-top: 2px;
+}
+
+.tag-chip {
+  display: inline-flex;
+  align-items: center;
+  font-size: 10.5px;
+  padding: 1px 7px;
+  border-radius: 999px;
+  background: var(--accent-glow);
+  color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+
+/* ─── Input + popover wrapper, host for the autocomplete dropdown ─ */
+.field-with-popover {
+  position: relative;
+  display: block;
+}
+
+.placeholder-autocomplete {
+  position: absolute;
+  top: calc(100% + 2px);
+  inset-inline-start: 0;
+  inset-inline-end: 0;
+  z-index: 15;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  max-height: 160px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+}
+
+.placeholder-autocomplete[hidden] {
+  display: none;
+}
+
+.placeholder-autocomplete-item {
+  appearance: none;
+  background: transparent;
+  border: none;
+  text-align: start;
+  font-family: var(--font-mono, ui-monospace, monospace);
+  font-size: 11px;
+  color: var(--text-primary);
+  padding: 5px 8px;
+  cursor: pointer;
+}
+
+.placeholder-autocomplete-item:hover,
+.placeholder-autocomplete-item.highlighted {
+  background: var(--accent-glow);
+  color: var(--accent);
+}
+
+/* Greyed-out look when the tags field can't be used (Obsidian-friendly off,
+ * metadata off, or tags YAML entry disabled in the picker). */
+.field-label.disabled {
+  opacity: 0.55;
+}
+.field-label.disabled .field-input,
+.field-label.disabled .field-inline-action {
+  cursor: not-allowed;
+}
+
 .field-info-wrap {
   display: inline-flex;
   align-items: center;

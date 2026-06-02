@@ -134,6 +134,18 @@
   "opt_obsidian_folder_placeholder": {
     "message": "مثلاً Tweets"
   },
+  "opt_obsidian_tags": {
+    "message": "برچسب‌ها"
+  },
+  "opt_obsidian_tags_title": {
+    "message": "برچسب‌های جداشده با کاما در frontmatter سازگار با Obsidian. برای درج placeholder کلید { را فشار دهید. خالی = پیش‌فرض (clippings, x, {type})."
+  },
+  "opt_obsidian_tags_placeholder": {
+    "message": "clippings, x, {type}"
+  },
+  "opt_obsidian_tags_reset": {
+    "message": "بازنشانی"
+  },
   "opt_save_images_title": {
     "message": "دانلود تصاویر در پوشه‌ای در کنار فایل Markdown"
   },
