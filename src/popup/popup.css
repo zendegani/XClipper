@@ -1035,7 +1035,7 @@ details.option-group[open] .option-group-chevron {
   background: transparent;
   color: var(--text-secondary);
   opacity: 0.6;
-  cursor: pointer;
+  cursor: help;
   border-radius: 50%;
   transition: opacity var(--transition), color var(--transition);
 }
