@@ -1085,7 +1085,8 @@ details.option-group[open] .option-group-chevron {
   background: transparent;
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
-  padding: 1px 8px;
+  padding: 2px 11px;
+  white-space: nowrap;
   cursor: pointer;
   transition: background var(--transition), border-color var(--transition);
 }
