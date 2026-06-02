@@ -18,7 +18,7 @@
     "message": "Obsidianに追加"
   },
   "btn_obsidian_hint": {
-    "message": "長いスレッドや画像がありますか？代わりに .md をダウンロードしてください"
+    "message": "長いスレッドや画像は「.mdをダウンロード」をお使いください"
   },
   "obsidian_opened": {
     "message": "Obsidianを開いています…"

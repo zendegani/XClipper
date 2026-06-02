@@ -96,7 +96,20 @@
           </svg>
           <span class="btn-label" data-i18n="btn_obsidian">Add to Obsidian</span>
         </button>
-        <p class="btn-hint" data-i18n="btn_obsidian_hint">Long threads or images? Use Download .md instead</p>
+        <span class="btn-hint-wrap">
+          <button type="button" id="btn-obsidian-hint" class="btn-hint-icon"
+            aria-label="Long threads or images? Use Download .md instead"
+            data-i18n-aria-label="btn_obsidian_hint"
+            aria-describedby="obsidian-hint-tooltip">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="16" x2="12" y2="12" />
+              <line x1="12" y1="8" x2="12.01" y2="8" />
+            </svg>
+          </button>
+          <div id="obsidian-hint-tooltip" class="btn-hint-tooltip" role="tooltip" data-i18n="btn_obsidian_hint">Long threads or images? Use Download .md instead</div>
+        </span>
       </div>
 
       <div id="status" class="status hidden"></div>

@@ -207,9 +207,9 @@ body {
 
 /* Tertiary "send elsewhere" action — purple outline matches Obsidian's
  * brand and signals a different category from the primary blue Download
- * / Copy buttons (which save content locally). Lives in a half-width row
- * with its hint on the right so the disclaimer is spatially attached to
- * the button without making the button itself visually heavier. */
+ * / Copy buttons (which save content locally). Button takes the full row;
+ * the long-threads disclaimer is folded into a ⓘ tooltip on the right so
+ * the row stays compact across locales with long Obsidian labels. */
 .obsidian-row {
   --obsidian: #7C3AED;
   --obsidian-glow: rgba(124, 58, 237, 0.18);
@@ -220,6 +220,7 @@ body {
 
 .btn-obsidian {
   flex: 1;
+  min-width: 0;
   background: transparent;
   color: var(--obsidian);
   border: 1px solid var(--obsidian);
@@ -239,16 +240,71 @@ body {
   color: var(--obsidian);
 }
 
-.btn-hint {
-  /* Mirror the explicit half-width so the hint never steals or yields
-   * pixels to its neighbor button. */
-  flex: 0 0 calc(50% - 4px);
-  min-width: 0;
-  font-size: 11px;
-  line-height: 1.4;
+.btn-hint-wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.btn-hint-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  padding: 0;
+  border: none;
+  background: transparent;
   color: var(--obsidian);
-  opacity: 0.75;
-  padding: 0 2px;
+  opacity: 0.55;
+  cursor: help;
+  border-radius: 50%;
+  transition: opacity var(--transition), background var(--transition);
+}
+
+.btn-hint-icon:hover,
+.btn-hint-icon:focus-visible {
+  opacity: 1;
+  background: var(--obsidian-glow);
+  outline: none;
+}
+
+.btn-hint-icon svg {
+  width: 14px;
+  height: 14px;
+}
+
+/* Tooltip floats above the popup chrome and anchors to the right edge of
+ * the row so it never extends past the popup window on long translations. */
+.btn-hint-tooltip {
+  position: absolute;
+  bottom: 28px;
+  right: 0;
+  z-index: 20;
+  width: max-content;
+  max-width: 220px;
+  padding: 8px 10px;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
+  font-size: 11.5px;
+  line-height: 1.4;
+  color: var(--text-primary);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(2px);
+  transition: opacity var(--tooltip-fade), transform var(--tooltip-fade), visibility 0s linear var(--tooltip-fade);
+  pointer-events: none;
+}
+
+.btn-hint-wrap:hover .btn-hint-tooltip,
+.btn-hint-icon:focus-visible + .btn-hint-tooltip {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  transition: opacity var(--tooltip-fade) var(--tooltip-delay), transform var(--tooltip-fade) var(--tooltip-delay), visibility 0s linear var(--tooltip-delay);
 }
 
 /* ─── Loading State ─────────────────────────────────────────── */
