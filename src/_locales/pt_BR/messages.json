@@ -18,7 +18,7 @@
     "message": "Adicionar ao Obsidian"
   },
   "btn_obsidian_hint": {
-    "message": "Configure vault, subpasta e campos do frontmatter em Configurações.\nPara threads longas ou imagens, use 'Baixar arquivo .md'."
+    "message": "Configure vault, subpasta e campos do frontmatter em Configurações.\nPara threads longas ou imagens, use o botão 'Baixar arquivo .md'."
   },
   "obsidian_opened": {
     "message": "Abrindo Obsidian…"

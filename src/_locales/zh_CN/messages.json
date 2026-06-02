@@ -18,7 +18,7 @@
     "message": "添加到 Obsidian"
   },
   "btn_obsidian_hint": {
-    "message": "在「设置」中配置 Vault、子文件夹和 frontmatter 字段。\n长线程或图片请改用「下载 .md」。"
+    "message": "在「设置」中配置 Vault、子文件夹和 frontmatter 字段。\n长线程或图片请改用「下载 .md」按钮。"
   },
   "obsidian_opened": {
     "message": "正在打开 Obsidian…"

@@ -18,7 +18,7 @@
     "message": "Obsidian में जोड़ें"
   },
   "btn_obsidian_hint": {
-    "message": "Vault, सबफ़ोल्डर और frontmatter फ़ील्ड सेटिंग्स में कॉन्फ़िगर करें।\nलंबे थ्रेड या इमेज के लिए '.md डाउनलोड' का उपयोग करें।"
+    "message": "Vault, सबफ़ोल्डर और frontmatter फ़ील्ड सेटिंग्स में कॉन्फ़िगर करें।\nलंबे थ्रेड या इमेज के लिए '.md डाउनलोड' बटन का उपयोग करें।"
   },
   "obsidian_opened": {
     "message": "Obsidian खोला जा रहा है…"

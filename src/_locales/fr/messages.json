@@ -18,7 +18,7 @@
     "message": "Ajouter à Obsidian"
   },
   "btn_obsidian_hint": {
-    "message": "Configurez le vault, le sous-dossier et les champs du frontmatter dans les Paramètres.\nPour les fils longs ou les images, utilisez 'Télécharger .md'."
+    "message": "Configurez le vault, le sous-dossier et les champs du frontmatter dans les Paramètres.\nPour les fils longs ou les images, utilisez le bouton 'Télécharger .md'."
   },
   "obsidian_opened": {
     "message": "Ouverture d’Obsidian…"

@@ -18,7 +18,7 @@
     "message": "Aggiungi a Obsidian"
   },
   "btn_obsidian_hint": {
-    "message": "Configura vault, sottocartella e campi del frontmatter in Impostazioni.\nPer thread lunghi o immagini usa 'Scarica .md'."
+    "message": "Configura vault, sottocartella e campi del frontmatter in Impostazioni.\nPer thread lunghi o immagini usa il pulsante 'Scarica .md'."
   },
   "obsidian_opened": {
     "message": "Apertura di Obsidian…"

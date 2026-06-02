@@ -18,7 +18,7 @@
     "message": "Obsidianに追加"
   },
   "btn_obsidian_hint": {
-    "message": "Vault・サブフォルダ・frontmatter のフィールドは「設定」で構成できます。\n長いスレッドや画像は「.mdをダウンロード」をお使いください。"
+    "message": "Vault・サブフォルダ・frontmatter のフィールドは「設定」で構成できます。\n長いスレッドや画像は「.mdをダウンロード」ボタンをお使いください。"
   },
   "obsidian_opened": {
     "message": "Obsidianを開いています…"
