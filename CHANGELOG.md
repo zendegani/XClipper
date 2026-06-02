@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Added
+
+- **Add to NotebookLM**: New export target alongside Download and Open in Obsidian — opens NotebookLM's "+ Add sources" panel with the thread Markdown on the clipboard, ready to paste as a new source.
+
 ## [1.7.0] - 2026-05-30
 
 ### Added
