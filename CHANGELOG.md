@@ -9,6 +9,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+
+- **Customizable tags in Obsidian-friendly frontmatter**: New **Tags** field in Settings → Obsidian (comma-separated, supports the same placeholders as the filename template). Type `{` to open a placeholder autocomplete; a **Reset** button restores the default `clippings, x, {type}`. The field greys out when Obsidian-friendly frontmatter or the `tags` YAML entry is disabled. (#35)
+
 ### Changed
 
 - **Obsidian row redesign**: The *Add to Obsidian* button no longer shares its row with a hint paragraph that clipped its label in some locales (e.g. German, Russian). The button is centered at ~62.5% width and the hint moved into a ⓘ tooltip on the right. The tooltip now also nudges toward Settings: *Configure vault, subfolder, and frontmatter fields in Settings. Use the 'Download .md' button for long threads or images.* Translated across all 12 locales. (#33)
