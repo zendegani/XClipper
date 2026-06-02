@@ -213,13 +213,18 @@ body {
 .obsidian-row {
   --obsidian: #7C3AED;
   --obsidian-glow: rgba(124, 58, 237, 0.18);
+  position: relative;
   display: flex;
   gap: 8px;
   align-items: center;
+  justify-content: center;
 }
 
 .btn-obsidian {
-  flex: 1;
+  /* ~25% wider than the previous half-width row, centered in the popup.
+   * The ⓘ tooltip floats on the right margin so the button itself stays
+   * visually centered regardless of how long the translated label is. */
+  flex: 0 0 calc(62.5% - 4px);
   min-width: 0;
   background: transparent;
   color: var(--obsidian);
@@ -241,7 +246,10 @@ body {
 }
 
 .btn-hint-wrap {
-  position: relative;
+  position: absolute;
+  right: 0;
+  top: 50%;
+  transform: translateY(-50%);
   display: inline-flex;
   align-items: center;
   flex-shrink: 0;
