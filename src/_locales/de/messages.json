@@ -18,7 +18,7 @@
     "message": "Zu Obsidian hinzufügen"
   },
   "btn_obsidian_hint": {
-    "message": "Vault, Unterordner und Frontmatter-Felder kannst du in den Einstellungen konfigurieren.\nFür lange Threads oder Bilder nutze den Button '.md herunterladen'."
+    "message": "Vault, Unterordner und Frontmatter-Felder lassen sich in den Einstellungen konfigurieren.\nFür lange Threads oder Bilder nutze den Button „.md herunterladen“."
   },
   "obsidian_opened": {
     "message": "Obsidian wird geöffnet…"

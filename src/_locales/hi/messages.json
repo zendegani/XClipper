@@ -18,7 +18,7 @@
     "message": "Obsidian में जोड़ें"
   },
   "btn_obsidian_hint": {
-    "message": "Vault, सबफ़ोल्डर और frontmatter फ़ील्ड सेटिंग्स में कॉन्फ़िगर करें।\nलंबे थ्रेड या इमेज के लिए '.md डाउनलोड' बटन का उपयोग करें।"
+    "message": "Vault, सबफ़ोल्डर और frontmatter फ़ील्ड को सेटिंग्स में कॉन्फ़िगर करें।\nलंबे थ्रेड या इमेज के लिए '.md डाउनलोड' बटन का उपयोग करें।"
   },
   "obsidian_opened": {
     "message": "Obsidian खोला जा रहा है…"
@@ -138,7 +138,7 @@
     "message": "टैग्स"
   },
   "opt_obsidian_tags_title": {
-    "message": "Obsidian-friendly frontmatter में emit होने वाले अल्पविराम से अलग किए गए टैग। placeholder डालने के लिए { टाइप करें। खाली रखें = डिफ़ॉल्ट (clippings, x, {type})।"
+    "message": "Obsidian-friendly frontmatter में आउटपुट होने वाले अल्पविराम से अलग किए गए टैग। placeholder डालने के लिए { टाइप करें। खाली रखें = डिफ़ॉल्ट (clippings, x, {type})।"
   },
   "opt_obsidian_tags_placeholder": {
     "message": "clippings, x, {type}"

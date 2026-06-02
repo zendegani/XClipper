@@ -18,7 +18,7 @@
     "message": "Добавить в Obsidian"
   },
   "btn_obsidian_hint": {
-    "message": "Vault, подпапку и поля frontmatter можно настроить в Настройках.\nДля длинных тредов или изображений используйте кнопку 'Скачать .md'."
+    "message": "Настройте vault, подпапку и поля frontmatter в настройках.\nДля длинных тредов или изображений используйте кнопку 'Скачать .md'."
   },
   "obsidian_opened": {
     "message": "Открытие Obsidian…"
@@ -138,7 +138,7 @@
     "message": "Теги"
   },
   "opt_obsidian_tags_title": {
-    "message": "Теги через запятую в Obsidian-совместимом frontmatter. Введите { для вставки плейсхолдера. Пусто — значения по умолчанию (clippings, x, {type})."
+    "message": "Теги через запятую для Obsidian-совместимого frontmatter. Введите { для вставки плейсхолдера. Пусто — значения по умолчанию (clippings, x, {type})."
   },
   "opt_obsidian_tags_placeholder": {
     "message": "clippings, x, {type}"

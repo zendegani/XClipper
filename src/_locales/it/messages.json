@@ -18,7 +18,7 @@
     "message": "Aggiungi a Obsidian"
   },
   "btn_obsidian_hint": {
-    "message": "Configura vault, sottocartella e campi del frontmatter in Impostazioni.\nPer thread lunghi o immagini usa il pulsante 'Scarica .md'."
+    "message": "Configura il vault, la sottocartella e i campi del frontmatter in Impostazioni.\nPer thread lunghi o immagini usa il pulsante 'Scarica .md'."
   },
   "obsidian_opened": {
     "message": "Apertura di Obsidian…"
@@ -138,7 +138,7 @@
     "message": "Tag"
   },
   "opt_obsidian_tags_title": {
-    "message": "Tag separati da virgole nel frontmatter Obsidian. Digita { per inserire un placeholder. Vuoto = predefinito (clippings, x, {type})."
+    "message": "Tag separati da virgole nel frontmatter di Obsidian. Digita { per inserire un placeholder. Vuoto = predefinito (clippings, x, {type})."
   },
   "opt_obsidian_tags_placeholder": {
     "message": "clippings, x, {type}"
