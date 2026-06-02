@@ -18,7 +18,7 @@
     "message": "إضافة إلى Obsidian"
   },
   "btn_obsidian_hint": {
-    "message": "يمكنك ضبط الـ Vault والمجلد الفرعي وحقول الـ frontmatter من الإعدادات.\nاستخدم 'تنزيل .md' للسلاسل الطويلة أو الصور."
+    "message": "يمكنك ضبط الـ Vault والمجلد الفرعي وحقول الـ frontmatter من الإعدادات.\nللسلاسل الطويلة أو الصور استخدم زر 'تنزيل .md'."
   },
   "obsidian_opened": {
     "message": "جارٍ فتح Obsidian…"

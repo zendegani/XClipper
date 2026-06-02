@@ -18,7 +18,7 @@
     "message": "Add to Obsidian"
   },
   "btn_obsidian_hint": {
-    "message": "Configure vault, subfolder, and frontmatter fields in Settings.\nUse 'Download .md' for long threads or images."
+    "message": "Configure vault, subfolder, and frontmatter fields in Settings.\nUse the 'Download .md' button for long threads or images."
   },
   "obsidian_opened": {
     "message": "Opening Obsidian…"

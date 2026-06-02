@@ -11,7 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Obsidian row redesign**: The *Add to Obsidian* button no longer shares its row with a hint paragraph that clipped its label in some locales (e.g. German, Russian). The button is centered at ~62.5% width and the hint moved into a ⓘ tooltip on the right. The tooltip now also nudges toward Settings: *Configure vault, subfolder, and frontmatter fields in Settings. Use 'Download .md' for long threads or images.* Translated across all 12 locales. (#33)
+- **Obsidian row redesign**: The *Add to Obsidian* button no longer shares its row with a hint paragraph that clipped its label in some locales (e.g. German, Russian). The button is centered at ~62.5% width and the hint moved into a ⓘ tooltip on the right. The tooltip now also nudges toward Settings: *Configure vault, subfolder, and frontmatter fields in Settings. Use the 'Download .md' button for long threads or images.* Translated across all 12 locales. (#33)
 - **"Download .md" hint wording**: The reference to the Download button is now wrapped in quotes — single quotes for most languages, 「…」 for ja and zh_CN — so it's unambiguously read as a button label, not a separate tool. pt_BR / hi / ja hints also realigned to match their actual button labels. (#33)
 - **"Activate all" button**: More horizontal padding and `nowrap` so the label has room and never wraps in long-translation locales. (#33)
 

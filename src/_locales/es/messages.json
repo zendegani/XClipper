@@ -18,7 +18,7 @@
     "message": "Añadir a Obsidian"
   },
   "btn_obsidian_hint": {
-    "message": "Configura el vault, la subcarpeta y los campos del frontmatter en Configuración.\nUsa 'Descargar .md' para hilos largos o imágenes."
+    "message": "Configura el vault, la subcarpeta y los campos del frontmatter en Configuración.\nPara hilos largos o imágenes usa el botón 'Descargar .md'."
   },
   "obsidian_opened": {
     "message": "Abriendo Obsidian…"
