@@ -27,7 +27,7 @@
 - **Quoted Posts** — Preserve quoted-post structure and context in a reusable format, with the original author's name and handle
 - **Link Cards** — Capture external link previews including the title, domain, and high-res Open Graph image
 - **Add to Obsidian** — One-click handoff to Obsidian via the `obsidian://` URI scheme, with an optional vault name for direct targeting
-- **Obsidian-friendly Frontmatter** — Optional schema with `[[@handle]]` wikilinks for backlinks, synthesized title, `published`/`created` dates, prose description, and `tags: [clippings, x, <type>]`
+- **Obsidian-friendly Frontmatter** — Optional schema with `[[@handle]]` wikilinks for backlinks, synthesized title, `published`/`created` dates, prose description, and a **customizable tags list** (defaults to `clippings, x, {type}`; supports placeholders like `{handle}` and `{date}` with `{`-autocomplete in Settings)
 - **Local Image Downloads** — Download embedded X media locally alongside your `.md` file to prevent link rot
 - **Customizable Filename Template** — Configure the exported filename with placeholders (`{date}`, `{datetime}`, `{handle}`, `{author}`, `{id}`, `{slug}`, `{type}`); live preview in Settings. Default keeps the existing behaviour
 - **YAML Frontmatter** — Rich metadata with author, handle, date, source URL, content type, and engagement stats (likes, reposts, replies, bookmarks, views)
@@ -60,7 +60,7 @@ Right-click anywhere on a tweet — the body, an image, or the timestamp — and
   <img src="assets/Extension_and_Setting.png" alt="tweet2md popup and settings view side by side" width="700" />
 </p>
 
-The popup keeps the things you adjust per export — **Save images locally**, **Show engagement stats inline**, **Include metadata** — front and centre. Click the gear icon at the top-right to flip to **Settings**, where the set-once knobs live in four collapsible sections: **Downloads** (subfolder + filename template with placeholders like `{date}`, `{handle}`, `{slug}` and a live preview), **Obsidian** (the Obsidian-friendly frontmatter toggle, optional vault name, optional vault subfolder), **Frontmatter fields** (per-field toggle switches that decide which YAML entries land in the export — saved per schema so flipping Obsidian-friendly preserves both selections), and **Inline button & context menu**. At most two sections stay expanded at once so the panel never gets unwieldy; the last layout is remembered. Settings persist across sessions via `chrome.storage`.
+The popup keeps the things you adjust per export — **Save images locally**, **Show engagement stats inline**, **Include metadata** — front and centre. Click the gear icon at the top-right to flip to **Settings**, where the set-once knobs live in four collapsible sections: **Downloads** (subfolder + filename template with placeholders like `{date}`, `{handle}`, `{slug}` and a live preview), **Obsidian** (the Obsidian-friendly frontmatter toggle, optional vault name, optional vault subfolder, and a customizable tags list with `{`-autocomplete and a Reset button), **Frontmatter fields** (per-field toggle switches that decide which YAML entries land in the export — saved per schema so flipping Obsidian-friendly preserves both selections), and **Inline button & context menu**. At most two sections stay expanded at once so the panel never gets unwieldy; the last layout is remembered. Settings persist across sessions via `chrome.storage`.
 
 ### Great For
 
@@ -167,7 +167,7 @@ tweet2md/
 │   ├── popup/          # Extension popup UI + trigger
 │   ├── types/          # Shared TypeScript interfaces
 │   ├── icons/          # Extension icons (16, 32, 48, 128px)
-│   ├── _locales/       # i18n translations (en, es, de, fr, ja, pt_BR, zh_CN, ar, fa)
+│   ├── _locales/       # i18n translations (en, es, de, fr, it, ja, pt_BR, ru, zh_CN, ar, fa, hi)
 │   └── manifest.json   # Chrome MV3 manifest
 ├── dist/               # Build output (load this in Chrome)
 ├── build.mjs           # esbuild build script
