@@ -142,8 +142,11 @@ function renderMediaItem(m: MediaItem): string {
   if (m.kind === 'video' || m.kind === 'gif') {
     return `![🎥 Video](${m.posterUrl ?? m.url})`;
   }
-  const alt = m.alt || 'Image';
-  return `![${alt}](${m.url})`;
+  // Legacy pipeline always rendered "Image" as the alt for tweet photos,
+  // discarding the DOM alt (which X populates with strings like "Image" or
+  // "Embedded video" — UI sentinels, not user-authored alt text). The AST
+  // preserves the truth; the renderer flattens for legacy parity.
+  return `![Image](${m.url})`;
 }
 
 // ─── Inline rendering (tweet context) ───────────────────────────────
@@ -175,6 +178,13 @@ function renderInlineNodes(nodes: InlineNode[], ctx: InlineContext): string {
   return out;
 }
 
+function stripSchemeIfMatchingHref(display: string, url: string): string {
+  const m = display.match(/^https?:\/\/(.+)$/);
+  if (!m) return display;
+  const bare = m[1];
+  return url === display || url === `https://${bare}` ? bare : display;
+}
+
 function renderInline(node: InlineNode, ctx: InlineContext): string {
   switch (node.type) {
     case 'text':
@@ -193,8 +203,14 @@ function renderInline(node: InlineNode, ctx: InlineContext): string {
       if (node.kind === 'mention') return `@${node.value}`;
       if (node.kind === 'hashtag') return `#${node.value}`;
       return `$${node.value}`;
-    case 'link':
-      return `[${renderInlineNodes(node.children, ctx)}](${node.url})`;
+    case 'link': {
+      const text = renderInlineNodes(node.children, ctx);
+      // When the display text is a URL and equals the link's URL after the
+      // scheme is normalized, render without the scheme — matches the legacy
+      // pipeline's display style (X shows "goo.gle/abc" not "https://…").
+      const display = stripSchemeIfMatchingHref(text, node.url);
+      return `[${display}](${node.url})`;
+    }
     case 'strong':
       return `**${renderInlineNodes(node.children, ctx)}**`;
     case 'emphasis':
