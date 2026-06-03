@@ -1,58 +1,76 @@
-import html2pdf from 'html2pdf.js';
+import { jsPDF } from 'jspdf';
 import type { Document } from '../ast/types';
-import { renderPdfHtml } from '../ast/render-pdf-html';
+import { renderPdfFragment } from '../ast/render-pdf-html';
 
-// Renders the AST to a Twitter-styled HTML document, injects it into a
-// hidden offscreen container, and hands it to html2pdf for vector-text PDF
-// generation + browser download. The container is removed when the user's
-// download is committed (or the call errors).
+// AST → vector-text PDF.
+//
+// We inject the rendered fragment into an offscreen container in the live
+// document and hand it to jsPDF.html() with autoPaging:'text'. That mode
+// renders text as real vector text in the PDF (selectable + searchable +
+// real link annotations) while still using html2canvas under the hood for
+// images. The earlier html2pdf-based path always rasterized the whole page.
+//
+// Styles are scoped under .t2m-root so injecting into the page can't bleed
+// into X's UI.
 export async function exportPdf(doc: Document, filenameBase: string): Promise<void> {
-  const html = renderPdfHtml(doc);
-  const host = createHiddenHost();
+  const host = document.createElement('div');
+  host.style.cssText = [
+    'position:fixed',
+    'left:-99999px',
+    'top:0',
+    'width:680px',
+    'background:#fff',
+    'z-index:-1',
+    'pointer-events:none',
+  ].join(';');
+  // renderPdfFragment escapes every user-derived value (text, URLs, alts,
+  // titles) via escapeHtml/escapeAttr — see src/ast/render-pdf-html.ts.
+  // The output is not subject to XSS from tweet content.
+  host.innerHTML = renderPdfFragment(doc);
+  document.body.appendChild(host);
+
   try {
-    // Use an iframe so the page's CSS (and X's font stack) can't leak in.
-    const iframe = document.createElement('iframe');
-    iframe.style.cssText = 'border:none;width:680px;height:1px;';
-    host.appendChild(iframe);
-    await writeIframe(iframe, html);
+    await waitForImages(host);
 
-    const target = iframe.contentDocument?.body;
-    if (!target) throw new Error('PDF export: iframe body unavailable');
-
-    // The shipped html2pdf.js .d.ts is incomplete (missing pagebreak, partial
-    // chain typing). Treat as any here so config still validates structurally
-    // at the JS level without us pretending we know more than the .d.ts does.
-    const opts = {
-      margin: [12, 0, 12, 0],
-      filename: `${filenameBase}.pdf`,
-      image: { type: 'jpeg', quality: 0.95 },
-      html2canvas: { scale: 2, useCORS: true, allowTaint: true, logging: false, backgroundColor: '#ffffff' },
-      jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' },
-      pagebreak: { mode: ['css', 'legacy'] },
-    };
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    await (html2pdf as any)().set(opts).from(target).save();
+    const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+    // 'text' autoPaging walks text spans and breaks pages on text-flow
+    // boundaries; combined with the .page-break-inside:avoid rules in our
+    // CSS, this keeps cards from being sliced.
+    await pdf.html(host, {
+      autoPaging: 'text',
+      margin: [10, 10, 10, 10],
+      width: 190,           // A4 portrait width minus 2*10mm margins
+      windowWidth: 680,     // matches the source container width in px
+      image: { type: 'jpeg', quality: 0.92 },
+      html2canvas: {
+        scale: 0.5,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        logging: false,
+      },
+    });
+    pdf.save(`${filenameBase}.pdf`);
   } finally {
     host.remove();
   }
 }
 
-function createHiddenHost(): HTMLElement {
-  const host = document.createElement('div');
-  host.style.cssText = 'position:fixed;left:-99999px;top:0;width:0;height:0;overflow:hidden;pointer-events:none;';
-  document.body.appendChild(host);
-  return host;
-}
-
-function writeIframe(iframe: HTMLIFrameElement, html: string): Promise<void> {
-  return new Promise((resolve) => {
-    iframe.srcdoc = html;
-    const onLoad = () => {
-      iframe.removeEventListener('load', onLoad);
-      // Give images a tick to start streaming so html2canvas can rasterize
-      // them (CORS-permitting). The PDF lib also waits internally.
-      setTimeout(resolve, 50);
-    };
-    iframe.addEventListener('load', onLoad);
-  });
+// Wait for the rendered images to finish loading (or fail) so html2canvas
+// doesn't snapshot blank tiles. CORS-disallowed loads still resolve here —
+// the PDF will fall back to alt text / empty boxes for those.
+function waitForImages(root: HTMLElement): Promise<void> {
+  const imgs = Array.from(root.querySelectorAll('img'));
+  if (imgs.length === 0) return Promise.resolve();
+  return Promise.all(
+    imgs.map((img) =>
+      img.complete
+        ? Promise.resolve()
+        : new Promise<void>((resolve) => {
+            const done = (): void => resolve();
+            img.addEventListener('load', done, { once: true });
+            img.addEventListener('error', done, { once: true });
+          }),
+    ),
+  ).then(() => undefined);
 }

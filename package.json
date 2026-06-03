@@ -21,6 +21,7 @@
     "vitest": "^4.1.7"
   },
   "dependencies": {
-    "html2pdf.js": "^0.14.0"
+    "html2canvas": "^1.4.1",
+    "jspdf": "^4.2.1"
   }
 }
