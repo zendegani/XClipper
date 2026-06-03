@@ -233,13 +233,14 @@ interface EngagementCounts {
 
 Add only when a fixture forces them:
 
-- `PollNode`
 - `TableNode`
 - `FootnoteNode`
 - `StrikethroughNode`
 - `EmojiNode` (treated as `TextNode` in v1 — grapheme handling is a renderer concern)
 - Raw HTML escape hatch — deliberately no `HtmlNode`
 - Embedded quote *cards* distinct from quoted tweets
+
+`PollNode` was on this list at ADR drafting time; the existing iret77 / Huawei fixtures forced it during Phase 2, so it landed in v1. See `docs/ast-schema.md`.
 
 ## Resolved decisions on boundary behavior
 

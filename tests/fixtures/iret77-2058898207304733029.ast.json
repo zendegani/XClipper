@@ -1,0 +1,53 @@
+{
+  "version": 1,
+  "metadata": {
+    "type": "tweet",
+    "sourceUrl": "https://x.com/iret77/status/2058898207304733029",
+    "tweetId": "2058898207304733029",
+    "author": {
+      "name": "Christian Wendler",
+      "handle": "iret77"
+    },
+    "date": "<ignored>",
+    "engagement": "<ignored>"
+  },
+  "body": {
+    "type": "tweet",
+    "author": {
+      "name": "Christian Wendler",
+      "handle": "iret77"
+    },
+    "date": "<ignored>",
+    "tweetId": "2058898207304733029",
+    "text": [
+      {
+        "type": "text",
+        "value": "What keeps you from using AI agents in professional work right now?"
+      }
+    ],
+    "media": [],
+    "poll": {
+      "type": "poll",
+      "choices": [
+        {
+          "label": "No clear use case",
+          "percent": 20.9
+        },
+        {
+          "label": "Data privacy",
+          "percent": 35.1
+        },
+        {
+          "label": "Missing integrations",
+          "percent": 15
+        },
+        {
+          "label": "Reliability",
+          "percent": 29
+        }
+      ],
+      "footer": "473 votes · Final results"
+    },
+    "engagement": "<ignored>"
+  }
+}

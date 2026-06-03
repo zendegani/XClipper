@@ -29,6 +29,7 @@ export type Block =
   | BlockquoteNode
   | ImageNode
   | VideoNode
+  | PollNode
   | ThematicBreakNode;
 
 export interface TweetNode {
@@ -38,6 +39,7 @@ export interface TweetNode {
   tweetId: string;
   text: InlineNode[];
   media: MediaItem[];
+  poll?: PollNode;
   quotedTweet?: TweetNode;
   engagement?: EngagementCounts;
 }
@@ -98,6 +100,17 @@ export interface VideoNode {
   posterUrl: string;
   sourceUrl: string;
   alt?: string;
+}
+
+export interface PollNode {
+  type: 'poll';
+  choices: PollChoice[];
+  footer?: string;
+}
+
+export interface PollChoice {
+  label: string;
+  percent?: number;
 }
 
 export interface ThematicBreakNode {
