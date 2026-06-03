@@ -18,16 +18,23 @@ export interface RenderPdfHtmlOptions {
   style?: 'twitter' | 'document';
 }
 
-// AST → standalone HTML document for PDF rendering. The result is fed to
-// html2pdf which preserves text as vector + image as embedded raster, with
-// link annotations. The HTML is self-contained (inline <style>) so it can
-// be injected into a sandbox container without colliding with page styles.
+// AST → standalone HTML document for PDF rendering. Used by tests and any
+// future preview-page flow. All visual styles are scoped under .t2m-root so
+// the same content can also be safely injected as a fragment into a live
+// page (see renderPdfFragment + pdf-export.ts).
 export function renderPdfHtml(doc: Document, _opts: RenderPdfHtmlOptions = {}): string {
   const body = renderBody(doc);
   const title = doc.metadata.title || tweetTitle(doc.metadata);
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><title>${escapeHtml(title)}</title>
 <style>${STYLES}</style></head><body><div class="t2m-root">${body}</div></body></html>`;
+}
+
+// Fragment variant for live-DOM injection: returns `<style>…<div class="t2m-root">…</div>`
+// so the caller can set it as innerHTML of an offscreen container without
+// polluting page styles (all selectors are scoped to .t2m-root).
+export function renderPdfFragment(doc: Document, _opts: RenderPdfHtmlOptions = {}): string {
+  return `<style>${STYLES}</style><div class="t2m-root">${renderBody(doc)}</div>`;
 }
 
 function tweetTitle(meta: DocumentMetadata): string {
@@ -253,9 +260,8 @@ function escapeAttr(s: string): string {
 // ─── Styles ─────────────────────────────────────────────────────────
 
 const STYLES = `
-*{box-sizing:border-box}
-body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;color:#0f1419;background:#fff;-webkit-font-smoothing:antialiased}
-.t2m-root{max-width:600px;margin:0 auto;padding:24px 16px}
+.t2m-root,.t2m-root *{box-sizing:border-box}
+.t2m-root{max-width:600px;margin:0 auto;padding:16px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;color:#0f1419;background:#fff;-webkit-font-smoothing:antialiased;line-height:1.4}
 .tweet-card{border:1px solid #eff3f4;border-radius:16px;padding:16px;margin-bottom:16px;background:#fff;line-height:1.4}
 .tweet-card.is-quote{border-color:#cfd9de;background:#f7f9f9;margin-top:12px;margin-bottom:0}
 .tweet-head{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px}
@@ -313,6 +319,11 @@ body{margin:0;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,
 .article-body figure img{display:block;width:100%;border-radius:8px}
 .article-body figcaption{font-size:13px;color:#536471;text-align:center;margin-top:6px}
 .article-body hr{border:none;border-top:1px solid #eff3f4;margin:24px 0}
-strong{font-weight:700}
-em{font-style:italic}
+.t2m-root strong{font-weight:700}
+.t2m-root em{font-style:italic}
+.t2m-root img{max-width:100%;height:auto}
+.t2m-root .media-tile img{max-height:380px;object-fit:cover}
+.t2m-root .link-card-image img{max-height:240px}
+.t2m-root .article-banner{max-height:300px;object-fit:cover}
+.t2m-root .tweet-card,.t2m-root .link-card,.t2m-root .article-image{page-break-inside:avoid}
 `;
