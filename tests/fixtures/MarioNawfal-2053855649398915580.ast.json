@@ -1,0 +1,129 @@
+{
+  "version": 1,
+  "metadata": {
+    "type": "tweet",
+    "sourceUrl": "https://x.com/MarioNawfal/status/2053855649398915580",
+    "tweetId": "2053855649398915580",
+    "author": {
+      "name": "Mario Nawfal",
+      "handle": "MarioNawfal"
+    },
+    "date": "<ignored>",
+    "engagement": "<ignored>"
+  },
+  "body": {
+    "type": "tweet",
+    "author": {
+      "name": "Mario Nawfal",
+      "handle": "MarioNawfal"
+    },
+    "date": "<ignored>",
+    "tweetId": "2053855649398915580",
+    "text": [
+      {
+        "type": "text",
+        "value": "🇩🇪🇮🇷 Germany's Vice Chancellor just said the Iran war is \"temporarily slowing our positive economic momentum.\""
+      },
+      {
+        "type": "break"
+      },
+      {
+        "type": "break"
+      },
+      {
+        "type": "text",
+        "value": "Brother."
+      },
+      {
+        "type": "break"
+      },
+      {
+        "type": "break"
+      },
+      {
+        "type": "text",
+        "value": "Germany has been in and out of recession for two years. Volkswagen was closing factories. Energy costs cratered the industrial base before a single Iranian mine hit the water."
+      },
+      {
+        "type": "break"
+      },
+      {
+        "type": "break"
+      },
+      {
+        "type": "text",
+        "value": "The momentum he is referring to is currently undetected by all known measuring instruments."
+      },
+      {
+        "type": "break"
+      },
+      {
+        "type": "break"
+      },
+      {
+        "type": "text",
+        "value": "The Iran war found it anyway. Somehow."
+      }
+    ],
+    "media": [
+      {
+        "kind": "video",
+        "url": "https://pbs.twimg.com/amplify_video_thumb/2053855024456065024/img/VKe-uD8fNlNen81r.jpg",
+        "posterUrl": "https://pbs.twimg.com/amplify_video_thumb/2053855024456065024/img/VKe-uD8fNlNen81r.jpg"
+      }
+    ],
+    "engagement": "<ignored>",
+    "quotedTweet": {
+      "type": "tweet",
+      "author": {
+        "name": "Mario Nawfal",
+        "handle": "MarioNawfal"
+      },
+      "date": "<ignored>",
+      "tweetId": "",
+      "text": [
+        {
+          "type": "text",
+          "value": "🇩🇪 For the first time since 2015, Germany is no longer Europe's #1 destination for asylum seekers."
+        },
+        {
+          "type": "break"
+        },
+        {
+          "type": "break"
+        },
+        {
+          "type": "text",
+          "value": "Chancellor Merz announced it today, and the numbers back it up:"
+        },
+        {
+          "type": "break"
+        },
+        {
+          "type": "break"
+        },
+        {
+          "type": "text",
+          "value": "329,000 asylum applications in 2023. 113,000 in 2025."
+        },
+        {
+          "type": "break"
+        },
+        {
+          "type": "break"
+        },
+        {
+          "type": "text",
+          "value": "France and Spain are now ahead."
+        }
+      ],
+      "media": [
+        {
+          "kind": "video",
+          "url": "https://pbs.twimg.com/amplify_video_thumb/2053099559815991296/img/W-1Pi-yMkFRHGOHY.jpg",
+          "posterUrl": "https://pbs.twimg.com/amplify_video_thumb/2053099559815991296/img/W-1Pi-yMkFRHGOHY.jpg"
+        }
+      ]
+    }
+  }
+}

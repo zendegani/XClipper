@@ -94,7 +94,30 @@ function extractInline(textEl: Element, quoteContainer: Element | null): InlineN
   for (const child of textEl.childNodes) {
     walkInline(child, quoteContainer, out);
   }
-  return collapseEdges(out);
+  return collapseEdges(trimAroundBreaks(mergeAdjacentText(out)));
+}
+
+function mergeAdjacentText(nodes: InlineNode[]): InlineNode[] {
+  const out: InlineNode[] = [];
+  for (const n of nodes) {
+    const prev = out[out.length - 1];
+    if (n.type === 'text' && prev?.type === 'text') {
+      out[out.length - 1] = { type: 'text', value: prev.value + n.value };
+    } else {
+      out.push(n);
+    }
+  }
+  return out;
+}
+
+function trimAroundBreaks(nodes: InlineNode[]): InlineNode[] {
+  return nodes.map((n, i) => {
+    if (n.type !== 'text') return n;
+    let value = n.value;
+    if (nodes[i + 1]?.type === 'break') value = value.replace(/[ \t]+$/, '');
+    if (nodes[i - 1]?.type === 'break') value = value.replace(/^[ \t]+/, '');
+    return { type: 'text', value };
+  }).filter((n) => n.type !== 'text' || n.value !== '');
 }
 
 function walkInline(node: Node, quoteContainer: Element | null, out: InlineNode[]): void {

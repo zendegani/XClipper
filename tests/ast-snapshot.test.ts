@@ -20,6 +20,7 @@ const FIXTURES = resolve(__dirname, 'fixtures');
 const AST_READY_FIXTURES = [
   'elonmusk-2052914500169613445',
   'bcherny-2053982327123132846',
+  'MarioNawfal-2053855649398915580',
 ];
 
 function normalize(doc: Document): unknown {
