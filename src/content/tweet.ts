@@ -1,16 +1,12 @@
 import type { ExtractedContent, TweetMetadata } from '../types/messages';
-import { turndown, cleanupMarkdown } from './markdown';
+import type { Document as AstDocument } from '../ast/types';
+import { domToAst } from './dom-to-ast';
+import { renderMarkdown } from '../ast/render-markdown';
 import {
-  SELECTORS,
   delay,
-  extractAuthor,
   extractAuthorFromArticle,
-  extractDate,
-  extractTweetId,
   getTweetStatusId,
-  cleanContentClone,
 } from './dom';
-import { hostMatches } from '../shared/media';
 
 /**
  * Extract engagement metadata from a tweet's role="group" aria-label.
@@ -96,305 +92,6 @@ export function isPromotedArticle(article: Element): boolean {
   return false;
 }
 
-function extractTextFromElement(textEl: Element): string {
-  const cleaned = cleanContentClone(textEl);
-
-  // X.com uses literal \n inside <span> for tweet line breaks (not <br>).
-  // HTML collapses these to spaces, so convert them to <br> before Turndown.
-  const walker = document.createTreeWalker(cleaned, NodeFilter.SHOW_TEXT);
-  const textNodes: Text[] = [];
-  while (walker.nextNode()) textNodes.push(walker.currentNode as Text);
-  for (const tn of textNodes) {
-    if (tn.textContent && tn.textContent.includes('\n')) {
-      const parts = tn.textContent.split('\n');
-      const parent = tn.parentNode!;
-      for (let j = 0; j < parts.length; j++) {
-        if (j > 0) parent.insertBefore(document.createElement('br'), tn);
-        parent.insertBefore(document.createTextNode(parts[j]), tn);
-      }
-      parent.removeChild(tn);
-    }
-  }
-
-  return cleanupMarkdown(turndown.turndown(cleaned.innerHTML)).trim();
-}
-
-function collectMediaFrom(
-  scope: Element,
-  excludeContainers: Element[] = []
-): string[] {
-  const out: string[] = [];
-  const inExcluded = (el: Element) =>
-    excludeContainers.some((c) => c.contains(el));
-
-  const videos = Array.from(scope.querySelectorAll('video')).filter(
-    (v) => !inExcluded(v)
-  );
-  // X often renders BOTH a poster <img> inside tweetPhoto and a hydrated
-  // <video poster=…> for the same content — dedupe by poster URL.
-  const videoPosters = new Set(
-    videos.map((v) => v.getAttribute('poster')).filter((p): p is string => !!p)
-  );
-
-  const photos = scope.querySelectorAll(`${SELECTORS.tweetPhoto} img`);
-  photos.forEach((img) => {
-    if (inExcluded(img)) return;
-    let src = (img as HTMLImageElement).src;
-    if (!src || src.includes('emoji') || src.includes('profile_images')) return;
-    if (videoPosters.has(src)) return;
-    if (hostMatches(src, 'pbs.twimg.com')) {
-      src = src.replace(/&name=\w+/, '&name=large');
-    }
-    out.push(`![Image](${src})`);
-  });
-
-  videos.forEach((video) => {
-    const poster = video.getAttribute('poster');
-    if (poster) {
-      out.push(`![🎥 Video](${poster})`);
-    }
-  });
-
-  return out;
-}
-
-// Polls render inside data-testid="cardPoll" followed by a "N votes · <status>"
-// line. Voted polls show results as <li role="listitem"> choices (label + %);
-// unvoted polls show clickable <div role="radio"> choices (label only).
-function extractPoll(article: Element): string {
-  const pollEl = article.querySelector('[data-testid="cardPoll"]');
-  if (!pollEl) return '';
-
-  const lines: string[] = [];
-  for (const choice of pollEl.querySelectorAll(
-    'li[role="listitem"], [role="radio"]'
-  )) {
-    let pct = '';
-    for (const el of choice.querySelectorAll('span, div')) {
-      const t = (el.textContent || '').trim();
-      if (/^\d+(?:\.\d+)?%$/.test(t)) {
-        pct = t;
-        break;
-      }
-    }
-    let label = (choice.textContent || '').replace(/\s+/g, ' ').trim();
-    if (pct && label.endsWith(pct)) {
-      label = label.slice(0, label.length - pct.length).trim();
-    }
-    if (!label) continue;
-    lines.push(pct ? `- ${label} — ${pct}` : `- ${label}`);
-  }
-  if (lines.length === 0) return '';
-
-  // Footer = the "N votes · <status>" line. Drop the choices, plus the
-  // "selection cannot be changed" notice (linked via the radiogroup's
-  // aria-describedby), so only the tally + status remain.
-  const clone = pollEl.cloneNode(true) as Element;
-  clone.querySelectorAll('ul, [role="radiogroup"]').forEach((el) => el.remove());
-  const noticeId = pollEl
-    .querySelector('[role="radiogroup"]')
-    ?.getAttribute('aria-describedby');
-  if (noticeId) clone.querySelector(`[id="${noticeId}"]`)?.remove();
-  const footer = (clone.textContent || '')
-    .replace(/\s+/g, ' ')
-    .replace(/\s*·\s*/g, ' · ')
-    .trim();
-
-  let md = `**Poll**\n${lines.join('\n')}`;
-  if (footer) md += `\n\n_${footer}_`;
-  return md;
-}
-
-function extractSingleTweetFromArticle(
-  article: Element
-): { text: string; media: string[] } {
-  const tweetTextEls = article.querySelectorAll(SELECTORS.tweetText);
-  let text = '';
-
-  if (tweetTextEls.length > 0) {
-    text = extractTextFromElement(tweetTextEls[0]);
-  }
-
-  // ── Embedded content: Quote Tweet, Quoted Article, or Link Card ─────
-  let embeddedMd = '';
-  // Containers whose media is owned by the embed, not the main tweet —
-  // their media is rendered inside the blockquote (or by the embed itself),
-  // and must be excluded from the top-level media list.
-  const embedContainers: Element[] = [];
-
-  // 1) Quote Tweet — a second tweetText inside a role="link" container
-  if (tweetTextEls.length > 1) {
-    const quoteEl = tweetTextEls[1];
-    const quoteContainer = quoteEl.closest('div[role="link"]');
-
-    let quoteAuthorInfo = '';
-    if (quoteContainer) {
-      const qa = extractAuthorFromArticle(quoteContainer);
-      if (qa.name !== 'Unknown') {
-        quoteAuthorInfo = `**${qa.name} (${qa.handle})**\n> \n> `;
-      }
-      embedContainers.push(quoteContainer);
-    }
-
-    const rawQuoteText = extractTextFromElement(quoteEl);
-    if (rawQuoteText) {
-      const blockquotedText = rawQuoteText.split('\n').join('\n> ');
-      embeddedMd = `\n\n> ${quoteAuthorInfo}${blockquotedText}`;
-    }
-
-    // Nest quoted-tweet media inside the blockquote so reading order matches X.
-    if (quoteContainer) {
-      const quotedMedia = collectMediaFrom(quoteContainer);
-      if (quotedMedia.length > 0) {
-        const nested = quotedMedia.map((m) => `> ${m}`).join('\n> \n');
-        embeddedMd += `\n> \n${nested}`;
-      }
-    }
-  }
-
-  // 2) Quoted Article (X Notes)
-  if (!embeddedMd) {
-    const quoteLinkContainers = article.querySelectorAll('div[role="link"]');
-    for (const container of quoteLinkContainers) {
-      const coverImgContainer = container.querySelector('[data-testid="article-cover-image"]');
-      if (!coverImgContainer) continue;
-
-      const coverImgEl = coverImgContainer.querySelector('img');
-      let coverImgSrc = '';
-      if (coverImgEl) {
-        coverImgSrc = (coverImgEl as HTMLImageElement).src || '';
-        if (hostMatches(coverImgSrc, 'pbs.twimg.com')) {
-          coverImgSrc = coverImgSrc.replace(/&name=\w+/, '&name=large');
-        }
-      }
-
-      const qa = extractAuthorFromArticle(container);
-      let header = '';
-      if (qa.name !== 'Unknown') {
-        header = `**${qa.name} (${qa.handle})**\n> \n> `;
-      }
-
-      const allTextDivs = container.querySelectorAll('div[dir="auto"]');
-      let title = '';
-      let description = '';
-      for (const d of allTextDivs) {
-        if (d.closest('[data-testid="User-Name"]')) continue;
-        if (d.closest('[data-testid="Tweet-User-Avatar"]')) continue;
-        const t = d.textContent?.trim() || '';
-        if (!t) continue;
-        if (t === 'Article' || t === 'Quote') continue;
-        if (!title) {
-          title = t;
-        } else if (!description) {
-          description = t;
-        }
-      }
-
-      if (title) {
-        const parts: string[] = [];
-        if (coverImgSrc) parts.push(`![Article cover](${coverImgSrc})`);
-        parts.push(`📝 **${title}**`);
-        if (description) parts.push(description);
-        const body = parts.join('\n> \n> ');
-        embeddedMd = `\n\n> ${header}${body}`;
-        embedContainers.push(container);
-      }
-      break;
-    }
-  }
-
-  // 3) Link Card
-  if (!embeddedMd) {
-    const cardWrapper = article.querySelector('[data-testid="card.wrapper"]');
-    // Polls also live in card.wrapper but are handled separately below.
-    if (cardWrapper && !cardWrapper.querySelector('[data-testid="cardPoll"]')) {
-      const cardLink = cardWrapper.querySelector('a[href]');
-      const href = cardLink?.getAttribute('href') || '';
-
-      const detail = cardWrapper.querySelector(
-        '[data-testid="card.layoutSmall.detail"], [data-testid="card.layoutLarge.detail"]'
-      );
-
-      let domain = '';
-      let title = '';
-      let description = '';
-
-      const mediaBlock = cardWrapper.querySelector(
-        '[data-testid="card.layoutSmall.media"], [data-testid="card.layoutLarge.media"]'
-      );
-
-      if (detail) {
-        // Detail block holds domain / title / description as separate divs.
-        const detailDivs = detail.querySelectorAll('div[dir="auto"]');
-        for (const d of detailDivs) {
-          const t = d.textContent?.trim() || '';
-          if (!t) continue;
-          if (!domain) domain = t;
-          else if (!title) title = t;
-          else if (!description) description = t;
-        }
-      } else {
-        // Media-only card: title sits as an overlay inside the media block
-        // (often dir="ltr"); the domain isn't rendered inside the wrapper, so
-        // derive it from the link's hostname.
-        const overlay = mediaBlock?.querySelector('div[dir="ltr"], div[dir="auto"]');
-        title = overlay?.textContent?.trim() || '';
-        if (href) {
-          try {
-            domain = new URL(href).hostname.replace(/^www\./, '');
-          } catch {
-            // leave domain empty if href isn't a parseable URL
-          }
-        }
-      }
-
-      // OG preview image. Alt is the sentinel `Link card preview` so the
-      // download-images pass in post-process can leave it as a remote URL —
-      // we render it but don't pull it into the local sibling folder.
-      let previewImg = '';
-      const previewImgEl = mediaBlock?.querySelector('img');
-      if (previewImgEl) {
-        let src = (previewImgEl as HTMLImageElement).src || '';
-        if (hostMatches(src, 'pbs.twimg.com')) {
-          src = src.replace(/&name=\w+/, '&name=large');
-        }
-        if (src) previewImg = `![Link card preview](${src})`;
-      }
-
-      if (title) {
-        const parts: string[] = [];
-        if (previewImg) parts.push(previewImg);
-        if (href) {
-          parts.push(`🔗 [**${title}**](${href})`);
-        } else {
-          parts.push(`🔗 **${title}**`);
-        }
-        if (description) parts.push(description);
-        if (domain) parts.push(`_From ${domain}_`);
-        embeddedMd = `\n\n> ${parts.join('\n> \n> ')}`;
-        embedContainers.push(cardWrapper);
-      }
-    }
-  }
-
-  // 4) Poll — part of the main tweet (not an embed), rendered after the text.
-  const pollMd = extractPoll(article);
-  if (pollMd) {
-    text += text ? `\n\n${pollMd}` : pollMd;
-  }
-
-  const media = collectMediaFrom(article, embedContainers);
-
-  // Place main-tweet media BEFORE the embed so reading order matches X:
-  // [main text] → [main media] → [quoted/article/card embed].
-  if (embeddedMd && media.length > 0) {
-    text += '\n\n' + media.join('\n') + embeddedMd;
-    return { text, media: [] };
-  }
-
-  text += embeddedMd;
-  return { text, media };
-}
 
 /**
  * Scroll-aware thread extraction.
@@ -418,15 +115,14 @@ function extractSingleTweetFromArticle(
 export async function extractTweetAsync(
   opts: { singleTweet?: boolean } = {}
 ): Promise<ExtractedContent> {
-  const date = extractDate();
-  const tweetId = extractTweetId();
-  const sourceUrl = window.location.href;
-
-  if (opts.singleTweet) {
-    return extractFocusedTweet({ tweetId, sourceUrl, date });
+  if (!opts.singleTweet) {
+    await loadThreadIntoDom();
   }
+  return astToExtractedContent(domToAst({ singleTweet: opts.singleTweet }));
+}
 
-  // ── Upward walk: coax X into loading any ancestors above the focused tweet.
+async function loadThreadIntoDom(): Promise<void> {
+  // Upward walk: coax X into loading any ancestors above the focused tweet.
   const MAX_UP_STEPS = 30;
   const UP_SETTLE_DELAY = 500;
   for (let step = 0; step < MAX_UP_STEPS; step++) {
@@ -439,137 +135,55 @@ export async function extractTweetAsync(
     if (afterCount === beforeCount && afterHeight === beforeHeight) break;
   }
 
-  let allArticles = document.querySelectorAll('article[role="article"]');
-  if (allArticles.length === 0) {
-    const author = extractAuthor();
-    return {
-      type: 'tweet',
-      author,
-      markdown: `# ${author.name} (${author.handle})\n\n*Could not extract tweet content.*\n\n---\n\n> Source: ${sourceUrl}\n> Date: ${date}`,
-      sourceUrl,
-      date,
-      tweetId,
-    };
-  }
+  // Downward walk: collect same-author articles until the reply boundary,
+  // matching what domToAst's thread collector will iterate.
+  const firstArticle = Array.from(document.querySelectorAll('article[role="article"]'))
+    .find((a) => !isPromotedArticle(a));
+  if (!firstArticle) return;
+  const threadAuthor = extractAuthorFromArticle(firstArticle);
 
-  // After the upward walk the topmost non-ad article is the thread root.
-  const firstNonAd =
-    Array.from(allArticles).find((a) => !isPromotedArticle(a)) || allArticles[0];
-  const threadAuthor = extractAuthorFromArticle(firstNonAd);
-
-  const collected = new Map<string, { text: string; media: string[] }>();
+  const seen = new Set<string>();
   let threadDone = false;
-
   const SCROLL_STEP = Math.max(window.innerHeight * 0.6, 400);
   const MAX_STEPS = 60;
 
   for (let step = 0; step < MAX_STEPS && !threadDone; step++) {
-    allArticles = document.querySelectorAll('article[role="article"]');
-    const sizeBefore = collected.size;
-
-    for (const article of allArticles) {
+    const articles = document.querySelectorAll('article[role="article"]');
+    const sizeBefore = seen.size;
+    for (const article of articles) {
       if (isPromotedArticle(article)) continue;
-      const articleAuthor = extractAuthorFromArticle(article);
-      // Tombstones (deleted parents, hidden replies) render without a
-      // User-Name and resolve to handle "unknown". Treat them as skip-but-
-      // continue rather than the reply boundary, so they don't prematurely
-      // terminate collection.
-      if (articleAuthor.handle === 'unknown') continue;
-      if (
-        articleAuthor.handle.toLowerCase() !==
-        threadAuthor.handle.toLowerCase()
-      ) {
+      const a = extractAuthorFromArticle(article);
+      if (a.handle === 'unknown') continue;
+      if (a.handle.toLowerCase() !== threadAuthor.handle.toLowerCase()) {
         threadDone = true;
         break;
       }
-      const sid = getTweetStatusId(article);
-      if (!collected.has(sid)) {
-        collected.set(sid, extractSingleTweetFromArticle(article));
-      }
+      seen.add(getTweetStatusId(article));
     }
-
     if (threadDone) break;
 
     const atBottom =
       window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 50;
-    if (atBottom && collected.size === sizeBefore) break;
-
+    if (atBottom && seen.size === sizeBefore) break;
     window.scrollBy({ top: SCROLL_STEP, behavior: 'instant' });
     await delay(400);
   }
 
   window.scrollTo({ top: 0, behavior: 'instant' });
+}
 
-  const threadTweets = Array.from(collected.values());
-  const isThread = threadTweets.length > 1;
-  const parts: string[] = [
-    `# ${threadAuthor.name} (${threadAuthor.handle})`,
-    '',
-  ];
-
-  threadTweets.forEach((tweet, idx) => {
-    if (idx > 0) {
-      parts.push('', '---', '');
-    }
-    if (tweet.text) {
-      parts.push(tweet.text);
-    }
-    if (tweet.media.length > 0) {
-      parts.push('', ...tweet.media);
-    }
-  });
-
-  parts.push('', '---', '', `> Source: ${sourceUrl}`, `> Date: ${date}`);
-
+function astToExtractedContent(doc: AstDocument): ExtractedContent {
+  const meta = doc.metadata;
   return {
-    type: isThread ? 'thread' : 'tweet',
-    author: threadAuthor,
-    markdown: parts.join('\n'),
-    sourceUrl,
-    date,
-    tweetId,
+    type: meta.type,
+    author: { name: meta.author.name, handle: `@${meta.author.handle}` },
+    title: meta.title,
+    markdown: renderMarkdown(doc),
+    sourceUrl: meta.sourceUrl,
+    date: meta.date,
+    tweetId: meta.tweetId,
+    ...(meta.engagement ? { metadata: meta.engagement } : {}),
+    body: doc,
   };
 }
 
-// Single-tweet path: skip the scroll loop and only render the focused article
-// (the one whose status id matches the page URL). Falls back to the first
-// non-promoted article if no id-matched article is in the DOM.
-function extractFocusedTweet(
-  ctx: { tweetId: string; sourceUrl: string; date: string }
-): ExtractedContent {
-  const { tweetId, sourceUrl, date } = ctx;
-  const articles = Array.from(document.querySelectorAll('article[role="article"]'));
-
-  if (articles.length === 0) {
-    const author = extractAuthor();
-    return {
-      type: 'tweet',
-      author,
-      markdown: `# ${author.name} (${author.handle})\n\n*Could not extract tweet content.*\n\n---\n\n> Source: ${sourceUrl}\n> Date: ${date}`,
-      sourceUrl,
-      date,
-      tweetId,
-    };
-  }
-
-  const matched = articles.find(
-    (a) => !isPromotedArticle(a) && getTweetStatusId(a) === tweetId
-  );
-  const focused = matched || articles.find((a) => !isPromotedArticle(a)) || articles[0];
-  const author = extractAuthorFromArticle(focused);
-  const { text, media } = extractSingleTweetFromArticle(focused);
-
-  const parts: string[] = [`# ${author.name} (${author.handle})`, ''];
-  if (text) parts.push(text);
-  if (media.length > 0) parts.push('', ...media);
-  parts.push('', '---', '', `> Source: ${sourceUrl}`, `> Date: ${date}`);
-
-  return {
-    type: 'tweet',
-    author,
-    markdown: parts.join('\n'),
-    sourceUrl,
-    date,
-    tweetId,
-  };
-}

@@ -23,11 +23,7 @@ const RENDER_READY_FIXTURES = [
   'MarioNawfal-2053855649398915580',
   'marcelpociot-2038915006050300007',
   'theonejvo-2015892980851474595',
-  // Deferred — divergences are justified improvements per ADR 0001 (semantic
-  // parity, not byte parity). Will be resolved during Phase 4 cutover by
-  // updating the .md golden:
-  //  - GoogleDeepMind: AST preserves a paragraph break Turndown dropped, and
-  //    resolves t.co → display URL. Both ADR-mandated.
+  'GoogleDeepMind-2039735446628925907',
 ];
 
 const VOLATILE_FIELDS = ['likes', 'reposts', 'replies', 'bookmarks', 'views', 'date'];

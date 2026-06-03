@@ -33,9 +33,9 @@ import { extractEngagementMetadata, isPromotedArticle } from './tweet';
 import { hostMatches } from '../shared/media';
 
 // DOM → Content AST. v1 covers single tweets, threads (same-author runs),
-// optional quote tweets, and image/video media. Article extraction, polls,
-// and link cards still throw; coverage grows fixture-by-fixture.
-export function domToAst(): Document {
+// optional quote tweets, image/video media, polls, link cards, and X-Notes
+// articles. Unsupported branches throw; coverage grows fixture-by-fixture.
+export function domToAst(opts: { singleTweet?: boolean } = {}): Document {
   if (!window.location.pathname.includes('/status/')) {
     throw new Error('domToAst: not on an X.com status page');
   }
@@ -50,12 +50,14 @@ export function domToAst(): Document {
   }
 
   const rootAuthor = stripHandlePrefix(extractAuthorFromArticle(allArticles[0]));
-  const threadArticles = collectSameAuthorArticles(allArticles, rootAuthor.handle);
+  const threadArticles = opts.singleTweet
+    ? [focusedArticle(allArticles)]
+    : collectSameAuthorArticles(allArticles, rootAuthor.handle);
 
   const tweetId = extractTweetId();
   const sourceUrl = `https://x.com${window.location.pathname.replace(/\/$/, '')}`;
-  const engagement = extractEngagementMetadata(allArticles[0]);
-  const rootDate = extractDateFromArticle(allArticles[0]);
+  const engagement = extractEngagementMetadata(threadArticles[0]);
+  const rootDate = extractDateFromArticle(threadArticles[0]);
 
   const tweets = threadArticles.map((a) => articleToTweetNode(a));
   const isThread = tweets.length > 1;
@@ -76,6 +78,11 @@ export function domToAst(): Document {
     },
     body,
   };
+}
+
+function focusedArticle(articles: Element[]): Element {
+  const tweetId = extractTweetId();
+  return articles.find((a) => getTweetStatusId(a) === tweetId) || articles[0];
 }
 
 function collectSameAuthorArticles(articles: Element[], rootHandle: string): Element[] {
@@ -579,13 +586,14 @@ function mergeAdjacentText(nodes: InlineNode[]): InlineNode[] {
 }
 
 function trimAroundBreaks(nodes: InlineNode[]): InlineNode[] {
-  return nodes.map((n, i) => {
+  const out = nodes.map<InlineNode>((n, i) => {
     if (n.type !== 'text') return n;
     let value = n.value;
     if (nodes[i + 1]?.type === 'break') value = value.replace(/[ \t]+$/, '');
     if (nodes[i - 1]?.type === 'break') value = value.replace(/^[ \t]+/, '');
     return { type: 'text', value };
-  }).filter((n) => n.type !== 'text' || n.value !== '');
+  });
+  return out.filter((n) => n.type !== 'text' || n.value !== '');
 }
 
 function collapseEdges(nodes: InlineNode[]): InlineNode[] {
