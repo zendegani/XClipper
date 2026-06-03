@@ -122,6 +122,22 @@ interface PollChoice {
 - `percent` is a number 0–100 (e.g. `20.9`). Present only on voted polls with results.
 - `footer` is the "N votes · status" line, e.g. `"473 votes · Final results"` or `"5,309 votes · 3 days left"`.
 
+### LinkCardNode
+
+```ts
+interface LinkCardNode {
+  type: 'linkCard';
+  url: string;
+  title: string;
+  description?: string;
+  imageUrl?: string;
+  domain?: string;
+}
+```
+
+- Attached to a tweet via `TweetNode.linkCard`. Represents X's URL-preview embeds (Open Graph cards), distinct from a quoted tweet or a quoted X-Notes article.
+- Mutually exclusive with `TweetNode.quotedTweet` in practice — X's UI shows one embed slot.
+
 ### ParagraphNode / HeadingNode / ListNode / ListItemNode / CodeBlockNode / BlockquoteNode / ImageNode / VideoNode / ThematicBreakNode
 
 Standard prose blocks. Field names follow [mdast](https://github.com/syntax-tree/mdast) conventions where they overlap (`children`, `value`, `depth`, `ordered`) so the shapes feel familiar — this is stylistic, not architectural.

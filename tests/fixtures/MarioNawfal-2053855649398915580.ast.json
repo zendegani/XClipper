@@ -72,7 +72,6 @@
         "posterUrl": "https://pbs.twimg.com/amplify_video_thumb/2053855024456065024/img/VKe-uD8fNlNen81r.jpg"
       }
     ],
-    "engagement": "<ignored>",
     "quotedTweet": {
       "type": "tweet",
       "author": {
@@ -124,6 +123,7 @@
           "posterUrl": "https://pbs.twimg.com/amplify_video_thumb/2053099559815991296/img/W-1Pi-yMkFRHGOHY.jpg"
         }
       ]
-    }
+    },
+    "engagement": "<ignored>"
   }
 }

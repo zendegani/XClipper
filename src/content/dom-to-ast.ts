@@ -9,6 +9,7 @@ import type {
   LinkNode,
   PollNode,
   PollChoice,
+  LinkCardNode,
 } from '../ast/types';
 import {
   SELECTORS,
@@ -95,14 +96,79 @@ function articleToTweetNode(article: Element): TweetNode {
   const tweetTextEls = article.querySelectorAll(SELECTORS.tweetText);
   const mainTextEl = tweetTextEls[0];
   const text = mainTextEl ? extractInline(mainTextEl, quoteContainer) : [];
-  const excludeContainers = quoteContainer ? [quoteContainer] : [];
+  const cardContainer = linkCardContainer(article);
+  const excludeContainers: Element[] = [];
+  if (quoteContainer) excludeContainers.push(quoteContainer);
+  if (cardContainer) excludeContainers.push(cardContainer);
   const media = extractMedia(article, excludeContainers);
 
   const node: TweetNode = { type: 'tweet', author, date, tweetId, text, media };
   const poll = extractPoll(article);
   if (poll) node.poll = poll;
-  if (engagement) node.engagement = engagement;
+  const linkCard = quotedTweet ? undefined : extractLinkCard(article);
+  if (linkCard) node.linkCard = linkCard;
   if (quotedTweet) node.quotedTweet = quotedTweet;
+  if (engagement) node.engagement = engagement;
+  return node;
+}
+
+// ─── Link card (OG preview) ─────────────────────────────────────────
+
+function extractLinkCard(article: Element): LinkCardNode | undefined {
+  const wrapper = article.querySelector('[data-testid="card.wrapper"]');
+  if (!wrapper) return undefined;
+  if (wrapper.querySelector('[data-testid="cardPoll"]')) return undefined;
+
+  const cardLink = wrapper.querySelector('a[href]');
+  const href = cardLink?.getAttribute('href') || '';
+
+  const detail = wrapper.querySelector(
+    '[data-testid="card.layoutSmall.detail"], [data-testid="card.layoutLarge.detail"]'
+  );
+  const mediaBlock = wrapper.querySelector(
+    '[data-testid="card.layoutSmall.media"], [data-testid="card.layoutLarge.media"]'
+  );
+
+  let domain = '';
+  let title = '';
+  let description = '';
+
+  if (detail) {
+    const detailDivs = detail.querySelectorAll('div[dir="auto"]');
+    for (const d of detailDivs) {
+      const t = d.textContent?.trim() || '';
+      if (!t) continue;
+      if (!domain) domain = t;
+      else if (!title) title = t;
+      else if (!description) description = t;
+    }
+  } else {
+    // Media-only card: title overlays the image; domain comes from the URL.
+    const overlay = mediaBlock?.querySelector('div[dir="ltr"], div[dir="auto"]');
+    title = overlay?.textContent?.trim() || '';
+    if (href) {
+      try {
+        domain = new URL(href).hostname.replace(/^www\./, '');
+      } catch { /* leave domain empty */ }
+    }
+  }
+
+  if (!title) return undefined;
+
+  let imageUrl: string | undefined;
+  const previewImg = mediaBlock?.querySelector('img') as HTMLImageElement | null;
+  if (previewImg?.src) {
+    let src = previewImg.src;
+    if (hostMatches(src, 'pbs.twimg.com')) {
+      src = src.replace(/&name=\w+/, '&name=large');
+    }
+    imageUrl = src;
+  }
+
+  const node: LinkCardNode = { type: 'linkCard', url: href, title };
+  if (description) node.description = description;
+  if (imageUrl) node.imageUrl = imageUrl;
+  if (domain) node.domain = domain;
   return node;
 }
 
@@ -338,6 +404,13 @@ function extractQuotedTweet(article: Element): TweetNode | undefined {
 }
 
 // ─── Media ──────────────────────────────────────────────────────────
+
+function linkCardContainer(article: Element): Element | null {
+  const wrapper = article.querySelector('[data-testid="card.wrapper"]');
+  if (!wrapper) return null;
+  if (wrapper.querySelector('[data-testid="cardPoll"]')) return null;
+  return wrapper;
+}
 
 function extractMedia(scope: Element, excludeContainers: Element[]): MediaItem[] {
   const inExcluded = (el: Element) =>

@@ -24,6 +24,7 @@ const AST_READY_FIXTURES = [
   'GoogleDeepMind-2039735446628925907',
   'iret77-2058898207304733029',
   'Huawei-2059206000587210807',
+  'marcelpociot-2038915006050300007',
 ];
 
 function normalize(doc: Document): unknown {

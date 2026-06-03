@@ -30,6 +30,7 @@ export type Block =
   | ImageNode
   | VideoNode
   | PollNode
+  | LinkCardNode
   | ThematicBreakNode;
 
 export interface TweetNode {
@@ -40,6 +41,7 @@ export interface TweetNode {
   text: InlineNode[];
   media: MediaItem[];
   poll?: PollNode;
+  linkCard?: LinkCardNode;
   quotedTweet?: TweetNode;
   engagement?: EngagementCounts;
 }
@@ -111,6 +113,15 @@ export interface PollNode {
 export interface PollChoice {
   label: string;
   percent?: number;
+}
+
+export interface LinkCardNode {
+  type: 'linkCard';
+  url: string;
+  title: string;
+  description?: string;
+  imageUrl?: string;
+  domain?: string;
 }
 
 export interface ThematicBreakNode {

@@ -26,7 +26,6 @@
       }
     ],
     "media": [],
-    "engagement": "<ignored>",
     "quotedTweet": {
       "type": "tweet",
       "author": {
@@ -58,6 +57,7 @@
           "posterUrl": "https://pbs.twimg.com/media/HIEVJQ4XoAAXNNi.jpg"
         }
       ]
-    }
+    },
+    "engagement": "<ignored>"
   }
 }

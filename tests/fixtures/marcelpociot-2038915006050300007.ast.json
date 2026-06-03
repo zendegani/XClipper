@@ -1,0 +1,48 @@
+{
+  "version": 1,
+  "metadata": {
+    "type": "tweet",
+    "sourceUrl": "https://x.com/marcelpociot/status/2038915006050300007",
+    "tweetId": "2038915006050300007",
+    "author": {
+      "name": "Marcel Pociot",
+      "handle": "marcelpociot"
+    },
+    "date": "<ignored>",
+    "engagement": "<ignored>"
+  },
+  "body": {
+    "type": "tweet",
+    "author": {
+      "name": "Marcel Pociot",
+      "handle": "marcelpociot"
+    },
+    "date": "<ignored>",
+    "tweetId": "2038915006050300007",
+    "text": [
+      {
+        "type": "text",
+        "value": "Polyscope - the free agent orchestration tool for developers."
+      },
+      {
+        "type": "break"
+      },
+      {
+        "type": "break"
+      },
+      {
+        "type": "text",
+        "value": "Run dozens of AI agents at the same time, blazing fast copy on write clones, a built-in preview browser you can use to visually prompt your agents, mobile access, and much more."
+      }
+    ],
+    "media": [],
+    "linkCard": {
+      "type": "linkCard",
+      "url": "https://getpolyscope.com/",
+      "title": "The agent-first dev environment",
+      "imageUrl": "https://pbs.twimg.com/media/HEut_fPXkAA_Opf?format=jpg&name=large",
+      "domain": "getpolyscope.com"
+    },
+    "engagement": "<ignored>"
+  }
+}
