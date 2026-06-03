@@ -2,6 +2,8 @@ import type {
   Document,
   TweetNode,
   ThreadNode,
+  ArticleNode,
+  Block,
   MediaItem,
   AuthorInfo,
   InlineNode,
@@ -10,10 +12,19 @@ import type {
   PollNode,
   PollChoice,
   LinkCardNode,
+  ImageNode,
+  HeadingNode,
+  ListNode,
+  ListItemNode,
+  CodeBlockNode,
+  ParagraphNode,
+  ThematicBreakNode,
 } from '../ast/types';
 import {
   SELECTORS,
+  extractAuthor,
   extractAuthorFromArticle,
+  extractDate,
   extractTweetId,
   getTweetStatusId,
   isArticlePage,
@@ -29,7 +40,7 @@ export function domToAst(): Document {
     throw new Error('domToAst: not on an X.com status page');
   }
   if (isArticlePage()) {
-    throw new Error('domToAst: article extraction not yet implemented');
+    return articleDocument();
   }
 
   const allArticles = Array.from(document.querySelectorAll('article[role="article"]'))
@@ -229,6 +240,183 @@ function extractDateFromArticle(article: Element): string {
   return '';
 }
 
+// ─── Article ────────────────────────────────────────────────────────
+
+function articleDocument(): Document {
+  const author = stripHandlePrefix(extractAuthor());
+  const date = extractDate();
+  const tweetId = extractTweetId();
+  const sourceUrl = `https://x.com${window.location.pathname.replace(/\/$/, '')}`;
+  const engagement = extractEngagementMetadata(document);
+
+  const titleEl = document.querySelector(SELECTORS.articleTitle);
+  const title = titleEl?.textContent?.trim() || undefined;
+
+  const banner = extractArticleBanner();
+  const children = extractArticleBlocks();
+
+  const articleNode: ArticleNode = { type: 'article', children };
+  if (banner) articleNode.banner = banner;
+
+  return {
+    version: 1,
+    metadata: {
+      type: 'article',
+      sourceUrl,
+      tweetId,
+      author,
+      date,
+      ...(title ? { title } : {}),
+      ...(engagement ? { engagement } : {}),
+    },
+    body: articleNode,
+  };
+}
+
+function extractArticleBanner(): ImageNode | undefined {
+  const articleEl = document.querySelector('article[role="article"]');
+  if (!articleEl) return undefined;
+  const heroImg = articleEl.querySelector(`${SELECTORS.tweetPhoto} img`)
+    || articleEl.querySelector('[data-testid="card.layoutLarge.media"] img');
+  if (!heroImg) return undefined;
+  let src = (heroImg as HTMLImageElement).src || '';
+  if (!src) return undefined;
+  if (src.includes('emoji') || src.includes('profile_images') || src.includes('hashflags')) {
+    return undefined;
+  }
+  if (hostMatches(src, 'pbs.twimg.com')) {
+    src = src.replace(/&name=\w+/, '&name=large');
+  }
+  return { type: 'image', url: src };
+}
+
+function extractArticleBlocks(): Block[] {
+  const richTextView = document.querySelector(SELECTORS.articleRichText);
+  if (!richTextView) {
+    throw new Error('domToAst: article rich-text view missing');
+  }
+  const draftContent = richTextView.querySelector(SELECTORS.articleDraftContent) || richTextView;
+  const dataContents = draftContent.querySelector('[data-contents]') || draftContent;
+
+  const out: Block[] = [];
+  for (const block of Array.from(dataContents.children)) {
+    const nodes = articleBlockToNodes(block as HTMLElement);
+    out.push(...nodes);
+  }
+  return out;
+}
+
+function articleBlockToNodes(block: HTMLElement): Block[] {
+  // Code block — must check before separator (both use <section>).
+  const codeBlock = block.querySelector('[data-testid="markdown-code-block"]')
+    || (block.getAttribute('data-testid') === 'markdown-code-block' ? block : null);
+  if (codeBlock) {
+    const codeEl = codeBlock.querySelector('code');
+    const langFromClass = codeEl?.className?.match(/language-(\w+)/)?.[1] || '';
+    const langLabel = codeBlock.querySelector('[class*="r-1aiqnjv"]');
+    const lang = langFromClass || langLabel?.textContent?.trim() || '';
+    const preEl = codeBlock.querySelector('pre');
+    const codeSource = preEl?.querySelector('code') || preEl;
+    const value = (codeSource?.textContent || '').replace(/\s+$/, '');
+    const node: CodeBlockNode = { type: 'code', value };
+    if (lang) node.lang = lang;
+    return [node];
+  }
+
+  if (block.querySelector('[role="separator"]')) {
+    return [{ type: 'thematicBreak' } satisfies ThematicBreakNode];
+  }
+
+  const hasH1 = block.classList.contains('longform-header-one')
+    || !!block.querySelector('.longform-header-one');
+  if (hasH1) {
+    const text = block.textContent?.trim() || '';
+    if (!text) return [];
+    const node: HeadingNode = { type: 'heading', depth: 1, children: [{ type: 'text', value: text }] };
+    return [node];
+  }
+
+  const hasH2 = block.classList.contains('longform-header-two')
+    || !!block.querySelector('.longform-header-two');
+  if (hasH2) {
+    const text = block.textContent?.trim() || '';
+    if (!text) return [];
+    const node: HeadingNode = { type: 'heading', depth: 2, children: [{ type: 'text', value: text }] };
+    return [node];
+  }
+
+  if (block.tagName === 'UL') {
+    const items: ListItemNode[] = [];
+    for (const li of block.querySelectorAll('.longform-unordered-list-item')) {
+      const inline = extractArticleInline(li);
+      if (inline.length === 0) continue;
+      items.push({ type: 'listItem', children: [{ type: 'paragraph', children: inline }] });
+    }
+    return items.length > 0 ? [{ type: 'list', ordered: false, children: items } satisfies ListNode] : [];
+  }
+
+  if (block.classList.contains('longform-unordered-list-item')) {
+    const inline = extractArticleInline(block);
+    if (inline.length === 0) return [];
+    return [{
+      type: 'list',
+      ordered: false,
+      children: [{ type: 'listItem', children: [{ type: 'paragraph', children: inline }] }],
+    } satisfies ListNode];
+  }
+
+  if (block.tagName === 'OL') {
+    const items: ListItemNode[] = [];
+    for (const li of block.querySelectorAll('li')) {
+      const inline = extractArticleInline(li);
+      if (inline.length === 0) continue;
+      items.push({ type: 'listItem', children: [{ type: 'paragraph', children: inline }] });
+    }
+    return items.length > 0 ? [{ type: 'list', ordered: true, children: items } satisfies ListNode] : [];
+  }
+
+  // Image-only paragraph — emit ImageNode rather than wrapping in paragraph.
+  const img = findArticleBlockImage(block);
+  if (img && blockHasOnlyImage(block)) {
+    return [img];
+  }
+
+  const inline = extractArticleInline(block);
+  if (inline.length === 0) return [];
+  return [{ type: 'paragraph', children: inline } satisfies ParagraphNode];
+}
+
+function blockHasOnlyImage(block: HTMLElement): boolean {
+  // True when every text node under the block is whitespace and the only
+  // meaningful descendant is a non-emoji <img>.
+  return (block.textContent || '').trim() === '' && !!block.querySelector('img');
+}
+
+function findArticleBlockImage(block: HTMLElement): ImageNode | undefined {
+  const imgEl = block.querySelector('img') as HTMLImageElement | null;
+  if (!imgEl) return undefined;
+  let src = imgEl.src || '';
+  if (!src) return undefined;
+  if (src.includes('twimg.com/emoji') || hostMatches(src, 'abs-0.twimg.com') || /\.svg($|\?)/.test(src)) {
+    return undefined;
+  }
+  if (hostMatches(src, 'pbs.twimg.com')) {
+    src = src.replace(/&name=\w+/, '&name=large');
+  }
+  const alt = imgEl.getAttribute('alt') || undefined;
+  return { type: 'image', url: src, ...(alt ? { alt } : {}) };
+}
+
+function extractArticleInline(el: Element): InlineNode[] {
+  // Article inline reuses the tweet walker but accepts a wider set of <a>
+  // hrefs (mentions can use /@handle) and emits <strong>/<em>.
+  const out: InlineNode[] = [];
+  for (const child of el.childNodes) {
+    walkInline(child, null, out);
+  }
+  return collapseEdges(trimAroundBreaks(mergeAdjacentText(out)));
+}
+
 // ─── Inline walker ──────────────────────────────────────────────────
 
 function extractInline(textEl: Element, quoteContainer: Element | null): InlineNode[] {
@@ -274,6 +462,24 @@ function walkInline(node: Node, quoteContainer: Element | null, out: InlineNode[
     }
     // Unrecognised link shape — treat as transparent and walk children.
   }
+  // Draft.js uses inline styles for bold/italic; tweets occasionally use <b>/<em>.
+  const html = el as HTMLElement;
+  const isStrong = tag === 'STRONG' || tag === 'B' || html.style?.fontWeight === 'bold';
+  const isEm = tag === 'EM' || tag === 'I' || html.style?.fontStyle === 'italic';
+  if (isStrong) {
+    const children: InlineNode[] = [];
+    for (const c of el.childNodes) walkInline(c, quoteContainer, children);
+    const merged = mergeAdjacentText(children);
+    if (merged.length > 0) out.push({ type: 'strong', children: merged });
+    return;
+  }
+  if (isEm) {
+    const children: InlineNode[] = [];
+    for (const c of el.childNodes) walkInline(c, quoteContainer, children);
+    const merged = mergeAdjacentText(children);
+    if (merged.length > 0) out.push({ type: 'emphasis', children: merged });
+    return;
+  }
   for (const child of el.childNodes) {
     walkInline(child, quoteContainer, out);
   }
@@ -284,26 +490,29 @@ function anchorToInline(a: Element): EntityNode | LinkNode | null {
   const text = (a.textContent || '').trim();
   if (!href) return null;
 
-  // Mention: /handle (relative, no further path)
-  const mention = href.match(/^\/([A-Za-z0-9_]+)$/);
-  if (mention && text.startsWith('@')) {
-    return {
-      type: 'entity',
-      kind: 'mention',
-      value: mention[1],
-      url: `https://x.com${href}`,
-    };
-  }
+  // Normalize x.com hrefs (absolute or relative) to their path component.
+  const xPath = xComPath(href);
 
-  // Hashtag: /hashtag/<tag>?src=…
-  const hashtag = href.match(/^\/hashtag\/([^/?#]+)/);
-  if (hashtag && text.startsWith('#')) {
-    return {
-      type: 'entity',
-      kind: 'hashtag',
-      value: decodeURIComponent(hashtag[1]),
-      url: `https://x.com${href.split('?')[0]}`,
-    };
+  // Mention: /handle or /@handle on x.com
+  if (xPath) {
+    const mention = xPath.match(/^\/@?([A-Za-z0-9_]+)$/);
+    if (mention && text.startsWith('@')) {
+      return {
+        type: 'entity',
+        kind: 'mention',
+        value: mention[1],
+        url: `https://x.com/${mention[1]}`,
+      };
+    }
+    const hashtag = xPath.match(/^\/hashtag\/([^/?#]+)/);
+    if (hashtag && text.startsWith('#')) {
+      return {
+        type: 'entity',
+        kind: 'hashtag',
+        value: decodeURIComponent(hashtag[1]),
+        url: `https://x.com${xPath.split('?')[0]}`,
+      };
+    }
   }
 
   // Cashtag: text starts with $; href is /search?q=%24SYM or similar
@@ -328,10 +537,18 @@ function anchorToInline(a: Element): EntityNode | LinkNode | null {
   };
 }
 
+function xComPath(href: string): string | null {
+  if (href.startsWith('/')) return href;
+  const m = href.match(/^https?:\/\/(?:www\.|m\.)?x\.com(\/.*)$/);
+  return m ? m[1] : null;
+}
+
 // X wraps external links in t.co; the visible label is the display URL. When
 // the display text looks like a URL, prefer it over the t.co wrapper. When
 // it doesn't (or no recognisable form), keep the href as-is.
 function resolveExternalUrl(href: string, text: string): string {
+  // Protocol-relative → https.
+  if (href.startsWith('//')) return `https:${href}`;
   const isTco = /^https?:\/\/t\.co\//.test(href);
   if (isTco) {
     if (/^https?:\/\//.test(text)) return text;

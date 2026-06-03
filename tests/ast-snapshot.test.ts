@@ -25,6 +25,7 @@ const AST_READY_FIXTURES = [
   'iret77-2058898207304733029',
   'Huawei-2059206000587210807',
   'marcelpociot-2038915006050300007',
+  'theonejvo-2015892980851474595',
 ];
 
 function normalize(doc: Document): unknown {
