@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "metadata": {
+    "type": "tweet",
+    "sourceUrl": "https://x.com/Huawei/status/2059206000587210807",
+    "tweetId": "2059206000587210807",
+    "author": {
+      "name": "Huawei",
+      "handle": "Huawei"
+    },
+    "date": "<ignored>",
+    "engagement": "<ignored>"
+  },
+  "body": {
+    "type": "tweet",
+    "author": {
+      "name": "Huawei",
+      "handle": "Huawei"
+    },
+    "date": "<ignored>",
+    "tweetId": "2059206000587210807",
+    "text": [
+      {
+        "type": "text",
+        "value": "According to Tau (τ) Scaling Law, the transistor density of high-end chips is expected to reach the same level as that of chips using the (??) nm process by 2031?"
+      }
+    ],
+    "media": [],
+    "poll": {
+      "type": "poll",
+      "choices": [
+        {
+          "label": "7 nm"
+        },
+        {
+          "label": "5 nm"
+        },
+        {
+          "label": "3 nm"
+        },
+        {
+          "label": "1.4 nm"
+        }
+      ],
+      "footer": "5,309 votes · 3 days left"
+    },
+    "engagement": "<ignored>"
+  }
+}

@@ -103,6 +103,25 @@ interface ArticleNode {
 | Markdown | Optional banner `![]()` then children rendered in order |
 | PDF | Banner styled distinctly (full-bleed, cropped); children flow as document body |
 
+### PollNode
+
+```ts
+interface PollNode {
+  type: 'poll';
+  choices: PollChoice[];
+  footer?: string;
+}
+
+interface PollChoice {
+  label: string;
+  percent?: number;
+}
+```
+
+- Attached to a tweet via `TweetNode.poll`. Also a member of `Block` so it can appear inside articles in the future.
+- `percent` is a number 0–100 (e.g. `20.9`). Present only on voted polls with results.
+- `footer` is the "N votes · status" line, e.g. `"473 votes · Final results"` or `"5,309 votes · 3 days left"`.
+
 ### ParagraphNode / HeadingNode / ListNode / ListItemNode / CodeBlockNode / BlockquoteNode / ImageNode / VideoNode / ThematicBreakNode
 
 Standard prose blocks. Field names follow [mdast](https://github.com/syntax-tree/mdast) conventions where they overlap (`children`, `value`, `depth`, `ordered`) so the shapes feel familiar — this is stylistic, not architectural.
@@ -208,7 +227,6 @@ X serves video via MSE, so the `<source src>` is a session-bound `blob:` URL tha
 
 Add only when a fixture forces them:
 
-- `PollNode`
 - `TableNode`
 - `FootnoteNode`
 - `StrikethroughNode`
