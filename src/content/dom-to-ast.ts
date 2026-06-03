@@ -375,6 +375,14 @@ function articleBlockToNodes(block: HTMLElement): Block[] {
     return items.length > 0 ? [{ type: 'list', ordered: true, children: items } satisfies ListNode] : [];
   }
 
+  // Embedded simpleTweet card — match legacy behavior by emitting just the
+  // inner avatar image. The card surfaces author + handle + snippet inline,
+  // but the user-facing fixture has historically rendered only the avatar.
+  if (block.querySelector('[data-testid="simpleTweet"]')) {
+    const img = findArticleBlockImage(block);
+    return img ? [img] : [];
+  }
+
   // Image-only paragraph — emit ImageNode rather than wrapping in paragraph.
   const img = findArticleBlockImage(block);
   if (img && blockHasOnlyImage(block)) {

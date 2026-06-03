@@ -61,56 +61,8 @@
         ]
       },
       {
-        "type": "paragraph",
-        "children": [
-          {
-            "type": "link",
-            "url": "/theonejvo",
-            "children": []
-          },
-          {
-            "type": "text",
-            "value": "Jamieson O'Reilly@theonejvo·"
-          },
-          {
-            "type": "link",
-            "url": "/theonejvo/status/2015401219746128322",
-            "children": [
-              {
-                "type": "text",
-                "value": "Jan 25"
-              }
-            ]
-          },
-          {
-            "type": "text",
-            "value": "Article cover image Articlehacking clawdbot and eating lobster soulsImagine you hire a butler."
-          },
-          {
-            "type": "break"
-          },
-          {
-            "type": "text",
-            "value": "He's brilliant, he manages your calendar, handles your messages, screens your calls."
-          },
-          {
-            "type": "break"
-          },
-          {
-            "type": "text",
-            "value": "He knows your passwords because he needs them. He reads your private messages because...815942.6K"
-          },
-          {
-            "type": "link",
-            "url": "/theonejvo/status/2015401219746128322/analytics",
-            "children": [
-              {
-                "type": "text",
-                "value": "1.1M"
-              }
-            ]
-          }
-        ]
+        "type": "image",
+        "url": "https://pbs.twimg.com/profile_images/1998364954471333888/YabDL8aN_x96.jpg"
       },
       {
         "type": "paragraph",

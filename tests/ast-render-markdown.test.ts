@@ -22,15 +22,12 @@ const RENDER_READY_FIXTURES = [
   'bcherny-2053982327123132846',
   'MarioNawfal-2053855649398915580',
   'marcelpociot-2038915006050300007',
-  // Deferred. These will be resolved during the Phase 4 cutover by updating
-  // the .md goldens — the divergences below are *justified improvements* per
-  // ADR 0001 (semantic parity, not byte parity), not renderer bugs:
+  'theonejvo-2015892980851474595',
+  // Deferred — divergences are justified improvements per ADR 0001 (semantic
+  // parity, not byte parity). Will be resolved during Phase 4 cutover by
+  // updating the .md golden:
   //  - GoogleDeepMind: AST preserves a paragraph break Turndown dropped, and
   //    resolves t.co → display URL. Both ADR-mandated.
-  //  - theonejvo: embedded article-preview card inside the article body is
-  //    walked into a giant text paragraph instead of just emitting the inner
-  //    profile image. Real renderer bug; needs a dedicated article-walker
-  //    handler for these inline cards.
 ];
 
 const VOLATILE_FIELDS = ['likes', 'reposts', 'replies', 'bookmarks', 'views', 'date'];
