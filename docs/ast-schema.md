@@ -186,7 +186,7 @@ interface AuthorInfo {
 
 interface MediaItem {
   kind: 'image' | 'video' | 'gif';
-  url: string;
+  url: string;              // see note below for video/gif
   posterUrl?: string;       // videos and gifs only
   alt?: string;
 }
@@ -199,6 +199,10 @@ interface EngagementCounts {
   views?: number;
 }
 ```
+
+### `MediaItem.url` for video and gif
+
+X serves video via MSE, so the `<source src>` is a session-bound `blob:` URL that expires immediately. Until a stable playable-URL strategy lands, the extractor sets `url = posterUrl` for `kind: 'video'` and `kind: 'gif'`. Renderers should treat the equality of the two fields as the "no playable source available" signal and fall back to embedding the poster with a link to the tweet's status URL.
 
 ## Explicitly excluded from v1
 

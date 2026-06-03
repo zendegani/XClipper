@@ -1,0 +1,32 @@
+{
+  "version": 1,
+  "metadata": {
+    "type": "tweet",
+    "sourceUrl": "https://x.com/elonmusk/status/2052914500169613445",
+    "tweetId": "2052914500169613445",
+    "author": {
+      "name": "Elon Musk",
+      "handle": "elonmusk"
+    },
+    "date": "<ignored>",
+    "engagement": "<ignored>"
+  },
+  "body": {
+    "type": "tweet",
+    "author": {
+      "name": "Elon Musk",
+      "handle": "elonmusk"
+    },
+    "date": "<ignored>",
+    "tweetId": "2052914500169613445",
+    "text": [],
+    "media": [
+      {
+        "kind": "video",
+        "url": "https://pbs.twimg.com/amplify_video_thumb/2052877337364979715/img/3V-NZLjnLKQI475R.jpg",
+        "posterUrl": "https://pbs.twimg.com/amplify_video_thumb/2052877337364979715/img/3V-NZLjnLKQI475R.jpg"
+      }
+    ],
+    "engagement": "<ignored>"
+  }
+}
