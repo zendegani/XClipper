@@ -841,7 +841,14 @@ btnPdf.addEventListener('click', async () => {
     }
     chrome.tabs.sendMessage(tab.id, { action: 'EXPORT_PDF' }, (resp) => {
       if (chrome.runtime.lastError) {
-        showStatus(chrome.runtime.lastError.message || 'PDF export failed.', 'error');
+        const msg = chrome.runtime.lastError.message || '';
+        // Same friendly hint as the markdown flow: content script isn't on
+        // this page (non-/status/ URL or just-reloaded extension).
+        if (msg.includes('Receiving end does not exist')) {
+          showStatus(chrome.i18n.getMessage('error_reload') || 'Reload the page and try again.', 'error');
+        } else {
+          showStatus(msg || 'PDF export failed.', 'error');
+        }
       } else if (!resp?.success) {
         showStatus(resp?.error || chrome.i18n.getMessage('pdf_failed') || 'PDF export failed.', 'error');
       } else {

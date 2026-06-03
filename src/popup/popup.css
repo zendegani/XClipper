@@ -220,6 +220,36 @@ body {
   justify-content: center;
 }
 
+.pdf-row {
+  --pdf: #dc2626;
+  --pdf-glow: rgba(220, 38, 38, 0.18);
+  position: relative;
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 8px;
+}
+
+.btn-pdf {
+  flex: 0 0 calc(62.5% - 4px);
+  min-width: 0;
+  background: transparent;
+  color: var(--pdf);
+  border: 1px solid var(--pdf);
+}
+.btn-pdf .btn-icon {
+  color: var(--pdf);
+}
+.btn-pdf:hover {
+  background: var(--pdf-glow);
+  color: var(--pdf);
+  box-shadow: 0 4px 16px var(--pdf-glow);
+}
+.btn-pdf:active {
+  box-shadow: 0 2px 8px var(--pdf-glow);
+}
+
 .btn-obsidian {
   /* ~25% wider than the previous half-width row, centered in the popup.
    * The ⓘ tooltip floats on the right margin so the button itself stays
