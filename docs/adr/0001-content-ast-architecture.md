@@ -1,6 +1,6 @@
 # ADR 0001 — Content AST as the source of truth for tweet/article content
 
-- Status: **Proposed**
+- Status: **Accepted**
 - Date: 2026-06-03
 - Deciders: @zendegani
 - Supersedes: —
