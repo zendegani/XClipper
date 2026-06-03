@@ -39,10 +39,14 @@ export interface DownloadRequest {
   images?: { url: string; filename: string }[];
 }
 
+export interface ExportPdfRequest {
+  action: 'EXPORT_PDF';
+}
+
 export interface ExtractResponse {
   success: boolean;
   data?: ExtractedContent;
   error?: string;
 }
 
-export type MessageRequest = ExtractRequest | DownloadRequest;
+export type MessageRequest = ExtractRequest | DownloadRequest | ExportPdfRequest;

@@ -1,10 +1,11 @@
 import type { DownloadRequest, ExtractResponse } from '../types/messages';
-import { postProcess, resolveDownloadImages } from '../shared/post-process';
+import { postProcess, resolveDownloadImages, buildFilename } from '../shared/post-process';
 import { buildObsidianUrl } from '../shared/obsidian';
 import { delay, isArticlePage } from './dom';
 import { extractArticle } from './article';
 import { extractTweetAsync, extractEngagementMetadata } from './tweet';
 import { waitForArticle } from './wait';
+import { exportPdf } from './pdf-export';
 
 type AutoAction = 'download' | 'copy' | 'obsidian';
 
@@ -51,16 +52,34 @@ chrome.runtime.onMessage.addListener((_message, _sender, sendResponse) => {
       includeMetadata: _message.includeMetadata || false,
       singleTweet: _message.singleTweet === true,
     }).then(sendResponse);
+    return true;
   }
-  return true; // keep channel open for async sendResponse
+  if (_message.action === 'EXPORT_PDF') {
+    runPdfExport().then(
+      () => sendResponse({ success: true }),
+      (err: unknown) => sendResponse({ success: false, error: err instanceof Error ? err.message : String(err) }),
+    );
+    return true;
+  }
+  return true;
 });
+
+async function runPdfExport(): Promise<void> {
+  await waitForArticle();
+  const response = await extract({ includeMetadata: true });
+  if (!response.success || !response.data || !response.data.body) {
+    throw new Error(response.error || 'PDF export: extraction failed');
+  }
+  const filename = buildFilename(response.data).replace(/\.md$/i, '');
+  await exportPdf(response.data.body, filename);
+}
 
 // ─── Auto-extract bootstrap (#tweet2md=download | #tweet2md=copy) ───
 // Triggered when the page is opened from the inline button or context menu.
 
-const AUTO_MARKER_RE = /[#&]tweet2md=(download|copy|obsidian|1)/;
+const AUTO_MARKER_RE = /[#&]tweet2md=(download|copy|obsidian|pdf|1)/;
 const AUTO_SINGLE_MARKER_RE = /[#&]tweet2md_single=1/;
-const AUTO_MARKER_STRIP_RE = /[#&]tweet2md(?:_single)?=(?:download|copy|obsidian|1)/g;
+const AUTO_MARKER_STRIP_RE = /[#&]tweet2md(?:_single)?=(?:download|copy|obsidian|pdf|1)/g;
 
 interface StoredSettings {
   downloadImages?: boolean;
@@ -217,10 +236,22 @@ async function runAutoExtract(
 const autoMatch = window.location.hash.match(AUTO_MARKER_RE);
 if (autoMatch) {
   const raw = autoMatch[1];
-  const action: AutoAction =
-    raw === 'copy' ? 'copy' : raw === 'obsidian' ? 'obsidian' : 'download';
-  const singleTweet = AUTO_SINGLE_MARKER_RE.test(window.location.hash);
-  autoExtract(action, { singleTweet });
+  if (raw === 'pdf') {
+    // PDF runs its own pipeline (AST → HTML → html2pdf) without the
+    // markdown/postProcess flow that the other actions share.
+    try {
+      const cleanHash = window.location.hash
+        .replace(AUTO_MARKER_STRIP_RE, '')
+        .replace(/^#$/, '');
+      history.replaceState(null, '', window.location.pathname + window.location.search + (cleanHash || ''));
+    } catch { /* history may be unavailable */ }
+    runPdfExport().catch((err) => console.error('tweet2md PDF export failed:', err));
+  } else {
+    const action: AutoAction =
+      raw === 'copy' ? 'copy' : raw === 'obsidian' ? 'obsidian' : 'download';
+    const singleTweet = AUTO_SINGLE_MARKER_RE.test(window.location.hash);
+    autoExtract(action, { singleTweet });
+  }
 }
 
 // ─── In-place toast ─────────────────────────────────────────────────

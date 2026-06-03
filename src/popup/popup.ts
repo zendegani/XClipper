@@ -15,6 +15,7 @@ import { hostMatches } from '../shared/media';
 
 const btnDownload = document.getElementById('btn-download') as HTMLButtonElement;
 const btnCopy = document.getElementById('btn-copy') as HTMLButtonElement;
+const btnPdf = document.getElementById('btn-pdf') as HTMLButtonElement;
 const btnObsidian = document.getElementById('btn-obsidian') as HTMLButtonElement;
 const statusEl = document.getElementById('status') as HTMLDivElement;
 const chkDownloadImages = document.getElementById(
@@ -672,10 +673,11 @@ function showStatus(
   }
 }
 
-function setLoading(loading: boolean, target?: 'download' | 'copy' | 'obsidian'): void {
+function setLoading(loading: boolean, target?: 'download' | 'copy' | 'obsidian' | 'pdf'): void {
   btnDownload.disabled = loading;
   btnCopy.disabled = loading;
   btnObsidian.disabled = loading;
+  btnPdf.disabled = loading;
 
   // Only animate the button that was actually clicked
   if (target === 'download' || !target) {
@@ -693,18 +695,26 @@ function setLoading(loading: boolean, target?: 'download' | 'copy' | 'obsidian')
     const obLabel = btnObsidian.querySelector('.btn-label');
     if (obLabel) obLabel.textContent = loading ? (chrome.i18n.getMessage('extracting') || 'Extracting…') : (chrome.i18n.getMessage('btn_obsidian') || 'Add to Obsidian');
   }
+  if (target === 'pdf' || !target) {
+    btnPdf.classList.toggle('loading', loading);
+    const pdfLabel = btnPdf.querySelector('.btn-label');
+    if (pdfLabel) pdfLabel.textContent = loading ? (chrome.i18n.getMessage('rendering_pdf') || 'Rendering PDF…') : (chrome.i18n.getMessage('btn_pdf') || 'Download .pdf');
+  }
 
-  // When stopping, always reset all three to default state
+  // When stopping, always reset all four to default state
   if (!loading) {
     btnDownload.classList.remove('loading');
     btnCopy.classList.remove('loading');
     btnObsidian.classList.remove('loading');
+    btnPdf.classList.remove('loading');
     const dlLabel = btnDownload.querySelector('.btn-label');
     const cpLabel = btnCopy.querySelector('.btn-label');
     const obLabel = btnObsidian.querySelector('.btn-label');
+    const pdfLabel = btnPdf.querySelector('.btn-label');
     if (dlLabel) dlLabel.textContent = chrome.i18n.getMessage('btn_download') || 'Download .md';
     if (cpLabel) cpLabel.textContent = chrome.i18n.getMessage('btn_copy') || 'Copy .md';
     if (obLabel) obLabel.textContent = chrome.i18n.getMessage('btn_obsidian') || 'Add to Obsidian';
+    if (pdfLabel) pdfLabel.textContent = chrome.i18n.getMessage('btn_pdf') || 'Download .pdf';
   }
 }
 
@@ -814,6 +824,35 @@ btnDownload.addEventListener('click', async () => {
 });
 
 // ─── Copy Flow ──────────────────────────────────────────────────────
+
+// ─── PDF Export Flow ────────────────────────────────────────────────
+
+btnPdf.addEventListener('click', async () => {
+  setLoading(true, 'pdf');
+  statusEl.className = 'status hidden';
+  try {
+    const [tab] = await new Promise<chrome.tabs.Tab[]>((resolve) =>
+      chrome.tabs.query({ active: true, currentWindow: true }, resolve)
+    );
+    if (!tab?.id) {
+      showStatus(chrome.i18n.getMessage('error_no_tab') || 'No active tab.', 'error');
+      setLoading(false);
+      return;
+    }
+    chrome.tabs.sendMessage(tab.id, { action: 'EXPORT_PDF' }, (resp) => {
+      if (chrome.runtime.lastError) {
+        showStatus(chrome.runtime.lastError.message || 'PDF export failed.', 'error');
+      } else if (!resp?.success) {
+        showStatus(resp?.error || chrome.i18n.getMessage('pdf_failed') || 'PDF export failed.', 'error');
+      } else {
+        showStatus(`✓ ${chrome.i18n.getMessage('pdf_downloaded') || 'PDF downloaded!'}`, 'success');
+      }
+      setLoading(false);
+    });
+  } catch (err) {
+    handleExtractionError(err);
+  }
+});
 
 // ─── Add to Obsidian Flow ───────────────────────────────────────────
 

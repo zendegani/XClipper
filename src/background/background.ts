@@ -13,8 +13,9 @@ const MENU_SAVE = 'tweet2md-save';
 const MENU_COPY = 'tweet2md-copy';
 const MENU_COPY_SINGLE = 'tweet2md-copy-single';
 const MENU_OBSIDIAN = 'tweet2md-obsidian';
+const MENU_PDF = 'tweet2md-pdf';
 
-type MenuAction = 'download' | 'copy' | 'obsidian';
+type MenuAction = 'download' | 'copy' | 'obsidian' | 'pdf';
 
 // Strip any path beyond /status/<id> (e.g. /history, /photo/1, /analytics) and
 // drop any existing query/hash, so we always open the canonical permalink.
@@ -73,6 +74,14 @@ function registerContextMenus(): void {
       targetUrlPatterns: ['*://x.com/*/status/*'],
       documentUrlPatterns: ['*://x.com/*'],
     });
+    chrome.contextMenus.create({
+      id: MENU_PDF,
+      parentId: MENU_PARENT,
+      title: chrome.i18n.getMessage('ctx_save_tweet_pdf') || 'Save tweet as PDF',
+      contexts: ['link', 'page'],
+      targetUrlPatterns: ['*://x.com/*/status/*'],
+      documentUrlPatterns: ['*://x.com/*'],
+    });
   });
 }
 
@@ -82,7 +91,7 @@ chrome.runtime.onStartup.addListener(registerContextMenus);
 function appendMarker(url: string, action: MenuAction, single: boolean): string {
   // Strip any existing tweet2md marker so we don't compound them.
   const cleaned = url
-    .replace(/[#&]tweet2md(?:_single)?=(?:download|copy|obsidian|1)/g, '')
+    .replace(/[#&]tweet2md(?:_single)?=(?:download|copy|obsidian|pdf|1)/g, '')
     .replace(/#$/, '');
   const sep = cleaned.includes('#') ? '&' : '#';
   const singleSuffix = single ? '&tweet2md_single=1' : '';
@@ -96,6 +105,7 @@ function menuItemAction(
   if (menuItemId === MENU_COPY) return { action: 'copy', single: false };
   if (menuItemId === MENU_COPY_SINGLE) return { action: 'copy', single: true };
   if (menuItemId === MENU_OBSIDIAN) return { action: 'obsidian', single: false };
+  if (menuItemId === MENU_PDF) return { action: 'pdf', single: false };
   return null;
 }
 

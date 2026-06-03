@@ -19,5 +19,8 @@
     "jsdom": "^29.1.1",
     "typescript": "^6.0.3",
     "vitest": "^4.1.7"
+  },
+  "dependencies": {
+    "html2pdf.js": "^0.14.0"
   }
 }
