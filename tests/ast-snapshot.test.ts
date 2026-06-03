@@ -21,6 +21,7 @@ const AST_READY_FIXTURES = [
   'elonmusk-2052914500169613445',
   'bcherny-2053982327123132846',
   'MarioNawfal-2053855649398915580',
+  'GoogleDeepMind-2039735446628925907',
 ];
 
 function normalize(doc: Document): unknown {

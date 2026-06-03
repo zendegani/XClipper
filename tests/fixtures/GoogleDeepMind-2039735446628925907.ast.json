@@ -1,0 +1,211 @@
+{
+  "version": 1,
+  "metadata": {
+    "type": "thread",
+    "sourceUrl": "https://x.com/GoogleDeepMind/status/2039735446628925907",
+    "tweetId": "2039735446628925907",
+    "author": {
+      "name": "Google DeepMind",
+      "handle": "GoogleDeepMind"
+    },
+    "date": "<ignored>",
+    "engagement": "<ignored>"
+  },
+  "body": {
+    "type": "thread",
+    "tweets": [
+      {
+        "type": "tweet",
+        "author": {
+          "name": "Google DeepMind",
+          "handle": "GoogleDeepMind"
+        },
+        "date": "<ignored>",
+        "tweetId": "2039735446628925907",
+        "text": [
+          {
+            "type": "text",
+            "value": "Meet Gemma 4: our new family of open models you can run on your own hardware."
+          },
+          {
+            "type": "break"
+          },
+          {
+            "type": "break"
+          },
+          {
+            "type": "text",
+            "value": "Built for advanced reasoning and agentic workflows, we’re releasing them under an Apache 2.0 license. Here’s what’s new 🧵"
+          }
+        ],
+        "media": [
+          {
+            "kind": "video",
+            "url": "https://pbs.twimg.com/tweet_video_thumb/HE6X95NW4AA_Mva.jpg",
+            "posterUrl": "https://pbs.twimg.com/tweet_video_thumb/HE6X95NW4AA_Mva.jpg"
+          }
+        ],
+        "engagement": "<ignored>"
+      },
+      {
+        "type": "tweet",
+        "author": {
+          "name": "Google DeepMind",
+          "handle": "GoogleDeepMind"
+        },
+        "date": "<ignored>",
+        "tweetId": "2039735449829203971",
+        "text": [
+          {
+            "type": "text",
+            "value": "Available in four sizes:"
+          },
+          {
+            "type": "break"
+          },
+          {
+            "type": "break"
+          },
+          {
+            "type": "text",
+            "value": "🔵 31B Dense & 26B MoE: state-of-the-art performance for advanced local reasoning tasks – like custom coding assistants or analyzing scientific datasets."
+          },
+          {
+            "type": "break"
+          },
+          {
+            "type": "break"
+          },
+          {
+            "type": "text",
+            "value": "🔵 E4B & E2B (Edge): built for mobile with real-time text, vision, and audio processing."
+          }
+        ],
+        "media": [
+          {
+            "kind": "image",
+            "url": "https://pbs.twimg.com/media/HE6Vby8a0AE1wik?format=jpg&name=large",
+            "alt": "Image"
+          }
+        ],
+        "engagement": "<ignored>"
+      },
+      {
+        "type": "tweet",
+        "author": {
+          "name": "Google DeepMind",
+          "handle": "GoogleDeepMind"
+        },
+        "date": "<ignored>",
+        "tweetId": "2039735455533453316",
+        "text": [
+          {
+            "type": "text",
+            "value": "Build autonomous agents that plan, navigate apps, and execute multi-step tasks – like searching databases or triggering APIs – with native tool use."
+          },
+          {
+            "type": "break"
+          },
+          {
+            "type": "break"
+          },
+          {
+            "type": "text",
+            "value": "With up to 256K context, it can analyze full codebases and retain complex action histories without losing focus."
+          }
+        ],
+        "media": [
+          {
+            "kind": "video",
+            "url": "https://pbs.twimg.com/amplify_video_thumb/2039732067982786561/img/Hk4SaihvFXhazpTZ.jpg",
+            "posterUrl": "https://pbs.twimg.com/amplify_video_thumb/2039732067982786561/img/Hk4SaihvFXhazpTZ.jpg"
+          }
+        ],
+        "engagement": "<ignored>"
+      },
+      {
+        "type": "tweet",
+        "author": {
+          "name": "Google DeepMind",
+          "handle": "GoogleDeepMind"
+        },
+        "date": "<ignored>",
+        "tweetId": "2039736203193241623",
+        "text": [
+          {
+            "type": "text",
+            "value": "Start building with Gemma 4 now in "
+          },
+          {
+            "type": "entity",
+            "kind": "mention",
+            "value": "GoogleAIStudio",
+            "url": "https://x.com/GoogleAIStudio"
+          },
+          {
+            "type": "text",
+            "value": "."
+          },
+          {
+            "type": "break"
+          },
+          {
+            "type": "break"
+          },
+          {
+            "type": "text",
+            "value": "You can also download the model weights from "
+          },
+          {
+            "type": "entity",
+            "kind": "mention",
+            "value": "HuggingFace",
+            "url": "https://x.com/HuggingFace"
+          },
+          {
+            "type": "text",
+            "value": ", "
+          },
+          {
+            "type": "entity",
+            "kind": "mention",
+            "value": "Kaggle",
+            "url": "https://x.com/Kaggle"
+          },
+          {
+            "type": "text",
+            "value": ", or "
+          },
+          {
+            "type": "entity",
+            "kind": "mention",
+            "value": "Ollama",
+            "url": "https://x.com/Ollama"
+          },
+          {
+            "type": "text",
+            "value": ". Find out more → "
+          },
+          {
+            "type": "link",
+            "url": "https://goo.gle/41IC3lY",
+            "children": [
+              {
+                "type": "text",
+                "value": "https://goo.gle/41IC3lY"
+              }
+            ]
+          }
+        ],
+        "media": [
+          {
+            "kind": "image",
+            "url": "https://pbs.twimg.com/tweet_video_thumb/HE6ZO2kXgAA7P_j?format=jpg&name=large",
+            "alt": "Embedded video"
+          }
+        ],
+        "engagement": "<ignored>"
+      }
+    ]
+  }
+}
