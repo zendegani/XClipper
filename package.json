@@ -10,13 +10,15 @@
     "package": "npm run build && cd dist && zip -r ../tweet2md.zip . && echo '📦 tweet2md.zip created'",
     "clean": "rm -rf dist tweet2md.zip",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "screenshots": "npm run build && node scripts/popup-screenshots.mjs"
   },
   "devDependencies": {
     "@types/chrome": "^0.1.42",
     "@types/jsdom": "^28.0.3",
     "esbuild": "^0.28.0",
     "jsdom": "^29.1.1",
+    "puppeteer-core": "^25.1.0",
     "typescript": "^6.0.3",
     "vitest": "^4.1.7"
   },

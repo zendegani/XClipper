@@ -30,4 +30,8 @@ tests/fixtures/*.html
 *.swp
 *~
 
+# Puppeteer screenshot artifacts
+.tmp-puppeteer-profiles/
+screenshots/
+
 
