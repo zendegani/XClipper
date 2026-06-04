@@ -14,9 +14,12 @@ import type {
 // chrome.downloads aren't reliably exposed there.
 
 const RENDER_WIDTH_PX = 680;
-const A4_WIDTH_MM = 210;
+const PAGE_WIDTH_MM = 210;
 const PAGE_MARGIN_MM = 10;
-const CONTENT_WIDTH_MM = A4_WIDTH_MM - 2 * PAGE_MARGIN_MM;
+const CONTENT_WIDTH_MM = PAGE_WIDTH_MM - 2 * PAGE_MARGIN_MM;
+// jsPDF allows custom page sizes up to 14400 units; mm gives us ~14.4m of
+// usable height before clamping — comfortably beyond any tweet thread.
+const MAX_PAGE_HEIGHT_MM = 14000;
 const RENDER_TIMEOUT_MS = 60000;
 const IMAGE_LOAD_TIMEOUT_MS = 5000;
 
@@ -59,16 +62,34 @@ async function renderPdfDataUrl(html: string): Promise<string> {
     const tImages = performance.now();
     osLog(`waitForImages: ${(tImages - t0).toFixed(0)}ms`);
 
-    const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+    // One-tall-page strategy: measure how tall the laid-out content is and
+    // build the PDF with a custom page format that fits the whole thing.
+    // This avoids the autoPaging:'text' width-misinterpretation that was
+    // zooming text in and slicing columns off, and the slice-mode card
+    // splits — until pagination is designed properly, single page wins.
+    const contentHeightPx = Math.max(host.offsetHeight, 1);
+    const mmPerPx = CONTENT_WIDTH_MM / RENDER_WIDTH_PX;
+    const contentHeightMm = contentHeightPx * mmPerPx;
+    const pageHeightMm = Math.min(
+      contentHeightMm + 2 * PAGE_MARGIN_MM,
+      MAX_PAGE_HEIGHT_MM,
+    );
+    osLog(
+      `content ${contentHeightPx}px → page ${PAGE_WIDTH_MM}×${pageHeightMm.toFixed(1)}mm`,
+    );
+
+    const pdf = new jsPDF({
+      unit: 'mm',
+      format: [PAGE_WIDTH_MM, pageHeightMm],
+      orientation: 'portrait',
+    });
     await withTimeout(
       pdf.html(host, {
-        // autoPaging:'text' walks text nodes and breaks at line boundaries
-        // instead of slicing the canvas mid-line. Slower than the default
-        // 'slice' but it's what keeps card layout intact across pages.
-        autoPaging: 'text',
         margin: [PAGE_MARGIN_MM, PAGE_MARGIN_MM, PAGE_MARGIN_MM, PAGE_MARGIN_MM],
         width: CONTENT_WIDTH_MM,
         windowWidth: RENDER_WIDTH_PX,
+        // autoPaging:false keeps it on the single page we just sized.
+        autoPaging: false,
         image: { type: 'jpeg', quality: 0.85 },
         html2canvas: {
           scale: 1,
