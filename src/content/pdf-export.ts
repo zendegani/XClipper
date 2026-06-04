@@ -1,44 +1,44 @@
 import { jsPDF } from 'jspdf';
+import html2canvas from 'html2canvas';
 import type { Document } from '../ast/types';
 import { renderPdfFragment } from '../ast/render-pdf-html';
 
-// AST → vector-text PDF.
+// AST → PDF.
 //
-// We inject the rendered fragment into the live document, hand it to
-// jsPDF.html(), and write the result. jsPDF.html() preserves text as real
-// vector text (selectable + searchable) while using html2canvas for images.
+// Pipeline: render the fragment into a sandbox iframe (so html2canvas's
+// document clone never touches X.com's <script> tags → CSP blank PDF), snap
+// it to canvas with html2canvas directly, then page-tile the canvas onto an
+// A4 PDF with jsPDF.addImage().
 //
-// Notes that came out of debugging:
-//  - autoPaging: 'text' is the quality-best setting but runs html2canvas
-//    once per page boundary, which can take 30s+ on a thread with media.
-//    We use 'slice' (jsPDF default) for responsiveness; cards still avoid
-//    mid-card splits via page-break-inside:avoid in render-pdf-html.ts.
-//  - the offscreen container must be in normal flow, not position:fixed,
-//    or html2canvas mis-computes layout in some Chrome versions.
-//  - styles are scoped under .t2m-root so injecting into the page doesn't
-//    leak into X's UI.
+// We previously used jsPDF.html() which preserves vector text, but it drives
+// its own iframe pipeline against window.document — X.com's vendor scripts
+// get re-evaluated, CSP blocks them, and the canvas comes back blank. The
+// raster approach trades selectable text for reliable output.
 const RENDER_TIMEOUT_MS = 60000;
 
+// Render width in px (matches the sandbox iframe width). 680px maps cleanly
+// to A4 portrait minus 2×10mm margins (~720 effective px at 96dpi).
+const RENDER_WIDTH_PX = 680;
+
+// A4 portrait dimensions in mm.
+const A4_WIDTH_MM = 210;
+const A4_HEIGHT_MM = 297;
+const PAGE_MARGIN_MM = 10;
+const CONTENT_WIDTH_MM = A4_WIDTH_MM - 2 * PAGE_MARGIN_MM;
+const CONTENT_HEIGHT_MM = A4_HEIGHT_MM - 2 * PAGE_MARGIN_MM;
+
 export async function exportPdf(doc: Document, filenameBase: string): Promise<void> {
-  // Render inside a dedicated sandbox iframe rather than directly in the page.
-  // html2canvas clones the input element's ownerDocument; if that's X.com's
-  // document, the clone includes <script src="…twimg.com…"> tags that get
-  // re-evaluated in html2canvas's offscreen iframe and trip CSP → blank PDF.
-  // Using an iframe whose document contains only our self-contained fragment
-  // (inline <style>, no scripts) avoids the issue entirely. onclone runs
-  // *after* scripts have already executed, so it can't be used as a fix.
   const sandbox = document.createElement('iframe');
   sandbox.setAttribute('aria-hidden', 'true');
   sandbox.style.cssText = [
     'position:absolute',
     'left:-10000px',
     'top:0',
-    'width:680px',
+    `width:${RENDER_WIDTH_PX}px`,
     'height:1px',
     'border:0',
     'visibility:hidden',
   ].join(';');
-  // srcdoc is set after append so the load event fires reliably.
   document.body.appendChild(sandbox);
 
   try {
@@ -58,24 +58,39 @@ export async function exportPdf(doc: Document, filenameBase: string): Promise<vo
 
     await waitForImages(target);
 
-    const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
-    await withTimeout(
-      pdf.html(target, {
-        margin: [10, 10, 10, 10],
-        width: 190,           // A4 portrait width minus 2*10mm margins
-        windowWidth: 680,     // matches the sandbox iframe width in px
-        image: { type: 'jpeg', quality: 0.92 },
-        html2canvas: {
-          scale: 1,
-          useCORS: true,
-          allowTaint: true,
-          backgroundColor: '#ffffff',
-          logging: false,
-        },
+    const canvas = await withTimeout(
+      html2canvas(target, {
+        scale: 2,
+        useCORS: true,
+        allowTaint: true,
+        backgroundColor: '#ffffff',
+        logging: false,
+        windowWidth: RENDER_WIDTH_PX,
       }),
       RENDER_TIMEOUT_MS,
       'PDF rendering timed out after 60s',
     );
+
+    const imgWidthMm = CONTENT_WIDTH_MM;
+    const imgHeightMm = (canvas.height / canvas.width) * imgWidthMm;
+    const imgData = canvas.toDataURL('image/jpeg', 0.92);
+
+    const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+    // Tile the tall canvas across pages by re-adding it with a negative Y
+    // offset on each page — the page's clip rect crops to one page's worth.
+    let yOffset = 0;
+    while (yOffset < imgHeightMm) {
+      pdf.addImage(
+        imgData,
+        'JPEG',
+        PAGE_MARGIN_MM,
+        PAGE_MARGIN_MM - yOffset,
+        imgWidthMm,
+        imgHeightMm,
+      );
+      yOffset += CONTENT_HEIGHT_MM;
+      if (yOffset < imgHeightMm) pdf.addPage();
+    }
     pdf.save(`${filenameBase}.pdf`);
   } finally {
     sandbox.remove();
