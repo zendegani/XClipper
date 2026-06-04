@@ -135,7 +135,7 @@ async function screenshotPopup(chromePath, locale) {
     log(`extension id: ${extId}`);
 
     const page = await browser.newPage();
-    await page.setViewport({ width: 380, height: 720, deviceScaleFactor: 2 });
+    await page.setViewport({ width: 480, height: 800, deviceScaleFactor: 2 });
     page.on('pageerror', (err) => warn(`[popup pageerror][${locale}] ${err.message}`));
     page.on('console', (msg) => {
       if (msg.type() === 'error') warn(`[popup console.error][${locale}] ${msg.text()}`);

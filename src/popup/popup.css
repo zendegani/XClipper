@@ -65,7 +65,7 @@ body {
   font-family: var(--font);
   background: var(--bg-primary);
   color: var(--text-primary);
-  width: 352px;
+  width: 460px;
   min-height: 200px;
   overflow: hidden;
   -webkit-font-smoothing: antialiased;
@@ -161,13 +161,17 @@ body {
     box-shadow var(--transition),
     transform var(--transition);
   position: relative;
-  overflow: hidden;
+  /* overflow visible so [data-tooltip]::after (Obsidian hint) can render
+   * above the button. The ::before gradient inherits border-radius so it
+   * still stays inside the rounded box. */
+  overflow: visible;
 }
 
 .btn-action::before {
   content: "";
   position: absolute;
   inset: 0;
+  border-radius: inherit;
   background: linear-gradient(
     135deg,
     rgba(255, 255, 255, 0.12) 0%,
@@ -205,35 +209,21 @@ body {
   flex-shrink: 0;
 }
 
-/* Tertiary "send elsewhere" action — purple outline matches Obsidian's
- * brand and signals a different category from the primary blue Download
- * / Copy buttons (which save content locally). Button takes the full row;
- * the long-threads disclaimer is folded into a ⓘ tooltip on the right so
- * the row stays compact across locales with long Obsidian labels. */
-.obsidian-row {
+/* PDF (red outline) + Obsidian (purple outline) share one row. The popup is
+ * sized so both buttons fit at their natural half-width without shrinking,
+ * and the Obsidian hint lives on the button itself via [data-tooltip]. */
+.action-row {
   --obsidian: #7C3AED;
   --obsidian-glow: rgba(124, 58, 237, 0.18);
-  position: relative;
-  display: flex;
-  gap: 8px;
-  align-items: center;
-  justify-content: center;
-}
-
-.pdf-row {
   --pdf: #dc2626;
   --pdf-glow: rgba(220, 38, 38, 0.18);
-  position: relative;
   display: flex;
   gap: 8px;
   align-items: center;
-  justify-content: center;
   margin-bottom: 8px;
 }
 
 .btn-pdf {
-  flex: 0 0 calc(62.5% - 4px);
-  min-width: 0;
   background: transparent;
   color: var(--pdf);
   border: 1px solid var(--pdf);
@@ -251,11 +241,6 @@ body {
 }
 
 .btn-obsidian {
-  /* ~25% wider than the previous half-width row, centered in the popup.
-   * The ⓘ tooltip floats on the right margin so the button itself stays
-   * visually centered regardless of how long the translated label is. */
-  flex: 0 0 calc(62.5% - 4px);
-  min-width: 0;
   background: transparent;
   color: var(--obsidian);
   border: 1px solid var(--obsidian);
@@ -273,77 +258,6 @@ body {
 
 .btn-obsidian .btn-icon {
   color: var(--obsidian);
-}
-
-.btn-hint-wrap {
-  position: absolute;
-  inset-inline-end: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  display: inline-flex;
-  align-items: center;
-  flex-shrink: 0;
-}
-
-.btn-hint-icon {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 22px;
-  height: 22px;
-  padding: 0;
-  border: none;
-  background: transparent;
-  color: var(--obsidian);
-  opacity: 0.55;
-  cursor: help;
-  border-radius: 50%;
-  transition: opacity var(--transition), background var(--transition);
-}
-
-.btn-hint-icon:hover,
-.btn-hint-icon:focus-visible {
-  opacity: 1;
-  background: var(--obsidian-glow);
-  outline: none;
-}
-
-.btn-hint-icon svg {
-  width: 14px;
-  height: 14px;
-}
-
-/* Tooltip floats above the popup chrome and anchors to the end edge of
- * the row so it never extends past the popup window on long translations. */
-.btn-hint-tooltip {
-  position: absolute;
-  bottom: 28px;
-  inset-inline-end: 0;
-  z-index: 20;
-  width: max-content;
-  max-width: 260px;
-  padding: 8px 10px;
-  background: var(--bg-primary);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.18);
-  font-size: 11.5px;
-  line-height: 1.4;
-  color: var(--text-primary);
-  white-space: pre-line;
-  opacity: 0;
-  visibility: hidden;
-  transform: translateY(2px);
-  transition: opacity var(--tooltip-fade), transform var(--tooltip-fade), visibility 0s linear var(--tooltip-fade);
-  pointer-events: none;
-}
-
-.btn-hint-wrap:hover .btn-hint-tooltip,
-.btn-hint-icon:focus-visible + .btn-hint-tooltip {
-  opacity: 1;
-  visibility: visible;
-  transform: translateY(0);
-  transition: opacity var(--tooltip-fade) var(--tooltip-delay), transform var(--tooltip-fade) var(--tooltip-delay), visibility 0s linear var(--tooltip-delay);
 }
 
 /* ─── Loading State ─────────────────────────────────────────── */
