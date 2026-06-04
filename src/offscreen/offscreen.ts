@@ -52,6 +52,7 @@ async function renderPdfDataUrl(html: string): Promise<string> {
   const host = document.getElementById('render-host');
   if (!host) throw new Error('Offscreen render-host missing');
 
+  const t0 = performance.now();
   // renderPdfFragment escapes every user-derived value (text, URLs, alts,
   // titles) via escapeHtml/escapeAttr — see src/ast/render-pdf-html.ts.
   // The offscreen page is extension-owned and not reachable from the web,
@@ -59,10 +60,15 @@ async function renderPdfDataUrl(html: string): Promise<string> {
   host.innerHTML = html;
   try {
     await waitForImages(host);
+    const tImages = performance.now();
+    osLog(`waitForImages: ${(tImages - t0).toFixed(0)}ms`);
 
+    // scale=1.5 balances sharpness with rasterization cost. scale=2 was ~4×
+    // the pixel area for ~10% perceptible-detail gain on body text. Drop to
+    // 1 if size/speed matters more than crisp avatars.
     const canvas = await withTimeout(
       html2canvas(host, {
-        scale: 2,
+        scale: 1.5,
         useCORS: true,
         allowTaint: true,
         backgroundColor: '#ffffff',
@@ -72,10 +78,16 @@ async function renderPdfDataUrl(html: string): Promise<string> {
       RENDER_TIMEOUT_MS,
       'PDF render timed out after 60s',
     );
+    const tCanvas = performance.now();
+    osLog(
+      `html2canvas: ${(tCanvas - tImages).toFixed(0)}ms (canvas ${canvas.width}×${canvas.height})`,
+    );
 
     const imgWidthMm = CONTENT_WIDTH_MM;
     const imgHeightMm = (canvas.height / canvas.width) * imgWidthMm;
-    const imgData = canvas.toDataURL('image/jpeg', 0.92);
+    const imgData = canvas.toDataURL('image/jpeg', 0.85);
+    const tJpeg = performance.now();
+    osLog(`canvas→JPEG: ${(tJpeg - tCanvas).toFixed(0)}ms`);
 
     const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
     let yOffset = 0;
@@ -92,7 +104,10 @@ async function renderPdfDataUrl(html: string): Promise<string> {
       if (yOffset < imgHeightMm) pdf.addPage();
     }
 
-    return pdf.output('datauristring');
+    const dataUrl = pdf.output('datauristring');
+    const tDone = performance.now();
+    osLog(`pdf.output: ${(tDone - tJpeg).toFixed(0)}ms, total ${(tDone - t0).toFixed(0)}ms`);
+    return dataUrl;
   } finally {
     host.innerHTML = '';
   }
