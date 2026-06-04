@@ -465,6 +465,40 @@
           }
         },
         "engagement": "<ignored>"
+      },
+      {
+        "type": "tweet",
+        "author": {
+          "name": "Thariq",
+          "handle": "trq212"
+        },
+        "date": "<ignored>",
+        "tweetId": "2062556889171517499",
+        "text": [
+          {
+            "type": "text",
+            "value": "How dynamic workflows allow Claude Code to handle whole new types of tasks"
+          }
+        ],
+        "media": [],
+        "quotedTweet": {
+          "type": "tweet",
+          "author": {
+            "name": "Thariq",
+            "handle": "trq212"
+          },
+          "date": "<ignored>",
+          "tweetId": "",
+          "text": [],
+          "media": [],
+          "articleCard": {
+            "type": "articleCard",
+            "title": "A harness for every task: dynamic workflows in Claude Code",
+            "description": "Last week, we released dynamic workflows in Claude Code. Claude can now write its own harness on the fly, custom-built for the task at hand.\nWhile the default Claude Code harness is built for coding,...",
+            "imageUrl": "https://pbs.twimg.com/media/HJ0q6o6aYAEM_ej?format=jpg&name=large"
+          }
+        },
+        "engagement": "<ignored>"
       }
     ]
   }
