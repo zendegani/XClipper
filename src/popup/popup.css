@@ -856,7 +856,10 @@ details.option-group[open] .option-group-chevron {
   content: "";
   position: absolute;
   top: 2px;
-  inset-inline-start: 2px;
+  /* Anchor to physical left (not inset-inline-start) so the thumb's OFF→ON
+   * travel is always physical left→right, regardless of document direction.
+   * Toggle semantics (right = ON) stay consistent across LTR and RTL locales. */
+  left: 2px;
   width: 16px;
   height: 16px;
   background: var(--toggle-off-knob);
@@ -874,13 +877,6 @@ details.option-group[open] .option-group-chevron {
 .toggle-input:checked + .toggle-switch::after {
   transform: translateX(16px);
   background: var(--accent);
-}
-
-/* transform: translateX is direction-agnostic — under RTL the knob's ON
- * position must move in the opposite physical direction so it still travels
- * from inline-start to inline-end of the track. */
-[dir="rtl"] .toggle-input:checked + .toggle-switch::after {
-  transform: translateX(-16px);
 }
 
 /* Obsidian-friendly toggle: paint icon + switch in Obsidian purple when
@@ -1334,7 +1330,8 @@ details.option-group[open] .option-group-chevron {
   content: "";
   position: absolute;
   top: 2px;
-  inset-inline-start: 2px;
+  /* See .toggle-switch::after — physical anchor keeps ON=right everywhere. */
+  left: 2px;
   width: 8px;
   height: 8px;
   background: var(--toggle-off-knob);
@@ -1350,16 +1347,6 @@ details.option-group[open] .option-group-chevron {
 .fm-field-input:checked + .toggle-switch-mini::after {
   transform: translateX(10px);
   background: var(--accent);
-}
-
-[dir="rtl"] .fm-field-input:checked + .toggle-switch-mini::after {
-  transform: translateX(-10px);
-}
-
-/* Picker rows are force-LTR (see [dir="rtl"] .fm-picker-fields), so the
- * RTL thumb-flip above doesn't apply — the thumb travels rightward like LTR. */
-[dir="rtl"] .fm-picker-fields .fm-field-input:checked + .toggle-switch-mini::after {
-  transform: translateX(10px);
 }
 
 .fm-field-input:disabled + .toggle-switch-mini {
