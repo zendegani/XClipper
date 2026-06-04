@@ -49,6 +49,19 @@ export function domToAst(opts: { singleTweet?: boolean } = {}): Document {
   if (allArticles.length === 0) {
     throw new Error('domToAst: no <article> found');
   }
+  // Rehydrated articles (from tweet.ts → rehydrateMissingArticles) carry
+  // thread order in their host's child order. Pin them ahead of the live
+  // cells while keeping each group's relative order (Array.sort is stable
+  // in modern V8). Tweet-id sorting was tempting but breaks here: replies
+  // can have ids that fall *between* thread tweet ids (e.g. trq212's
+  // "thank you!" reply was Mar 21, between thread tweets posted Mar 21
+  // and Mar 22+), so an id sort interleaves them and the boundary break
+  // stops mid-thread.
+  allArticles.sort((a, b) => {
+    const aR = a.closest('[data-t2m-rehydrate-host]') ? 0 : 1;
+    const bR = b.closest('[data-t2m-rehydrate-host]') ? 0 : 1;
+    return aR - bR;
+  });
 
   const rootAuthor = stripHandlePrefix(extractAuthorFromArticle(allArticles[0]));
   const threadArticles = opts.singleTweet

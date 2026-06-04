@@ -115,18 +115,26 @@ export function isPromotedArticle(article: Element): boolean {
 export async function extractTweetAsync(
   opts: { singleTweet?: boolean } = {}
 ): Promise<ExtractedContent> {
+  let rehydrateHost: Element | null = null;
   if (!opts.singleTweet) {
-    await loadThreadIntoDom();
+    rehydrateHost = await loadThreadIntoDom();
   }
-  return astToExtractedContent(domToAst({ singleTweet: opts.singleTweet }));
+  try {
+    return astToExtractedContent(domToAst({ singleTweet: opts.singleTweet }));
+  } finally {
+    // Always tear down the off-screen rehydration host so the live page
+    // returns to a clean state, even if extraction throws.
+    rehydrateHost?.remove();
+  }
 }
 
-async function loadThreadIntoDom(): Promise<void> {
+async function loadThreadIntoDom(): Promise<Element | null> {
   // Fresh map per extraction — keeps memory bounded in long X.com SPA
   // sessions where the user navigates between threads.
   const captured: Map<string, Element> = new Map();
 
   // Upward walk: coax X into loading any ancestors above the focused tweet.
+  // No capture yet — we don't know the thread author until ancestors settle.
   const MAX_UP_STEPS = 30;
   const UP_SETTLE_DELAY = 500;
   for (let step = 0; step < MAX_UP_STEPS; step++) {
@@ -134,22 +142,25 @@ async function loadThreadIntoDom(): Promise<void> {
     const beforeHeight = document.documentElement.scrollHeight;
     window.scrollTo({ top: 0, behavior: 'instant' });
     await delay(UP_SETTLE_DELAY);
-    captureArticles(captured);
     const afterCount = document.querySelectorAll('article[role="article"]').length;
     const afterHeight = document.documentElement.scrollHeight;
     if (afterCount === beforeCount && afterHeight === beforeHeight) break;
   }
 
-  // Downward walk: collect same-author articles until the reply boundary,
-  // matching what domToAst's thread collector will iterate.
   // X.com virtualizes the timeline — articles scrolled off-screen are
-  // detached from the DOM. We snapshot each article's outerHTML keyed by
-  // tweet id during the walk and re-attach any that are missing at the
-  // end, so domToAst sees the whole thread regardless of viewport state.
+  // detached from the DOM. We snapshot each thread article via cloneNode
+  // during the walk and re-attach any that are missing at the end, so
+  // domToAst sees the whole thread regardless of viewport state.
   const firstArticle = Array.from(document.querySelectorAll('article[role="article"]'))
     .find((a) => !isPromotedArticle(a));
-  if (!firstArticle) return;
+  if (!firstArticle) return null;
   const threadAuthor = extractAuthorFromArticle(firstArticle);
+
+  // First capture — thread root + nearby tweets currently in DOM, bounded
+  // by the same-author boundary so reply-section tweets by the author
+  // (e.g. "thank you! means a lot" in response to a comment) don't pollute
+  // the captured set.
+  captureArticles(captured, threadAuthor.handle);
 
   const seen = new Set<string>();
   let threadDone = false;
@@ -169,7 +180,7 @@ async function loadThreadIntoDom(): Promise<void> {
       }
       seen.add(getTweetStatusId(article));
     }
-    captureArticles(captured);
+    captureArticles(captured, threadAuthor.handle);
     if (threadDone) break;
 
     const atBottom =
@@ -179,60 +190,78 @@ async function loadThreadIntoDom(): Promise<void> {
     await delay(400);
   }
 
-  // One more capture of whatever the bottom view still has, then rehydrate.
-  captureArticles(captured);
+  // Final pass: capture at bottom, scroll-back-to-top + settle + capture.
+  captureArticles(captured, threadAuthor.handle);
   window.scrollTo({ top: 0, behavior: 'instant' });
   await delay(400);
-  captureArticles(captured);
-  rehydrateMissingArticles(captured, threadAuthor.handle);
+  captureArticles(captured, threadAuthor.handle);
+  return rehydrateMissingArticles(captured, threadAuthor.handle);
 }
 
 // Snapshot helpers. We use cloneNode rather than outerHTML so X.com-specific
 // markup (article cards, link cards, etc.) round-trips without parsing, and
 // so there's no HTML-string injection path. Clones are detached; originals
-// stay live.
-function captureArticles(store: Map<string, Element>): void {
+// stay live. Captures STOP at the first non-author article — the comment
+// boundary — so reply-section tweets by the author aren't swept in.
+function captureArticles(store: Map<string, Element>, authorHandle: string): void {
+  const target = authorHandle.toLowerCase();
   for (const article of document.querySelectorAll('article[role="article"]')) {
     if (isPromotedArticle(article)) continue;
+    const a = extractAuthorFromArticle(article);
+    if (a.handle === 'unknown') continue;
+    if (a.handle.toLowerCase() !== target) break; // boundary
     const id = getTweetStatusId(article);
     if (!id || store.has(id)) continue;
     store.set(id, article.cloneNode(true) as Element);
   }
 }
 
-// If the final scroll back to top dropped any thread tweets, append clones
-// from `captured` into the timeline so domToAst can see them. We don't try
-// to restore exact ordering — domToAst's collector walks consecutive
-// same-author articles, which is order-independent for one author's thread.
-function rehydrateMissingArticles(store: Map<string, Element>, authorHandle: string): void {
-  const present = new Set<string>();
-  for (const article of document.querySelectorAll('article[role="article"]')) {
-    const id = getTweetStatusId(article);
-    if (id) present.add(id);
-  }
-  const missingIds = Array.from(store.keys()).filter((id) => !present.has(id));
-  if (missingIds.length === 0) return;
+// Inject ALL captured thread articles into an off-screen host so domToAst
+// has a guaranteed-ordered, virtualization-independent source for the
+// thread. Order is `store`'s insertion order — established by the bounded
+// downward walk (which sees tweets in thread/chronological order as X
+// loads them on scroll). domToAst sorts rehydrated articles ahead of live
+// ones; same-id live duplicates get dropped via id dedup in
+// collectSameAuthorArticles. Off-screen positioning (position:absolute +
+// left:-99999px + visibility:hidden + pointer-events:none) keeps X's
+// virtualizer from noticing.
+//
+// Returns the host so the caller can remove it after extraction.
+function rehydrateMissingArticles(
+  store: Map<string, Element>,
+  authorHandle: string,
+): Element | null {
+  if (store.size === 0) return null;
 
-  // Anchor to the closest reasonable container — the cellInnerDiv parent of
-  // the current first article — so injected articles share the timeline's
-  // origin (matters for relative-link resolution).
-  const firstCell = document.querySelector('[data-testid="cellInnerDiv"]');
-  const timeline = firstCell?.parentElement || document.body;
+  const host = document.createElement('div');
+  host.setAttribute('data-t2m-rehydrate-host', '');
+  host.setAttribute(
+    'style',
+    'position:absolute;left:-99999px;top:0;width:1px;height:1px;' +
+      'visibility:hidden;pointer-events:none;overflow:hidden;',
+  );
 
-  for (const id of missingIds) {
-    const snapshot = store.get(id);
-    if (!snapshot) continue;
-    // Sanity: only inject articles that still parse as same-author.
+  // Iterate the Map in insertion order — JS Map preserves it. captureArticles'
+  // boundary break ensures only thread tweets land here, so the order is the
+  // walk's chronological encounter order = thread order.
+  const target = authorHandle.toLowerCase();
+  for (const [id, snapshot] of store) {
+    // Sanity: re-verify the snapshot still parses as same-author.
     const a = extractAuthorFromArticle(snapshot);
-    if (a.handle.toLowerCase() !== authorHandle.toLowerCase()) continue;
-    const wrapper = document.createElement('div');
-    wrapper.setAttribute('data-testid', 'cellInnerDiv');
-    wrapper.setAttribute('data-t2m-rehydrated', id);
+    if (a.handle.toLowerCase() !== target) continue;
+    const cell = document.createElement('div');
+    cell.setAttribute('data-testid', 'cellInnerDiv');
+    cell.setAttribute('data-t2m-rehydrated', id);
     // cloneNode again so the stored snapshot stays usable if rehydrate
     // runs more than once during the page's lifetime.
-    wrapper.appendChild(snapshot.cloneNode(true));
-    timeline.appendChild(wrapper);
+    cell.appendChild(snapshot.cloneNode(true));
+    host.appendChild(cell);
   }
+
+  // Attach as last body child — domToAst's rehydrated-first sort handles
+  // ordering vs live cells, so we don't need a specific anchor.
+  document.body.appendChild(host);
+  return host;
 }
 
 function astToExtractedContent(doc: AstDocument): ExtractedContent {
