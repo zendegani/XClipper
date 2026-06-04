@@ -43,42 +43,19 @@ export interface ExportPdfRequest {
   action: 'EXPORT_PDF';
 }
 
-// Content → background: render this fragment to a PDF in the offscreen doc.
-// Background spins up the offscreen page (extension origin → no x.com CSP)
-// and forwards via OffscreenRenderPdfRequest below.
-export interface PdfRenderRequest {
-  action: 'PDF_RENDER_REQUEST';
-  html: string;
-  filenameBase: string;
-}
-
-// Background → offscreen page. Offscreen returns the rendered PDF as a data
-// URL; chrome.storage / chrome.downloads aren't reliably exposed in offscreen
-// documents, so the background handles those.
-export interface OffscreenRenderPdfRequest {
-  action: 'OFFSCREEN_RENDER_PDF';
-  html: string;
-}
-
-export interface OffscreenRenderPdfResponse {
-  success: boolean;
-  dataUrl?: string;
-  error?: string;
-}
-
-export interface PdfRenderResponse {
-  success: boolean;
-  error?: string;
-}
-
-// Print-via-browser spike (ADR 0001 follow-up). Content asks background to
-// open chrome-extension://<id>/print.html in a new tab; the page hydrates
-// the supplied HTML and calls window.print(), letting the user save the
-// real Chrome-rendered output via the print dialog.
+// Content → background: open the print-preview tab so Chrome's native print
+// engine can render and save the PDF. The browser handles selectable text,
+// clickable links, Unicode, and pagination — see ADR 0001 "Renderer
+// decisions".
 export interface PdfPrintRequest {
   action: 'PDF_PRINT_REQUEST';
   html: string;
   filenameBase: string;
+}
+
+export interface PdfPrintResponse {
+  success: boolean;
+  error?: string;
 }
 
 export interface ExtractResponse {
@@ -91,6 +68,4 @@ export type MessageRequest =
   | ExtractRequest
   | DownloadRequest
   | ExportPdfRequest
-  | PdfRenderRequest
-  | OffscreenRenderPdfRequest
   | PdfPrintRequest;

@@ -1,9 +1,7 @@
 import type {
   DownloadRequest,
-  OffscreenRenderPdfResponse,
   PdfPrintRequest,
-  PdfRenderRequest,
-  PdfRenderResponse,
+  PdfPrintResponse,
 } from '../types/messages';
 import {
   isAllowedImageUrl,
@@ -170,129 +168,27 @@ function loadDownloadFolder(): Promise<string> {
   });
 }
 
-// ─── Offscreen PDF renderer ────────────────────────────────────────
-//
-// PDF generation runs in chrome-extension://<id>/offscreen.html (extension
-// origin) so html2canvas's offscreen-iframe clone never touches X.com's
-// <script src="…twimg.com…"> tags — those tags inside the page's
-// documentElement otherwise re-execute in the clone and trip CSP, leaving
-// the PDF blank. Content script delegates here.
-
-const OFFSCREEN_PATH = 'offscreen.html';
-const OFFSCREEN_RESPONSE_TIMEOUT_MS = 90_000;
-let offscreenCreating: Promise<void> | null = null;
-
-const bgLog = (...args: unknown[]): void => console.log('[t2m bg]', ...args);
-
-async function ensureOffscreenDocument(): Promise<void> {
-  const url = chrome.runtime.getURL(OFFSCREEN_PATH);
-  const existing = await chrome.runtime.getContexts({
-    contextTypes: ['OFFSCREEN_DOCUMENT' as chrome.runtime.ContextType],
-    documentUrls: [url],
-  });
-  if (existing.length > 0) {
-    bgLog('offscreen already alive');
-    return;
-  }
-  if (offscreenCreating) {
-    bgLog('offscreen create in-flight, awaiting…');
-    await offscreenCreating;
-    return;
-  }
-  bgLog('creating offscreen document…');
-  offscreenCreating = chrome.offscreen
-    .createDocument({
-      url: OFFSCREEN_PATH,
-      reasons: ['DOM_SCRAPING' as chrome.offscreen.Reason],
-      justification:
-        'Render tweet HTML to a PDF via html2canvas in an extension-origin document, so the snapshot iframe is not bound by x.com page CSP.',
-    })
-    .then(() => {
-      bgLog('offscreen.createDocument resolved');
-    })
-    .finally(() => {
-      offscreenCreating = null;
-    });
-  await offscreenCreating;
-  // createDocument resolves when the document is loaded, but a freshly-loaded
-  // offscreen page may not have its top-level script's onMessage listener
-  // bound by the time we send the next message. Wait for an explicit ping.
-  await waitForOffscreenReady();
-}
-
-async function waitForOffscreenReady(): Promise<void> {
-  const deadline = Date.now() + 5_000;
-  let attempt = 0;
-  while (Date.now() < deadline) {
-    attempt += 1;
-    try {
-      const resp = (await chrome.runtime.sendMessage({ action: 'OFFSCREEN_PING' })) as
-        | { pong?: boolean }
-        | undefined;
-      if (resp?.pong) {
-        bgLog(`offscreen ready after ${attempt} ping(s)`);
-        return;
-      }
-    } catch {
-      /* listener may not be attached yet — retry */
-    }
-    await new Promise((r) => setTimeout(r, 50));
-  }
-  throw new Error('Offscreen page failed to register listener within 5s');
-}
-
-function sendWithTimeout<T>(message: unknown, ms: number, label: string): Promise<T> {
-  return new Promise<T>((resolve, reject) => {
-    const t = setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms);
-    chrome.runtime.sendMessage(message).then(
-      (resp) => {
-        clearTimeout(t);
-        resolve(resp as T);
-      },
-      (err) => {
-        clearTimeout(t);
-        reject(err);
-      },
-    );
-  });
-}
-
-async function downloadPdfDataUrl(dataUrl: string, filenameBase: string): Promise<void> {
-  const folder = await loadDownloadFolder();
-  const prefix = folder ? folder + '/' : '';
-  const filename = sanitizeFilePath(prefix + filenameBase + '.pdf');
-  await new Promise<void>((resolve, reject) => {
-    chrome.downloads.download({ url: dataUrl, filename, saveAs: false }, (id) => {
-      if (chrome.runtime.lastError || typeof id !== 'number') {
-        reject(new Error(chrome.runtime.lastError?.message || 'Download failed'));
-        return;
-      }
-      resolve();
-    });
-  });
-}
-
-// ─── Print spike: open print.html in a new tab and let Chrome render ───
+// ─── PDF via Chrome's print engine ─────────────────────────────────
 //
 // Content sends PDF_PRINT_REQUEST { html, filenameBase }. We stash the HTML
 // in chrome.storage.session keyed by a uuid, then open a tab pointing at
 // print.html?key=<uuid>. The print page picks the payload up, hydrates the
 // DOM, calls window.print(), and self-closes on afterprint. The user picks
-// "Save as PDF" in the dialog.
+// "Save as PDF" in the print dialog — Chrome's native print engine
+// produces selectable text, clickable links, real Unicode, and proper
+// pagination for free. See ADR 0001 → "Renderer decisions".
 
 const PRINT_STORAGE_PREFIX = 't2m_print_';
 
-function newPrintKey(): string {
-  // crypto.randomUUID is available in MV3 service workers.
-  return crypto.randomUUID();
-}
+const bgLog = (...args: unknown[]): void => console.log('[t2m bg]', ...args);
 
 chrome.runtime.onMessage.addListener((message: PdfPrintRequest, _sender, sendResponse) => {
   if (!message || message.action !== 'PDF_PRINT_REQUEST') return false;
   bgLog('PDF_PRINT_REQUEST received, html length =', message.html.length);
-  (async (): Promise<PdfRenderResponse> => {
+  (async (): Promise<PdfPrintResponse> => {
     try {
-      const key = newPrintKey();
+      // crypto.randomUUID is available in MV3 service workers.
+      const key = crypto.randomUUID();
       const storageKey = PRINT_STORAGE_PREFIX + key;
       await chrome.storage.session.set({
         [storageKey]: { html: message.html, filenameBase: message.filenameBase },
@@ -303,37 +199,6 @@ chrome.runtime.onMessage.addListener((message: PdfPrintRequest, _sender, sendRes
       return { success: true };
     } catch (err) {
       bgLog('print flow error:', err);
-      return { success: false, error: err instanceof Error ? err.message : String(err) };
-    }
-  })().then(sendResponse);
-  return true; // async
-});
-
-chrome.runtime.onMessage.addListener((message: PdfRenderRequest, _sender, sendResponse) => {
-  if (!message || message.action !== 'PDF_RENDER_REQUEST') return false;
-  bgLog('PDF_RENDER_REQUEST received, html length =', message.html.length);
-  (async (): Promise<PdfRenderResponse> => {
-    try {
-      await ensureOffscreenDocument();
-      bgLog('forwarding to offscreen…');
-      const resp = await sendWithTimeout<OffscreenRenderPdfResponse | undefined>(
-        {
-          action: 'OFFSCREEN_RENDER_PDF',
-          html: message.html,
-        },
-        OFFSCREEN_RESPONSE_TIMEOUT_MS,
-        'OFFSCREEN_RENDER_PDF',
-      );
-      bgLog('offscreen response success:', resp?.success);
-      if (!resp) return { success: false, error: 'Offscreen did not respond' };
-      if (!resp.success || !resp.dataUrl) {
-        return { success: false, error: resp.error || 'Offscreen returned no PDF' };
-      }
-      await downloadPdfDataUrl(resp.dataUrl, message.filenameBase);
-      bgLog('PDF download triggered');
-      return { success: true };
-    } catch (err) {
-      bgLog('PDF flow error:', err);
       return { success: false, error: err instanceof Error ? err.message : String(err) };
     }
   })().then(sendResponse);

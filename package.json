@@ -22,9 +22,5 @@
     "puppeteer-core": "^25.1.0",
     "typescript": "^6.0.3",
     "vitest": "^4.1.7"
-  },
-  "dependencies": {
-    "html2canvas": "^1.4.1",
-    "jspdf": "^4.2.1"
   }
 }

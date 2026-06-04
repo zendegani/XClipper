@@ -69,6 +69,7 @@ The AST defined in this ADR is **a minimum survivable model**, not a final docum
 - The AST is debuggable, dumpable, diffable — easier to test than markdown strings.
 - Removes Turndown as a runtime dependency once cutover is complete (~27 KB minified saved).
 - Fixture tests gain two regression layers: AST snapshot + rendered MD snapshot.
+- PDF ships **without** a custom JS-side PDF library (`jsPDF`, `html2pdf`, etc.). Chrome's print engine renders the same HTML the AST already produces — see *Renderer decisions* for the evaluation.
 
 ### Negative
 
@@ -119,11 +120,15 @@ The AST defined in this ADR is **a minimum survivable model**, not a final docum
 - `ExtractedContent.body = doc; ExtractedContent.markdown = renderMarkdown(doc);` — keep `markdown` on the wire for backward compatibility.
 - Remove Turndown from runtime. Keep it in `devDependencies` only as the Phase 0 oracle for the regression test, until confidence is high enough to retire the oracle in a follow-up.
 
-### Phase 5 — PDF renderer (1 week)
+### Phase 5 — PDF renderer
 
 - `src/ast/render-pdf-html.ts`: `Document → Twitter-styled HTML`.
 - `marked` is not needed (no MD round-trip).
-- Wire `html2pdf` in the content script next to the markdown download path.
+- **PDF delivery: Chrome's native print engine, not a JS-side PDF library.**
+  Background opens `chrome-extension://<id>/print.html` in a new tab; the page
+  hydrates the rendered fragment and calls `window.print()`. User picks
+  "Save as PDF" in the dialog. See *Renderer decisions* below for the
+  evaluation that led here.
 
 ### Phase 6+ — Future renderers (deferred)
 
@@ -241,6 +246,60 @@ Add only when a fixture forces them:
 - Embedded quote *cards* distinct from quoted tweets
 
 `PollNode` was on this list at ADR drafting time; the existing iret77 / Huawei fixtures forced it during Phase 2, so it landed in v1. See `docs/ast-schema.md`.
+
+## Renderer decisions
+
+### PDF delivery: Chrome print engine, not jsPDF or html2pdf
+
+**Decided after Phase 5 implementation attempts. Updated 2026-06-04.**
+
+The ADR required selectable text, embedded images, and clickable links. We
+tried, in order:
+
+1. **`html2pdf`** — original Phase 5 implementation; produced raster output
+   only (text not selectable).
+2. **`jsPDF.html()`** — switched in for vector text. Worked in development
+   then broke once X.com tightened CSP on its vendor scripts: `jsPDF.html()`
+   creates an offscreen iframe against `window.document`, which on x.com
+   cloned the page's `<script src="…twimg.com…">` tags into the iframe
+   where they re-evaluated and tripped CSP → blank PDF.
+3. **`html2canvas` directly, in a sandbox iframe** — bypassed `jsPDF.html()`
+   but lost selectable text (raster only), and the same CSP machinery still
+   reached the html2canvas clone.
+4. **Move rendering to a chrome.offscreen document** (extension origin, no
+   x.com CSP in scope) — fixed the CSP issue. Raster worked. Switching the
+   offscreen renderer back to `jsPDF.html()` for vector text re-introduced:
+   2× file size (raster + vector text both stored), Latin-1 default font
+   garbling non-ASCII/emoji, and `autoPaging` quirks that either zoomed
+   content or split cards mid-line.
+5. **Chrome's print engine** (current path) — open
+   `chrome-extension://<id>/print.html` in a new tab, hydrate from
+   `chrome.storage.session`, call `window.print()`. The browser's own PDF
+   pipeline handles selectable text, clickable links, Unicode + emoji,
+   pagination, RTL, and font rendering. The user saves via the print
+   dialog's "Save as PDF" destination; the tab self-closes on `afterprint`.
+
+This satisfies every ADR-stated requirement and removes `jsPDF` +
+`html2canvas` from the dependency tree (~800 KB of bundled code). The
+trade-off — and the one we accept — is the user clicks "Save" in the
+print dialog rather than having the file appear silently. We judged this
+acceptable against the alternative of building and maintaining a custom
+AST→PDF layout engine (text wrapping, pagination, font embedding, RTL,
+emoji-as-image, ongoing node-type maintenance) for a feature that the
+platform already implements.
+
+**Architectural consequence**: we now have **no** custom PDF renderer in
+the tree. The AST → HTML renderer (`render-pdf-html.ts`) feeds both
+print preview and future visual surfaces. Markdown, HTML (for print),
+and AST (the source of truth) are the only rendering artifacts. The
+"three rendering systems" concern from GPT's evaluation (cited in
+session notes) is reduced back to two.
+
+**Lesson recorded for future renderer decisions**: when a library is
+generating a string of unrelated-looking problems (CSP, fonts, paging,
+size, encoding) in one session, treat that as a signal that the
+abstraction is wrong — audit platform-native options before escalating
+inside the same frame.
 
 ## Resolved decisions on boundary behavior
 
