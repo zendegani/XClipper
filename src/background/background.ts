@@ -1,5 +1,6 @@
 import type {
   DownloadRequest,
+  OffscreenRenderPdfResponse,
   PdfRenderRequest,
   PdfRenderResponse,
 } from '../types/messages';
@@ -255,6 +256,21 @@ function sendWithTimeout<T>(message: unknown, ms: number, label: string): Promis
   });
 }
 
+async function downloadPdfDataUrl(dataUrl: string, filenameBase: string): Promise<void> {
+  const folder = await loadDownloadFolder();
+  const prefix = folder ? folder + '/' : '';
+  const filename = sanitizeFilePath(prefix + filenameBase + '.pdf');
+  await new Promise<void>((resolve, reject) => {
+    chrome.downloads.download({ url: dataUrl, filename, saveAs: false }, (id) => {
+      if (chrome.runtime.lastError || typeof id !== 'number') {
+        reject(new Error(chrome.runtime.lastError?.message || 'Download failed'));
+        return;
+      }
+      resolve();
+    });
+  });
+}
+
 chrome.runtime.onMessage.addListener((message: PdfRenderRequest, _sender, sendResponse) => {
   if (!message || message.action !== 'PDF_RENDER_REQUEST') return false;
   bgLog('PDF_RENDER_REQUEST received, html length =', message.html.length);
@@ -262,18 +278,22 @@ chrome.runtime.onMessage.addListener((message: PdfRenderRequest, _sender, sendRe
     try {
       await ensureOffscreenDocument();
       bgLog('forwarding to offscreen…');
-      const resp = await sendWithTimeout<PdfRenderResponse | undefined>(
+      const resp = await sendWithTimeout<OffscreenRenderPdfResponse | undefined>(
         {
           action: 'OFFSCREEN_RENDER_PDF',
           html: message.html,
-          filenameBase: message.filenameBase,
         },
         OFFSCREEN_RESPONSE_TIMEOUT_MS,
         'OFFSCREEN_RENDER_PDF',
       );
-      bgLog('offscreen response:', resp);
+      bgLog('offscreen response success:', resp?.success);
       if (!resp) return { success: false, error: 'Offscreen did not respond' };
-      return resp;
+      if (!resp.success || !resp.dataUrl) {
+        return { success: false, error: resp.error || 'Offscreen returned no PDF' };
+      }
+      await downloadPdfDataUrl(resp.dataUrl, message.filenameBase);
+      bgLog('PDF download triggered');
+      return { success: true };
     } catch (err) {
       bgLog('PDF flow error:', err);
       return { success: false, error: err instanceof Error ? err.message : String(err) };

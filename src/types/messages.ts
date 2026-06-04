@@ -52,11 +52,18 @@ export interface PdfRenderRequest {
   filenameBase: string;
 }
 
-// Background → offscreen page.
+// Background → offscreen page. Offscreen returns the rendered PDF as a data
+// URL; chrome.storage / chrome.downloads aren't reliably exposed in offscreen
+// documents, so the background handles those.
 export interface OffscreenRenderPdfRequest {
   action: 'OFFSCREEN_RENDER_PDF';
   html: string;
-  filenameBase: string;
+}
+
+export interface OffscreenRenderPdfResponse {
+  success: boolean;
+  dataUrl?: string;
+  error?: string;
 }
 
 export interface PdfRenderResponse {
