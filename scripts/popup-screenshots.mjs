@@ -5,7 +5,10 @@
 //   node scripts/popup-screenshots.mjs           # all locales in src/_locales
 //   node scripts/popup-screenshots.mjs en de fa  # subset
 //
-// Output: screenshots/popup-<locale>.png
+// Output per locale (three shots):
+//   screenshots/popup-<locale>.png         — main view
+//   screenshots/settings-dl-<locale>.png   — settings, Downloads + Inline open
+//   screenshots/settings-obs-<locale>.png  — settings, Obsidian + Frontmatter open
 //
 // We drive *the real extension* (no chrome-API stubs). System Chrome 137+ stable
 // silently no-ops `--load-extension`, so we use Chrome for Testing (CfT), which
@@ -151,12 +154,62 @@ async function screenshotPopup(chromePath, locale) {
     }));
     log(`popup i18n: ${JSON.stringify(i18nInfo)}`);
 
-    const out = join(SHOTS, `popup-${locale}.png`);
-    await page.screenshot({ path: out, fullPage: true });
-    log(`✓ ${locale} → ${out}`);
+    await captureShot(page, join(SHOTS, `popup-${locale}.png`), locale, 'main');
+
+    await openSettings(page);
+    await setOpenSections(page, ['downloads', 'inline']);
+    await captureShot(page, join(SHOTS, `settings-dl-${locale}.png`), locale, 'settings-dl');
+
+    await setOpenSections(page, ['obsidian', 'frontmatter']);
+    await captureShot(page, join(SHOTS, `settings-obs-${locale}.png`), locale, 'settings-obs');
   } finally {
     await browser.close();
   }
+}
+
+async function captureShot(page, path, locale, label) {
+  await page.screenshot({ path, fullPage: true });
+  log(`✓ ${locale} [${label}] → ${path}`);
+}
+
+async function openSettings(page) {
+  // Idempotent: if the settings view is already visible the click is harmless
+  // because btn-settings hides itself when settings opens.
+  await page.evaluate(() => {
+    const btn = document.getElementById('btn-settings');
+    if (btn && !btn.classList.contains('hidden')) btn.click();
+  });
+  // The settings view doesn't animate, but give the toggle one frame.
+  await new Promise((r) => setTimeout(r, 50));
+}
+
+// Drive the collapsible sections by dispatching real `toggle` events. The
+// popup's own listener then runs reconcileSections + persistAll, so we end up
+// with the exact same state a clicking user would produce — invariants and all.
+async function setOpenSections(page, wantedInOrder) {
+  await page.evaluate((wanted) => {
+    const all = ['downloads', 'obsidian', 'frontmatter', 'inline'];
+    const get = (id) => document.querySelector(`details[data-section-id="${id}"]`);
+    // Close anything not wanted first so we don't exceed the open cap mid-flight.
+    for (const id of all) {
+      const el = get(id);
+      if (el && el.open && !wanted.includes(id)) {
+        el.open = false;
+        el.dispatchEvent(new Event('toggle'));
+      }
+    }
+    // Open wanted sections in the requested order. Re-toggling an already-open
+    // section is a no-op in the listener (`if (sectionsSyncing) return`-style
+    // guard not needed here — opening an open <details> doesn't fire toggle).
+    for (const id of wanted) {
+      const el = get(id);
+      if (el && !el.open) {
+        el.open = true;
+        el.dispatchEvent(new Event('toggle'));
+      }
+    }
+  }, wantedInOrder);
+  await new Promise((r) => setTimeout(r, 50));
 }
 
 async function main() {
