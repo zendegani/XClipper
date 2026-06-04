@@ -20,30 +20,50 @@ import { renderPdfFragment } from '../ast/render-pdf-html';
 const RENDER_TIMEOUT_MS = 60000;
 
 export async function exportPdf(doc: Document, filenameBase: string): Promise<void> {
-  const host = document.createElement('div');
-  host.style.cssText = [
+  // Render inside a dedicated sandbox iframe rather than directly in the page.
+  // html2canvas clones the input element's ownerDocument; if that's X.com's
+  // document, the clone includes <script src="…twimg.com…"> tags that get
+  // re-evaluated in html2canvas's offscreen iframe and trip CSP → blank PDF.
+  // Using an iframe whose document contains only our self-contained fragment
+  // (inline <style>, no scripts) avoids the issue entirely. onclone runs
+  // *after* scripts have already executed, so it can't be used as a fix.
+  const sandbox = document.createElement('iframe');
+  sandbox.setAttribute('aria-hidden', 'true');
+  sandbox.style.cssText = [
     'position:absolute',
     'left:-10000px',
     'top:0',
     'width:680px',
-    'background:#fff',
+    'height:1px',
+    'border:0',
     'visibility:hidden',
   ].join(';');
-  // renderPdfFragment escapes every user-derived value (text, URLs, alts,
-  // titles) via escapeHtml/escapeAttr — see src/ast/render-pdf-html.ts.
-  // The output is not subject to XSS from tweet content.
-  host.innerHTML = renderPdfFragment(doc);
-  document.body.appendChild(host);
+  // srcdoc is set after append so the load event fires reliably.
+  document.body.appendChild(sandbox);
 
   try {
-    await waitForImages(host);
+    await new Promise<void>((resolve) => {
+      sandbox.addEventListener('load', () => resolve(), { once: true });
+      // renderPdfFragment escapes every user-derived value (text, URLs, alts,
+      // titles) via escapeHtml/escapeAttr — see src/ast/render-pdf-html.ts.
+      sandbox.srcdoc =
+        `<!doctype html><html><head><meta charset="utf-8"></head>` +
+        `<body style="margin:0;background:#fff">${renderPdfFragment(doc)}</body></html>`;
+    });
+
+    const sandboxDoc = sandbox.contentDocument;
+    if (!sandboxDoc) throw new Error('Sandbox iframe has no contentDocument');
+    const target = sandboxDoc.body.firstElementChild as HTMLElement | null;
+    if (!target) throw new Error('Sandbox iframe missing rendered fragment');
+
+    await waitForImages(target);
 
     const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
     await withTimeout(
-      pdf.html(host, {
+      pdf.html(target, {
         margin: [10, 10, 10, 10],
         width: 190,           // A4 portrait width minus 2*10mm margins
-        windowWidth: 680,     // matches the source container width in px
+        windowWidth: 680,     // matches the sandbox iframe width in px
         image: { type: 'jpeg', quality: 0.92 },
         html2canvas: {
           scale: 1,
@@ -51,15 +71,6 @@ export async function exportPdf(doc: Document, filenameBase: string): Promise<vo
           allowTaint: true,
           backgroundColor: '#ffffff',
           logging: false,
-          // html2canvas clones the entire document into an offscreen iframe
-          // before snapshotting. X.com's <script src="…twimg.com…"> tags get
-          // re-evaluated there and the extension/page CSP blocks them, which
-          // aborts iframe layout → blank PDF. Our t2m-root fragment is fully
-          // self-contained (inline <style>, escaped HTML, no script deps),
-          // so dropping every <script> in the clone is safe.
-          onclone: (clonedDoc: globalThis.Document) => {
-            clonedDoc.querySelectorAll('script').forEach((el) => el.remove());
-          },
         },
       }),
       RENDER_TIMEOUT_MS,
@@ -67,7 +78,7 @@ export async function exportPdf(doc: Document, filenameBase: string): Promise<vo
     );
     pdf.save(`${filenameBase}.pdf`);
   } finally {
-    host.remove();
+    sandbox.remove();
   }
 }
 
