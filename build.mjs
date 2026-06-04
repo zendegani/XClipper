@@ -58,13 +58,22 @@ async function build() {
     format: 'iife',
   });
 
-  await Promise.all([contentBuild, injectorBuild, backgroundBuild, popupBuild, offscreenBuild]);
+  // Build print page (IIFE)
+  const printBuild = esbuild.build({
+    ...commonOptions,
+    entryPoints: [resolve(__dirname, 'src/print/print.ts')],
+    outfile: resolve(__dirname, 'dist/print.js'),
+    format: 'iife',
+  });
+
+  await Promise.all([contentBuild, injectorBuild, backgroundBuild, popupBuild, offscreenBuild, printBuild]);
 
   // Copy static assets
   cpSync(resolve(__dirname, 'src/manifest.json'), resolve(__dirname, 'dist/manifest.json'));
   cpSync(resolve(__dirname, 'src/popup/popup.html'), resolve(__dirname, 'dist/popup.html'));
   cpSync(resolve(__dirname, 'src/popup/popup.css'), resolve(__dirname, 'dist/popup.css'));
   cpSync(resolve(__dirname, 'src/offscreen/offscreen.html'), resolve(__dirname, 'dist/offscreen.html'));
+  cpSync(resolve(__dirname, 'src/print/print.html'), resolve(__dirname, 'dist/print.html'));
 
   // Copy icons
   const iconsDir = resolve(__dirname, 'src/icons');

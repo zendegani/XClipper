@@ -71,6 +71,16 @@ export interface PdfRenderResponse {
   error?: string;
 }
 
+// Print-via-browser spike (ADR 0001 follow-up). Content asks background to
+// open chrome-extension://<id>/print.html in a new tab; the page hydrates
+// the supplied HTML and calls window.print(), letting the user save the
+// real Chrome-rendered output via the print dialog.
+export interface PdfPrintRequest {
+  action: 'PDF_PRINT_REQUEST';
+  html: string;
+  filenameBase: string;
+}
+
 export interface ExtractResponse {
   success: boolean;
   data?: ExtractedContent;
@@ -82,4 +92,5 @@ export type MessageRequest =
   | DownloadRequest
   | ExportPdfRequest
   | PdfRenderRequest
-  | OffscreenRenderPdfRequest;
+  | OffscreenRenderPdfRequest
+  | PdfPrintRequest;

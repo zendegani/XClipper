@@ -1,6 +1,7 @@
 import type {
   DownloadRequest,
   OffscreenRenderPdfResponse,
+  PdfPrintRequest,
   PdfRenderRequest,
   PdfRenderResponse,
 } from '../types/messages';
@@ -270,6 +271,43 @@ async function downloadPdfDataUrl(dataUrl: string, filenameBase: string): Promis
     });
   });
 }
+
+// ─── Print spike: open print.html in a new tab and let Chrome render ───
+//
+// Content sends PDF_PRINT_REQUEST { html, filenameBase }. We stash the HTML
+// in chrome.storage.session keyed by a uuid, then open a tab pointing at
+// print.html?key=<uuid>. The print page picks the payload up, hydrates the
+// DOM, calls window.print(), and self-closes on afterprint. The user picks
+// "Save as PDF" in the dialog.
+
+const PRINT_STORAGE_PREFIX = 't2m_print_';
+
+function newPrintKey(): string {
+  // crypto.randomUUID is available in MV3 service workers.
+  return crypto.randomUUID();
+}
+
+chrome.runtime.onMessage.addListener((message: PdfPrintRequest, _sender, sendResponse) => {
+  if (!message || message.action !== 'PDF_PRINT_REQUEST') return false;
+  bgLog('PDF_PRINT_REQUEST received, html length =', message.html.length);
+  (async (): Promise<PdfRenderResponse> => {
+    try {
+      const key = newPrintKey();
+      const storageKey = PRINT_STORAGE_PREFIX + key;
+      await chrome.storage.session.set({
+        [storageKey]: { html: message.html, filenameBase: message.filenameBase },
+      });
+      const url = chrome.runtime.getURL(`print.html?key=${encodeURIComponent(key)}`);
+      await chrome.tabs.create({ url, active: true });
+      bgLog('print tab opened:', url);
+      return { success: true };
+    } catch (err) {
+      bgLog('print flow error:', err);
+      return { success: false, error: err instanceof Error ? err.message : String(err) };
+    }
+  })().then(sendResponse);
+  return true; // async
+});
 
 chrome.runtime.onMessage.addListener((message: PdfRenderRequest, _sender, sendResponse) => {
   if (!message || message.action !== 'PDF_RENDER_REQUEST') return false;
