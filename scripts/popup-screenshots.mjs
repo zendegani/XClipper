@@ -5,10 +5,11 @@
 //   node scripts/popup-screenshots.mjs           # all locales in src/_locales
 //   node scripts/popup-screenshots.mjs en de fa  # subset
 //
-// Output per locale (three shots):
-//   screenshots/popup-<locale>.png         — main view
-//   screenshots/settings-dl-<locale>.png   — settings, Downloads + Inline open
-//   screenshots/settings-obs-<locale>.png  — settings, Obsidian + Frontmatter open
+// Output per locale (four shots):
+//   screenshots/popup-<locale>.png            — main view
+//   screenshots/settings-dl-<locale>.png      — settings, Downloads + Inline open
+//   screenshots/settings-obs-<locale>.png     — Obsidian + Frontmatter open, toggle OFF
+//   screenshots/settings-obs-on-<locale>.png  — Obsidian + Frontmatter open, toggle ON
 //
 // We drive *the real extension* (no chrome-API stubs). System Chrome 137+ stable
 // silently no-ops `--load-extension`, so we use Chrome for Testing (CfT), which
@@ -161,7 +162,11 @@ async function screenshotPopup(chromePath, locale) {
     await captureShot(page, join(SHOTS, `settings-dl-${locale}.png`), locale, 'settings-dl');
 
     await setOpenSections(page, ['obsidian', 'frontmatter']);
-    await captureShot(page, join(SHOTS, `settings-obs-${locale}.png`), locale, 'settings-obs');
+    await setObsidianFriendly(page, false);
+    await captureShot(page, join(SHOTS, `settings-obs-${locale}.png`), locale, 'settings-obs[off]');
+
+    await setObsidianFriendly(page, true);
+    await captureShot(page, join(SHOTS, `settings-obs-on-${locale}.png`), locale, 'settings-obs[on]');
   } finally {
     await browser.close();
   }
@@ -170,6 +175,19 @@ async function screenshotPopup(chromePath, locale) {
 async function captureShot(page, path, locale, label) {
   await page.screenshot({ path, fullPage: true });
   log(`✓ ${locale} [${label}] → ${path}`);
+}
+
+// Flip the Obsidian-friendly toggle to a specific state and fire `change` so the
+// popup's own listener runs — which is what swaps the Frontmatter field picker
+// to the Obsidian variant and enables the tags template input.
+async function setObsidianFriendly(page, enabled) {
+  await page.evaluate((want) => {
+    const cb = document.getElementById('chk-obsidian-friendly');
+    if (!cb || cb.checked === want) return;
+    cb.checked = want;
+    cb.dispatchEvent(new Event('change', { bubbles: true }));
+  }, enabled);
+  await new Promise((r) => setTimeout(r, 50));
 }
 
 async function openSettings(page) {
