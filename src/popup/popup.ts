@@ -98,6 +98,17 @@ document.querySelectorAll('[data-i18n]').forEach((el) => {
     el.textContent = chrome.i18n.getMessage(key) || el.textContent;
   }
 });
+
+// PDF button reuses the locale's `btn_download` translation with `.md` swapped
+// to `.pdf`, so we don't carry a parallel `btn_pdf` string in every locale.
+// Every locale's btn_download contains the literal `.md` token (it's a file
+// extension, not translatable), and word order is preserved either way.
+function pdfButtonLabel(): string {
+  const dl = chrome.i18n.getMessage('btn_download') || 'Download .md';
+  return dl.replace('.md', '.pdf');
+}
+const initialPdfLabel = document.querySelector('#btn-pdf .btn-label');
+if (initialPdfLabel) initialPdfLabel.textContent = pdfButtonLabel();
 document.querySelectorAll('[data-i18n-tooltip]').forEach((el) => {
   const key = el.getAttribute('data-i18n-tooltip');
   if (key) {
@@ -698,7 +709,7 @@ function setLoading(loading: boolean, target?: 'download' | 'copy' | 'obsidian' 
   if (target === 'pdf' || !target) {
     btnPdf.classList.toggle('loading', loading);
     const pdfLabel = btnPdf.querySelector('.btn-label');
-    if (pdfLabel) pdfLabel.textContent = loading ? (chrome.i18n.getMessage('rendering_pdf') || 'Rendering PDF…') : (chrome.i18n.getMessage('btn_pdf') || 'Download .pdf');
+    if (pdfLabel) pdfLabel.textContent = loading ? (chrome.i18n.getMessage('rendering_pdf') || 'Rendering PDF…') : pdfButtonLabel();
   }
 
   // When stopping, always reset all four to default state
@@ -714,7 +725,7 @@ function setLoading(loading: boolean, target?: 'download' | 'copy' | 'obsidian' 
     if (dlLabel) dlLabel.textContent = chrome.i18n.getMessage('btn_download') || 'Download .md';
     if (cpLabel) cpLabel.textContent = chrome.i18n.getMessage('btn_copy') || 'Copy .md';
     if (obLabel) obLabel.textContent = chrome.i18n.getMessage('btn_obsidian') || 'Add to Obsidian';
-    if (pdfLabel) pdfLabel.textContent = chrome.i18n.getMessage('btn_pdf') || 'Download .pdf';
+    if (pdfLabel) pdfLabel.textContent = pdfButtonLabel();
   }
 }
 
