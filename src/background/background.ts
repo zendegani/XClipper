@@ -177,7 +177,10 @@ function loadDownloadFolder(): Promise<string> {
 // the PDF blank. Content script delegates here.
 
 const OFFSCREEN_PATH = 'offscreen.html';
+const OFFSCREEN_RESPONSE_TIMEOUT_MS = 90_000;
 let offscreenCreating: Promise<void> | null = null;
+
+const bgLog = (...args: unknown[]): void => console.log('[t2m bg]', ...args);
 
 async function ensureOffscreenDocument(): Promise<void> {
   const url = chrome.runtime.getURL(OFFSCREEN_PATH);
@@ -185,37 +188,94 @@ async function ensureOffscreenDocument(): Promise<void> {
     contextTypes: ['OFFSCREEN_DOCUMENT' as chrome.runtime.ContextType],
     documentUrls: [url],
   });
-  if (existing.length > 0) return;
-  // Multiple PDF requests in flight can race the creation; coalesce.
+  if (existing.length > 0) {
+    bgLog('offscreen already alive');
+    return;
+  }
   if (offscreenCreating) {
+    bgLog('offscreen create in-flight, awaiting…');
     await offscreenCreating;
     return;
   }
+  bgLog('creating offscreen document…');
   offscreenCreating = chrome.offscreen
     .createDocument({
       url: OFFSCREEN_PATH,
       reasons: ['DOM_SCRAPING' as chrome.offscreen.Reason],
-      justification: 'Render tweet HTML to a PDF via html2canvas in an extension-origin document, so the snapshot iframe is not bound by x.com page CSP.',
+      justification:
+        'Render tweet HTML to a PDF via html2canvas in an extension-origin document, so the snapshot iframe is not bound by x.com page CSP.',
+    })
+    .then(() => {
+      bgLog('offscreen.createDocument resolved');
     })
     .finally(() => {
       offscreenCreating = null;
     });
   await offscreenCreating;
+  // createDocument resolves when the document is loaded, but a freshly-loaded
+  // offscreen page may not have its top-level script's onMessage listener
+  // bound by the time we send the next message. Wait for an explicit ping.
+  await waitForOffscreenReady();
+}
+
+async function waitForOffscreenReady(): Promise<void> {
+  const deadline = Date.now() + 5_000;
+  let attempt = 0;
+  while (Date.now() < deadline) {
+    attempt += 1;
+    try {
+      const resp = (await chrome.runtime.sendMessage({ action: 'OFFSCREEN_PING' })) as
+        | { pong?: boolean }
+        | undefined;
+      if (resp?.pong) {
+        bgLog(`offscreen ready after ${attempt} ping(s)`);
+        return;
+      }
+    } catch {
+      /* listener may not be attached yet — retry */
+    }
+    await new Promise((r) => setTimeout(r, 50));
+  }
+  throw new Error('Offscreen page failed to register listener within 5s');
+}
+
+function sendWithTimeout<T>(message: unknown, ms: number, label: string): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    const t = setTimeout(() => reject(new Error(`${label} timed out after ${ms}ms`)), ms);
+    chrome.runtime.sendMessage(message).then(
+      (resp) => {
+        clearTimeout(t);
+        resolve(resp as T);
+      },
+      (err) => {
+        clearTimeout(t);
+        reject(err);
+      },
+    );
+  });
 }
 
 chrome.runtime.onMessage.addListener((message: PdfRenderRequest, _sender, sendResponse) => {
   if (!message || message.action !== 'PDF_RENDER_REQUEST') return false;
+  bgLog('PDF_RENDER_REQUEST received, html length =', message.html.length);
   (async (): Promise<PdfRenderResponse> => {
     try {
       await ensureOffscreenDocument();
-      const resp = (await chrome.runtime.sendMessage({
-        action: 'OFFSCREEN_RENDER_PDF',
-        html: message.html,
-        filenameBase: message.filenameBase,
-      })) as PdfRenderResponse | undefined;
+      bgLog('forwarding to offscreen…');
+      const resp = await sendWithTimeout<PdfRenderResponse | undefined>(
+        {
+          action: 'OFFSCREEN_RENDER_PDF',
+          html: message.html,
+          filenameBase: message.filenameBase,
+        },
+        OFFSCREEN_RESPONSE_TIMEOUT_MS,
+        'OFFSCREEN_RENDER_PDF',
+      );
+      bgLog('offscreen response:', resp);
       if (!resp) return { success: false, error: 'Offscreen did not respond' };
       return resp;
     } catch (err) {
+      bgLog('PDF flow error:', err);
       return { success: false, error: err instanceof Error ? err.message : String(err) };
     }
   })().then(sendResponse);
