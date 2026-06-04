@@ -32,6 +32,7 @@ tests/fixtures/*.html
 
 # Puppeteer screenshot artifacts
 .tmp-puppeteer-profiles/
+.puppeteer-cache/
 screenshots/
 
 
