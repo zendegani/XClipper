@@ -1275,6 +1275,13 @@ details.option-group[open] .option-group-chevron {
   column-gap: 14px;
 }
 
+/* Field names are YAML keys (e.g. `author`, `created`) — code identifiers, not
+ * prose — so keep the row layout LTR even when the popup is RTL. The mode
+ * header above (translated label + button) stays RTL. */
+[dir="rtl"] .fm-picker-fields {
+  direction: ltr;
+}
+
 .fm-picker-fields .fm-field {
   break-inside: avoid;
 }
@@ -1347,6 +1354,12 @@ details.option-group[open] .option-group-chevron {
 
 [dir="rtl"] .fm-field-input:checked + .toggle-switch-mini::after {
   transform: translateX(-10px);
+}
+
+/* Picker rows are force-LTR (see [dir="rtl"] .fm-picker-fields), so the
+ * RTL thumb-flip above doesn't apply — the thumb travels rightward like LTR. */
+[dir="rtl"] .fm-picker-fields .fm-field-input:checked + .toggle-switch-mini::after {
+  transform: translateX(10px);
 }
 
 .fm-field-input:disabled + .toggle-switch-mini {
