@@ -20,17 +20,34 @@ const PAGE_MARGIN_MM = 10;
 const CONTENT_WIDTH_MM = A4_WIDTH_MM - 2 * PAGE_MARGIN_MM;
 const CONTENT_HEIGHT_MM = A4_HEIGHT_MM - 2 * PAGE_MARGIN_MM;
 const RENDER_TIMEOUT_MS = 60000;
+const IMAGE_LOAD_TIMEOUT_MS = 15000;
 const SETTINGS_KEY = 'tweet2md_settings';
 
-chrome.runtime.onMessage.addListener((msg: OffscreenRenderPdfRequest, _sender, sendResponse) => {
+const osLog = (...args: unknown[]): void => console.log('[t2m offscreen]', ...args);
+
+osLog('offscreen.js loaded, registering listener');
+
+chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+  // Handshake: background pings to confirm this listener is wired before
+  // it forwards the heavy PDF payload.
+  if (msg?.action === 'OFFSCREEN_PING') {
+    osLog('ping received');
+    sendResponse({ pong: true });
+    return false;
+  }
   if (msg?.action !== 'OFFSCREEN_RENDER_PDF') return false;
-  renderPdf(msg.html, msg.filenameBase).then(
-    () => sendResponse({ success: true } satisfies PdfRenderResponse),
-    (err: unknown) =>
-      sendResponse({
-        success: false,
-        error: err instanceof Error ? err.message : String(err),
-      } satisfies PdfRenderResponse),
+  const typed = msg as OffscreenRenderPdfRequest;
+  osLog('OFFSCREEN_RENDER_PDF received, html length =', typed.html.length);
+  renderPdf(typed.html, typed.filenameBase).then(
+    () => {
+      osLog('renderPdf success');
+      sendResponse({ success: true } satisfies PdfRenderResponse);
+    },
+    (err: unknown) => {
+      const message = err instanceof Error ? err.message : String(err);
+      osLog('renderPdf error:', message);
+      sendResponse({ success: false, error: message } satisfies PdfRenderResponse);
+    },
   );
   return true; // keep channel open for async sendResponse
 });
@@ -134,17 +151,29 @@ function sanitizeFilename(folder: string, base: string): string {
 function waitForImages(root: HTMLElement): Promise<void> {
   const imgs = Array.from(root.querySelectorAll('img'));
   if (imgs.length === 0) return Promise.resolve();
+  osLog(`waiting for ${imgs.length} image(s)…`);
+  // Per-image timeout — if an <img> never fires load or error (rare but seen
+  // with hung connections), don't block the whole PDF.
   return Promise.all(
-    imgs.map((img) =>
-      img.complete
-        ? Promise.resolve()
-        : new Promise<void>((resolve) => {
-            const done = (): void => resolve();
-            img.addEventListener('load', done, { once: true });
-            img.addEventListener('error', done, { once: true });
-          }),
+    imgs.map(
+      (img) =>
+        new Promise<void>((resolve) => {
+          if (img.complete) {
+            resolve();
+            return;
+          }
+          const done = (): void => {
+            clearTimeout(t);
+            resolve();
+          };
+          const t = setTimeout(done, IMAGE_LOAD_TIMEOUT_MS);
+          img.addEventListener('load', done, { once: true });
+          img.addEventListener('error', done, { once: true });
+        }),
     ),
-  ).then(() => undefined);
+  ).then(() => {
+    osLog('images settled');
+  });
 }
 
 function withTimeout<T>(promise: Promise<T>, ms: number, message: string): Promise<T> {
