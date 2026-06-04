@@ -850,6 +850,27 @@ btnPdf.addEventListener('click', async () => {
       setLoading(false);
       return;
     }
+    // Same up-front host check as the markdown/copy/obsidian flow — without
+    // it, sendMessage falls through to "Receiving end does not exist" and the
+    // user gets the misleading "Reload the page and try again" hint.
+    const url = tab.url || '';
+    if (!hostMatches(url, 'x.com', 'www.x.com')) {
+      showStatus(
+        chrome.i18n.getMessage('footer_hint') || 'Navigate to a tweet or article on X.com first.',
+        'error',
+      );
+      setLoading(false);
+      return;
+    }
+    if (!url.includes('/status/')) {
+      showStatus(
+        chrome.i18n.getMessage('error_specific_page') ||
+          'Open a specific tweet or article page (with /status/ in the URL).',
+        'error',
+      );
+      setLoading(false);
+      return;
+    }
     chrome.tabs.sendMessage(tab.id, { action: 'EXPORT_PDF' }, (resp) => {
       if (chrome.runtime.lastError) {
         const msg = chrome.runtime.lastError.message || '';

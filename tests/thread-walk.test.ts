@@ -1,4 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { readFileSync } from 'node:fs';
+import { resolve } from 'node:path';
+import { JSDOM } from 'jsdom';
 import { extract } from '../src/content/content';
 
 // Build a single <article> belonging to @alice, given its id, time iso and
@@ -94,5 +97,52 @@ describe('thread-walk: tombstone is not a boundary', () => {
     const md = res.data?.markdown || '';
     expect(md).toContain('tweet one');
     expect(md).toContain('tweet three');
+  });
+});
+
+// Real-world regression: in the trq212 thread, Thariq replies to NeetCode's
+// comment with "thank you! means a lot". DOM order on the page is:
+//   …thread tweets… → NeetCode (different author) → Thariq "thank you!" reply
+// The bounded captureArticles in tweet.ts must stop AT NeetCode, so the
+// "thank you!" reply never gets captured, never gets rehydrated, and never
+// appears in the output. -d.html is the chunk that includes those comments.
+describe('thread-walk: same-author reply after the comment boundary', () => {
+  const originalScrollTo = window.scrollTo;
+  beforeEach(() => {
+    window.scrollTo = (() => {}) as typeof window.scrollTo;
+    const html = readFileSync(
+      resolve(__dirname, 'fixtures/trq212-2035372716820218141-d.html'),
+      'utf-8',
+    );
+    const dom = new JSDOM(html, {
+      url: 'https://x.com/trq212/status/2035372716820218141',
+    });
+    document.documentElement.replaceWith(
+      dom.window.document.documentElement.cloneNode(true) as HTMLElement,
+    );
+    Object.defineProperty(window, 'location', {
+      value: {
+        ...window.location,
+        pathname: '/trq212/status/2035372716820218141',
+        href: 'https://x.com/trq212/status/2035372716820218141',
+        hash: '',
+      },
+      writable: true,
+      configurable: true,
+    });
+  });
+  afterEach(() => {
+    window.scrollTo = originalScrollTo;
+  });
+
+  it('does not include the author\'s reply that sits past the comment boundary', async () => {
+    const res = await extract({});
+    expect(res.success).toBe(true);
+    const md = res.data?.markdown || '';
+    // The reply text itself MUST be absent.
+    expect(md).not.toContain('thank you! means a lot');
+    // And the comment author MUST NOT appear (they're past the boundary).
+    expect(md).not.toContain('NeetCode');
+    expect(md).not.toContain('@neetcode1');
   });
 });
