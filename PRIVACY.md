@@ -1,6 +1,6 @@
 # Privacy Policy — tweet2md
 
-**Last updated:** May 18, 2026
+**Last updated:** June 4, 2026
 
 ## Summary
 
@@ -35,6 +35,10 @@ When **Save images locally** is enabled, tweet2md only downloads image assets fr
 ### Add to Obsidian
 
 When you click **Add to Obsidian**, the extension builds an `obsidian://new?...` deeplink containing the rendered Markdown (and the optional vault name you configured in Settings) and navigates the popup window to that URL. Your operating system's URL handler then hands the data to the Obsidian desktop app, if installed. The handoff happens **locally on your device** — no network request is made and no external server is involved. Images remain as remote `pbs.twimg.com` URLs in the rendered Markdown so they display inline in Obsidian without writing copies to disk.
+
+### Download .pdf
+
+When you click **Download .pdf**, the extension opens a new tab at an extension-owned `chrome-extension://<id>/print.html` page, hydrates that page with the rendered tweet / thread / article HTML, and calls `window.print()`. Your browser's native print dialog then renders the document and writes it to the destination you choose (typically **Save as PDF**). Rendering happens **entirely in your browser** — no network request is made, no third-party PDF service is involved. The print tab self-closes once the dialog is dismissed.
 
 ## Permissions explained
 

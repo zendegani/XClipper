@@ -34,6 +34,7 @@
 - **Frontmatter Field Picker** — Per-field toggle switches in Settings to include or omit each YAML entry (e.g. drop `views` and `bookmarks` if you don't need them). Saved separately for the default schema and the Obsidian-friendly schema, so flipping the schema toggle preserves both sets
 - **Inline Engagement Stats** — Optional X-style row in the Markdown body: `💬 284 · 🔁 1.5K · ❤️ 8K · 🔖 253 · 👁 100K`
 - **Copy or Download** — Copy Markdown to clipboard or download as a file
+- **PDF Export** — Save tweets, threads, and articles as PDFs via the browser's native print engine. Selectable text, clickable links, embedded images, and full Unicode/emoji support
 - **Clean Output** — Automatically expand truncated posts and strip engagement buttons, follow prompts, and trackers
 - **Multi-Language UI** — Popup available in English, Spanish, German, French, Italian, Russian, Japanese, Portuguese (Brazil), Chinese (Simplified), Hindi, Arabic, and Persian. Content extraction works on any language regardless of UI translation
 - **Light & Dark Mode** — Popup matches your system preferences
@@ -101,7 +102,7 @@ Install `tweet2md` from the [Chrome Web Store](https://chromewebstore.google.com
 
 Pick whichever entry point you prefer — they all run the same extractor and respect the same toggles:
 
-- **Toolbar popup** — Click the tweet2md icon, then **Download .md**, **Copy .md**, or **Add to Obsidian**.
+- **Toolbar popup** — Click the tweet2md icon, then **Download .md**, **Copy .md**, **Download .pdf**, or **Add to Obsidian**.
 - **Inline button** — Click the download icon at the right of any tweet's action bar (and at the top of long-form articles). Opens the tweet in a new tab and exports automatically. Shift/Alt-click to export just that tweet without its thread.
 - **Right-click menu** — Right-click any tweet and pick **Save tweet as Markdown**, **Copy tweet as Markdown**, or **Copy just this tweet (no thread)**.
 

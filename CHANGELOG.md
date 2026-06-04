@@ -7,6 +7,24 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [1.9.0] - 2026-06-04
+
+### Added
+
+- **PDF export**: New **Download .pdf** button next to **Add to Obsidian**. Opens a print-preview tab where you save the tweet / thread / article as a PDF via the browser's native print dialog. Text is selectable, links are clickable, and emoji and non-ASCII glyphs render correctly.
+- **X Article quote cards**: Tweets that quote one of X's long-form Articles now appear as `📝` card blocks (banner + title + description) in Markdown and PDF. 
+
+### Changed
+
+- **Popup layout**: **Download .pdf** and **Add to Obsidian** share one row at full label width across all locales.
+
+### Fixed
+
+- **Thread engagement stats from the wrong tweet** (#40): Stats now correctly reflect the first tweet of the thread.
+- **Frontmatter field picker in RTL locales**: YAML keys (`author`, `created`, …) are code identifiers — they now stay LTR for readability. Toggle on/off direction is also unified everywhere (ON = right) regardless of text direction.
+
+---
+
 ## [1.8.0] - 2026-06-02
 
 ### Added
