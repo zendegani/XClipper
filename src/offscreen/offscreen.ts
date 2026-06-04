@@ -1,5 +1,4 @@
 import { jsPDF } from 'jspdf';
-import html2canvas from 'html2canvas';
 import type {
   OffscreenRenderPdfRequest,
   OffscreenRenderPdfResponse,
@@ -8,26 +7,16 @@ import type {
 // Offscreen-document PDF renderer.
 //
 // Lives at chrome-extension://<id>/offscreen.html — extension origin, so
-// html2canvas's offscreen-iframe clone never touches X.com's <script>
-// tags (the blocker for in-content rendering).
-//
-// Current implementation is RASTER (html2canvas → addImage), which produces
-// the visually-correct Twitter-card layout but means text isn't real
-// selectable PDF text. Per ADR 0001 the long-term target is selectable
-// vector text; jsPDF.html() can do that but needs (a) a custom embedded
-// Unicode font (default jsPDF font is Latin-1, mangles emoji + non-ASCII)
-// and (b) page-boundary-aware autoPaging. Tracked as a follow-up; macOS
-// Preview's live OCR keeps text selectable in the meantime.
-//
-// Offscreen documents only have access to chrome.runtime reliably;
-// chrome.storage and chrome.downloads belong to the background worker.
+// jsPDF.html()'s internal layout iframe never touches X.com's <script>
+// tags (the original blocker). Per ADR 0001 PDF text must be real
+// selectable text, so we use jsPDF.html() (text drawn as PDF text ops,
+// images via html2canvas). Offscreen-only because chrome.storage /
+// chrome.downloads aren't reliably exposed there.
 
 const RENDER_WIDTH_PX = 680;
 const A4_WIDTH_MM = 210;
-const A4_HEIGHT_MM = 297;
 const PAGE_MARGIN_MM = 10;
 const CONTENT_WIDTH_MM = A4_WIDTH_MM - 2 * PAGE_MARGIN_MM;
-const CONTENT_HEIGHT_MM = A4_HEIGHT_MM - 2 * PAGE_MARGIN_MM;
 const RENDER_TIMEOUT_MS = 60000;
 const IMAGE_LOAD_TIMEOUT_MS = 5000;
 
@@ -70,49 +59,34 @@ async function renderPdfDataUrl(html: string): Promise<string> {
     const tImages = performance.now();
     osLog(`waitForImages: ${(tImages - t0).toFixed(0)}ms`);
 
-    // scale=1.5 balances sharpness with raster cost. scale=2 was 4× the
-    // pixel area for ~10% perceptible-detail gain on body text.
-    const canvas = await withTimeout(
-      html2canvas(host, {
-        scale: 1.5,
-        useCORS: true,
-        allowTaint: true,
-        backgroundColor: '#ffffff',
-        logging: false,
+    const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
+    await withTimeout(
+      pdf.html(host, {
+        // autoPaging:'text' walks text nodes and breaks at line boundaries
+        // instead of slicing the canvas mid-line. Slower than the default
+        // 'slice' but it's what keeps card layout intact across pages.
+        autoPaging: 'text',
+        margin: [PAGE_MARGIN_MM, PAGE_MARGIN_MM, PAGE_MARGIN_MM, PAGE_MARGIN_MM],
+        width: CONTENT_WIDTH_MM,
         windowWidth: RENDER_WIDTH_PX,
+        image: { type: 'jpeg', quality: 0.85 },
+        html2canvas: {
+          scale: 1,
+          useCORS: true,
+          allowTaint: true,
+          backgroundColor: '#ffffff',
+          logging: false,
+        },
       }),
       RENDER_TIMEOUT_MS,
       'PDF render timed out after 60s',
     );
-    const tCanvas = performance.now();
-    osLog(
-      `html2canvas: ${(tCanvas - tImages).toFixed(0)}ms (canvas ${canvas.width}×${canvas.height})`,
-    );
-
-    const imgWidthMm = CONTENT_WIDTH_MM;
-    const imgHeightMm = (canvas.height / canvas.width) * imgWidthMm;
-    const imgData = canvas.toDataURL('image/jpeg', 0.85);
-    const tJpeg = performance.now();
-    osLog(`canvas→JPEG: ${(tJpeg - tCanvas).toFixed(0)}ms`);
-
-    const pdf = new jsPDF({ unit: 'mm', format: 'a4', orientation: 'portrait' });
-    let yOffset = 0;
-    while (yOffset < imgHeightMm) {
-      pdf.addImage(
-        imgData,
-        'JPEG',
-        PAGE_MARGIN_MM,
-        PAGE_MARGIN_MM - yOffset,
-        imgWidthMm,
-        imgHeightMm,
-      );
-      yOffset += CONTENT_HEIGHT_MM;
-      if (yOffset < imgHeightMm) pdf.addPage();
-    }
+    const tRender = performance.now();
+    osLog(`pdf.html: ${(tRender - tImages).toFixed(0)}ms`);
 
     const dataUrl = pdf.output('datauristring');
     const tDone = performance.now();
-    osLog(`pdf.output: ${(tDone - tJpeg).toFixed(0)}ms, total ${(tDone - t0).toFixed(0)}ms`);
+    osLog(`pdf.output: ${(tDone - tRender).toFixed(0)}ms, total ${(tDone - t0).toFixed(0)}ms`);
     return dataUrl;
   } finally {
     host.innerHTML = '';
