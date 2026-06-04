@@ -51,6 +51,15 @@ export async function exportPdf(doc: Document, filenameBase: string): Promise<vo
           allowTaint: true,
           backgroundColor: '#ffffff',
           logging: false,
+          // html2canvas clones the entire document into an offscreen iframe
+          // before snapshotting. X.com's <script src="…twimg.com…"> tags get
+          // re-evaluated there and the extension/page CSP blocks them, which
+          // aborts iframe layout → blank PDF. Our t2m-root fragment is fully
+          // self-contained (inline <style>, escaped HTML, no script deps),
+          // so dropping every <script> in the clone is safe.
+          onclone: (clonedDoc: globalThis.Document) => {
+            clonedDoc.querySelectorAll('script').forEach((el) => el.remove());
+          },
         },
       }),
       RENDER_TIMEOUT_MS,
