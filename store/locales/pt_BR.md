@@ -1,4 +1,4 @@
-tweet2md é uma extensão Chrome de código aberto que converte threads, posts e artigos do X/Twitter em Markdown limpo para Obsidian, pesquisa, fluxos de IA e arquivamento offline.
+XClipper é uma extensão Chrome de código aberto que converte threads, posts e artigos do X/Twitter em Markdown limpo para Obsidian, pesquisa, fluxos de IA e arquivamento offline.
 
 Exporte conteúdo com um clique:
 
@@ -43,9 +43,9 @@ Limitações atuais:
 - Se você instalar ou atualizar a extensão com uma aba do x.com já aberta, recarregue a aba antes de exportar — isto é intencional, para evitar falhas silenciosas em uma página não inicializada
 
 Código aberto:
-https://github.com/zendegani/tweet2md
+https://github.com/zendegani/xclipper
 
 Changelog:
-https://github.com/zendegani/tweet2md/blob/main/CHANGELOG.md
+https://github.com/zendegani/xclipper/blob/main/CHANGELOG.md
 
-tweet2md é um projeto independente de código aberto e não é afiliado ao X ou Twitter.
+XClipper é um projeto independente de código aberto e não é afiliado ao X ou Twitter.
