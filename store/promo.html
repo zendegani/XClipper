@@ -39,10 +39,6 @@
     position: relative;
     color: var(--ink);
     overflow: hidden;
-    background:
-      radial-gradient(800px 400px at 18% 14%, rgba(255,255,255,.08), transparent 60%),
-      radial-gradient(700px 360px at 86% 92%, rgba(29,155,240,.20), transparent 60%),
-      linear-gradient(125deg, var(--bg-1) 0%, var(--bg-2) 100%);
   }
   .canvas::before{
     content:'';
@@ -50,6 +46,20 @@
     background-image: radial-gradient(rgba(255,255,255,.03) 1px, transparent 1px);
     background-size: 26px 26px;
     pointer-events: none;
+  }
+  /* Marquee — bright navy → twitter blue */
+  .canvas-marquee{
+    background:
+      radial-gradient(800px 400px at 18% 14%, rgba(255,255,255,.08), transparent 60%),
+      radial-gradient(700px 360px at 86% 92%, rgba(29,155,240,.20), transparent 60%),
+      linear-gradient(125deg, #0d2a45 0%, #1976d2 100%);
+  }
+  /* Small tile — original navy → teal */
+  .canvas-small{
+    background:
+      radial-gradient(800px 400px at 18% 14%, rgba(29,155,240,.10), transparent 60%),
+      radial-gradient(700px 360px at 86% 92%, rgba(124,58,237,.08), transparent 60%),
+      linear-gradient(125deg, #0F172A 0%, #0F172A 38%, #134E4A 100%);
   }
 
   /* ───────── MARQUEE 1400×560 ───────── */
