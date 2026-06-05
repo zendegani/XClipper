@@ -1,9 +1,9 @@
 {
   "extensionName": {
-    "message": "XClipper — X-Threads, Tweets und Artikel zu Markdown, PDF oder Obsidian"
+    "message": "X / Twitter Web-Clipper: Threads & Artikel als Markdown, PDF, Obsidian"
   },
   "extensionDescription": {
-    "message": "Exportiere X (Twitter) Threads, Tweets und Artikel als sauberes Markdown oder PDF — direkt nach Obsidian oder lokal speichern. Gratis, keine API."
+    "message": "Exportiere X (Twitter) Threads und Artikel als Markdown oder PDF. An Obsidian senden oder lokal speichern. Gratis, keine API."
   },
   "tagline": {
     "message": "Threads und Artikel als Markdown oder PDF speichern"

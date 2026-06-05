@@ -1,34 +1,36 @@
-XClipper ist eine Open-Source-Chrome-Erweiterung, die X-/Twitter-Threads, -Posts und -Artikel in sauberes Markdown für Obsidian, Recherche, KI-Workflows und Offline-Archivierung umwandelt.
+XClipper ist ein kostenloser Open-Source-Web-Clipper für X (Twitter) – eine Chrome-Erweiterung, die Threads, Posts und Artikel als PDF oder sauberes Markdown für Obsidian, Recherche, KI-Workflows und Offline-Archivierung herunterlädt. Läuft vollständig in deinem Browser: keine API-Keys, keine Konten, kein Tracking.
 
 Inhalte mit einem Klick exportieren:
 
 - Als Markdown speichern
+- Als PDF exportieren (markierbarer Text, anklickbare Links, keine Rasterung)
 - Markdown in die Zwischenablage kopieren
 - Direkt an Obsidian senden
 - Bilder lokal neben deiner .md-Datei herunterladen
 
-Läuft vollständig in deinem Browser. Keine API-Keys, keine Konten, kein Tracking, keine Analytics.
+Alles läuft lokal auf deinem Gerät. Kein Backend-Service, keine Telemetrie, keine externen Anfragen außer an x.com selbst.
 
 Hauptfunktionen:
 
-- Exportiert Tweets, Threads, zitierte Tweets, verschachtelte Threads und lange X-Artikel (ehemals Notes)
-- Sauberes Markdown, das mit Obsidian, Logseq, Notion, Hugo und anderen Markdown-Workflows funktioniert
-- Ein-Klick-„Zu Obsidian hinzufügen" über das obsidian://-URI-Schema
-- Reichhaltiges YAML-Frontmatter mit Autor, Handle, Daten, Quell-URL, Inhaltstyp und Engagement-Statistiken
-- Optionales Obsidian-freundliches Frontmatter: wikiverlinkte [[@handle]]-Autoren, Dataview-freundliche Metadaten und generierte Titel und Beschreibungen
-- Eingebettete Bilder lokal herunterladen, um tote Links zu vermeiden
-- Linkkarten erfassen mit Titel, Quelldomain und Vorschaubild
-- Umfragen erfassen mit Optionen, Ergebnisprozenten und Stimmenzahl/Statuszeile
-- Struktur und Zuordnung zitierter Tweets bleiben erhalten
-- Einzelnen Tweet oder ganzen Thread exportieren
-- Inline-Export-Button direkt in x.com, dazu Toolbar-Popup und Rechtsklick-Kontextmenü
+- Exportiert Tweets, Threads, zitierte Tweets, verschachtelte Threads und X Articles (früher Notes)
+- PDF-Export mit markierbarem Text, anklickbaren Links und korrekter Darstellung von Emojis und Nicht-ASCII-Zeichen
+- Sauberes Markdown, das mit Obsidian, Logseq, Notion, Hugo und anderen Markdown-basierten Workflows funktioniert
+- Ein-Klick-Unterstützung für „Zu Obsidian hinzufügen" über das obsidian:// URI-Schema
+- Umfangreiches YAML frontmatter mit Autor, Handle, Daten, Quell-URL, Inhaltstyp und Interaktionsstatistiken
+- Optionales Obsidian-freundliches frontmatter: wikilinked [[@handle]]-Autoren, Dataview-freundliche Metadaten sowie generierte Titel und Beschreibungen
+- Eingebettete Bilder lokal herunterladen, um Link-Verfall zu vermeiden
+- Linkkarten mit Titel, Quelldomain und Vorschaubild erfassen
+- Umfragen mit Auswahlmöglichkeiten, Ergebnisprozenten und Stimmenzahl-/Statuszeile erfassen
+- Struktur und Quellenangaben zitierter Tweets beibehalten
+- Einzelnen Tweet oder kompletten Thread exportieren
+- Inline-Export-Button direkt in x.com sowie Toolbar-Popup und Rechtsklick-Kontextmenü
 - Anpassbare Dateinamenvorlagen mit Platzhaltern wie {date}, {handle}, {slug} und {type}
-- Optionales Vault-Ziel und Vault-Unterordner für Obsidian
+- Optionales Vault-Targeting und Unterstützung für Vault-Unterordner in Obsidian
 - Optionaler Downloads-Unterordner für exportiertes Markdown und Medien
-- Mehrsprachige Oberfläche: Englisch, Spanisch, Deutsch, Französisch, Italienisch, Russisch, Japanisch, Portugiesisch (Brasilien), Chinesisch (vereinfacht), Hindi, Arabisch und Persisch
-- Heller und dunkler Modus
+- Mehrsprachige Benutzeroberfläche: Deutsch, Arabisch, Chinesisch (Vereinfacht), Englisch, Französisch, Hindi, Italienisch, Japanisch, Persisch, Portugiesisch (Brasilien), Russisch und Spanisch
+- Unterstützung für hellen und dunklen Modus
 
-Gut für:
+Gut geeignet für:
 
 - Obsidian- und PKM-Workflows
 - Recherche und Referenzarchivierung
@@ -39,10 +41,10 @@ Gut für:
 Aktuelle Einschränkungen:
 
 - Videos und GIFs werden nicht als abspielbare Mediendateien exportiert
-- Einige Funktionen können brechen, wenn x.com seine Seitenstruktur deutlich ändert
-- Wenn du die Erweiterung installierst oder aktualisierst, während ein x.com-Tab bereits offen ist, lade den Tab vor dem Export neu — das ist beabsichtigt, um stille Fehler auf einer nicht initialisierten Seite zu vermeiden
+- Einige Funktionen können beeinträchtigt werden, wenn x.com seine Seitenstruktur erheblich ändert
+- Wenn du die Erweiterung installierst oder aktualisierst, während bereits ein x.com-Tab geöffnet ist, lade den Tab vor dem Export neu – dies ist beabsichtigt, um stille Fehler auf einer nicht initialisierten Seite zu vermeiden
 
-Open Source:
+Open source:
 https://github.com/zendegani/xclipper
 
 Changelog:
