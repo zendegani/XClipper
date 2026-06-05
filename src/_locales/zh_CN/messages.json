@@ -1,9 +1,9 @@
 {
   "extensionName": {
-    "message": "XClipper — X 线程、推文和文章转 Markdown、PDF 或 Obsidian"
+    "message": "X / Twitter 网页剪藏：保存线程和文章到 Markdown、PDF、Obsidian"
   },
   "extensionDescription": {
-    "message": "将 X (Twitter) 线程、推文和文章导出为干净的 Markdown 或 PDF — 直接发送到 Obsidian 或本地保存。免费,无需 API。"
+    "message": "将 X (Twitter) 线程、推文和文章导出为干净的 Markdown 或 PDF。发送到 Obsidian 或本地保存。免费，无需 API。"
   },
   "tagline": {
     "message": "将线程和文章保存为 Markdown 或 PDF"

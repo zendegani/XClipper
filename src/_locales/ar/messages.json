@@ -1,9 +1,9 @@
 {
   "extensionName": {
-    "message": "XClipper — سلاسل ومقالات X إلى Markdown أو PDF أو Obsidian"
+    "message": "X / Twitter Web Clipper: حفظ السلاسل والمقالات إلى Markdown وPDF وObsidian"
   },
   "extensionDescription": {
-    "message": "تصدير سلاسل وتغريدات ومقالات X (تويتر) إلى Markdown أو PDF نظيف — أرسلها إلى Obsidian أو احفظها محلياً. مجاناً، بدون API."
+    "message": "تصدير سلاسل وتغريدات ومقالات X (Twitter) إلى Markdown أو PDF نظيف. إرسال إلى Obsidian أو حفظ محلياً. مجاني، بدون API."
   },
   "tagline": {
     "message": "حفظ السلاسل والمقالات بصيغة Markdown أو PDF"

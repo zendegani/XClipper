@@ -1,12 +1,12 @@
 {
   "extensionName": {
-    "message": "XClipper — X थ्रेड्स और आर्टिकल्स को Markdown, PDF या Obsidian में"
+    "message": "X / Twitter Web Clipper: थ्रेड्स और आर्टिकल्स को Markdown, PDF में सेव करें"
   },
   "extensionDescription": {
-    "message": "X (Twitter) के थ्रेड, ट्वीट और आर्टिकल को साफ़ Markdown या PDF में एक्सपोर्ट करें — Obsidian में भेजें या लोकल सेव करें। मुफ़्त, कोई API नहीं।"
+    "message": "X/Twitter के थ्रेड्स और आर्टिकल्स को Markdown या PDF में एक्सपोर्ट करें। Obsidian में भेजें या लोकल सेव करें। मुफ़्त, कोई API नहीं।"
   },
   "tagline": {
-    "message": "थ्रेड और आर्टिकल को Markdown या PDF में सेव करें"
+    "message": "थ्रेड्स और आर्टिकल्स को Markdown या PDF के रूप में सेव करें"
   },
   "btn_download": {
     "message": ".md डाउनलोड"

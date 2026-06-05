@@ -1,12 +1,12 @@
 {
   "extensionName": {
-    "message": "XClipper — Hilos y artículos de X a Markdown, PDF u Obsidian"
+    "message": "X / Twitter Web Clipper: Guardar hilos y artículos en Markdown, PDF"
   },
   "extensionDescription": {
-    "message": "Exporta hilos, tweets y artículos de X (Twitter) a Markdown o PDF limpio — envía a Obsidian o guarda localmente. Gratis, sin API."
+    "message": "Exporta hilos, tweets y artículos de X (Twitter) a Markdown o PDF limpios. Envía a Obsidian o guárdalos localmente. Gratis, sin API."
   },
   "tagline": {
-    "message": "Guarda hilos y artículos como Markdown o PDF"
+    "message": "Guardar hilos y artículos como Markdown o PDF"
   },
   "btn_download": {
     "message": "Descargar .md"

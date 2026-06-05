@@ -1,9 +1,9 @@
 {
   "extensionName": {
-    "message": "XClipper — Fils et articles X vers Markdown, PDF ou Obsidian"
+    "message": "X / Twitter Web Clipper : Enregistrer fils et articles en Markdown, PDF"
   },
   "extensionDescription": {
-    "message": "Exportez threads, tweets et articles de X (Twitter) en Markdown ou PDF propre — envoyez vers Obsidian ou enregistrez localement. Gratuit, sans API."
+    "message": "Exportez fils, tweets et articles X (Twitter) en Markdown ou PDF. Vers Obsidian ou local. Gratuit, sans API."
   },
   "tagline": {
     "message": "Enregistrer les fils et articles en Markdown ou PDF"

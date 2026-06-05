@@ -1,9 +1,9 @@
 {
   "extensionName": {
-    "message": "XClipper — رشته‌ها و مقالات X به Markdown، PDF یا Obsidian"
+    "message": "X / Twitter Web Clipper: ذخیره رشته‌ها و مقالات در Markdown، PDF، Obsidian"
   },
   "extensionDescription": {
-    "message": "خروجی گرفتن از رشته‌ها، توییت‌ها و مقالات ایکس (توییتر) به Markdown یا PDF تمیز — ارسال به ابسیدین یا ذخیره محلی. رایگان، بدون API."
+    "message": "خروجی گرفتن از رشته‌ها، توییت‌ها و مقالات X (Twitter) به Markdown یا PDF تمیز. ارسال به Obsidian یا ذخیره محلی. رایگان، بدون API."
   },
   "tagline": {
     "message": "ذخیره رشته‌ها و مقالات به‌صورت Markdown یا PDF"

@@ -1,46 +1,48 @@
-XClipper एक open-source Chrome एक्सटेंशन है जो X/Twitter के threads, posts और articles को Obsidian, research, AI workflows और offline archiving के लिए साफ़ Markdown में बदल देता है।
+XClipper is a free, open-source web clipper for X (Twitter) — एक Chrome extension जो threads, posts और articles को PDF या clean Markdown में डाउनलोड करता है, Obsidian, research, AI workflows और offline archiving के लिए। पूरी तरह आपके browser में चलता है: कोई API keys नहीं, कोई accounts नहीं, कोई tracking नहीं।
 
-एक क्लिक में content export करें:
+एक क्लिक में content export:
 
-- Markdown के रूप में save करें
+- Markdown के रूप में सेव करें
+- PDF के रूप में export करें (selectable text, clickable links, बिना rasterization)
 - Markdown को clipboard में copy करें
 - सीधे Obsidian में भेजें
-- अपनी .md फ़ाइल के साथ images लोकली download करें
+- images को .md file के साथ locally download करें
 
-पूरी तरह आपके browser में ही चलता है। कोई API keys नहीं, कोई account नहीं, कोई tracking नहीं, कोई analytics नहीं।
+सब कुछ आपके device पर locally चलता है। कोई backend service नहीं, कोई telemetry नहीं, x.com के अलावा कोई external request नहीं।
 
 मुख्य फीचर्स:
 
-- Tweets, threads, quote tweets, nested threads और लंबे X Articles (पहले Notes) export करें
-- Clean Markdown जो Obsidian, Logseq, Notion, Hugo और दूसरे Markdown-based workflows के साथ काम करता है
-- obsidian:// URI scheme के ज़रिए one-click "Add to Obsidian"
-- Rich YAML frontmatter जिसमें author, handle, dates, source URL, content type और engagement stats शामिल हैं
-- Optional Obsidian-friendly frontmatter: wikilink किए हुए [[@handle]] authors, Dataview-friendly metadata, और auto-generated titles व descriptions
-- Embedded images को लोकली download करें ताकि link rot से बचा जा सके
-- Link cards को title, source domain और preview image के साथ capture करें
-- Polls को choices, result percentages और total votes/status line के साथ capture करें
-- Quote tweets की structure और attribution सुरक्षित रखें
-- एक single tweet या पूरा thread export करें
-- x.com के अंदर inline export button, साथ में toolbar popup और right-click context menu
-- {date}, {handle}, {slug} और {type} जैसे placeholders के साथ customizable filename templates
-- Optional Obsidian vault targeting और vault subfolder support
-- Export किए गए Markdown और media के लिए optional downloads subfolder
-- Multi-language UI: English, Spanish, German, French, Italian, Russian, Japanese, Portuguese (Brazil), Chinese (Simplified), Hindi, Arabic और Persian
-- Light और dark mode support
+- tweets, threads, quote tweets, nested threads और X Articles (formerly Notes) export करें
+- PDF export selectable text, clickable links और emoji/non-ASCII rendering के साथ
+- clean Markdown जो Obsidian, Logseq, Notion, Hugo और अन्य Markdown workflows के साथ काम करता है
+- one-click "Add to Obsidian" obsidian:// URI scheme के माध्यम से
+- rich YAML frontmatter: author, handle, dates, source URL, content type और engagement stats
+- optional Obsidian-friendly frontmatter: wikilinked [[@handle]] authors, Dataview-friendly metadata, और synthesized titles/descriptions
+- embedded images को locally download करें ताकि link rot से बचा जा सके
+- link cards capture करें: title, source domain और preview image
+- polls capture करें: choices, result percentages और total votes/status line
+- quote tweet structure और attribution preserve करें
+- single tweet या पूरा thread export करें
+- x.com के अंदर inline export button, toolbar popup और right-click context menu
+- custom filename templates: {date}, {handle}, {slug}, {type}
+- optional Obsidian vault targeting और subfolder support
+- exported Markdown और media के लिए optional downloads subfolder
+- Multi-language UI: Hindi, Arabic, Chinese (Simplified), French, German, Italian, Japanese, Persian, Portuguese (Brazil), Russian, Spanish, English
+- light और dark mode support
 
-इनके लिए बेहतरीन:
+उपयोग के लिए उपयुक्त:
 
 - Obsidian और PKM workflows
-- Research और reference archiving
+- research और reference archiving
 - AI prompts और RAG pipelines
-- Searchable "second brain" बनाना
-- लंबे X content को offline सुरक्षित रखना
+- searchable second brain बनाना
+- X के long-form content को offline सुरक्षित रखना
 
 मौजूदा सीमाएँ:
 
-- Videos और GIFs playable media files के रूप में export नहीं होते
-- अगर x.com अपने page structure में बड़ा बदलाव करता है तो कुछ features काम करना बंद कर सकते हैं
-- अगर x.com का tab पहले से खुला हो और आप extension install या update करें, तो export से पहले tab reload करें — यह intentional है ताकि uninitialized page पर silent failures न हों
+- videos और GIFs playable media files के रूप में export नहीं होते
+- कुछ features x.com के structure बदलने पर प्रभावित हो सकते हैं
+- अगर extension install/update के समय x.com tab खुला हो, तो export से पहले tab reload करें — यह uninitialized page पर silent failures से बचाने के लिए है
 
 Open source:
 https://github.com/zendegani/xclipper

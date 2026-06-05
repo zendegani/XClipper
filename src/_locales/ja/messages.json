@@ -1,9 +1,9 @@
 {
   "extensionName": {
-    "message": "XClipper — Xスレッド・記事をMarkdown、PDF、Obsidianへ"
+    "message": "X / Twitter ウェブクリッパー: スレッドと記事をMarkdown、PDFで保存"
   },
   "extensionDescription": {
-    "message": "X (Twitter) のスレッド、ツイート、記事をクリーンなMarkdownまたはPDFにエクスポート。Obsidianに直接送信、またはローカル保存。無料、API不要。"
+    "message": "X (Twitter) のスレッド、ツイート、記事をクリーンなMarkdownやPDFにエクスポート。Obsidianへ送信またはローカル保存。無料、API不要。"
   },
   "tagline": {
     "message": "スレッドや記事をMarkdownやPDFで保存"

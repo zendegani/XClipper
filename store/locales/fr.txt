@@ -1,46 +1,48 @@
-XClipper est une extension Chrome open source qui transforme les fils, posts et articles de X/Twitter en Markdown propre pour Obsidian, la recherche, les workflows IA et l'archivage hors ligne.
+XClipper est un Web Clipper gratuit et open source pour X (Twitter) — une extension Chrome qui télécharge les fils, posts et articles au format PDF ou Markdown propre pour Obsidian, la recherche, les workflows IA et l'archivage hors ligne. Fonctionne entièrement dans votre navigateur : sans clé API, sans compte, sans suivi.
 
 Exportez le contenu en un clic :
 
 - Enregistrer en Markdown
+- Exporter en PDF (texte sélectionnable, liens cliquables, sans rasterisation)
 - Copier le Markdown dans le presse-papiers
 - Envoyer directement vers Obsidian
 - Télécharger les images localement à côté de votre fichier .md
 
-Fonctionne entièrement dans votre navigateur. Sans clé API, sans compte, sans tracking, sans analytique.
+Tout s'exécute localement sur votre machine. Aucun service backend, aucune télémétrie, aucune requête externe en dehors de x.com lui-même.
 
 Fonctionnalités principales :
 
-- Exporte tweets, fils, citations, fils imbriqués et longs X Articles (anciennement Notes)
-- Markdown propre, compatible avec Obsidian, Logseq, Notion, Hugo et d'autres workflows Markdown
-- Bouton "Ajouter à Obsidian" en un clic via le schéma URI obsidian://
-- Frontmatter YAML complet avec auteur, handle, dates, URL source, type de contenu et statistiques d'interaction
-- Frontmatter optionnel optimisé pour Obsidian : auteurs en wikilien [[@handle]], métadonnées compatibles Dataview, titres et descriptions synthétisés
-- Téléchargement local des images intégrées pour éviter les liens cassés
-- Capture des cartes de liens avec titre, domaine source et image de prévisualisation
-- Capture des sondages avec choix, pourcentages des résultats et ligne total/statut des votes
-- Préservation de la structure et de l'attribution des tweets cités
-- Exporte un seul tweet ou un fil entier
-- Bouton d'export intégré directement dans x.com, plus popup de barre d'outils et menu contextuel du clic droit
-- Modèles de nom de fichier personnalisables avec placeholders comme {date}, {handle}, {slug} et {type}
-- Ciblage de vault Obsidian et sous-dossier de vault optionnels
-- Sous-dossier optionnel pour les téléchargements de Markdown et médias
-- Interface multilingue : anglais, espagnol, allemand, français, italien, russe, japonais, portugais (Brésil), chinois (simplifié), hindi, arabe et persan
-- Mode clair et sombre
+- Exporte les tweets, fils, tweets cités, fils imbriqués et X Articles (anciennement Notes)
+- Export PDF avec texte sélectionnable, liens cliquables et rendu correct des emojis et des caractères non ASCII
+- Markdown propre compatible avec Obsidian, Logseq, Notion, Hugo et d'autres workflows basés sur Markdown
+- Prise en charge en un clic de « Ajouter à Obsidian » via le schéma URI obsidian://
+- YAML frontmatter riche avec auteur, handle, dates, URL source, type de contenu et statistiques d'engagement
+- frontmatter optionnel optimisé pour Obsidian : auteurs wikilinked [[@handle]], métadonnées compatibles Dataview et titres et descriptions générés
+- Télécharger localement les images intégrées pour éviter la dégradation des liens
+- Capturer les cartes de liens avec titre, domaine source et image d'aperçu
+- Capturer les sondages avec choix, pourcentages des résultats et ligne du total/statut des votes
+- Préserver la structure et l'attribution des tweets cités
+- Exporter un seul tweet ou un fil complet
+- Bouton d'export intégré directement dans x.com, avec popup de barre d'outils et menu contextuel par clic droit
+- Modèles de noms de fichiers personnalisés utilisant des placeholders comme {date}, {handle}, {slug} et {type}
+- Ciblage de vault et prise en charge de sous-dossiers de vault optionnels pour Obsidian
+- Sous-dossier de téléchargement optionnel pour le Markdown et les médias exportés
+- Interface multilingue : français, allemand, anglais, arabe, chinois (simplifié), espagnol, hindi, italien, japonais, persan, portugais (Brésil) et russe
+- Prise en charge des modes clair et sombre
 
 Idéal pour :
 
-- Workflows Obsidian et PKM
-- Recherche et archivage de références
-- Prompts IA et pipelines RAG
+- Les workflows Obsidian et PKM
+- La recherche et l'archivage de références
+- Les prompts IA et les pipelines RAG
 - Construire un second cerveau interrogeable
 - Préserver hors ligne le contenu long de X
 
 Limitations actuelles :
 
 - Les vidéos et GIFs ne sont pas exportés comme fichiers multimédias lisibles
-- Certaines fonctionnalités peuvent cesser de fonctionner si x.com modifie significativement la structure de la page
-- Si vous installez ou mettez à jour l'extension alors qu'un onglet x.com est déjà ouvert, rechargez l'onglet avant d'exporter — c'est intentionnel, pour éviter les échecs silencieux sur une page non initialisée
+- Certaines fonctionnalités peuvent cesser de fonctionner si x.com modifie significativement sa structure de page
+- Si vous installez ou mettez à jour l'extension alors qu'un onglet x.com est déjà ouvert, rechargez l'onglet avant l'exportation — c'est intentionnel afin d'éviter les échecs silencieux sur une page non initialisée
 
 Open source :
 https://github.com/zendegani/xclipper
@@ -48,4 +50,4 @@ https://github.com/zendegani/xclipper
 Changelog :
 https://github.com/zendegani/xclipper/blob/main/CHANGELOG.md
 
-XClipper est un projet open source indépendant et n'est pas affilié à X ou Twitter.
+XClipper est un projet open source indépendant et n'est affilié ni à X ni à Twitter.

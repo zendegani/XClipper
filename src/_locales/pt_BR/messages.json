@@ -1,9 +1,9 @@
 {
   "extensionName": {
-    "message": "XClipper — Threads e artigos do X para Markdown, PDF ou Obsidian"
+    "message": "X / Twitter Web Clipper: Salve threads e artigos em Markdown, PDF"
   },
   "extensionDescription": {
-    "message": "Exporte threads, tweets e artigos do X (Twitter) para Markdown ou PDF limpo — envie ao Obsidian ou salve localmente. Grátis, sem API."
+    "message": "Exporte threads, tweets e artigos do X (Twitter) para Markdown ou PDF limpo. Envie ao Obsidian ou salve localmente. Grátis, sem API."
   },
   "tagline": {
     "message": "Salve threads e artigos como Markdown ou PDF"

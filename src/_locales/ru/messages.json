@@ -1,9 +1,9 @@
 {
   "extensionName": {
-    "message": "XClipper — Треды и статьи X в Markdown, PDF или Obsidian"
+    "message": "X / Twitter Web Clipper: Сохраняйте Threads и статьи в Markdown, PDF"
   },
   "extensionDescription": {
-    "message": "Экспорт тредов, твитов и статей X (Twitter) в чистый Markdown или PDF — отправка в Obsidian или сохранение локально. Бесплатно, без API."
+    "message": "Экспортируйте треды и статьи X (Twitter) в Markdown или PDF. Отправка в Obsidian или локальное сохранение. Бесплатно, без API."
   },
   "tagline": {
     "message": "Сохраняйте треды и статьи как Markdown или PDF"
