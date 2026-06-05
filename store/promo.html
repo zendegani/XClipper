@@ -1,0 +1,354 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<title>XClipper — promo tiles</title>
+<style>
+  :root{
+    --bg-1: #0F172A;
+    --bg-2: #134E4A;
+    --ink: #F8FAFC;
+    --ink-2: #94A3B8;
+    --ink-3: #475569;
+    --brand-blue: #1d9bf0;
+    --brand-purple: #7C3AED;
+    --brand-red: #dc2626;
+    --line: #1e293b;
+  }
+
+  *{ box-sizing: border-box; margin: 0; padding: 0; }
+  html, body{ background: #2a2f3a; }
+  body{
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Helvetica, Arial, sans-serif;
+    color: var(--ink);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: geometricPrecision;
+    padding: 32px;
+    display: flex; flex-direction: column; gap: 32px;
+    align-items: flex-start;
+  }
+
+  .section-label{
+    color: #cbd5e1;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 11px; letter-spacing: .12em;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+  }
+
+  /* Shared canvas */
+  .canvas{
+    position: relative;
+    color: var(--ink);
+    overflow: hidden;
+    background:
+      radial-gradient(800px 400px at 18% 14%, rgba(29,155,240,.10), transparent 60%),
+      radial-gradient(700px 360px at 86% 92%, rgba(124,58,237,.08), transparent 60%),
+      linear-gradient(125deg, var(--bg-1) 0%, var(--bg-1) 38%, var(--bg-2) 100%);
+  }
+  /* Subtle dot grid */
+  .canvas::before{
+    content:'';
+    position: absolute; inset: 0;
+    background-image: radial-gradient(rgba(255,255,255,.03) 1px, transparent 1px);
+    background-size: 26px 26px;
+    pointer-events: none;
+  }
+
+  /* ───────── MARQUEE 1400×560 ───────── */
+  .canvas-marquee{
+    width: 1400px; height: 560px;
+    padding: 52px 72px;
+    display: flex; flex-direction: column; gap: 30px;
+  }
+
+  .marquee-header{
+    display: flex; align-items: center; gap: 26px;
+    position: relative; z-index: 1;
+  }
+  .brand-mark{ display: block; flex-shrink: 0; }
+  .marquee-titles h1{
+    font-size: 62px; font-weight: 800; letter-spacing: -.025em;
+    line-height: 1; color: var(--ink);
+  }
+  .marquee-titles .tag{
+    margin-top: 10px;
+    font-size: 22px; color: var(--ink-2);
+    font-weight: 500; letter-spacing: -.005em;
+  }
+
+  .marquee-flow{
+    flex: 1;
+    display: flex; align-items: center; justify-content: space-between;
+    gap: 36px;
+    position: relative; z-index: 1;
+  }
+
+  /* Tweet card (input) */
+  .tweet-card{
+    width: 380px;
+    background: white;
+    border-radius: 16px;
+    padding: 18px 20px;
+    box-shadow: 0 24px 48px -12px rgba(0,0,0,.45), 0 1px 0 rgba(255,255,255,.08) inset;
+    color: #0b1220;
+    flex-shrink: 0;
+  }
+  .tweet-card .head{ display: flex; align-items: center; gap: 10px; }
+  .tweet-card .av{
+    width: 38px; height: 38px; border-radius: 50%; background: #000;
+    display: grid; place-items: center;
+  }
+  .tweet-card .av svg{ width: 19px; height: 19px; fill: white; }
+  .tweet-card .name{ font-size: 15px; font-weight: 700; }
+  .tweet-card .handle{ font-size: 13px; color: #64748b; margin-top: 1px; }
+  .tweet-card .body{
+    margin: 12px 0 14px;
+    font-size: 14px; line-height: 1.45; color: #0b1220;
+  }
+  .tweet-card .actions{
+    display: flex; align-items: center; justify-content: space-between;
+    padding-top: 12px; border-top: 1px solid #e2e8f0;
+    color: #94a3b8;
+  }
+  .tweet-card .act{ display: flex; align-items: center; gap: 5px; font-size: 12.5px; }
+  .tweet-card .act svg{ width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.8; }
+  .tweet-card .dl{
+    width: 36px; height: 36px; border-radius: 50%;
+    background: rgba(29,155,240,.14);
+    border: 2px solid var(--brand-blue);
+    display: grid; place-items: center;
+    position: relative;
+  }
+  .tweet-card .dl svg{ width: 17px; height: 17px; stroke: var(--brand-blue); fill: none; stroke-width: 2.2; }
+  .tweet-card .dl::after{
+    content:''; position: absolute; inset: -8px;
+    border: 1.5px dashed rgba(29,155,240,.45);
+    border-radius: 50%;
+  }
+
+  /* Flow arrow */
+  .flow-arrow{
+    color: var(--ink);
+    font-size: 96px; line-height: 1; font-weight: 200;
+    letter-spacing: -.06em;
+    opacity: .82;
+    text-shadow: 0 0 28px rgba(255,255,255,.18);
+    flex-shrink: 0;
+    padding: 0 4px;
+  }
+
+  /* Output stack — YAML terminal + PDF page */
+  .output-stack{
+    position: relative;
+    width: 460px; height: 280px;
+    flex-shrink: 0;
+  }
+  .yaml-term{
+    position: absolute; top: 0; right: 0;
+    width: 340px;
+    background: #0a1020;
+    border-radius: 12px;
+    overflow: hidden;
+    box-shadow: 0 28px 50px -14px rgba(0,0,0,.55);
+    z-index: 2;
+  }
+  .yaml-term .bar{
+    height: 26px; background: #060b18;
+    display: flex; align-items: center; padding: 0 10px; gap: 6px;
+  }
+  .yaml-term .bar span{ width: 9px; height: 9px; border-radius: 50%; background: #1c2740; }
+  .yaml-term .code{
+    padding: 14px 16px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 12px; line-height: 1.55;
+    color: #cbd5e1;
+  }
+  .yaml-term .code p{ margin: 0; }
+  .yaml-term .yr{ color: #475569; }
+  .yaml-term .k{ color: #94a3b8; }
+  .yaml-term .s{ color: #fbbf24; }
+  .yaml-term .n{ color: #f472b6; }
+  .yaml-term .t{ color: #34d399; }
+  .yaml-term .img{ color: #fbbf24; }
+  .yaml-term .gap{ height: 6px; }
+  .format-chip{
+    position: absolute;
+    font-size: 10px; font-weight: 800; letter-spacing: .1em;
+    padding: 4px 9px; border-radius: 4px;
+    color: white;
+  }
+  .yaml-term .format-chip{
+    top: -10px; right: -10px;
+    background: var(--brand-purple);
+    box-shadow: 0 6px 14px -4px rgba(124,58,237,.5);
+  }
+
+  .pdf-page{
+    position: absolute; bottom: 0; left: 0;
+    width: 220px; height: 200px;
+    background: white;
+    border-radius: 8px;
+    padding: 16px 14px;
+    box-shadow: 0 24px 40px -10px rgba(0,0,0,.5);
+    z-index: 1;
+  }
+  .pdf-page .h{ width: 78%; height: 9px; background: #0b1220; border-radius: 2px; margin-bottom: 10px; }
+  .pdf-page .l{ height: 5px; background: #cbd5e1; border-radius: 2px; margin-bottom: 5px; }
+  .pdf-page .l.s{ width: 76%; }
+  .pdf-page .l.ss{ width: 58%; }
+  .pdf-page .l.last{ width: 40%; margin-bottom: 14px; }
+  .pdf-page .l2{ height: 5px; background: #e2e8f0; border-radius: 2px; margin-bottom: 5px; }
+  .pdf-page .l2.s{ width: 84%; }
+  .pdf-page .l2.ss{ width: 68%; }
+  .pdf-page .format-chip{
+    top: -10px; left: -10px;
+    background: var(--brand-red);
+    box-shadow: 0 6px 14px -4px rgba(220,38,38,.5);
+  }
+
+  /* Subtitle pills */
+  .marquee-pills{
+    display: flex; align-items: center; gap: 14px;
+    font-size: 16px; color: var(--ink-2);
+    position: relative; z-index: 1;
+    font-weight: 500;
+  }
+  .marquee-pills .dot{
+    width: 4px; height: 4px; border-radius: 50%;
+    background: var(--ink-3);
+  }
+  .marquee-pills .obs{ color: #b793ff; }
+
+  /* ───────── SMALL TILE 440×280 ───────── */
+  .canvas-small{
+    width: 440px; height: 280px;
+    padding: 28px;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 14px;
+  }
+  .canvas-small .brand-mark{ position: relative; z-index: 1; }
+  .canvas-small .wordmark{
+    font-size: 38px; font-weight: 800; letter-spacing: -.025em;
+    line-height: 1; color: var(--ink);
+    position: relative; z-index: 1;
+  }
+  .canvas-small .tag{
+    font-size: 12px; color: var(--ink-2);
+    position: relative; z-index: 1;
+    letter-spacing: .02em;
+  }
+</style>
+</head>
+<body>
+
+<!-- One shared mark definition, instanced via <use> with a per-instance size.
+     Loop color is light (#F8FAFC) for dark backgrounds — same geometry as the
+     canonical assets/xclipper-mark.svg (which uses a black loop for light bg). -->
+<svg style="position:absolute; width:0; height:0; overflow:hidden;" aria-hidden="true">
+  <defs>
+    <clipPath id="xc-band" clipPathUnits="userSpaceOnUse">
+      <rect x="0" y="30" width="128" height="68"/>
+    </clipPath>
+    <symbol id="xclipper-mark-dark" viewBox="0 0 128 128">
+      <g clip-path="url(#xc-band)" stroke-width="6" fill="none" stroke-linecap="butt">
+        <line x1="0"  y1="112" x2="112" y2="0"   stroke="#1d9bf0"/>
+        <line x1="0"  y1="128" x2="128" y2="0"   stroke="#7C3AED"/>
+        <line x1="16" y1="128" x2="128" y2="16"  stroke="#dc2626"/>
+      </g>
+      <rect x="19" y="56" width="90" height="16" rx="8"
+            fill="none" stroke="#F8FAFC" stroke-width="6"
+            transform="rotate(45 64 64)"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div>
+  <div class="section-label">Marquee · 1400 × 560</div>
+  <div class="canvas canvas-marquee" id="marquee">
+
+    <div class="marquee-header">
+      <svg class="brand-mark" width="96" height="96"><use href="#xclipper-mark-dark"/></svg>
+      <div class="marquee-titles">
+        <h1>XClipper</h1>
+        <div class="tag">Save X content as Markdown or PDF</div>
+      </div>
+    </div>
+
+    <div class="marquee-flow">
+
+      <!-- INPUT: tweet card -->
+      <div class="tweet-card">
+        <div class="head">
+          <div class="av">
+            <!-- X letterform -->
+            <svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+          </div>
+          <div>
+            <div class="name">SpaceX</div>
+            <div class="handle">@SpaceX</div>
+          </div>
+        </div>
+        <div class="body">33 Raptor engines powering the Super Heavy booster off the pad — first integrated full-stack flight test of Starship.</div>
+        <div class="actions">
+          <div class="act"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>917</div>
+          <div class="act"><svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>4K</div>
+          <div class="act"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>27K</div>
+          <div class="dl"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
+        </div>
+      </div>
+
+      <div class="flow-arrow">»</div>
+
+      <!-- OUTPUT: YAML terminal + PDF page -->
+      <div class="output-stack">
+        <div class="yaml-term">
+          <div class="bar"><span></span><span></span><span></span></div>
+          <div class="code">
+            <p><span class="yr">---</span></p>
+            <p><span class="k">author:</span> <span class="s">"@SpaceX"</span></p>
+            <p><span class="k">source:</span> <span class="s">https://x.com/…</span></p>
+            <p><span class="k">date:</span> <span class="n">2024-11-21</span></p>
+            <p><span class="k">tags:</span> <span class="t">[clippings, x]</span></p>
+            <p><span class="yr">---</span></p>
+            <div class="gap"></div>
+            <p><span class="img">![image](./media/001.jpg)</span></p>
+          </div>
+          <div class="format-chip">.MD</div>
+        </div>
+        <div class="pdf-page">
+          <div class="h"></div>
+          <div class="l"></div>
+          <div class="l s"></div>
+          <div class="l ss"></div>
+          <div class="l last"></div>
+          <div class="l2 s"></div>
+          <div class="l2"></div>
+          <div class="l2 ss"></div>
+          <div class="format-chip">.PDF</div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="marquee-pills">
+      <span>Tweets</span><span class="dot"></span>
+      <span>Threads</span><span class="dot"></span>
+      <span>Articles</span><span class="dot"></span>
+      <span class="obs">Obsidian-ready</span>
+    </div>
+
+  </div>
+</div>
+
+<div>
+  <div class="section-label">Small tile · 440 × 280</div>
+  <div class="canvas canvas-small" id="small">
+    <svg class="brand-mark" width="112" height="112"><use href="#xclipper-mark-dark"/></svg>
+    <div class="wordmark">XClipper</div>
+    <div class="tag">Save X content → Markdown · PDF · Obsidian</div>
+  </div>
+</div>
+
+</body>
+</html>
