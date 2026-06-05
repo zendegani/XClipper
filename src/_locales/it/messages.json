@@ -1,12 +1,12 @@
 {
   "extensionName": {
-    "message": "Thread e articoli di X in Markdown o Obsidian"
+    "message": "XClipper — Thread e articoli di X in Markdown, PDF o Obsidian"
   },
   "extensionDescription": {
-    "message": "Esporta thread, tweet e articoli di X (Twitter) in Markdown pulito — invia a Obsidian o salva localmente. Nessuna API."
+    "message": "Esporta thread, tweet e articoli di X (Twitter) in Markdown o PDF pulito — invia a Obsidian o salva localmente. Gratis, nessuna API."
   },
   "tagline": {
-    "message": "Converti thread e articoli in Markdown"
+    "message": "Salva thread e articoli in Markdown o PDF"
   },
   "btn_download": {
     "message": "Scarica .md"
