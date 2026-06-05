@@ -1,12 +1,12 @@
 {
   "extensionName": {
-    "message": "رشته‌ها و مقالات X به Markdown یا Obsidian"
+    "message": "XClipper — رشته‌ها و مقالات X به Markdown، PDF یا Obsidian"
   },
   "extensionDescription": {
-    "message": "خروجی گرفتن از رشته‌ها، توییت‌ها و مقالات ایکس (توییتر) به Markdown تمیز — ارسال به ابسیدین یا ذخیره محلی. بدون API."
+    "message": "خروجی گرفتن از رشته‌ها، توییت‌ها و مقالات ایکس (توییتر) به Markdown یا PDF تمیز — ارسال به ابسیدین یا ذخیره محلی. رایگان، بدون API."
   },
   "tagline": {
-    "message": "تبدیل رشته‌ها و مقالات به Markdown"
+    "message": "ذخیره رشته‌ها و مقالات به‌صورت Markdown یا PDF"
   },
   "btn_download": {
     "message": "دانلود .md"

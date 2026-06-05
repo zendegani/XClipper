@@ -1,12 +1,12 @@
 {
   "extensionName": {
-    "message": "Треды и статьи X в Markdown или Obsidian"
+    "message": "XClipper — Треды и статьи X в Markdown, PDF или Obsidian"
   },
   "extensionDescription": {
-    "message": "Экспорт тредов, твитов и статей X (Twitter) в чистый Markdown — отправка в Obsidian или сохранение локально. Без API."
+    "message": "Экспорт тредов, твитов и статей X (Twitter) в чистый Markdown или PDF — отправка в Obsidian или сохранение локально. Бесплатно, без API."
   },
   "tagline": {
-    "message": "Превращайте треды и статьи в Markdown"
+    "message": "Сохраняйте треды и статьи как Markdown или PDF"
   },
   "btn_download": {
     "message": "Скачать .md"
