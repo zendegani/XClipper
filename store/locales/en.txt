@@ -27,7 +27,7 @@ Key features:
 - Custom filename templates using placeholders like {date}, {handle}, {slug}, and {type}
 - Optional vault targeting and vault subfolder support for Obsidian
 - Optional downloads subfolder for exported Markdown and media
-- Multi-language UI: English, Spanish, German, French, Italian, Russian, Japanese, Portuguese (Brazil), Chinese (Simplified), Hindi, Arabic, and Persian
+- Multi-language UI: English, Arabic, Chinese (Simplified), French, German, Hindi, Italian, Japanese, Persian, Portuguese (Brazil), Russian, and Spanish
 - Light and dark mode support
 
 Great for:
