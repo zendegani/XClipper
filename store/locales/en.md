@@ -1,17 +1,19 @@
-tweet2md is an open-source Chrome extension that turns X/Twitter threads, posts, and articles into clean Markdown for Obsidian, research, AI workflows, and offline archiving.
+XClipper is a free, open-source web clipper for X (Twitter) — a Chrome extension that downloads threads, posts, and articles as clean Markdown or PDF for Obsidian, research, AI workflows, and offline archiving. Works entirely in your browser: no API keys, no accounts, no tracking.
 
 Export content in one click:
 
 - Save as Markdown
+- Export as PDF (selectable text, clickable links, no rasterization)
 - Copy Markdown to clipboard
 - Send directly to Obsidian
 - Download images locally alongside your .md file
 
-Works entirely locally in your browser. No API keys, no accounts, no tracking, no analytics.
+Everything runs locally on your machine. No backend service, no telemetry, no external requests beyond x.com itself.
 
 Key features:
 
 - Export tweets, threads, quote tweets, nested threads, and X Articles (formerly Notes)
+- PDF export with selectable text, clickable links, and proper rendering of emoji and non-ASCII characters
 - Clean Markdown that works with Obsidian, Logseq, Notion, Hugo, and other Markdown-based workflows
 - One-click "Add to Obsidian" support via the obsidian:// URI scheme
 - Rich YAML frontmatter with author, handle, dates, source URL, content type, and engagement stats
@@ -43,9 +45,9 @@ Current limitations:
 - If you install or update the extension while an x.com tab is already open, reload the tab before exporting — this is intentional, to avoid silent failures on an uninitialized page
 
 Open source:
-https://github.com/zendegani/tweet2md
+https://github.com/zendegani/xclipper
 
 Changelog:
-https://github.com/zendegani/tweet2md/blob/main/CHANGELOG.md
+https://github.com/zendegani/xclipper/blob/main/CHANGELOG.md
 
-tweet2md is an independent open-source project and is not affiliated with X or Twitter.
+XClipper is an independent open-source project and is not affiliated with X or Twitter.

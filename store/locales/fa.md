@@ -1,4 +1,4 @@
-tweet2md یک افزونه متن‌باز Chrome است که رشته‌ها، پست‌ها و مقالات بلند X/Twitter را به Markdown تمیز برای Obsidian، پژوهش، جریان‌های کاری هوش مصنوعی و آرشیو آفلاین تبدیل می‌کند.
+XClipper یک افزونه متن‌باز Chrome است که رشته‌ها، پست‌ها و مقالات بلند X/Twitter را به Markdown تمیز برای Obsidian، پژوهش، جریان‌های کاری هوش مصنوعی و آرشیو آفلاین تبدیل می‌کند.
 
 خروجی گرفتن با یک کلیک:
 
@@ -43,9 +43,9 @@ tweet2md یک افزونه متن‌باز Chrome است که رشته‌ها، 
 - اگر افزونه را در حالی نصب یا به‌روزرسانی کنید که یک تب x.com از قبل باز است، پیش از خروجی گرفتن تب را بازخوانی کنید — این به‌صورت عمدی است تا از خطاهای خاموش روی صفحهٔ مقداردهی‌نشده جلوگیری شود
 
 متن‌باز:
-https://github.com/zendegani/tweet2md
+https://github.com/zendegani/xclipper
 
 تاریخچهٔ تغییرات:
-https://github.com/zendegani/tweet2md/blob/main/CHANGELOG.md
+https://github.com/zendegani/xclipper/blob/main/CHANGELOG.md
 
-tweet2md یک پروژهٔ مستقل متن‌باز است و به X یا Twitter وابسته نیست.
+XClipper یک پروژهٔ مستقل متن‌باز است و به X یا Twitter وابسته نیست.

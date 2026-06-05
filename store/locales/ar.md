@@ -1,4 +1,4 @@
-tweet2md هو إضافة Chrome مفتوحة المصدر تحوّل سلاسل X/Twitter ومنشوراتها ومقالاتها الطويلة إلى Markdown نظيف لأجل Obsidian والبحث وسير عمل الذكاء الاصطناعي والأرشفة دون اتصال.
+XClipper هو إضافة Chrome مفتوحة المصدر تحوّل سلاسل X/Twitter ومنشوراتها ومقالاتها الطويلة إلى Markdown نظيف لأجل Obsidian والبحث وسير عمل الذكاء الاصطناعي والأرشفة دون اتصال.
 
 تصدير المحتوى بنقرة واحدة:
 
@@ -43,9 +43,9 @@ tweet2md هو إضافة Chrome مفتوحة المصدر تحوّل سلاسل 
 - إذا قمت بتثبيت أو تحديث الإضافة بينما كان لديك تبويب x.com مفتوحًا، أعد تحميل التبويب قبل التصدير — هذا متعمَّد لتفادي الإخفاقات الصامتة على صفحة غير مهيّأة
 
 مفتوح المصدر:
-https://github.com/zendegani/tweet2md
+https://github.com/zendegani/xclipper
 
 سجل التغييرات:
-https://github.com/zendegani/tweet2md/blob/main/CHANGELOG.md
+https://github.com/zendegani/xclipper/blob/main/CHANGELOG.md
 
-tweet2md مشروع مستقل مفتوح المصدر وغير تابع لـ X أو Twitter.
+XClipper مشروع مستقل مفتوح المصدر وغير تابع لـ X أو Twitter.
