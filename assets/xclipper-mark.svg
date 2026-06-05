@@ -1,0 +1,15 @@
+<svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <clipPath id="xc-band">
+      <rect x="0" y="30" width="128" height="68"/>
+    </clipPath>
+  </defs>
+  <g clip-path="url(#xc-band)" stroke-width="6" fill="none" stroke-linecap="butt">
+    <line x1="0"  y1="112" x2="112" y2="0"   stroke="#1d9bf0"/>
+    <line x1="0"  y1="128" x2="128" y2="0"   stroke="#7C3AED"/>
+    <line x1="16" y1="128" x2="128" y2="16"  stroke="#dc2626"/>
+  </g>
+  <rect x="19" y="56" width="90" height="16" rx="8"
+        fill="none" stroke="#000000" stroke-width="6"
+        transform="rotate(45 64 64)"/>
+</svg>
