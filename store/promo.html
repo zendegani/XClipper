@@ -5,15 +5,14 @@
 <title>XClipper — promo tiles</title>
 <style>
   :root{
-    --bg-1: #0F172A;
-    --bg-2: #134E4A;
+    --bg-1: #0d2a45;
+    --bg-2: #1976d2;
     --ink: #F8FAFC;
     --ink-2: #94A3B8;
     --ink-3: #475569;
     --brand-blue: #1d9bf0;
     --brand-purple: #7C3AED;
     --brand-red: #dc2626;
-    --line: #1e293b;
   }
 
   *{ box-sizing: border-box; margin: 0; padding: 0; }
@@ -36,17 +35,15 @@
     text-transform: uppercase;
   }
 
-  /* Shared canvas */
   .canvas{
     position: relative;
     color: var(--ink);
     overflow: hidden;
     background:
-      radial-gradient(800px 400px at 18% 14%, rgba(29,155,240,.10), transparent 60%),
-      radial-gradient(700px 360px at 86% 92%, rgba(124,58,237,.08), transparent 60%),
-      linear-gradient(125deg, var(--bg-1) 0%, var(--bg-1) 38%, var(--bg-2) 100%);
+      radial-gradient(800px 400px at 18% 14%, rgba(255,255,255,.08), transparent 60%),
+      radial-gradient(700px 360px at 86% 92%, rgba(29,155,240,.20), transparent 60%),
+      linear-gradient(125deg, var(--bg-1) 0%, var(--bg-2) 100%);
   }
-  /* Subtle dot grid */
   .canvas::before{
     content:'';
     position: absolute; inset: 0;
@@ -58,167 +55,198 @@
   /* ───────── MARQUEE 1400×560 ───────── */
   .canvas-marquee{
     width: 1400px; height: 560px;
-    padding: 52px 72px;
-    display: flex; flex-direction: column; gap: 30px;
+    padding: 32px 56px 36px;
+    display: flex; flex-direction: column;
   }
 
   .marquee-header{
-    display: flex; align-items: center; gap: 26px;
+    text-align: center;
     position: relative; z-index: 1;
   }
-  .brand-mark{ display: block; flex-shrink: 0; }
-  .marquee-titles h1{
-    font-size: 62px; font-weight: 800; letter-spacing: -.025em;
-    line-height: 1; color: var(--ink);
+  /* Logo spans both rows; sits next to a centered title block */
+  .header-inner{
+    display: inline-flex; align-items: center; gap: 22px;
   }
-  .marquee-titles .tag{
-    margin-top: 10px;
-    font-size: 22px; color: var(--ink-2);
+  .header-inner .brand-mark{ flex-shrink: 0; display: block; }
+  .header-titles{ text-align: center; }
+  .header-titles h1{
+    font-size: 44px; font-weight: 800; letter-spacing: -.025em;
+    line-height: 1.05; color: var(--ink);
+    white-space: nowrap;
+  }
+  .header-titles .tag{
+    margin-top: 12px;
+    font-size: 20px; color: var(--ink-2);
     font-weight: 500; letter-spacing: -.005em;
   }
 
   .marquee-flow{
     flex: 1;
-    display: flex; align-items: center; justify-content: space-between;
-    gap: 36px;
+    display: flex; align-items: center; justify-content: center;
+    gap: 48px;
     position: relative; z-index: 1;
+    margin-top: 14px;
   }
 
-  /* Tweet card (input) */
-  .tweet-card{
-    width: 380px;
-    background: white;
-    border-radius: 16px;
-    padding: 18px 20px;
-    box-shadow: 0 24px 48px -12px rgba(0,0,0,.45), 0 1px 0 rgba(255,255,255,.08) inset;
-    color: #0b1220;
+  /* Left stack: tweet card + context menu, overlapping */
+  .left-stack{
+    position: relative;
+    width: 470px; height: 340px;
     flex-shrink: 0;
   }
+
+  /* Tweet card — browser chrome + X article view */
+  .tweet-card{
+    position: absolute;
+    left: 0; top: 30px;
+    width: 360px;
+    background: white;
+    border-radius: 14px;
+    overflow: hidden;
+    box-shadow: 0 24px 48px -12px rgba(0,0,0,.45);
+    color: #0b1220;
+    z-index: 1;
+  }
+  .browser-bar{
+    height: 30px;
+    background: #f1f5f9;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex; align-items: center; gap: 7px;
+    padding: 0 10px;
+  }
+  .browser-bar .dot{ width: 9px; height: 9px; border-radius: 50%; }
+  .browser-bar .dot.r{ background: #ff5f57; }
+  .browser-bar .dot.y{ background: #ffbd2e; }
+  .browser-bar .dot.g{ background: #28c941; }
+  .browser-bar .url{
+    flex: 1; margin-left: 6px;
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 5px;
+    height: 19px;
+    display: flex; align-items: center; padding: 0 9px;
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+    font-size: 10px;
+    color: #64748b;
+    overflow: hidden;
+  }
+  .article-header{
+    padding: 9px 16px;
+    display: flex; align-items: center; gap: 12px;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  .article-header .back{ font-size: 15px; line-height: 1; color: #0b1220; }
+  .article-header .label{ font-size: 13px; font-weight: 800; color: #0b1220; }
+
+  .tweet-content{ padding: 14px 16px 14px; }
   .tweet-card .head{ display: flex; align-items: center; gap: 10px; }
   .tweet-card .av{
-    width: 38px; height: 38px; border-radius: 50%; background: #000;
-    display: grid; place-items: center;
+    width: 36px; height: 36px; border-radius: 50%;
+    background: #cbd5e1;
   }
-  .tweet-card .av svg{ width: 19px; height: 19px; fill: white; }
-  .tweet-card .name{ font-size: 15px; font-weight: 700; }
-  .tweet-card .handle{ font-size: 13px; color: #64748b; margin-top: 1px; }
-  .tweet-card .body{
-    margin: 12px 0 14px;
-    font-size: 14px; line-height: 1.45; color: #0b1220;
+  .tweet-card .name{ font-size: 14px; font-weight: 800; }
+  .tweet-card .handle{ font-size: 12px; color: #64748b; margin-top: 1px; }
+  .article-image{
+    margin: 12px 0 12px;
+    height: 76px; width: 100%;
+    border-radius: 9px;
+    background: linear-gradient(135deg, #dbeafe 0%, #e0e7ff 60%, #ede9fe 100%);
+    position: relative;
+    overflow: hidden;
   }
-  .tweet-card .actions{
+  .article-image::after{
+    content:'';
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(110px 70px at 30% 35%, rgba(148,163,184,.35), transparent 60%),
+      radial-gradient(130px 80px at 75% 70%, rgba(148,163,184,.25), transparent 60%);
+  }
+  .actions{
     display: flex; align-items: center; justify-content: space-between;
-    padding-top: 12px; border-top: 1px solid #e2e8f0;
+    padding-top: 10px;
+    border-top: 1px solid #f1f5f9;
     color: #94a3b8;
   }
-  .tweet-card .act{ display: flex; align-items: center; gap: 5px; font-size: 12.5px; }
-  .tweet-card .act svg{ width: 14px; height: 14px; stroke: currentColor; fill: none; stroke-width: 1.8; }
-  .tweet-card .dl{
-    width: 36px; height: 36px; border-radius: 50%;
+  .acts{ display: flex; align-items: center; gap: 22px; }
+  .acts svg{
+    width: 16px; height: 16px;
+    stroke: currentColor; fill: none; stroke-width: 1.8;
+    stroke-linecap: round; stroke-linejoin: round;
+  }
+  .dl-cta{
+    width: 32px; height: 32px; border-radius: 50%;
     background: rgba(29,155,240,.14);
     border: 2px solid var(--brand-blue);
     display: grid; place-items: center;
     position: relative;
+    margin-left: 6px;
   }
-  .tweet-card .dl svg{ width: 17px; height: 17px; stroke: var(--brand-blue); fill: none; stroke-width: 2.2; }
-  .tweet-card .dl::after{
-    content:''; position: absolute; inset: -8px;
+  .dl-cta svg{
+    width: 16px; height: 16px;
+    stroke: var(--brand-blue); fill: none; stroke-width: 2.2;
+    stroke-linecap: round; stroke-linejoin: round;
+  }
+  .dl-cta::after{
+    content:''; position: absolute; inset: -7px;
     border: 1.5px dashed rgba(29,155,240,.45);
     border-radius: 50%;
   }
 
-  /* Flow arrow */
-  .flow-arrow{
-    color: var(--ink);
-    font-size: 96px; line-height: 1; font-weight: 200;
-    letter-spacing: -.06em;
-    opacity: .82;
-    text-shadow: 0 0 28px rgba(255,255,255,.18);
-    flex-shrink: 0;
-    padding: 0 4px;
-  }
-
-  /* Output stack — YAML terminal + PDF page */
-  .output-stack{
-    position: relative;
-    width: 460px; height: 280px;
-    flex-shrink: 0;
-  }
-  .yaml-term{
-    position: absolute; top: 0; right: 0;
-    width: 340px;
-    background: #0a1020;
-    border-radius: 12px;
-    overflow: hidden;
-    box-shadow: 0 28px 50px -14px rgba(0,0,0,.55);
-    z-index: 2;
-  }
-  .yaml-term .bar{
-    height: 26px; background: #060b18;
-    display: flex; align-items: center; padding: 0 10px; gap: 6px;
-  }
-  .yaml-term .bar span{ width: 9px; height: 9px; border-radius: 50%; background: #1c2740; }
-  .yaml-term .code{
-    padding: 14px 16px;
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 12px; line-height: 1.55;
-    color: #cbd5e1;
-  }
-  .yaml-term .code p{ margin: 0; }
-  .yaml-term .yr{ color: #475569; }
-  .yaml-term .k{ color: #94a3b8; }
-  .yaml-term .s{ color: #fbbf24; }
-  .yaml-term .n{ color: #f472b6; }
-  .yaml-term .t{ color: #34d399; }
-  .yaml-term .img{ color: #fbbf24; }
-  .yaml-term .gap{ height: 6px; }
-  .format-chip{
+  /* Context menu mockup — overlaps tweet card upper-right */
+  .ctx-menu{
     position: absolute;
-    font-size: 10px; font-weight: 800; letter-spacing: .1em;
-    padding: 4px 9px; border-radius: 4px;
-    color: white;
-  }
-  .yaml-term .format-chip{
-    top: -10px; right: -10px;
-    background: var(--brand-purple);
-    box-shadow: 0 6px 14px -4px rgba(124,58,237,.5);
-  }
-
-  .pdf-page{
-    position: absolute; bottom: 0; left: 0;
-    width: 220px; height: 200px;
+    right: 0; top: 0;
+    width: 220px;
     background: white;
-    border-radius: 8px;
-    padding: 16px 14px;
-    box-shadow: 0 24px 40px -10px rgba(0,0,0,.5);
-    z-index: 1;
+    border-radius: 10px;
+    box-shadow: 0 22px 40px -8px rgba(0,0,0,.5);
+    padding: 6px;
+    color: #0b1220;
+    z-index: 3;
+    overflow: hidden;
   }
-  .pdf-page .h{ width: 78%; height: 9px; background: #0b1220; border-radius: 2px; margin-bottom: 10px; }
-  .pdf-page .l{ height: 5px; background: #cbd5e1; border-radius: 2px; margin-bottom: 5px; }
-  .pdf-page .l.s{ width: 76%; }
-  .pdf-page .l.ss{ width: 58%; }
-  .pdf-page .l.last{ width: 40%; margin-bottom: 14px; }
-  .pdf-page .l2{ height: 5px; background: #e2e8f0; border-radius: 2px; margin-bottom: 5px; }
-  .pdf-page .l2.s{ width: 84%; }
-  .pdf-page .l2.ss{ width: 68%; }
-  .pdf-page .format-chip{
-    top: -10px; left: -10px;
-    background: var(--brand-red);
-    box-shadow: 0 6px 14px -4px rgba(220,38,38,.5);
+  .ctx-label{
+    padding: 7px 12px 8px;
+    font-size: 10px; font-weight: 700;
+    letter-spacing: .14em; text-transform: uppercase;
+    color: #94a3b8;
+    border-bottom: 1px solid #f1f5f9;
+    margin-bottom: 4px;
+  }
+  .ctx-divider{ height: 1px; background: #f1f5f9; margin: 4px 2px; }
+  .ctx-item{
+    padding: 8px 12px;
+    font-size: 13px; font-weight: 600;
+    border-radius: 5px;
+    color: #1e293b;
+  }
+  .ctx-item.hover{
+    background: rgba(29,155,240,.12);
+    color: var(--brand-blue);
   }
 
-  /* Subtitle pills */
-  .marquee-pills{
-    display: flex; align-items: center; gap: 14px;
-    font-size: 16px; color: var(--ink-2);
-    position: relative; z-index: 1;
-    font-weight: 500;
+  /* Chunky white double-chevron */
+  .chevrons{
+    flex-shrink: 0;
+    filter: drop-shadow(0 0 24px rgba(255,255,255,.18));
   }
-  .marquee-pills .dot{
-    width: 4px; height: 4px; border-radius: 50%;
-    background: var(--ink-3);
+  .chevrons svg{ display: block; }
+
+  /* Document icons — overlapping stack */
+  .docs{
+    flex-shrink: 0;
+    display: flex; align-items: center;
   }
-  .marquee-pills .obs{ color: #b793ff; }
+  .doc{
+    width: 152px; height: 192px;
+    position: relative;
+    filter: drop-shadow(0 18px 30px rgba(0,0,0,.45));
+  }
+  .doc + .doc{ margin-left: -28px; }
+  /* Diagonal staircase: each step descends right */
+  .doc:nth-child(1){ transform: translateY(-26px); }
+  .doc:nth-child(3){ transform: translateY(26px); }
+  .doc svg{ display: block; width: 100%; height: 100%; }
 
   /* ───────── SMALL TILE 440×280 ───────── */
   .canvas-small{
@@ -242,9 +270,6 @@
 </head>
 <body>
 
-<!-- One shared mark definition, instanced via <use> with a per-instance size.
-     Loop color is light (#F8FAFC) for dark backgrounds — same geometry as the
-     canonical assets/xclipper-mark.svg (which uses a black loop for light bg). -->
 <svg style="position:absolute; width:0; height:0; overflow:hidden;" aria-hidden="true">
   <defs>
     <clipPath id="xc-band" clipPathUnits="userSpaceOnUse">
@@ -260,6 +285,33 @@
             fill="none" stroke="#F8FAFC" stroke-width="6"
             transform="rotate(45 64 64)"/>
     </symbol>
+    <!-- Tight-crop dark variant — viewBox hugs the visible mark so SVG height = mark height.
+         y range includes loop endcap stroke extent (~y=27 top, ~y=101 bottom). -->
+    <symbol id="xclipper-mark-dark-tight" viewBox="8 25 112 78">
+      <g clip-path="url(#xc-band)" stroke-width="6" fill="none" stroke-linecap="butt">
+        <line x1="0"  y1="112" x2="112" y2="0"   stroke="#1d9bf0"/>
+        <line x1="0"  y1="128" x2="128" y2="0"   stroke="#7C3AED"/>
+        <line x1="16" y1="128" x2="128" y2="16"  stroke="#dc2626"/>
+      </g>
+      <rect x="19" y="56" width="90" height="16" rx="8"
+            fill="none" stroke="#F8FAFC" stroke-width="6"
+            transform="rotate(45 64 64)"/>
+    </symbol>
+    <!-- Light-bg variant for context menu (black loop) -->
+    <symbol id="xclipper-mark-light" viewBox="0 0 128 128">
+      <g clip-path="url(#xc-band)" stroke-width="6" fill="none" stroke-linecap="butt">
+        <line x1="0"  y1="112" x2="112" y2="0"   stroke="#1d9bf0"/>
+        <line x1="0"  y1="128" x2="128" y2="0"   stroke="#7C3AED"/>
+        <line x1="16" y1="128" x2="128" y2="16"  stroke="#dc2626"/>
+      </g>
+      <rect x="19" y="56" width="90" height="16" rx="8"
+            fill="none" stroke="#000000" stroke-width="6"
+            transform="rotate(45 64 64)"/>
+    </symbol>
+    <!-- Obsidian gem (official path from popup.html) -->
+    <symbol id="obsidian-gem" viewBox="0 0 24 24">
+      <path d="M19.355 18.538a68.967 68.959 0 0 0 1.858-2.954.81.81 0 0 0-.062-.9c-.516-.685-1.504-2.075-2.042-3.362-.553-1.321-.636-3.375-.64-4.377a1.707 1.707 0 0 0-.358-1.05l-3.198-4.064a3.744 3.744 0 0 1-.076.543c-.106.503-.307 1.004-.536 1.5-.134.29-.29.6-.446.914l-.31.626c-.516 1.068-.997 2.227-1.132 3.59-.124 1.26.046 2.73.815 4.481.128.011.257.025.386.044a6.363 6.363 0 0 1 3.326 1.505c.916.79 1.744 1.922 2.415 3.5zM8.199 22.569c.073.012.146.02.22.02.78.024 2.095.092 3.16.29.87.16 2.593.64 4.01 1.055 1.083.316 2.198-.548 2.355-1.664.114-.814.33-1.735.725-2.58l-.01.005c-.67-1.87-1.522-3.078-2.416-3.849a5.295 5.295 0 0 0-2.778-1.257c-1.54-.216-2.952.19-3.84.45.532 2.218.368 4.829-1.425 7.531zM5.533 9.938c-.023.1-.056.197-.098.29L2.82 16.059a1.602 1.602 0 0 0 .313 1.772l4.116 4.24c2.103-3.101 1.796-6.02.836-8.3-.728-1.73-1.832-3.081-2.55-3.831zM9.32 14.01c.615-.183 1.606-.465 2.745-.534-.683-1.725-.848-3.233-.716-4.577.154-1.552.7-2.847 1.235-3.95.113-.235.223-.454.328-.664.149-.297.288-.577.419-.86.217-.47.379-.885.46-1.27.08-.38.08-.72-.014-1.043-.095-.325-.297-.675-.68-1.06a1.6 1.6 0 0 0-1.475.36l-4.95 4.452a1.602 1.602 0 0 0-.513.952l-.427 2.83c.672.59 2.328 2.316 3.335 4.711.09.21.175.43.253.653z"/>
+    </symbol>
   </defs>
 </svg>
 
@@ -268,76 +320,120 @@
   <div class="canvas canvas-marquee" id="marquee">
 
     <div class="marquee-header">
-      <svg class="brand-mark" width="96" height="96"><use href="#xclipper-mark-dark"/></svg>
-      <div class="marquee-titles">
-        <h1>XClipper</h1>
-        <div class="tag">Save X content as Markdown or PDF</div>
+      <div class="header-inner">
+        <svg class="brand-mark" width="124" height="86"><use href="#xclipper-mark-dark-tight"/></svg>
+        <div class="header-titles">
+          <h1>XClipper — Save X Content as Markdown or PDF</h1>
+          <div class="tag">Tweets · Threads · Articles · Obsidian-ready</div>
+        </div>
       </div>
     </div>
 
     <div class="marquee-flow">
 
-      <!-- INPUT: tweet card -->
-      <div class="tweet-card">
-        <div class="head">
-          <div class="av">
-            <!-- X letterform -->
-            <svg viewBox="0 0 24 24"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
+      <div class="left-stack">
+
+        <div class="tweet-card">
+          <div class="browser-bar">
+            <span class="dot r"></span><span class="dot y"></span><span class="dot g"></span>
+            <div class="url">https://x.com/author/status/…</div>
           </div>
-          <div>
-            <div class="name">SpaceX</div>
-            <div class="handle">@SpaceX</div>
+
+          <div class="article-header">
+            <span class="back">←</span>
+            <span class="label">Article</span>
+          </div>
+
+          <div class="tweet-content">
+            <div class="head">
+              <div class="av"></div>
+              <div>
+                <div class="name">Author</div>
+                <div class="handle">@author</div>
+              </div>
+            </div>
+
+            <div class="article-image"></div>
+
+            <div class="actions">
+              <div class="acts">
+                <svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>
+                <svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+                <svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>
+                <svg viewBox="0 0 24 24"><line x1="6" y1="20" x2="6" y2="13"/><line x1="12" y1="20" x2="12" y2="8"/><line x1="18" y1="20" x2="18" y2="4"/></svg>
+              </div>
+              <div class="acts">
+                <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+                <svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg>
+                <div class="dl-cta">
+                  <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
-        <div class="body">33 Raptor engines powering the Super Heavy booster off the pad — first integrated full-stack flight test of Starship.</div>
-        <div class="actions">
-          <div class="act"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>917</div>
-          <div class="act"><svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>4K</div>
-          <div class="act"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>27K</div>
-          <div class="dl"><svg viewBox="0 0 24 24" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg></div>
+
+        <!-- Right-click context menu, overlapping upper-right of tweet card -->
+        <div class="ctx-menu">
+          <div class="ctx-label">Right-click menu</div>
+          <div class="ctx-item hover">Save as Markdown</div>
+          <div class="ctx-item">Save as PDF</div>
+          <div class="ctx-divider"></div>
+          <div class="ctx-item">Add to Obsidian</div>
         </div>
+
       </div>
 
-      <div class="flow-arrow">»</div>
+      <div class="chevrons">
+        <svg width="110" height="110" viewBox="0 0 100 100">
+          <g stroke="#F8FAFC" stroke-width="13" fill="none" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="22,22 50,50 22,78"/>
+            <polyline points="50,22 78,50 50,78"/>
+          </g>
+        </svg>
+      </div>
 
-      <!-- OUTPUT: YAML terminal + PDF page -->
-      <div class="output-stack">
-        <div class="yaml-term">
-          <div class="bar"><span></span><span></span><span></span></div>
-          <div class="code">
-            <p><span class="yr">---</span></p>
-            <p><span class="k">author:</span> <span class="s">"@SpaceX"</span></p>
-            <p><span class="k">source:</span> <span class="s">https://x.com/…</span></p>
-            <p><span class="k">date:</span> <span class="n">2024-11-21</span></p>
-            <p><span class="k">tags:</span> <span class="t">[clippings, x]</span></p>
-            <p><span class="yr">---</span></p>
-            <div class="gap"></div>
-            <p><span class="img">![image](./media/001.jpg)</span></p>
-          </div>
-          <div class="format-chip">.MD</div>
+      <div class="docs">
+        <div class="doc">
+          <svg viewBox="0 0 168 210">
+            <path d="M0 6 Q0 0 6 0 L128 0 L168 40 L168 204 Q168 210 162 210 L6 210 Q0 210 0 204 Z" fill="#F8FAFC"/>
+            <path d="M128 0 L168 40 L132 40 Q128 40 128 36 Z" fill="#cbd5e1"/>
+            <rect x="22" y="70"  width="124" height="7" rx="3" fill="#e2e8f0"/>
+            <rect x="22" y="86"  width="100" height="7" rx="3" fill="#e2e8f0"/>
+            <rect x="22" y="102" width="114" height="7" rx="3" fill="#e2e8f0"/>
+            <text x="84" y="178" text-anchor="middle"
+                  font-family="-apple-system, system-ui, sans-serif"
+                  font-size="32" font-weight="900" fill="#7C3AED" letter-spacing="-0.02em">.md</text>
+          </svg>
         </div>
-        <div class="pdf-page">
-          <div class="h"></div>
-          <div class="l"></div>
-          <div class="l s"></div>
-          <div class="l ss"></div>
-          <div class="l last"></div>
-          <div class="l2 s"></div>
-          <div class="l2"></div>
-          <div class="l2 ss"></div>
-          <div class="format-chip">.PDF</div>
+        <div class="doc">
+          <svg viewBox="0 0 168 210">
+            <path d="M0 6 Q0 0 6 0 L128 0 L168 40 L168 204 Q168 210 162 210 L6 210 Q0 210 0 204 Z" fill="#F8FAFC"/>
+            <path d="M128 0 L168 40 L132 40 Q128 40 128 36 Z" fill="#cbd5e1"/>
+            <rect x="22" y="70"  width="124" height="7" rx="3" fill="#e2e8f0"/>
+            <rect x="22" y="86"  width="100" height="7" rx="3" fill="#e2e8f0"/>
+            <rect x="22" y="102" width="114" height="7" rx="3" fill="#e2e8f0"/>
+            <text x="84" y="178" text-anchor="middle"
+                  font-family="-apple-system, system-ui, sans-serif"
+                  font-size="32" font-weight="900" fill="#dc2626" letter-spacing="-0.02em">.pdf</text>
+          </svg>
+        </div>
+        <div class="doc">
+          <svg viewBox="0 0 168 210">
+            <path d="M0 6 Q0 0 6 0 L128 0 L168 40 L168 204 Q168 210 162 210 L6 210 Q0 210 0 204 Z" fill="#F8FAFC"/>
+            <path d="M128 0 L168 40 L132 40 Q128 40 128 36 Z" fill="#cbd5e1"/>
+            <rect x="22" y="70"  width="124" height="7" rx="3" fill="#e2e8f0"/>
+            <rect x="22" y="86"  width="100" height="7" rx="3" fill="#e2e8f0"/>
+            <rect x="22" y="102" width="114" height="7" rx="3" fill="#e2e8f0"/>
+            <!-- Obsidian gem as the doc label -->
+            <svg x="60" y="135" width="48" height="48" viewBox="0 0 24 24" fill="#7C3AED">
+              <use href="#obsidian-gem"/>
+            </svg>
+          </svg>
         </div>
       </div>
 
     </div>
-
-    <div class="marquee-pills">
-      <span>Tweets</span><span class="dot"></span>
-      <span>Threads</span><span class="dot"></span>
-      <span>Articles</span><span class="dot"></span>
-      <span class="obs">Obsidian-ready</span>
-    </div>
-
   </div>
 </div>
 
