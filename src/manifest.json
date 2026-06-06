@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "__MSG_extensionName__",
   "short_name": "XClipper",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "__MSG_extensionDescription__",
   "default_locale": "en",
   "permissions": [

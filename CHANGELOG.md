@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.2] - 2026-06-06
+
+### Fixed
+
+- **PDF Export respect Engagement toggle** (#46): Engagement metrics are now stripped from the PDF export when the *Engagement* toggle is turned off.
+- **Thread Engagement Stats position** (#47): For threads, the engagement stats line in Markdown is now placed right after the first tweet (before the separator) instead of after the last tweet.
+
+---
+
 ## [2.0.1] - 2026-06-06
 
 ### Fixed

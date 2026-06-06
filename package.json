@@ -1,6 +1,6 @@
 {
   "name": "xclipper",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "XClipper — free, open-source web clipper for X (Twitter). Download threads, posts, and articles as Markdown or PDF for Obsidian, research, and AI/RAG workflows. Works locally — no API, no accounts, no tracking.",
   "private": true,
   "type": "module",
