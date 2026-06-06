@@ -39,7 +39,7 @@
     "message": "فایل‌های Markdown و تصاویر را در این زیرپوشه از پوشه بارگیری‌ها ذخیره می‌کند. برای ذخیره مستقیم در بارگیری‌ها، خالی بگذارید."
   },
   "opt_download_folder_placeholder": {
-    "message": "مثلاً tweet2md"
+    "message": "مثلاً xclipper"
   },
   "opt_filename_template": {
     "message": "الگوی نام فایل"

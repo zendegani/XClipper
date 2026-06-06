@@ -39,7 +39,7 @@
     "message": "Save Markdown and images under this subfolder inside your Downloads folder. Leave blank to save directly in Downloads."
   },
   "opt_download_folder_placeholder": {
-    "message": "e.g. tweet2md"
+    "message": "e.g. xclipper"
   },
   "opt_filename_template": {
     "message": "Filename template"

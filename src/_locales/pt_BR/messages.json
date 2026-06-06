@@ -39,7 +39,7 @@
     "message": "Salva os arquivos Markdown e imagens nesta subpasta dentro da pasta Downloads. Deixe em branco para salvar diretamente em Downloads."
   },
   "opt_download_folder_placeholder": {
-    "message": "ex.: tweet2md"
+    "message": "ex.: xclipper"
   },
   "opt_filename_template": {
     "message": "Modelo de nome de arquivo"

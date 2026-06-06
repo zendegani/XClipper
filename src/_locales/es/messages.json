@@ -39,7 +39,7 @@
     "message": "Guarda el Markdown y las imágenes dentro de esta subcarpeta de tu carpeta de Descargas. Déjalo vacío para guardar directamente en Descargas."
   },
   "opt_download_folder_placeholder": {
-    "message": "ej. tweet2md"
+    "message": "ej. xclipper"
   },
   "opt_filename_template": {
     "message": "Plantilla de nombre de archivo"
