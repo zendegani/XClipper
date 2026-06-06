@@ -100,4 +100,21 @@ describe('renderPdfHtml', () => {
     expect(html).toContain('class="link-card"');
     expect(html).toContain('getpolyscope.com');
   });
+
+  it('respects includeEngagement option', () => {
+    const doc = loadAst('bcherny-2053982327123132846');
+    // Ensure the AST has some engagement
+    doc.body.type === 'tweet' && (doc.body.engagement = { likes: 42, reposts: 10 });
+    
+    const htmlWithEngagement = renderPdfHtml(doc, { includeEngagement: true });
+    expect(htmlWithEngagement).toContain('class="engagement"');
+    expect(htmlWithEngagement).toContain('❤️ 42');
+    
+    const htmlWithoutEngagement = renderPdfHtml(doc, { includeEngagement: false });
+    expect(htmlWithoutEngagement).not.toContain('class="engagement"');
+    expect(htmlWithoutEngagement).not.toContain('❤️ 42');
+    
+    const htmlDefault = renderPdfHtml(doc);
+    expect(htmlDefault).not.toContain('class="engagement"');
+  });
 });

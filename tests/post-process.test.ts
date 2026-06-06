@@ -313,4 +313,43 @@ describe('postProcess() filename template', () => {
     });
     expect(result.filename).toBe('2026-05-19-example-123.md');
   });
+
+  it('inserts inline stats correctly for single tweets vs threads', () => {
+    const tweetData: ExtractedContent = {
+      type: 'tweet',
+      author: { name: 'Example', handle: '@example' },
+      markdown: '# Example (@example)\n\nThis is a single tweet.\n\n---\n> Source: https://x.com/example/status/123',
+      sourceUrl: 'https://x.com/example/status/123',
+      date: '2026-05-11T00:00:00.000Z',
+      tweetId: '123',
+      metadata: { likes: 10, reposts: 2, replies: 0, bookmarks: 0, views: 100 },
+    };
+
+    const threadData: ExtractedContent = {
+      type: 'thread',
+      author: { name: 'Example', handle: '@example' },
+      markdown: '# Example (@example)\n\nFirst tweet in thread.\n\n---\n\nSecond tweet in thread.\n\n---\n> Source: https://x.com/example/status/123',
+      sourceUrl: 'https://x.com/example/status/123',
+      date: '2026-05-11T00:00:00.000Z',
+      tweetId: '123',
+      metadata: { likes: 10, reposts: 2, replies: 0, bookmarks: 0, views: 100 },
+    };
+
+    // Single tweet: stats before the source footer
+    const singleResult = postProcess(tweetData, {
+      includeMetadata: false,
+      downloadImages: false,
+      inlineStats: true,
+    });
+    expect(singleResult.markdown).toContain('💬 0 · 🔁 2 · ❤️ 10 · 🔖 0 · 👁 100\n\n---\n> Source:');
+
+    // Thread: stats after the first tweet (before the first separator)
+    const threadResult = postProcess(threadData, {
+      includeMetadata: false,
+      downloadImages: false,
+      inlineStats: true,
+    });
+    expect(threadResult.markdown).toContain('First tweet in thread.');
+    expect(threadResult.markdown).toContain('💬 0 · 🔁 2 · ❤️ 10 · 🔖 0 · 👁 100\n---\n\nSecond tweet in thread.');
+  });
 });
