@@ -307,10 +307,19 @@ window.addEventListener('xclipper:autoextract', (e: Event) => {
 
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg && msg.action === 'TWEET2MD_AUTOEXTRACT') {
-    autoExtract(coerceAutoAction(msg.subAction), {
-      allowClose: false,
-      singleTweet: msg.single === true,
-    }).then(() => sendResponse({ ok: true }));
+    if (msg.subAction === 'pdf') {
+      // PDF uses its own AST → HTML → print pipeline, not the markdown flow.
+      runPdfExport()
+        .then(() => sendResponse({ ok: true }))
+        .catch((err: unknown) =>
+          sendResponse({ ok: false, error: err instanceof Error ? err.message : String(err) }),
+        );
+    } else {
+      autoExtract(coerceAutoAction(msg.subAction), {
+        allowClose: false,
+        singleTweet: msg.single === true,
+      }).then(() => sendResponse({ ok: true }));
+    }
     return true;
   }
   return false;
