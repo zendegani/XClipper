@@ -4,7 +4,7 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Chrome Web Store](https://img.shields.io/chrome-web-store/v/epmmehilhbpkgcjbcohgkmihlalagkho?label=Chrome%20Web%20Store)](https://chromewebstore.google.com/detail/xclipper/epmmehilhbpkgcjbcohgkmihlalagkho)
 
-> Copy or save X (Twitter) Articles, threads, and tweets as Markdown.
+> X / Twitter Web Clipper: Save Threads & Articles to Markdown, PDF, Obsidian.
 
 <p align="center">
   <img src="assets/04-popup-clipping-interface.png" alt="XClipper extension UI" width="500" />
