@@ -21,20 +21,20 @@
 ### Key Features
 
 - **Three Ways to Trigger** — Toolbar popup, inline button on every tweet's action bar, or the right-click context menu
+- **Local Image Downloads** — Download embedded X media locally alongside your `.md` file to prevent link rot
+- **PDF Export** — Save tweets, threads, and articles as PDFs via the browser's native print engine. Selectable text, clickable links, embedded images, and full Unicode/emoji support
+- **Add to Obsidian** — One-click handoff to Obsidian via the `obsidian://` URI scheme, with an optional vault name for direct targeting
+- **Obsidian-friendly Frontmatter** — Optional schema with `[[@handle]]` wikilinks for backlinks, synthesized title, `published`/`created` dates, prose description, and a **customizable tags list** (defaults to `clippings, x, {type}`; supports placeholders like `{handle}` and `{date}` with `{`-autocomplete in Settings)
 - **X Articles** — Full support for long-form Articles (formerly Notes) with headings, lists, and code blocks
 - **Tweets & Threads** — Extract tweets, nested threads, and quote tweets into clean Markdown
 - **Single-Tweet Export** — Grab just one tweet without its thread via the right-click menu's **Copy just this tweet (no thread)** item, or by Shift/Alt-clicking the inline button
 - **Quoted Posts** — Preserve quoted-post structure and context in a reusable format, with the original author's name and handle
 - **Link Cards** — Capture external link previews including the title, domain, and high-res Open Graph image
-- **Add to Obsidian** — One-click handoff to Obsidian via the `obsidian://` URI scheme, with an optional vault name for direct targeting
-- **Obsidian-friendly Frontmatter** — Optional schema with `[[@handle]]` wikilinks for backlinks, synthesized title, `published`/`created` dates, prose description, and a **customizable tags list** (defaults to `clippings, x, {type}`; supports placeholders like `{handle}` and `{date}` with `{`-autocomplete in Settings)
-- **Local Image Downloads** — Download embedded X media locally alongside your `.md` file to prevent link rot
 - **Customizable Filename Template** — Configure the exported filename with placeholders (`{date}`, `{datetime}`, `{handle}`, `{author}`, `{id}`, `{slug}`, `{type}`); live preview in Settings. Default keeps the existing behaviour
 - **YAML Frontmatter** — Rich metadata with author, handle, date, source URL, content type, and engagement stats (likes, reposts, replies, bookmarks, views)
 - **Frontmatter Field Picker** — Per-field toggle switches in Settings to include or omit each YAML entry (e.g. drop `views` and `bookmarks` if you don't need them). Saved separately for the default schema and the Obsidian-friendly schema, so flipping the schema toggle preserves both sets
 - **Inline Engagement Stats** — Optional X-style row in the Markdown body: `💬 284 · 🔁 1.5K · ❤️ 8K · 🔖 253 · 👁 100K`
 - **Copy or Download** — Copy Markdown to clipboard or download as a file
-- **PDF Export** — Save tweets, threads, and articles as PDFs via the browser's native print engine. Selectable text, clickable links, embedded images, and full Unicode/emoji support
 - **Clean Output** — Automatically expand truncated posts and strip engagement buttons, follow prompts, and trackers
 - **Multi-Language UI** — Popup available in English, Spanish, German, French, Italian, Russian, Japanese, Portuguese (Brazil), Chinese (Simplified), Hindi, Arabic, and Persian. Content extraction works on any language regardless of UI translation
 - **Light & Dark Mode** — Popup matches your system preferences
