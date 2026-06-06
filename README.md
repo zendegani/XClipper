@@ -7,7 +7,7 @@
 > Copy or save X (Twitter) Articles, threads, and tweets as Markdown.
 
 <p align="center">
-  <img src="assets/Extension.png" alt="XClipper extension UI" width="500" />
+  <img src="assets/04-popup-clipping-interface.jpg" alt="XClipper extension UI" width="500" />
 </p>
 
 ## What it does
@@ -15,7 +15,7 @@
 **XClipper** is an open-source Chrome extension that turns x.com content into production-ready Markdown for research, note-taking, AI workflows, and offline archiving. No X API key required.
 
 <p align="center">
-  <img src="assets/Markdown.png" alt="XClipper converts X content to clean Markdown" width="700" />
+  <img src="assets/01-product-overview.jpg" alt="XClipper converts X content to clean Markdown" width="700" />
 </p>
 
 ### Key Features
@@ -42,7 +42,7 @@
 ### Inline button — one click on any tweet
 
 <p align="center">
-  <img src="assets/feature-inline-button.png" alt="Inline download button on a tweet's action bar" width="700" />
+  <img src="assets/02-one-click-timeline-export.jpg" alt="Inline download button on a tweet's action bar" width="700" />
 </p>
 
 Skip the popup. The download icon sits next to share on every tweet. One click opens the tweet's permalink in a new tab and exports it automatically. Toggle in the popup to make it copy to clipboard instead, and optionally close the tab once the export is done.
@@ -50,7 +50,7 @@ Skip the popup. The download icon sits next to share on every tweet. One click o
 ### Right-click context menu
 
 <p align="center">
-  <img src="assets/feature-context-menu.png" alt="Right-click context menu with Save and Copy as Markdown items" width="700" />
+  <img src="assets/03-context-menu-shortcut.png" alt="Right-click context menu with Save and Copy as Markdown items" width="700" />
 </p>
 
 Right-click anywhere on a tweet — the body, an image, or the timestamp — and pick **Save tweet as Markdown**, **Copy tweet as Markdown**, or **Add tweet to Obsidian**. XClipper figures out which tweet you meant.
@@ -58,7 +58,7 @@ Right-click anywhere on a tweet — the body, an image, or the timestamp — and
 ### Settings — tune behaviour once, forget about it
 
 <p align="center">
-  <img src="assets/Extension_and_Setting.png" alt="XClipper popup and settings view side by side" width="700" />
+  <img src="assets/06-metadata-customization-settings.png" alt="XClipper popup and settings view side by side" width="700" />
 </p>
 
 The popup keeps the things you adjust per export — **Save images locally**, **Show engagement stats inline**, **Include metadata** — front and centre. Click the gear icon at the top-right to flip to **Settings**, where the set-once knobs live in four collapsible sections: **Downloads** (subfolder + filename template with placeholders like `{date}`, `{handle}`, `{slug}` and a live preview), **Obsidian** (the Obsidian-friendly frontmatter toggle, optional vault name, optional vault subfolder, and a customizable tags list with `{`-autocomplete and a Reset button), **Frontmatter fields** (per-field toggle switches that decide which YAML entries land in the export — saved per schema so flipping Obsidian-friendly preserves both selections), and **Inline button & context menu**. At most two sections stay expanded at once so the panel never gets unwieldy; the last layout is remembered. Settings persist across sessions via `chrome.storage`.

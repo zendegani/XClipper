@@ -25,12 +25,12 @@ const execFileP = promisify(execFile);
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
 const CAP_HTML = join(ROOT, 'store/capabilities.html');
-const OUT_FILE = join(ROOT, 'assets/Capabilities.png');
+const OUT_FILE = join(ROOT, 'assets/01-product-overview.jpg');
 const CHROME_CACHE = join(ROOT, '.puppeteer-cache');
 
 const TARGET = { id: '#cap', w: 1280, h: 800 };
 
-const log = (...a) => console.log('[capabilities-promo]', ...a);
+const log = (...a) => console.log('[product-overview]', ...a);
 
 async function ensureChromeBinary() {
   if (process.env.CHROME_PATH) {
@@ -84,6 +84,7 @@ async function main() {
     // does NOT preserve aspect (which is fine here — source is already the right
     // ratio, we just want the integer-pixel downscale).
     await execFileP('sips', [
+      '-s', 'format', 'jpeg',
       '-z', String(TARGET.h), String(TARGET.w),
       tmpPath, '--out', OUT_FILE,
     ]);
