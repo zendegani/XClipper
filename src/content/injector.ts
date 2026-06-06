@@ -6,7 +6,7 @@ const BUTTON_ATTR = 'data-tweet2md-injected';
 let decorated = new WeakSet<Element>();
 
 let inlineButtonCopies = false;
-let showInlineButton = true;
+let showInlineButton = false;
 
 function removeAllInjectedButtons(): void {
   document.querySelectorAll(`[${BUTTON_ATTR}]`).forEach((btn) => {
@@ -38,7 +38,7 @@ function loadInlineMode(): void {
       };
       inlineButtonCopies = s.inlineButtonCopies === true;
       const wasShown = showInlineButton;
-      showInlineButton = s.showInlineButton !== false; // default true
+      showInlineButton = s.showInlineButton === true; // default false in v2.0.0
       if (wasShown && !showInlineButton) {
         removeAllInjectedButtons();
       } else if (!wasShown && showInlineButton) {

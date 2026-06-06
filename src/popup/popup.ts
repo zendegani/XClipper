@@ -186,7 +186,7 @@ const DEFAULT_SETTINGS: Settings = {
   includeMetadata: true, // on by default
   closeTabAfterExport: false,
   inlineButtonCopies: false, // inline button downloads by default
-  showInlineButton: true, // inline button visible by default
+  showInlineButton: false, // off by default in v2.0.0 — avoids DOM conflicts with other X/Twitter extensions; v1.9.0 migrants keep their stored value
   inlineStats: false, // off — changes visible content, opt-in
   obsidianFriendly: false, // off — changes frontmatter shape, opt-in
   obsidianVault: '', // empty → let Obsidian pick the last-used vault
