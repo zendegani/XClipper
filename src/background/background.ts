@@ -196,9 +196,9 @@ function loadDownloadFolder(): Promise<string> {
 // produces selectable text, clickable links, real Unicode, and proper
 // pagination for free. See ADR 0001 → "Renderer decisions".
 
-const PRINT_STORAGE_PREFIX = 't2m_print_';
+const PRINT_STORAGE_PREFIX = 'xclipper_print_';
 
-const bgLog = (...args: unknown[]): void => console.log('[t2m bg]', ...args);
+const bgLog = (...args: unknown[]): void => console.log('[xclipper bg]', ...args);
 
 chrome.runtime.onMessage.addListener((message: PdfPrintRequest, _sender, sendResponse) => {
   if (!message || message.action !== 'PDF_PRINT_REQUEST') return false;

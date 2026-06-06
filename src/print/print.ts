@@ -12,10 +12,10 @@
 // selectable text, clickable links, embedded images, unicode — print
 // inherits all of that from the browser for free.
 
-const STORAGE_PREFIX = 't2m_print_';
+const STORAGE_PREFIX = 'xclipper_print_';
 const IMAGE_LOAD_TIMEOUT_MS = 5000;
 
-const pLog = (...args: unknown[]): void => console.log('[t2m print]', ...args);
+const pLog = (...args: unknown[]): void => console.log('[xclipper print]', ...args);
 
 interface PrintPayload {
   html: string;
