@@ -1,4 +1,4 @@
-# Contributing to tweet2md
+# Contributing to XClipper
 
 Thanks for your interest. This file captures the working conventions for the project — read it before opening a PR.
 

@@ -8,7 +8,7 @@
 
 ## Context
 
-tweet2md extracts X (Twitter) content (tweets, threads, articles) and produces Markdown. The pipeline today is:
+XClipper extracts X (Twitter) content (tweets, threads, articles) and produces Markdown. The pipeline today is:
 
 ```
 DOM → metadata + Turndown(DOM) → ExtractedContent { markdown: string, … } → .md file
@@ -42,7 +42,7 @@ The AST defined in this ADR is **a minimum survivable model**, not a final docum
 | 1 | Incremental migration: Turndown runs in parallel until per-fixture parity is achieved | Extraction quality is the product's biggest asset; a clean cutover risks silent regressions |
 | 2 | **Semantic parity**, not byte parity, validated by **golden snapshot tests gated in CI** | Byte parity is a months-long trap; snapshot drift fails the build; updating goldens requires explicit PR approval |
 | 3 | Snapshot at **two layers**: AST snapshots (JSON) and rendered-Markdown snapshots | MD snapshots alone let AST-level regressions slip through silently once Markdown is no longer the source of truth |
-| 4 | **Custom AST** with tweet-specific node types — not mdast/unified | tweet2md is an X-content project, not a markdown project; mdast plugins add value only when renderers are not owned, and all renderers here are owned |
+| 4 | **Custom AST** with tweet-specific node types — not mdast/unified | XClipper is an X-content project, not a markdown project; mdast plugins add value only when renderers are not owned, and all renderers here are owned |
 | 5 | Threads are an explicit `ThreadNode` containing `TweetNode[]` | A thread is a first-class semantic object; renderers decide presentation (MD separators, PDF pagination, HTML container) |
 | 6 | Quote-tweet nesting is recursive and **uncapped at the AST level** | `QuotedTweetNode { tweet: TweetNode }` is naturally recursive; renderers may clamp visually for layout sanity |
 | 7 | AST is **fully JSON-serializable** (no `Element`, `Node`, `Function`, `Map`, `Set`) | Required for `chrome.runtime.sendMessage` between content / background / popup; also unlocks persistence, debugging dumps, fixture round-trips |
