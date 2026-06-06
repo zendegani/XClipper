@@ -25,7 +25,7 @@ const execFileP = promisify(execFile);
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
 const PROMO_HTML = join(ROOT, 'store/markdown_promo.html');
-const OUT_FILE = join(ROOT, 'assets/Markdown.png');
+const OUT_FILE = join(ROOT, 'assets/05-html-to-markdown-output.png');
 const CHROME_CACHE = join(ROOT, '.puppeteer-cache');
 
 const TARGET = { id: '#marquee', w: 1280, h: 800 };

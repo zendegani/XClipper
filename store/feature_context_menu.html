@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>XClipper — Right-Click Context Menu Feature</title>
+<style>
+  :root {
+    --bg: #f3f6fc;
+    --ink: #0b1220;
+    --ink-2: #475569;
+    --ink-3: #94a3b8;
+    --line: #e2e8f0;
+    --brand: #1d9bf0;
+    --brand-hover: #1a8cd8;
+    --obsidian: #6f3df5;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #d9dee5;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+
+  .canvas {
+    width: 1280px;
+    height: 800px;
+    background: var(--bg);
+    background-image:
+      radial-gradient(1200px 600px at 50% -120px, #ffffff 0%, rgba(255,255,255,0) 60%),
+      radial-gradient(800px 500px at 110% 110%, #e2ebf5 0%, rgba(226,235,245,0) 60%);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 60px 0 80px;
+    overflow: hidden;
+    position: relative;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+
+  /* Left Panel */
+  .left-panel {
+    width: 400px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    text-align: left;
+    z-index: 5;
+    flex-shrink: 0;
+  }
+  .brand-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .brand-row .wordmark {
+    font-size: 42px;
+    font-weight: 800;
+    color: var(--ink);
+    letter-spacing: -0.025em;
+    line-height: 1;
+  }
+  .left-panel h1 {
+    font-size: 40px;
+    font-weight: 850;
+    color: var(--ink);
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+  }
+  .left-panel p {
+    font-size: 19px;
+    color: var(--ink-2);
+    line-height: 1.45;
+    font-weight: 400;
+  }
+
+  /* Right Panel */
+  .right-panel {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-start;
+    height: 100%;
+    position: relative;
+  }
+
+  /* Middle Area: Mockups */
+  .main-demo {
+    position: relative;
+    width: 680px;
+    height: 520px;
+    margin-top: 262px;
+    transform: scale(1.05);
+    transform-origin: center right;
+  }
+
+  /* X Post mockup window */
+  .post-window {
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.02);
+    width: 340px;
+    border: 1px solid var(--line);
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .post-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: var(--ink-2);
+    margin-bottom: 4px;
+  }
+  .post-header .back-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .post-header .back-row svg {
+    width: 20px;
+    height: 20px;
+    color: var(--ink);
+  }
+  .post-header .more-row {
+    display: flex;
+    gap: 12px;
+    color: var(--ink-3);
+  }
+
+  .profile-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .profile-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .post-avatar {
+    width: 34px;
+    height: 34px;
+    border-radius: 50%;
+    background: #cbd5e1;
+  }
+  .profile-names {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.3;
+  }
+  .profile-names .nm {
+    font-weight: 750;
+    font-size: 13px;
+    color: var(--ink);
+  }
+  .profile-names .hd {
+    color: var(--ink-3);
+    font-size: 11.5px;
+  }
+
+  .post-line {
+    height: 5px;
+    background: #cbd5e1;
+    opacity: 0.5;
+    border-radius: 3px;
+    margin-bottom: 5px;
+    width: 100%;
+  }
+  .post-line.short {
+    width: 60%;
+    margin-bottom: 0;
+  }
+
+  /* Media Grid */
+  .media-grid {
+    display: grid;
+    grid-template-columns: 1.3fr 1fr;
+    gap: 2px;
+    height: 160px;
+    border-radius: 10px;
+    overflow: hidden;
+    border: 1px solid var(--line);
+  }
+  .media-left {
+    background: #f1f5f9;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .media-right-col {
+    display: grid;
+    grid-template-rows: 1fr 1fr;
+    gap: 2px;
+  }
+  .media-right-item {
+    background: #f8fafc;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .post-timestamp {
+    font-size: 11px;
+    color: var(--ink-3);
+    border-bottom: 1px solid #f1f5f9;
+    padding-bottom: 8px;
+    margin-top: 2px;
+  }
+
+  .post-actions {
+    display: flex;
+    justify-content: space-between;
+    padding: 2px 6px 0;
+    color: var(--ink-3);
+    font-size: 11px;
+  }
+  .post-actions .act {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+  .post-actions svg {
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+  }
+
+  /* Right-Click Menu Overlays */
+  .context-menu-main {
+    position: absolute;
+    left: 170px;
+    top: 30px;
+    width: 230px;
+    background: rgba(255, 255, 255, 0.98);
+    border: 1px solid #d1d5db;
+    border-radius: 10px;
+    box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.12), 0 8px 10px -6px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+    padding: 5px 0;
+    z-index: 10;
+    font-size: 15px;
+    color: #27272a;
+  }
+  .context-menu-main .item {
+    padding: 8px 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: default;
+  }
+  .context-menu-main .item:hover {
+    background: #f4f4f5;
+  }
+  .context-menu-main .separator {
+    height: 1px;
+    background: #e4e4e7;
+    margin: 4px 0;
+  }
+  .context-menu-main .item.active {
+    background: var(--brand);
+    color: #ffffff;
+    font-weight: 600;
+  }
+  .context-menu-main .item.active svg.arrow {
+    color: #ffffff;
+  }
+  .context-menu-main .item .left-icon-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .context-menu-main .item .logo-icon {
+    width: 16px;
+    height: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* Sub-Context Menu */
+  .context-menu-sub {
+    position: absolute;
+    left: 395px;
+    top: 170px;
+    width: 290px;
+    background: #ffffff;
+    border: 2px solid var(--brand);
+    border-radius: 8px;
+    box-shadow: 0 10px 30px rgba(29, 155, 240, 0.15);
+    padding: 6px 0;
+    z-index: 11;
+    font-size: 15.5px;
+    color: #18181b;
+  }
+  .context-menu-sub .item {
+    padding: 10px 18px;
+    cursor: default;
+    font-weight: 500;
+  }
+  .context-menu-sub .item:hover {
+    background: #f0f9ff;
+    color: var(--brand);
+  }
+
+
+</style>
+</head>
+<body>
+
+<svg style="position:absolute; width:0; height:0; overflow:hidden;" aria-hidden="true">
+  <defs>
+    <clipPath id="xc-band" clipPathUnits="userSpaceOnUse">
+      <rect x="0" y="30" width="128" height="68"/>
+    </clipPath>
+    <symbol id="xclipper-mark-light" viewBox="0 0 128 128">
+      <g clip-path="url(#xc-band)" stroke-width="6" fill="none" stroke-linecap="butt">
+        <line x1="0"  y1="112" x2="112" y2="0"   stroke="#1d9bf0"/>
+        <line x1="0"  y1="128" x2="128" y2="0"   stroke="#7C3AED"/>
+        <line x1="16" y1="128" x2="128" y2="16"  stroke="#dc2626"/>
+      </g>
+      <rect x="19" y="56" width="90" height="16" rx="8"
+            fill="none" stroke="#000000" stroke-width="6"
+            transform="rotate(45 64 64)"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="canvas" id="canvas">
+  <div class="left-panel">
+    <div class="brand-row">
+      <svg width="64" height="64"><use href="#xclipper-mark-light"/></svg>
+      <div class="wordmark">XClipper</div>
+    </div>
+    <h1>Right-click any tweet<br>to Markdown, PDF<br>or Obsidian</h1>
+    <p>Save or copy from the timeline, profiles, search — anywhere a tweet renders.</p>
+  </div>
+
+  <div class="right-panel">
+    <!-- Middle Area -->
+    <div class="main-demo">
+      
+      <!-- Post Window -->
+      <div class="post-window">
+        <div class="post-header">
+          <div class="back-row">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+            <span>Post</span>
+          </div>
+          <div class="more-row">
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="20" height="20"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
+            <svg fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24" width="20" height="20"><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h.01M12 12h.01M19 12h.01M6 12a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0zm7 0a1 1 0 11-2 0 1 1 0 012 0z"></path></svg>
+          </div>
+        </div>
+
+        <div class="profile-row">
+          <div class="profile-left">
+            <div class="post-avatar"></div>
+            <div class="profile-names">
+              <div class="nm">Author</div>
+              <div class="hd">@author</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="post-text">
+          <div class="post-line"></div>
+          <div class="post-line"></div>
+          <div class="post-line short"></div>
+        </div>
+
+        <div class="media-grid">
+          <div class="media-left">
+            <svg viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+              <circle cx="8.5" cy="8.5" r="1.5"></circle>
+              <polyline points="21 15 16 10 5 21"></polyline>
+            </svg>
+          </div>
+          <div class="media-right-col">
+            <div class="media-right-item">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                <polyline points="21 15 16 10 5 21"></polyline>
+              </svg>
+            </div>
+            <div class="media-right-item">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                <polyline points="21 15 16 10 5 21"></polyline>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        <div class="post-timestamp">
+          12:30 AM · 26.06.2026 · <b>37.3M</b> Views
+        </div>
+
+        <div class="post-actions">
+          <div class="act"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>917</div>
+          <div class="act"><svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>4K</div>
+          <div class="act"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>27K</div>
+          <div class="act">
+            <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg>
+          </div>
+          <div class="act">
+            <svg viewBox="0 0 24 24"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+          </div>
+        </div>
+      </div>
+
+      <!-- Main Context Menu -->
+      <div class="context-menu-main">
+        <div class="item">Back</div>
+        <div class="item">Reload</div>
+        <div class="separator"></div>
+        <div class="item">Save As...</div>
+        <div class="item">Print...</div>
+        <div class="separator"></div>
+        <div class="item active">
+          <div class="left-icon-row">
+            <div class="logo-icon">
+              <img src="../src/icons/icon-128.png" style="width: 16px; height: 16px; display: block;">
+            </div>
+            <span>XClipper</span>
+          </div>
+          <svg fill="currentColor" viewBox="0 0 24 24" width="12" height="12" class="arrow"><path d="M8.59 16.59L13.17 12 8.59 7.41 10 6l6 6-6 6-1.41-1.41z"/></svg>
+        </div>
+        <div class="separator"></div>
+        <div class="item">Inspect</div>
+      </div>
+
+      <!-- Sub-Context Menu -->
+      <div class="context-menu-sub">
+        <div class="item">Add tweet to Obsidian</div>
+        <div class="item">Save tweet as PDF</div>
+        <div class="item">Save tweet as Markdown</div>
+        <div class="item">Copy tweet as Markdown</div>
+        <div class="item">Copy just this tweet (no thread)</div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
