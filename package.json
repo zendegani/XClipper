@@ -15,12 +15,12 @@
   },
   "devDependencies": {
     "@puppeteer/browsers": "^3.0.4",
-    "@types/chrome": "^0.1.42",
+    "@types/chrome": "^0.1.43",
     "@types/jsdom": "^28.0.3",
     "esbuild": "^0.28.0",
     "jsdom": "^29.1.1",
     "puppeteer-core": "^25.1.0",
     "typescript": "^6.0.3",
-    "vitest": "^4.1.7"
+    "vitest": "^4.1.8"
   }
 }
