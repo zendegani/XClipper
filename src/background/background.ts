@@ -12,12 +12,12 @@ import {
 
 // ─── Context menu: Save / Copy tweet as Markdown ────────────────────
 
-const MENU_PARENT = 'tweet2md-root';
-const MENU_SAVE = 'tweet2md-save';
-const MENU_COPY = 'tweet2md-copy';
-const MENU_COPY_SINGLE = 'tweet2md-copy-single';
-const MENU_OBSIDIAN = 'tweet2md-obsidian';
-const MENU_PDF = 'tweet2md-pdf';
+const MENU_PARENT = 'xclipper-root';
+const MENU_SAVE = 'xclipper-save';
+const MENU_COPY = 'xclipper-copy';
+const MENU_COPY_SINGLE = 'xclipper-copy-single';
+const MENU_OBSIDIAN = 'xclipper-obsidian';
+const MENU_PDF = 'xclipper-pdf';
 
 type MenuAction = 'download' | 'copy' | 'obsidian' | 'pdf';
 
