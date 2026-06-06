@@ -24,8 +24,8 @@ import {
 const execFileP = promisify(execFile);
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
-const CAP_HTML = join(ROOT, 'store/capabilities.html');
-const OUT_FILE = join(ROOT, 'assets/01-product-overview.jpg');
+const CAP_HTML = join(ROOT, 'store/01-product-overview.html');
+const OUT_FILE = join(ROOT, 'assets/01-product-overview.png');
 const CHROME_CACHE = join(ROOT, '.puppeteer-cache');
 
 const TARGET = { id: '#cap', w: 1280, h: 800 };
@@ -57,7 +57,7 @@ async function ensureChromeBinary() {
 
 async function main() {
   if (!existsSync(CAP_HTML)) {
-    console.error(`store/capabilities.html not found at ${CAP_HTML}`);
+    console.error(`store/01-product-overview.html not found at ${CAP_HTML}`);
     process.exit(1);
   }
 
@@ -74,7 +74,7 @@ async function main() {
     await new Promise((r) => setTimeout(r, 300));
 
     const el = await page.$(TARGET.id);
-    if (!el) throw new Error(`element ${TARGET.id} not found in capabilities.html`);
+    if (!el) throw new Error(`element ${TARGET.id} not found in 01-product-overview.html`);
 
     // 2× capture lands here, then sips downsamples to the final file in place.
     const tmpPath = join(ROOT, 'assets/.tmp-capabilities.png');
@@ -84,7 +84,6 @@ async function main() {
     // does NOT preserve aspect (which is fine here — source is already the right
     // ratio, we just want the integer-pixel downscale).
     await execFileP('sips', [
-      '-s', 'format', 'jpeg',
       '-z', String(TARGET.h), String(TARGET.w),
       tmpPath, '--out', OUT_FILE,
     ]);

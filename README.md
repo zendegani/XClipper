@@ -7,7 +7,7 @@
 > Copy or save X (Twitter) Articles, threads, and tweets as Markdown.
 
 <p align="center">
-  <img src="assets/04-popup-clipping-interface.jpg" alt="XClipper extension UI" width="500" />
+  <img src="assets/04-popup-clipping-interface.png" alt="XClipper extension UI" width="500" />
 </p>
 
 ## What it does
@@ -15,7 +15,7 @@
 **XClipper** is an open-source Chrome extension that turns x.com content into production-ready Markdown for research, note-taking, AI workflows, and offline archiving. No X API key required.
 
 <p align="center">
-  <img src="assets/01-product-overview.jpg" alt="XClipper converts X content to clean Markdown" width="700" />
+  <img src="assets/01-product-overview.png" alt="XClipper converts X content to clean Markdown" width="700" />
 </p>
 
 ### Key Features
@@ -42,7 +42,7 @@
 ### Inline button — one click on any tweet
 
 <p align="center">
-  <img src="assets/02-one-click-timeline-export.jpg" alt="Inline download button on a tweet's action bar" width="700" />
+  <img src="assets/02-one-click-timeline-export.png" alt="Inline download button on a tweet's action bar" width="700" />
 </p>
 
 Skip the popup. The download icon sits next to share on every tweet. One click opens the tweet's permalink in a new tab and exports it automatically. Toggle in the popup to make it copy to clipboard instead, and optionally close the tab once the export is done.

@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>XClipper — One-Click Timeline Export</title>
+<style>
+  :root {
+    --bg: #f3f6fc;
+    --ink: #0b1220;
+    --ink-2: #475569;
+    --ink-3: #94a3b8;
+    --line: #e2e8f0;
+    --brand: #1d9bf0;
+    --brand-hover: #1a8cd8;
+    --green: #10b981;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #d9dee5;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+
+  .canvas {
+    width: 1280px;
+    height: 800px;
+    background: var(--bg);
+    background-image:
+      radial-gradient(1200px 600px at 50% -120px, #ffffff 0%, rgba(255,255,255,0) 60%),
+      radial-gradient(800px 500px at 110% 110%, #e2ebf5 0%, rgba(226,235,245,0) 60%);
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 60px 0 80px;
+    overflow: hidden;
+    position: relative;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+
+  /* Left Panel */
+  .left-panel {
+    width: 400px;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    text-align: left;
+    z-index: 5;
+    flex-shrink: 0;
+  }
+  .brand-row {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+  }
+  .brand-row .wordmark {
+    font-size: 42px;
+    font-weight: 800;
+    color: var(--ink);
+    letter-spacing: -0.025em;
+    line-height: 1;
+  }
+  .left-panel h1 {
+    font-size: 40px;
+    font-weight: 850;
+    color: var(--ink);
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+  }
+  .left-panel p {
+    font-size: 19px;
+    color: var(--ink-2);
+    line-height: 1.45;
+    font-weight: 400;
+  }
+
+  /* Right Panel */
+  .right-panel {
+    flex: 1;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    height: 100%;
+    position: relative;
+  }
+
+  /* Middle Area: Mockups */
+  .main-demo {
+    position: relative;
+    width: 680px;
+    margin-top: 0;
+    transform: scale(1.05);
+    transform-origin: center right;
+  }
+
+  /* Timeline mockup window */
+  .timeline-window {
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.04), 0 1px 3px rgba(15, 23, 42, 0.02);
+    width: 360px;
+    border: 1px solid var(--line);
+    display: flex;
+    flex-direction: column;
+  }
+
+  /* Timeline header */
+  .tl-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 16px;
+    border-bottom: 1px solid var(--line);
+  }
+  .tl-header .tl-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .tl-header .tl-tabs {
+    display: flex;
+    gap: 16px;
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--ink-3);
+  }
+  .tl-header .tl-tabs .active {
+    color: var(--brand);
+    border-bottom: 2px solid var(--brand);
+    padding-bottom: 2px;
+  }
+
+  .tweet-card {
+    display: flex;
+    gap: 10px;
+    padding: 24px 16px;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  .tweet-card:last-child {
+    border-bottom: none;
+  }
+
+  .tweet-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    background: #cbd5e1;
+    flex-shrink: 0;
+  }
+  .tweet-avatar.av-blue { background: #93c5fd; }
+  .tweet-avatar.av-purple { background: #c4b5fd; }
+
+  .tweet-body {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    min-width: 0;
+  }
+  .tweet-meta {
+    display: flex;
+    align-items: baseline;
+    gap: 6px;
+  }
+  .tweet-meta .nm {
+    font-weight: 750;
+    font-size: 13px;
+    color: var(--ink);
+  }
+  .tweet-meta .hd {
+    color: var(--ink-3);
+    font-size: 11.5px;
+  }
+  .tweet-meta .ts {
+    color: var(--ink-3);
+    font-size: 11.5px;
+  }
+
+  .tl-line {
+    height: 5px;
+    background: #cbd5e1;
+    opacity: 0.5;
+    border-radius: 3px;
+    width: 100%;
+  }
+  .tl-line.short { width: 60%; }
+  .tl-line.mid   { width: 80%; }
+
+  /* Media placeholder */
+  .tweet-media {
+    height: 120px;
+    border-radius: 10px;
+    background: #f1f5f9;
+    border: 1px solid var(--line);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 2px;
+  }
+  .tweet-media svg {
+    color: #cbd5e1;
+  }
+
+  .tweet-actions {
+    display: flex;
+    justify-content: space-between;
+    color: var(--ink-3);
+    font-size: 11px;
+    padding-top: 4px;
+  }
+  .tweet-actions .act {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    position: relative;
+  }
+  .tweet-actions svg {
+    width: 14px;
+    height: 14px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2;
+  }
+
+  /* Highlighted XClipper inline button */
+  .act.xclipper-btn {
+    color: var(--brand);
+    background: rgba(29, 155, 240, 0.10);
+    padding: 3px 7px;
+    border-radius: 6px;
+    font-weight: 600;
+  }
+  .act.xclipper-btn svg {
+    stroke: var(--brand);
+    stroke-width: 2.5;
+  }
+
+  /* Tooltip on the highlighted button */
+  .inline-tooltip {
+    position: absolute;
+    top: 26px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: #1e293b;
+    color: #ffffff;
+    padding: 5px 10px;
+    border-radius: 6px;
+    font-size: 10.5px;
+    font-weight: 500;
+    white-space: nowrap;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.18);
+    z-index: 20;
+  }
+  .inline-tooltip::after {
+    content: '';
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    border: 5px solid transparent;
+    border-bottom-color: #1e293b;
+  }
+
+  /* Download success toast overlay */
+  .export-toast {
+    position: absolute;
+    left: 390px;
+    top: 110px;
+    width: 250px;
+    background: #ffffff;
+    border: 2px solid var(--brand);
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(29, 155, 240, 0.15);
+    padding: 14px;
+    z-index: 30;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  .toast-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    color: var(--ink);
+  }
+  .toast-header svg {
+    color: var(--brand);
+  }
+  .toast-file {
+    font-size: 11px;
+    font-family: "SF Mono", "Fira Code", monospace;
+    background: #f1f5f9;
+    padding: 6px 8px;
+    border-radius: 5px;
+    color: var(--ink-2);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .toast-success {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 11.5px;
+    font-weight: 600;
+    color: var(--green);
+  }
+
+  /* Fade the second tweet */
+  .tweet-card.secondary {
+    opacity: 0.55;
+  }
+
+</style>
+</head>
+<body>
+
+<svg style="position:absolute; width:0; height:0; overflow:hidden;" aria-hidden="true">
+  <defs>
+    <clipPath id="xc-band" clipPathUnits="userSpaceOnUse">
+      <rect x="0" y="30" width="128" height="68"/>
+    </clipPath>
+    <symbol id="xclipper-mark-light" viewBox="0 0 128 128">
+      <g clip-path="url(#xc-band)" stroke-width="6" fill="none" stroke-linecap="butt">
+        <line x1="0"  y1="112" x2="112" y2="0"   stroke="#1d9bf0"/>
+        <line x1="0"  y1="128" x2="128" y2="0"   stroke="#7C3AED"/>
+        <line x1="16" y1="128" x2="128" y2="16"  stroke="#dc2626"/>
+      </g>
+      <rect x="19" y="56" width="90" height="16" rx="8"
+            fill="none" stroke="#000000" stroke-width="6"
+            transform="rotate(45 64 64)"/>
+    </symbol>
+  </defs>
+</svg>
+
+<div class="canvas" id="canvas">
+  <div class="left-panel">
+    <div class="brand-row">
+      <svg width="64" height="64"><use href="#xclipper-mark-light"/></svg>
+      <div class="wordmark">XClipper</div>
+    </div>
+    <h1>One-click export<br>from any tweet<br>in your timeline</h1>
+    <p>The download button sits next to share on every tweet. One click saves it as Markdown.</p>
+  </div>
+
+  <div class="right-panel">
+    <div class="main-demo">
+      
+      <!-- Timeline Window -->
+      <div class="timeline-window">
+
+        <!-- Tweet 1 — the active/highlighted one -->
+        <div class="tweet-card">
+          <div class="tweet-avatar av-blue"></div>
+          <div class="tweet-body">
+            <div class="tweet-meta">
+              <span class="nm">Author</span>
+              <span class="hd">@author</span>
+              <span class="ts">· 5h</span>
+            </div>
+            <div class="tl-line"></div>
+            <div class="tl-line mid"></div>
+            <div class="tl-line short"></div>
+
+            <!-- Media -->
+            <div class="tweet-media">
+              <svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                <circle cx="8.5" cy="8.5" r="1.5"></circle>
+                <polyline points="21 15 16 10 5 21"></polyline>
+              </svg>
+            </div>
+
+            <div class="tweet-actions">
+              <div class="act"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>917</div>
+              <div class="act"><svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>4K</div>
+              <div class="act"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>27K</div>
+              <div class="act"><svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg></div>
+              <div class="act"><svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg></div>
+              <!-- XClipper inline button — highlighted -->
+              <div class="act xclipper-btn">
+                <svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+                <div class="inline-tooltip">Download as Markdown</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Tweet 2 — secondary/dimmed -->
+        <div class="tweet-card secondary">
+          <div class="tweet-avatar av-purple"></div>
+          <div class="tweet-body">
+            <div class="tweet-meta">
+              <span class="nm">Alex</span>
+              <span class="hd">@alexdev</span>
+              <span class="ts">· 10h</span>
+            </div>
+            <div class="tl-line"></div>
+            <div class="tl-line short"></div>
+            <div class="tweet-actions">
+              <div class="act"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>8</div>
+              <div class="act"><svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>12</div>
+              <div class="act"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg>89</div>
+              <div class="act"><svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"></path></svg></div>
+              <div class="act"><svg viewBox="0 0 24 24"><path d="M4 12v8a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-8"/><polyline points="16 6 12 2 8 6"/><line x1="12" y1="2" x2="12" y2="15"/></svg></div>
+              <div class="act"><svg viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg></div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Export success toast -->
+      <div class="export-toast">
+        <div class="toast-header">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+          <span>Exported as Markdown</span>
+        </div>
+        <div class="toast-file">author-id.md</div>
+        <div class="toast-success">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+          <span>Saved to Downloads</span>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+</body>
+</html>

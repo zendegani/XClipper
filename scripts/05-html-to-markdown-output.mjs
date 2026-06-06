@@ -24,7 +24,7 @@ import {
 const execFileP = promisify(execFile);
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
-const PROMO_HTML = join(ROOT, 'store/markdown_promo.html');
+const PROMO_HTML = join(ROOT, 'store/05-html-to-markdown-output.html');
 const OUT_FILE = join(ROOT, 'assets/05-html-to-markdown-output.png');
 const CHROME_CACHE = join(ROOT, '.puppeteer-cache');
 
@@ -57,7 +57,7 @@ async function ensureChromeBinary() {
 
 async function main() {
   if (!existsSync(PROMO_HTML)) {
-    console.error(`store/markdown_promo.html not found at ${PROMO_HTML}`);
+    console.error(`store/05-html-to-markdown-output.html not found at ${PROMO_HTML}`);
     process.exit(1);
   }
 
@@ -74,7 +74,7 @@ async function main() {
     await new Promise((r) => setTimeout(r, 300));
 
     const el = await page.$(TARGET.id);
-    if (!el) throw new Error(`element ${TARGET.id} not found in markdown_promo.html`);
+    if (!el) throw new Error(`element ${TARGET.id} not found in 05-html-to-markdown-output.html`);
 
     // 2× capture lands here, then sips downsamples to the final file in place.
     const tmpPath = join(ROOT, 'assets/.tmp-markdown.png');

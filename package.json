@@ -16,7 +16,8 @@
     "05-html-to-markdown-output": "node scripts/05-html-to-markdown-output.mjs",
     "01-product-overview": "node scripts/01-product-overview.mjs",
     "store-screenshot": "node scripts/store-screenshot.mjs",
-    "03-context-menu-shortcut": "node scripts/store-screenshot.mjs store/feature_context_menu.html assets/03-context-menu-shortcut.png"
+    "02-one-click-timeline-export": "node scripts/store-screenshot.mjs store/02-one-click-timeline-export.html assets/02-one-click-timeline-export.png",
+    "03-context-menu-shortcut": "node scripts/store-screenshot.mjs store/03-context-menu-shortcut.html assets/03-context-menu-shortcut.png"
   },
   "devDependencies": {
     "@puppeteer/browsers": "^3.0.4",
