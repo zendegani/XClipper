@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Tweet Mockup Generator</title>
+<style>
+  body {
+    background: #f8fafc;
+    padding: 60px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+  
+  .window {
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.04);
+    width: 472px;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+  }
+  
+  .browser-bar {
+    height: 48px;
+    background: #f1f5f9;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 8px;
+  }
+  
+  .dots {
+    display: flex;
+    gap: 6px;
+    margin-right: 12px;
+  }
+  
+  .dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+  }
+  .dot.red { background: #ff5f56; }
+  .dot.yellow { background: #ffbd2e; }
+  .dot.green { background: #27c93f; }
+  
+  .url-bar {
+    flex: 1;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    font-size: 13px;
+    color: #475569;
+    font-weight: 400;
+  }
+
+  .content {
+    padding: 24px 32px 32px;
+    color: #0f172a;
+  }
+
+  .header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    margin-bottom: 24px;
+  }
+
+  .back-btn {
+    font-size: 20px;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .header-title {
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+
+  .profile {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .avatar {
+    width: 48px;
+    height: 48px;
+    border-radius: 50%;
+    background: #475569;
+  }
+
+  .user-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .display-name {
+    font-size: 15px;
+    font-weight: 700;
+    color: #0f172a;
+  }
+
+  .username {
+    font-size: 14px;
+    color: #64748b;
+  }
+
+  .placeholder-lines {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    margin-bottom: 20px;
+  }
+
+  .line {
+    height: 8px;
+    background: #94a3b8;
+    opacity: 0.6;
+    border-radius: 4px;
+  }
+
+  .media-box {
+    height: 244px;
+    background: #e0f2fe;
+    border-radius: 12px;
+    margin-bottom: 20px;
+  }
+
+  .article-title {
+    font-size: 24px;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 16px;
+    letter-spacing: -0.02em;
+  }
+
+  .placeholder-bottom {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+  
+  .line-80 { width: 80%; }
+  .line-50 { width: 50%; }
+
+</style>
+</head>
+<body>
+  <div class="window" id="screenshot-target">
+    <div class="browser-bar">
+      <div class="dots">
+        <div class="dot red"></div>
+        <div class="dot yellow"></div>
+        <div class="dot green"></div>
+      </div>
+      <div class="url-bar">https://x.com/example/article/1234567890</div>
+    </div>
+    <div class="content">
+      <div class="header">
+        <div class="back-btn">←</div>
+        <div class="header-title">Article</div>
+      </div>
+      <div class="profile">
+        <div class="avatar"></div>
+        <div class="user-info">
+          <div class="display-name">Example Author</div>
+          <div class="username">@example</div>
+        </div>
+      </div>
+      <div class="placeholder-lines">
+        <div class="line"></div>
+        <div class="line"></div>
+        <div class="line"></div>
+        <div class="line line-80"></div>
+      </div>
+      <div class="media-box"></div>
+      <div class="article-title">Example Article Title</div>
+      <div class="placeholder-bottom">
+        <div class="line"></div>
+        <div class="line"></div>
+        <div class="line line-50"></div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
