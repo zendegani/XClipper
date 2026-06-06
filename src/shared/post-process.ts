@@ -335,11 +335,34 @@ export function postProcess(
   if (opts.inlineStats && data.metadata) {
     const line = buildStatsLine(data.metadata);
     if (line) {
-      const footerRe = /\n+---\n+> Source:/;
-      if (footerRe.test(finalMarkdown)) {
-        finalMarkdown = finalMarkdown.replace(footerRe, `\n\n${line}\n\n---\n> Source:`);
+      // For threads, engagement stats belong to the first tweet — place them
+      // before the first `---` separator (which divides tweet 1 from tweet 2).
+      // The first `---` in the body (after any frontmatter) is the thread
+      // separator; the source footer uses `---` too but sits after all tweets.
+      const isThread = data.type === 'thread';
+      if (isThread) {
+        // Skip past frontmatter (if present) to find the first thread separator.
+        const fmEnd = finalMarkdown.startsWith('---')
+          ? finalMarkdown.indexOf('---', finalMarkdown.indexOf('\n') + 1)
+          : -1;
+        const searchStart = fmEnd >= 0 ? fmEnd + 3 : 0;
+        const sepIdx = finalMarkdown.indexOf('\n---\n', searchStart);
+        if (sepIdx >= 0) {
+          finalMarkdown =
+            finalMarkdown.slice(0, sepIdx) +
+            `\n\n${line}` +
+            finalMarkdown.slice(sepIdx);
+        } else {
+          // Single-tweet thread or no separator found — fall through to default.
+          finalMarkdown = finalMarkdown.replace(/\s*$/, '') + `\n\n${line}\n`;
+        }
       } else {
-        finalMarkdown = finalMarkdown.replace(/\s*$/, '') + `\n\n${line}\n`;
+        const footerRe = /\n+---\n+> Source:/;
+        if (footerRe.test(finalMarkdown)) {
+          finalMarkdown = finalMarkdown.replace(footerRe, `\n\n${line}\n\n---\n> Source:`);
+        } else {
+          finalMarkdown = finalMarkdown.replace(/\s*$/, '') + `\n\n${line}\n`;
+        }
       }
     }
   }

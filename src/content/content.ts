@@ -66,12 +66,14 @@ chrome.runtime.onMessage.addListener((_message, _sender, sendResponse) => {
 
 async function runPdfExport(): Promise<void> {
   await waitForArticle();
-  const response = await extract({ includeMetadata: true });
+  const settings = await loadStoredSettings();
+  const includeEngagement = settings.inlineStats === true;
+  const response = await extract({ includeMetadata: includeEngagement });
   if (!response.success || !response.data || !response.data.body) {
     throw new Error(response.error || 'PDF export: extraction failed');
   }
   const filename = buildFilename(response.data).replace(/\.md$/i, '');
-  await exportPdf(response.data.body, filename);
+  await exportPdf(response.data.body, filename, { includeEngagement });
 }
 
 // ─── Auto-extract bootstrap (#xclipper=download | #xclipper=copy) ───

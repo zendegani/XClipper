@@ -17,14 +17,17 @@ export interface RenderPdfHtmlOptions {
   // Only 'twitter' is implemented in v1; the option exists so the future
   // 'document' style is additive without API churn.
   style?: 'twitter' | 'document';
+  // When true, engagement metrics (likes, reposts, etc.) are rendered on
+  // tweet cards. Defaults to false — callers must opt in.
+  includeEngagement?: boolean;
 }
 
 // AST → standalone HTML document for PDF rendering. Used by tests and any
 // future preview-page flow. All visual styles are scoped under .xclipper-root so
 // the same content can also be safely injected as a fragment into a live
 // page (see renderPdfFragment + pdf-export.ts).
-export function renderPdfHtml(doc: Document, _opts: RenderPdfHtmlOptions = {}): string {
-  const body = renderBody(doc);
+export function renderPdfHtml(doc: Document, opts: RenderPdfHtmlOptions = {}): string {
+  const body = renderBody(doc, opts);
   const title = doc.metadata.title || tweetTitle(doc.metadata);
   return `<!doctype html>
 <html lang="en"><head><meta charset="utf-8"><title>${escapeHtml(title)}</title>
@@ -34,8 +37,8 @@ export function renderPdfHtml(doc: Document, _opts: RenderPdfHtmlOptions = {}): 
 // Fragment variant for live-DOM injection: returns `<style>…<div class="xclipper-root">…</div>`
 // so the caller can set it as innerHTML of an offscreen container without
 // polluting page styles (all selectors are scoped to .xclipper-root).
-export function renderPdfFragment(doc: Document, _opts: RenderPdfHtmlOptions = {}): string {
-  return `<style>${STYLES}</style><div class="xclipper-root">${renderBody(doc)}</div>`;
+export function renderPdfFragment(doc: Document, opts: RenderPdfHtmlOptions = {}): string {
+  return `<style>${STYLES}</style><div class="xclipper-root">${renderBody(doc, opts)}</div>`;
 }
 
 function tweetTitle(meta: DocumentMetadata): string {
@@ -45,21 +48,21 @@ function tweetTitle(meta: DocumentMetadata): string {
 
 // ─── Top-level body ─────────────────────────────────────────────────
 
-function renderBody(doc: Document): string {
-  if (doc.body.type === 'tweet') return renderTweetCard(doc.body, doc.metadata);
-  if (doc.body.type === 'thread') return renderThread(doc.body, doc.metadata);
+function renderBody(doc: Document, opts: RenderPdfHtmlOptions = {}): string {
+  if (doc.body.type === 'tweet') return renderTweetCard(doc.body, doc.metadata, opts);
+  if (doc.body.type === 'thread') return renderThread(doc.body, doc.metadata, opts);
   return renderArticle(doc.body, doc.metadata);
 }
 
-function renderThread(thread: ThreadNode, meta: DocumentMetadata): string {
+function renderThread(thread: ThreadNode, meta: DocumentMetadata, opts: RenderPdfHtmlOptions = {}): string {
   const cards = thread.tweets.map((t, i) => {
     const isRoot = i === 0;
-    return renderTweetCard(t, isRoot ? meta : undefined);
+    return renderTweetCard(t, isRoot ? meta : undefined, opts);
   }).join('');
   return `<div class="thread">${cards}</div>` + renderSource(meta);
 }
 
-function renderTweetCard(tweet: TweetNode, meta?: DocumentMetadata): string {
+function renderTweetCard(tweet: TweetNode, meta?: DocumentMetadata, opts: RenderPdfHtmlOptions = {}): string {
   const head = renderAuthorHeader(tweet);
   const text = tweet.text.length > 0
     ? `<div class="tweet-body">${renderInlines(tweet.text)}</div>`
@@ -71,7 +74,7 @@ function renderTweetCard(tweet: TweetNode, meta?: DocumentMetadata): string {
   const linkCard = tweet.linkCard ? renderLinkCard(tweet.linkCard) : '';
   const articleCard = tweet.articleCard ? renderArticleCard(tweet.articleCard) : '';
   const quote = tweet.quotedTweet ? renderQuotedTweet(tweet.quotedTweet) : '';
-  const engagement = tweet.engagement
+  const engagement = opts.includeEngagement && tweet.engagement
     ? renderEngagement(tweet.engagement)
     : '';
   const source = meta ? renderSource(meta) : '';
