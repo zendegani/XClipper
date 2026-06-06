@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.1] - 2026-06-06
+
+### Fixed
+
+- **Tooltip opacity on disabled options** (#38): Decoupled the opacity styles so that tooltips on disabled / greyed-out options (like *Inline button copies instead*) remain fully opaque and readable.
+
+---
+
 ## [2.0.0] - 2026-06-06
 
 ### Changed
