@@ -51,7 +51,7 @@ function tweetTitle(meta: DocumentMetadata): string {
 function renderBody(doc: Document, opts: RenderPdfHtmlOptions = {}): string {
   if (doc.body.type === 'tweet') return renderTweetCard(doc.body, doc.metadata, opts);
   if (doc.body.type === 'thread') return renderThread(doc.body, doc.metadata, opts);
-  return renderArticle(doc.body, doc.metadata);
+  return renderArticle(doc.body, doc.metadata, opts);
 }
 
 function renderThread(thread: ThreadNode, meta: DocumentMetadata, opts: RenderPdfHtmlOptions = {}): string {
@@ -195,14 +195,17 @@ function renderArticleCard(card: ArticleCardNode): string {
 
 // ─── Article ────────────────────────────────────────────────────────
 
-function renderArticle(article: ArticleNode, meta: DocumentMetadata): string {
+function renderArticle(article: ArticleNode, meta: DocumentMetadata, opts: RenderPdfHtmlOptions = {}): string {
   const title = meta.title ? `<h1 class="article-title">${escapeHtml(meta.title)}</h1>` : '';
   const byline = `<p class="article-byline">By ${escapeHtml(meta.author.name)} <span class="handle">@${escapeHtml(meta.author.handle)}</span></p>`;
   const banner = article.banner
     ? `<img class="article-banner" src="${escapeAttr(article.banner.url)}" alt="">`
     : '';
+  const engagement = opts.includeEngagement && meta.engagement
+    ? renderEngagement(meta.engagement)
+    : '';
   const body = article.children.map(renderArticleBlock).join('\n');
-  return `<article class="article">${title}${byline}${banner}<div class="article-body">${body}</div>${renderSource(meta)}</article>`;
+  return `<article class="article">${title}${byline}${banner}${engagement}<div class="article-body">${body}</div>${renderSource(meta)}</article>`;
 }
 
 function renderArticleBlock(block: Block): string {
@@ -320,6 +323,7 @@ const STYLES = `
 .link-card-title{font-weight:700;font-size:15px;margin-top:2px;color:#0f1419}
 .link-card-desc{font-size:14px;color:#536471;margin-top:4px}
 .engagement{margin-top:12px;padding-top:8px;border-top:1px solid #eff3f4;font-size:13px;color:#536471}
+.article .engagement{margin-bottom:16px;padding-bottom:8px;border-bottom:1px solid #eff3f4}
 .source-footer{margin-top:8px;padding-top:8px;font-size:12px;color:#536471}
 .source-footer a{color:#536471;text-decoration:none}
 .thread .tweet-card{margin-bottom:0;border-radius:16px 16px 0 0}

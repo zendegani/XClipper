@@ -117,4 +117,20 @@ describe('renderPdfHtml', () => {
     const htmlDefault = renderPdfHtml(doc);
     expect(htmlDefault).not.toContain('class="engagement"');
   });
+
+  it('respects includeEngagement option for articles', () => {
+    const doc = loadAst('theonejvo-2015892980851474595');
+    doc.metadata.engagement = { likes: 100, reposts: 50 };
+
+    const htmlWithEngagement = renderPdfHtml(doc, { includeEngagement: true });
+    expect(htmlWithEngagement).toContain('class="engagement"');
+    expect(htmlWithEngagement).toContain('❤️ 100');
+    expect(htmlWithEngagement).toContain('🔁 50');
+
+    const htmlWithoutEngagement = renderPdfHtml(doc, { includeEngagement: false });
+    expect(htmlWithoutEngagement).not.toContain('class="engagement"');
+
+    const htmlDefault = renderPdfHtml(doc);
+    expect(htmlDefault).not.toContain('class="engagement"');
+  });
 });

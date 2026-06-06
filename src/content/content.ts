@@ -28,12 +28,7 @@ export async function extract(options?: {
       ? extractArticle()
       : await extractTweetAsync({ singleTweet: options?.singleTweet });
 
-    if (options?.includeMetadata) {
-      const firstArticle = document.querySelector('article[role="article"]');
-      if (firstArticle) {
-        data.metadata = extractEngagementMetadata(firstArticle);
-      }
-    }
+
 
     return { success: true, data };
   } catch (err) {
