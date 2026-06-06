@@ -32,6 +32,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Content AST Architecture**: Refactored the core extraction pipeline from a direct DOM-to-Markdown translation (via Turndown) to a typed, JSON-serializable Content AST (Abstract Syntax Tree) as the single source of truth (`DOM → AST → MD/PDF`). This decouples content parsing from rendering, enabling clean support for multiple formats (Markdown, PDF) and preserving complex, platform-specific semantics like nested quote-tweets, polls, link cards, and threads.
 - **PDF export**: New **Download .pdf** button next to **Add to Obsidian**. Opens a print-preview tab where you save the tweet / thread / article as a PDF via the browser's native print dialog. Text is selectable, links are clickable, and emoji and non-ASCII glyphs render correctly.
 - **X Article quote cards**: Tweets that quote one of X's long-form Articles now appear as `📝` card blocks (banner + title + description) in Markdown and PDF. 
 
