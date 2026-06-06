@@ -94,16 +94,21 @@ chrome.runtime.onStartup.addListener(registerContextMenus);
 
 // One-time migration: project renamed tweet2md → XClipper in v2.0.0. Existing
 // users have preferences stored under the old `tweet2md_settings` key. Copy
-// into the new `xclipper_settings` key on first run after update.
+// into the new `xclipper_settings` key. Runs at SW startup (not just
+// onInstalled) so we win the race against any popup/content script that might
+// create an empty xclipper_settings before the install event fires. The guard
+// makes it idempotent — once xclipper_settings exists, subsequent runs skip.
 // Remove this block on or after 2026-07-05 — anyone who hasn't opened the
 // extension for a month is a light user with minimal settings to lose.
-chrome.runtime.onInstalled.addListener(() => {
+function migrateTweet2mdSettings(): void {
   chrome.storage.local.get(['tweet2md_settings', 'xclipper_settings'], (result) => {
     if (!result.xclipper_settings && result.tweet2md_settings) {
       chrome.storage.local.set({ xclipper_settings: result.tweet2md_settings });
     }
   });
-});
+}
+migrateTweet2mdSettings();
+chrome.runtime.onInstalled.addListener(migrateTweet2mdSettings);
 
 function appendMarker(url: string, action: MenuAction, single: boolean): string {
   // Strip any existing tweet2md marker so we don't compound them.
