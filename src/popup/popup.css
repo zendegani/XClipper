@@ -712,11 +712,19 @@ details.option-group[open] .option-group-chevron {
 }
 
 .toggle-label.disabled {
-  opacity: 0.4;
   cursor: not-allowed;
 }
 
-.toggle-label.disabled:hover {
+/* Dim only the label's visible children — NOT the container itself.
+ * A parent-level opacity would cascade into the [data-tooltip]::after
+ * pseudo-element, making the tooltip text unreadable (issue #38). */
+.toggle-label.disabled .toggle-text,
+.toggle-label.disabled .toggle-switch {
+  opacity: 0.4;
+}
+
+.toggle-label.disabled:hover .toggle-text,
+.toggle-label.disabled:hover .toggle-switch {
   opacity: 0.4;
 }
 
