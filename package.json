@@ -13,7 +13,8 @@
     "test:watch": "vitest",
     "screenshots": "npm run build && node scripts/popup-screenshots.mjs",
     "promo-screenshots": "node scripts/promo-screenshots.mjs",
-    "markdown-screenshots": "node scripts/markdown-screenshots.mjs"
+    "markdown-screenshots": "node scripts/markdown-screenshots.mjs",
+    "capabilities-screenshots": "node scripts/capabilities-screenshots.mjs"
   },
   "devDependencies": {
     "@puppeteer/browsers": "^3.0.4",

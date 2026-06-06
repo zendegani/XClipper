@@ -107,15 +107,22 @@
     display: flex; align-items: center; gap: 10px;
   }
   .demo-inline .av{
-    width: 28px; height: 28px; border-radius: 50%; background: #0b1220;
-    display: grid; place-items: center;
+    width: 28px; height: 28px; border-radius: 50%; background: #cbd5e1;
   }
-  .demo-inline .av svg{ width: 14px; height: 14px; stroke: white; fill: none; stroke-width: 1.6; }
-  .demo-inline .name{ font-size: 12.5px; font-weight: 700; color: var(--ink); }
+  .demo-inline .user-info { display: flex; flex-direction: column; gap: 1px; }
+  .demo-inline .name{ font-size: 12px; font-weight: 700; color: var(--ink); line-height: 1.15; }
+  .demo-inline .handle{ font-size: 10px; color: var(--ink-3); }
   .demo-inline .body{
     margin: 10px 0 12px;
-    font-size: 12px; line-height: 1.4; color: var(--ink);
+    display: flex; flex-direction: column; gap: 6px;
   }
+  .demo-inline .line {
+    height: 6px;
+    background: #94a3b8;
+    opacity: 0.5;
+    border-radius: 3px;
+  }
+  .demo-inline .line.short { width: 70%; }
   .demo-inline .row{
     display: flex; align-items: center; justify-content: space-between;
     padding-top: 10px;
@@ -168,6 +175,8 @@
   .demo-ctx .item:last-child{ border-bottom: 0; }
   .demo-ctx .item img{ width: 16px; height: 16px; border-radius: 50%; }
   .demo-ctx .item .chev{ margin-left: auto; color: var(--ink-3); font-size: 14px; }
+  .demo-ctx .item .pdf-word{ color: #dc2626; }
+  .demo-ctx .item .obsidian-word{ color: var(--obsidian); }
 
   /* ───────── Card 3 — Popup & settings ───────── */
   .demo-popup{
@@ -185,22 +194,30 @@
   .demo-popup .ph .pn{ font-weight: 800; font-size: 13px; color: var(--ink); letter-spacing: -.01em; }
   .demo-popup .ph .pn b{ color: var(--brand); font-weight: 800; }
   .demo-popup .ph .gear{ color: var(--ink-3); font-size: 13px; }
-  .demo-popup .pbtns{ margin-top: 12px; display: flex; gap: 7px; }
+  .demo-popup .pbtns{ margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .demo-popup .pbtn{
-    flex: 1; height: 30px; border-radius: 8px;
+    height: 30px; border-radius: 8px;
     background: var(--brand); color: white;
-    font-size: 11.5px; font-weight: 700;
-    display: grid; place-items: center;
+    font-size: 11px; font-weight: 700;
+    display: flex; align-items: center; justify-content: center;
     letter-spacing: -.01em;
+    border: 1.5px solid transparent;
   }
-  .demo-popup .pbtn.alt{ background: var(--brand-deep); }
+  .demo-popup .pbtns.sec{ margin-top: 11px; }
+  .demo-popup .pbtn.pdf{
+    background: white; border: 1.5px solid #dc2626; color: #dc2626;
+  }
+  .demo-popup .pbtn.obsidian{
+    background: white; border: 1.5px solid var(--obsidian); color: var(--obsidian);
+  }
   .demo-popup .toggles{
     margin-top: 11px;
     background: #f3f6fa; border-radius: 8px;
     padding: 9px 10px;
     display: flex; flex-direction: column; gap: 7px;
   }
-  .demo-popup .tg{ display: flex; align-items: center; gap: 8px; font-size: 11.5px; color: var(--ink-2); }
+  .demo-popup .tg{ display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--ink-2); }
+  .demo-popup .tg svg{ color: var(--ink-3); flex-shrink: 0; }
   .demo-popup .tg .sw{
     margin-left: auto;
     width: 26px; height: 14px; background: #e2e8f0; border-radius: 8px; position: relative;
@@ -220,63 +237,44 @@
     border-radius: 12px;
     overflow: hidden;
     box-shadow: 0 14px 32px -10px rgba(15,23,42,.32);
+    transform: scale(0.72);
+    transform-origin: center center;
   }
   .demo-yaml .bar{
-    height: 26px; background: #0a1020;
-    display: flex; align-items: center; padding: 0 10px; gap: 7px;
+    height: 22px; background: #0a1020;
+    display: flex; align-items: center; padding: 0 10px; gap: 5px;
   }
-  .demo-yaml .bar span{ width: 9px; height: 9px; border-radius: 50%; background: #1c2740; }
+  .demo-yaml .bar span{ width: 7px; height: 7px; border-radius: 50%; background: #1c2740; }
   .demo-yaml .code{
-    padding: 14px 16px;
+    padding: 10px 14px;
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 12px; line-height: 1.55;
+    font-size: 11px; line-height: 1.45;
     color: #cbd5e1;
   }
-  .demo-yaml .code p{ margin: 0; color: #cbd5e1; }
+  .demo-yaml .code p{ margin: 0; color: #cbd5e1; white-space: nowrap; }
   .demo-yaml .yr{ color: #475569; }
   .demo-yaml .k{ color: #94a3b8; }
   .demo-yaml .s{ color: #fbbf24; }
   .demo-yaml .n{ color: #f472b6; }
   .demo-yaml .t{ color: #34d399; }
   .demo-yaml .img{ color: #fbbf24; }
-  .demo-yaml .gap{ height: 6px; }
+  .demo-yaml .gap{ height: 4px; }
 
-  /* ───────── Card 5 — Add to Obsidian ───────── */
-  .demo-obs{
-    display: flex; flex-direction: column; align-items: center; gap: 14px;
+  /* ───────── Card 5 — Obsidian & PDF Export ───────── */
+  .docs{
+    flex-shrink: 0;
+    display: flex; align-items: center;
   }
-  .demo-obs .md-chip{
-    background: var(--term-bg); color: #cbd5e1;
-    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    padding: 8px 14px; border-radius: 8px;
-    font-size: 12px;
-    box-shadow: 0 8px 18px -6px rgba(15,23,42,.3);
-    white-space: nowrap;
+  .doc{
+    width: 99px; height: 125px;
+    position: relative;
+    filter: drop-shadow(0 12px 20px rgba(0,0,0,.15));
   }
-  .demo-obs .md-chip b{ color: var(--brand); font-weight: 700; }
-  .demo-obs .arrow-down{
-    width: 0; height: 0;
-    border-left: 8px solid transparent;
-    border-right: 8px solid transparent;
-    border-top: 12px solid var(--ink-3);
-  }
-  .demo-obs .obs-btn{
-    background: white;
-    border: 2px solid var(--obsidian);
-    color: var(--obsidian);
-    font-weight: 700; font-size: 14px;
-    padding: 10px 22px; border-radius: 10px;
-    display: flex; align-items: center; gap: 9px;
-    box-shadow: 0 8px 20px -8px rgba(111,61,245,.35);
-  }
-  .demo-obs .obs-btn .gem{
-    width: 18px; height: 18px;
-    background: var(--obsidian); 
-    color: white;
-    border-radius: 4px;
-    display: grid; place-items: center;
-    font-size: 11px;
-  }
+  .doc + .doc{ margin-left: -18px; }
+  /* Diagonal staircase: each step descends right */
+  .doc:nth-child(1){ transform: translateY(-17px); }
+  .doc:nth-child(3){ transform: translateY(17px); }
+  .doc svg{ display: block; width: 100%; height: 100%; }
 
   /* ───────── Card 6 — Tweets, threads & Articles ───────── */
   .demo-types{
@@ -331,6 +329,9 @@
     width: 80%; height: 8px; background: var(--ink); border-radius: 2px;
     margin-bottom: 4px;
   }
+  .type-card.article .article-img{
+    height: 24px; background: #cbd5e1; border-radius: 4px; margin: 2px 0;
+  }
 
 </style>
 </head>
@@ -338,18 +339,70 @@
   <div class="canvas" id="cap">
     <div class="grid">
 
-      <!-- ───────── Card 1 — Inline ↓ button ───────── -->
+      <!-- ───────── Card 5 — Obsidian & PDF Export ───────── -->
       <div class="card">
         <div class="meta">01</div>
         <div class="demo">
+          <div class="docs">
+            <div class="doc">
+              <svg viewBox="0 0 168 210">
+                <path d="M0 6 Q0 0 6 0 L128 0 L168 40 L168 204 Q168 210 162 210 L6 210 Q0 210 0 204 Z" fill="#F8FAFC"/>
+                <path d="M128 0 L168 40 L132 40 Q128 40 128 36 Z" fill="#cbd5e1"/>
+                <rect x="22" y="70"  width="124" height="7" rx="3" fill="#e2e8f0"/>
+                <rect x="22" y="86"  width="100" height="7" rx="3" fill="#e2e8f0"/>
+                <rect x="22" y="102" width="114" height="7" rx="3" fill="#e2e8f0"/>
+                <text x="84" y="178" text-anchor="middle"
+                      font-family="-apple-system, system-ui, sans-serif"
+                      font-size="32" font-weight="900" fill="#7C3AED" letter-spacing="-0.02em">.md</text>
+              </svg>
+            </div>
+            <div class="doc">
+              <svg viewBox="0 0 168 210">
+                <path d="M0 6 Q0 0 6 0 L128 0 L168 40 L168 204 Q168 210 162 210 L6 210 Q0 210 0 204 Z" fill="#F8FAFC"/>
+                <path d="M128 0 L168 40 L132 40 Q128 40 128 36 Z" fill="#cbd5e1"/>
+                <rect x="22" y="70"  width="124" height="7" rx="3" fill="#e2e8f0"/>
+                <rect x="22" y="86"  width="100" height="7" rx="3" fill="#e2e8f0"/>
+                <rect x="22" y="102" width="114" height="7" rx="3" fill="#e2e8f0"/>
+                <text x="84" y="178" text-anchor="middle"
+                      font-family="-apple-system, system-ui, sans-serif"
+                      font-size="32" font-weight="900" fill="#dc2626" letter-spacing="-0.02em">.pdf</text>
+              </svg>
+            </div>
+            <div class="doc">
+              <svg viewBox="0 0 168 210">
+                <path d="M0 6 Q0 0 6 0 L128 0 L168 40 L168 204 Q168 210 162 210 L6 210 Q0 210 0 204 Z" fill="#F8FAFC"/>
+                <path d="M128 0 L168 40 L132 40 Q128 40 128 36 Z" fill="#cbd5e1"/>
+                <rect x="22" y="70"  width="124" height="7" rx="3" fill="#e2e8f0"/>
+                <rect x="22" y="86"  width="100" height="7" rx="3" fill="#e2e8f0"/>
+                <rect x="22" y="102" width="114" height="7" rx="3" fill="#e2e8f0"/>
+                <!-- Obsidian gem as the doc label -->
+                <svg x="60" y="135" width="48" height="48" viewBox="0 0 24 24" fill="#7C3AED">
+                  <path d="M19.355 18.538a68.967 68.959 0 0 0 1.858-2.954.81.81 0 0 0-.062-.9c-.516-.685-1.504-2.075-2.042-3.362-.553-1.321-.636-3.375-.64-4.377a1.707 1.707 0 0 0-.358-1.05l-3.198-4.064a3.744 3.744 0 0 1-.076.543c-.106.503-.307 1.004-.536 1.5-.134.29-.29.6-.446.914l-.31.626c-.516 1.068-.997 2.227-1.132 3.59-.124 1.26.046 2.73.815 4.481.128.011.257.025.386.044a6.363 6.363 0 0 1 3.326 1.505c.916.79 1.744 1.922 2.415 3.5zM8.199 22.569c.073.012.146.02.22.02.78.024 2.095.092 3.16.29.87.16 2.593.64 4.01 1.055 1.083.316 2.198-.548 2.355-1.664.114-.814.33-1.735.725-2.58l-.01.005c-.67-1.87-1.522-3.078-2.416-3.849a5.295 5.295 0 0 0-2.778-1.257c-1.54-.216-2.952.19-3.84.45.532 2.218.368 4.829-1.425 7.531zM5.533 9.938c-.023.1-.056.197-.098.29L2.82 16.059a1.602 1.602 0 0 0 .313 1.772l4.116 4.24c2.103-3.101 1.796-6.02.836-8.3-.728-1.73-1.832-3.081-2.55-3.831zM9.32 14.01c.615-.183 1.606-.465 2.745-.534-.683-1.725-.848-3.233-.716-4.577.154-1.552.7-2.847 1.235-3.95.113-.235.223-.454.328-.664.149-.297.288-.577.419-.86.217-.47.379-.885.46-1.27.08-.38.08-.72-.014-1.043-.095-.325-.297-.675-.68-1.06a1.6 1.6 0 0 0-1.475.36l-4.95 4.452a1.602 1.602 0 0 0-.513.952l-.427 2.83c.672.59 2.328 2.316 3.335 4.711.09.21.175.43.253.653z"/>
+                </svg>
+              </svg>
+            </div>
+          </div>
+        </div>
+        <h3>Obsidian & PDF Export</h3>
+        <p>Save as Markdown, PDF, or send directly to Obsidian vaults with customizable metadata.</p>
+      </div>
+
+      <!-- ───────── Card 1 — Inline ↓ button ───────── -->
+      <div class="card">
+        <div class="meta">02</div>
+        <div class="demo">
           <div class="demo-inline">
             <div class="head">
-              <div class="av">
-                <svg viewBox="0 0 24 24" stroke-linecap="round"><path d="M3 18 L21 6 M21 6 H15 M21 6 V12"/></svg>
+              <div class="av"></div>
+              <div class="user-info">
+                <div class="name">Author</div>
+                <div class="handle">@author</div>
               </div>
-              <div class="name">@SpaceX</div>
             </div>
-            <div class="body">33 Raptor engines powering the Super Heavy booster off the pad…</div>
+            <div class="body">
+              <div class="line"></div>
+              <div class="line short"></div>
+            </div>
             <div class="row">
               <div class="act"><svg viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"/></svg>917</div>
               <div class="act"><svg viewBox="0 0 24 24"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>4K</div>
@@ -366,89 +419,23 @@
 
       <!-- ───────── Card 2 — Right-click menu ───────── -->
       <div class="card">
-        <div class="meta">02</div>
+        <div class="meta">03</div>
         <div class="demo">
           <div class="demo-ctx">
             <div class="lbl">Right-click menu</div>
-            <div class="item"><img src="../src/icons/icon-128.png" alt="">Save tweet as Markdown<span class="chev">›</span></div>
-            <div class="item"><img src="../src/icons/icon-128.png" alt="">Copy tweet as Markdown</div>
-            <div class="item"><img src="../src/icons/icon-128.png" alt="">Add tweet to Obsidian</div>
+            <div class="item">Save tweet as <span class="pdf-word">PDF</span></div>
+            <div class="item">Add tweet to <span class="obsidian-word">Obsidian</span></div>
+            <div class="item">Save tweet as Markdown</div>
+            <div class="item">Copy tweet as Markdown</div>
           </div>
         </div>
         <h3>Right-click menu</h3>
-        <p>Save, Copy, or send straight to Obsidian — anywhere a tweet renders.</p>
-      </div>
-
-      <!-- ───────── Card 3 — Popup & settings ───────── -->
-      <div class="card">
-        <div class="meta">03</div>
-        <div class="demo">
-          <div class="demo-popup">
-            <div class="ph">
-              <div class="left">
-                <div class="pm"><img src="../src/icons/icon-128.png" alt=""></div>
-                <div class="pn">tweet<b>2md</b></div>
-              </div>
-              <div class="gear">⚙</div>
-            </div>
-            <div class="pbtns">
-              <div class="pbtn">↓ Download .md</div>
-              <div class="pbtn alt">⧉ Copy .md</div>
-            </div>
-            <div class="toggles">
-              <div class="tg"><span>Save images locally</span><span class="sw"></span></div>
-              <div class="tg"><span>Show engagement stats</span><span class="sw"></span></div>
-              <div class="tg on"><span>Include metadata</span><span class="sw"></span></div>
-            </div>
-          </div>
-        </div>
-        <h3>Popup &amp; settings</h3>
-        <p>Per-export toggles for images, stats, and YAML — plus a set-once Obsidian vault.</p>
-      </div>
-
-      <!-- ───────── Card 4 — YAML + images ───────── -->
-      <div class="card">
-        <div class="meta">04</div>
-        <div class="demo">
-          <div class="demo-yaml">
-            <div class="bar"><span></span><span></span><span></span></div>
-            <div class="code">
-              <p><span class="yr">---</span></p>
-              <p><span class="k">author:</span> <span class="s">"@SpaceX"</span></p>
-              <p><span class="k">source:</span> <span class="s">https://x.com/…</span></p>
-              <p><span class="k">date:</span> <span class="n">2024-11-21</span></p>
-              <p><span class="k">likes:</span> <span class="n">682K</span> &nbsp;<span class="k">views:</span> <span class="n">37.3M</span></p>
-              <p><span class="k">tags:</span> <span class="t">[clippings, x, tweet]</span></p>
-              <p><span class="yr">---</span></p>
-              <div class="gap"></div>
-              <p><span class="img">![image](./media/001.jpg)</span></p>
-            </div>
-          </div>
-        </div>
-        <h3>YAML + local images</h3>
-        <p>Rich frontmatter, engagement stats, and embedded media saved alongside — no link rot.</p>
-      </div>
-
-      <!-- ───────── Card 5 — Add to Obsidian ───────── -->
-      <div class="card">
-        <div class="meta">05</div>
-        <div class="demo">
-          <div class="demo-obs">
-            <div class="md-chip">@SpaceX-1859.<b>md</b></div>
-            <div class="arrow-down"></div>
-            <div class="obs-btn">
-              <div class="gem">◆</div>
-              Add to Obsidian
-            </div>
-          </div>
-        </div>
-        <h3>Add to Obsidian</h3>
-        <p>One-click handoff with <code>[[@handle]]</code> wikilinks and Obsidian-friendly frontmatter.</p>
+        <p>Save as Markdown or PDF, copy text, or send straight to Obsidian — anywhere a tweet renders.</p>
       </div>
 
       <!-- ───────── Card 6 — Tweets, threads & Articles ───────── -->
       <div class="card">
-        <div class="meta">06</div>
+        <div class="meta">04</div>
         <div class="demo">
           <div class="demo-types">
             <!-- TWEET -->
@@ -489,16 +476,96 @@
             <div class="type-card article">
               <div class="article-title"></div>
               <div class="line"></div>
-              <div class="line"></div>
+              <div class="article-img"></div>
               <div class="line"></div>
               <div class="line short"></div>
-              <div class="line"></div>
               <div class="badge">Article</div>
             </div>
           </div>
         </div>
         <h3>Tweets, threads &amp; Articles</h3>
         <p>Single posts, nested replies, and long-form X Articles — all extracted cleanly.</p>
+      </div>
+
+      <!-- ───────── Card 3 — Popup & settings ───────── -->
+      <div class="card">
+        <div class="meta">05</div>
+        <div class="demo">
+          <div class="demo-popup">
+            <div class="ph">
+              <div class="left">
+                <div class="pm"><img src="../src/icons/icon-128.png" alt=""></div>
+                <div class="pn">XC<b>lipper</b></div>
+              </div>
+              <div class="gear">⚙</div>
+            </div>
+            <div class="pbtns">
+              <div class="pbtn">
+                <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                Download .md
+              </div>
+              <div class="pbtn">
+                <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                Copy .md
+              </div>
+            </div>
+            <div class="toggles">
+              <div class="tg">
+                <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                <span>Save images locally</span>
+                <span class="sw"></span>
+              </div>
+              <div class="tg">
+                <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                <span>Show engagement stats</span>
+                <span class="sw"></span>
+              </div>
+              <div class="tg on">
+                <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+                <span>Include metadata</span>
+                <span class="sw"></span>
+              </div>
+            </div>
+            <div class="pbtns sec">
+              <div class="pbtn pdf">
+                <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
+                Download .pdf
+              </div>
+              <div class="pbtn obsidian">
+                <svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor" stroke="none" style="margin-right: 4px;">
+                  <path d="M19.355 18.538a68.967 68.959 0 0 0 1.858-2.954.81.81 0 0 0-.062-.9c-.516-.685-1.504-2.075-2.042-3.362-.553-1.321-.636-3.375-.64-4.377a1.707 1.707 0 0 0-.358-1.05l-3.198-4.064a3.744 3.744 0 0 1-.076.543c-.106.503-.307 1.004-.536 1.5-.134.29-.29.6-.446.914l-.31.626c-.516 1.068-.997 2.227-1.132 3.59-.124 1.26.046 2.73.815 4.481.128.011.257.025.386.044a6.363 6.363 0 0 1 3.326 1.505c.916.79 1.744 1.922 2.415 3.5zM8.199 22.569c.073.012.146.02.22.02.78.024 2.095.092 3.16.29.87.16 2.593.64 4.01 1.055 1.083.316 2.198-.548 2.355-1.664.114-.814.33-1.735.725-2.58l-.01.005c-.67-1.87-1.522-3.078-2.416-3.849a5.295 5.295 0 0 0-2.778-1.257c-1.54-.216-2.952.19-3.84.45.532 2.218.368 4.829-1.425 7.531zM5.533 9.938c-.023.1-.056.197-.098.29L2.82 16.059a1.602 1.602 0 0 0 .313 1.772l4.116 4.24c2.103-3.101 1.796-6.02.836-8.3-.728-1.73-1.832-3.081-2.55-3.831zM9.32 14.01c.615-.183 1.606-.465 2.745-.534-.683-1.725-.848-3.233-.716-4.577.154-1.552.7-2.847 1.235-3.95.113-.235.223-.454.328-.664.149-.297.288-.577.419-.86.217-.47.379-.885.46-1.27.08-.38.08-.72-.014-1.043-.095-.325-.297-.675-.68-1.06a1.6 1.6 0 0 0-1.475.36l-4.95 4.452a1.602 1.602 0 0 0-.513.952l-.427 2.83c.672.59 2.328 2.316 3.335 4.711.09.21.175.43.253.653z"/>
+                </svg>
+                Add to Obsidian
+              </div>
+            </div>
+          </div>
+        </div>
+        <h3>Popup &amp; settings</h3>
+        <p>Per-export toggles for images, stats, and YAML — plus a set-once Obsidian vault.</p>
+      </div>
+
+      <!-- ───────── Card 4 — YAML + images ───────── -->
+      <div class="card">
+        <div class="meta">06</div>
+        <div class="demo">
+          <div class="demo-yaml">
+            <div class="bar"><span></span><span></span><span></span></div>
+            <div class="code">
+              <p><span class="yr">---</span></p>
+              <p><span class="k">author:</span> <span class="s">"Author"</span></p>
+              <p><span class="k">handle:</span> <span class="s">"@author"</span></p>
+              <p><span class="k">source:</span> <span class="s">https://x.com/…</span></p>
+              <p><span class="k">date:</span> <span class="n">2026-06-26</span></p>
+              <p><span class="k">likes:</span> <span class="n">682K</span> &nbsp;<span class="k">views:</span> <span class="n">37.3M</span></p>
+              <p><span class="k">tags:</span> <span class="t">[clippings, x]</span></p>
+              <p><span class="yr">---</span></p>
+              <div class="gap"></div>
+              <p><span class="img">![image](./media/001.jpg)</span></p>
+            </div>
+          </div>
+        </div>
+        <h3>YAML + local images</h3>
+        <p>Rich frontmatter, engagement stats, and embedded media saved alongside — no link rot.</p>
       </div>
 
     </div>
