@@ -1,21 +1,21 @@
-# tweet2md
+# XClipper
 
-[![CI](https://github.com/zendegani/tweet2md/actions/workflows/ci.yml/badge.svg)](https://github.com/zendegani/tweet2md/actions/workflows/ci.yml)
+[![CI](https://github.com/zendegani/xclipper/actions/workflows/ci.yml/badge.svg)](https://github.com/zendegani/xclipper/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Chrome Web Store](https://img.shields.io/chrome-web-store/v/epmmehilhbpkgcjbcohgkmihlalagkho?label=Chrome%20Web%20Store)](https://chromewebstore.google.com/detail/tweet2md/epmmehilhbpkgcjbcohgkmihlalagkho)
+[![Chrome Web Store](https://img.shields.io/chrome-web-store/v/epmmehilhbpkgcjbcohgkmihlalagkho?label=Chrome%20Web%20Store)](https://chromewebstore.google.com/detail/xclipper/epmmehilhbpkgcjbcohgkmihlalagkho)
 
 > Copy or save X (Twitter) Articles, threads, and tweets as Markdown.
 
 <p align="center">
-  <img src="assets/Extension.png" alt="tweet2md extension UI" width="500" />
+  <img src="assets/Extension.png" alt="XClipper extension UI" width="500" />
 </p>
 
 ## What it does
 
-**tweet2md** is an open-source Chrome extension that turns x.com content into production-ready Markdown for research, note-taking, AI workflows, and offline archiving. No X API key required.
+**XClipper** is an open-source Chrome extension that turns x.com content into production-ready Markdown for research, note-taking, AI workflows, and offline archiving. No X API key required.
 
 <p align="center">
-  <img src="assets/Markdown.png" alt="tweet2md converts X content to clean Markdown" width="700" />
+  <img src="assets/Markdown.png" alt="XClipper converts X content to clean Markdown" width="700" />
 </p>
 
 ### Key Features
@@ -53,12 +53,12 @@ Skip the popup. The download icon sits next to share on every tweet. One click o
   <img src="assets/feature-context-menu.png" alt="Right-click context menu with Save and Copy as Markdown items" width="700" />
 </p>
 
-Right-click anywhere on a tweet — the body, an image, or the timestamp — and pick **Save tweet as Markdown**, **Copy tweet as Markdown**, or **Add tweet to Obsidian**. tweet2md figures out which tweet you meant.
+Right-click anywhere on a tweet — the body, an image, or the timestamp — and pick **Save tweet as Markdown**, **Copy tweet as Markdown**, or **Add tweet to Obsidian**. XClipper figures out which tweet you meant.
 
 ### Settings — tune behaviour once, forget about it
 
 <p align="center">
-  <img src="assets/Extension_and_Setting.png" alt="tweet2md popup and settings view side by side" width="700" />
+  <img src="assets/Extension_and_Setting.png" alt="XClipper popup and settings view side by side" width="700" />
 </p>
 
 The popup keeps the things you adjust per export — **Save images locally**, **Show engagement stats inline**, **Include metadata** — front and centre. Click the gear icon at the top-right to flip to **Settings**, where the set-once knobs live in four collapsible sections: **Downloads** (subfolder + filename template with placeholders like `{date}`, `{handle}`, `{slug}` and a live preview), **Obsidian** (the Obsidian-friendly frontmatter toggle, optional vault name, optional vault subfolder, and a customizable tags list with `{`-autocomplete and a Reset button), **Frontmatter fields** (per-field toggle switches that decide which YAML entries land in the export — saved per schema so flipping Obsidian-friendly preserves both selections), and **Inline button & context menu**. At most two sections stay expanded at once so the panel never gets unwieldy; the last layout is remembered. Settings persist across sessions via `chrome.storage`.
@@ -83,15 +83,15 @@ The popup keeps the things you adjust per export — **Save images locally**, **
 
 ### From Chrome Web Store
 
-Install `tweet2md` from the [Chrome Web Store](https://chromewebstore.google.com/detail/tweet2md/epmmehilhbpkgcjbcohgkmihlalagkho)
+Install `XClipper` from the [Chrome Web Store](https://chromewebstore.google.com/detail/xclipper/epmmehilhbpkgcjbcohgkmihlalagkho)
 
 ### From source
 
 1. Clone and build:
 
    ```bash
-   git clone https://github.com/zendegani/tweet2md.git
-   cd tweet2md
+   git clone https://github.com/zendegani/xclipper.git
+   cd xclipper
    npm install
    npm run build
    ```
@@ -102,7 +102,7 @@ Install `tweet2md` from the [Chrome Web Store](https://chromewebstore.google.com
 
 Pick whichever entry point you prefer — they all run the same extractor and respect the same toggles:
 
-- **Toolbar popup** — Click the tweet2md icon, then **Download .md**, **Copy .md**, **Download .pdf**, or **Add to Obsidian**.
+- **Toolbar popup** — Click the XClipper icon, then **Download .md**, **Copy .md**, **Download .pdf**, or **Add to Obsidian**.
 - **Inline button** — Click the download icon at the right of any tweet's action bar (and at the top of long-form articles). Opens the tweet in a new tab and exports automatically. Shift/Alt-click to export just that tweet without its thread.
 - **Right-click menu** — Right-click any tweet and pick **Save tweet as Markdown**, **Copy tweet as Markdown**, or **Copy just this tweet (no thread)**.
 
@@ -161,7 +161,7 @@ Filenames: `@handle-tweetId.md` (tweets/threads) or `@handle-article-slug.md` (a
 ## Project structure
 
 ```text
-tweet2md/
+xclipper/
 ├── src/
 │   ├── content/        # DOM extraction + Turndown + Draft.js parsing
 │   ├── background/     # Service worker (chrome.downloads)

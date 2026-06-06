@@ -7,6 +7,19 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.0.0] - 2026-06-06
+
+### Changed
+
+- **Rebrand to XClipper**: The extension is renamed from *tweet2md* to *XClipper* across the toolbar icon, popup wordmark, context-menu label, and Chrome Web Store listing. The new icon — a paperclip with a stylized X — replaces the markdown-arrow logo. Chrome Web Store titles across all 12 locales now lead with "X / Twitter Web Clipper" plus each locale's natural save verb, the PDF format, and a "Free, no API" trust signal.
+- **Inline button defaults to off for new installs**: New installs no longer inject the per-tweet action-bar download button by default, reducing the chance of layout conflicts with other X extensions. Existing v1.9.0 users keep their stored choice; flip it in Settings → *Show inline button on tweets*.
+
+### Migration
+
+- **Settings carry over automatically from v1.9.0**: Preferences saved under the previous `tweet2md_settings` storage key are copied to the new `xclipper_settings` key on first run after the update. Subfolder, filename template, Obsidian vault, frontmatter selections, and every toggle state come across transparently — no reconfiguration needed.
+
+---
+
 ## [1.9.0] - 2026-06-04
 
 ### Added

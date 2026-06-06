@@ -1,14 +1,14 @@
-# Privacy Policy — tweet2md
+# Privacy Policy — XClipper
 
 **Last updated:** June 4, 2026
 
 ## Summary
 
-tweet2md does **not** collect, store externally, or transmit any user data. Everything happens locally on your device.
+XClipper does **not** collect, store externally, or transmit any user data. Everything happens locally on your device.
 
 ## What this extension does
 
-tweet2md accesses the visible content of supported X.com status pages only after the user explicitly requests an action — by clicking the toolbar icon, by clicking the inline download button on a tweet, or by selecting one of the **Save tweet as Markdown**, **Copy tweet as Markdown**, or **Add tweet to Obsidian** items in the right-click menu. It converts the visible page content (tweet, thread, or article text) into Markdown, which can be copied to your clipboard, saved to your local Downloads folder using Chrome's built-in download API, or handed off to the Obsidian desktop app via the `obsidian://new` URI scheme.
+XClipper accesses the visible content of supported X.com status pages only after the user explicitly requests an action — by clicking the toolbar icon, by clicking the inline download button on a tweet, or by selecting one of the **Save tweet as Markdown**, **Copy tweet as Markdown**, or **Add tweet to Obsidian** items in the right-click menu. It converts the visible page content (tweet, thread, or article text) into Markdown, which can be copied to your clipboard, saved to your local Downloads folder using Chrome's built-in download API, or handed off to the Obsidian desktop app via the `obsidian://new` URI scheme.
 
 ## Data collection
 
@@ -30,7 +30,7 @@ All data processing happens **entirely within your browser**:
 
 No data leaves your browser at any point during this process. The extension does not store extracted content after the operation completes.
 
-When **Save images locally** is enabled, tweet2md only downloads image assets from expected X media hosts such as `pbs.twimg.com`, `video.twimg.com`, `abs.twimg.com`, and `abs-0.twimg.com`. Other external image URLs are not downloaded by the background worker.
+When **Save images locally** is enabled, XClipper only downloads image assets from expected X media hosts such as `pbs.twimg.com`, `video.twimg.com`, `abs.twimg.com`, and `abs-0.twimg.com`. Other external image URLs are not downloaded by the background worker.
 
 ### Add to Obsidian
 
@@ -54,13 +54,13 @@ These are the minimum permissions required for the extension to function. No add
 
 ### Entry points and download safety
 
-The inline download button and right-click context menu are convenience triggers — they perform the **same local extraction** as the popup. They do not collect, transmit, or store anything beyond what the popup already does. When you activate one of them, tweet2md opens the tweet's permalink in a new tab (or runs in the current one if you're already on it), runs the extractor, then saves to Downloads or copies to your clipboard, all inside your browser.
+The inline download button and right-click context menu are convenience triggers — they perform the **same local extraction** as the popup. They do not collect, transmit, or store anything beyond what the popup already does. When you activate one of them, XClipper opens the tweet's permalink in a new tab (or runs in the current one if you're already on it), runs the extractor, then saves to Downloads or copies to your clipboard, all inside your browser.
 
 The background worker validates download messages before using privileged browser APIs. Requests must come from a trusted extension page or a supported X.com content script, and filenames are sanitized before they are passed to Chrome's download API.
 
 ## Third-party services
 
-tweet2md does not use any third-party services, APIs, or analytics platforms.
+XClipper does not use any third-party services, APIs, or analytics platforms.
 
 ## Changes to this policy
 
@@ -68,4 +68,4 @@ If this privacy policy changes, the updated version will be published in this re
 
 ## Contact
 
-If you have questions about this privacy policy, please open an issue on the [GitHub repository](https://github.com/zendegani/tweet2md).
+If you have questions about this privacy policy, please open an issue on the [GitHub repository](https://github.com/zendegani/xclipper).

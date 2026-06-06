@@ -1,6 +1,6 @@
 # Content AST — schema v1
 
-The Content AST is the semantic source of truth for any content tweet2md extracts. Renderers (Markdown, PDF, future HTML/EPUB/JSON) consume it; they never re-extract from the DOM. Every node is JSON-serializable so the AST can cross `chrome.runtime` message boundaries unchanged.
+The Content AST is the semantic source of truth for any content XClipper extracts. Renderers (Markdown, PDF, future HTML/EPUB/JSON) consume it; they never re-extract from the DOM. Every node is JSON-serializable so the AST can cross `chrome.runtime` message boundaries unchanged.
 
 Types live in [`src/ast/types.ts`](../src/ast/types.ts). The architectural rationale lives in [`docs/adr/0001-content-ast-architecture.md`](./adr/0001-content-ast-architecture.md). This document is the per-node reference: shape, semantics, rendering expectations.
 
