@@ -39,7 +39,7 @@
     "message": "将 Markdown 文件和图片保存到下载文件夹中的此子文件夹下。留空则直接保存到下载文件夹。"
   },
   "opt_download_folder_placeholder": {
-    "message": "例如 tweet2md"
+    "message": "例如 xclipper"
   },
   "opt_filename_template": {
     "message": "文件名模板"

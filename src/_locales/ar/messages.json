@@ -39,7 +39,7 @@
     "message": "احفظ ملفات Markdown والصور داخل هذا المجلد الفرعي ضمن مجلد التنزيلات. اتركه فارغًا للحفظ مباشرة في التنزيلات."
   },
   "opt_download_folder_placeholder": {
-    "message": "مثال: tweet2md"
+    "message": "مثال: xclipper"
   },
   "opt_filename_template": {
     "message": "قالب اسم الملف"

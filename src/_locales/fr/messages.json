@@ -39,7 +39,7 @@
     "message": "Enregistre les fichiers Markdown et les images dans ce sous-dossier de votre dossier Téléchargements. Laissez vide pour enregistrer directement dans Téléchargements."
   },
   "opt_download_folder_placeholder": {
-    "message": "ex. tweet2md"
+    "message": "ex. xclipper"
   },
   "opt_filename_template": {
     "message": "Modèle de nom de fichier"

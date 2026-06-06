@@ -39,7 +39,7 @@
     "message": "Сохранять Markdown и изображения в этой подпапке внутри папки Загрузки. Оставьте пустым, чтобы сохранять прямо в Загрузки."
   },
   "opt_download_folder_placeholder": {
-    "message": "напр. tweet2md"
+    "message": "напр. xclipper"
   },
   "opt_filename_template": {
     "message": "Шаблон имени файла"

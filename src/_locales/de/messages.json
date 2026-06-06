@@ -39,7 +39,7 @@
     "message": "Speichert Markdown-Dateien und Bilder in diesem Unterordner innerhalb deines Downloads-Ordners. Leer lassen, um direkt in Downloads zu speichern."
   },
   "opt_download_folder_placeholder": {
-    "message": "z. B. tweet2md"
+    "message": "z. B. xclipper"
   },
   "opt_filename_template": {
     "message": "Dateinamen-Vorlage"

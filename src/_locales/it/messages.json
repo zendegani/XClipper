@@ -39,7 +39,7 @@
     "message": "Salva Markdown e immagini in questa sottocartella all'interno della tua cartella Download. Lascia vuoto per salvare direttamente in Download."
   },
   "opt_download_folder_placeholder": {
-    "message": "es. tweet2md"
+    "message": "es. xclipper"
   },
   "opt_filename_template": {
     "message": "Modello del nome file"

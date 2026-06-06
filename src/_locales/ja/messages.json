@@ -39,7 +39,7 @@
     "message": "Markdownファイルと画像をダウンロードフォルダ内のこのサブフォルダに保存します。空欄にすると、ダウンロードフォルダ直下に保存されます。"
   },
   "opt_download_folder_placeholder": {
-    "message": "例: tweet2md"
+    "message": "例: xclipper"
   },
   "opt_filename_template": {
     "message": "ファイル名テンプレート"
