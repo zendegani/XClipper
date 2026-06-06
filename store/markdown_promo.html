@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>XClipper — Markdown Promo Card</title>
+<style>
+  :root {
+    --bg: #f3f6fc;
+    --ink: #0b1220;
+    --ink-2: #475569;
+    --ink-3: #94a3b8;
+    --line: #e2e8f0;
+    --brand-blue: #1d9bf0;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: #d9dee5;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+  }
+
+  .canvas {
+    width: 1280px;
+    height: 800px;
+    background: var(--bg);
+    background-image:
+      radial-gradient(1200px 600px at 50% -120px, #ffffff 0%, rgba(255,255,255,0) 60%),
+      radial-gradient(800px 500px at 110% 110%, #e2ebf5 0%, rgba(226,235,245,0) 60%);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 64px;
+    overflow: hidden;
+    position: relative;
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", Helvetica, Arial, sans-serif;
+  }
+
+  /* Left Panel: Mockup Window */
+  .left-window {
+    background: #ffffff;
+    border-radius: 16px;
+    box-shadow: 0 20px 50px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.04);
+    width: 460px;
+    height: 610px;
+    overflow: hidden;
+    border: 1px solid #e2e8f0;
+    flex-shrink: 0;
+    display: flex;
+    flex-direction: column;
+    margin-top: 57px;
+  }
+
+  .browser-bar {
+    height: 44px;
+    background: #f1f5f9;
+    border-bottom: 1px solid #e2e8f0;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    gap: 8px;
+    flex-shrink: 0;
+  }
+
+  .dots {
+    display: flex;
+    gap: 6px;
+    margin-right: 12px;
+  }
+
+  .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+  }
+  .dot.red { background: #ff5f56; }
+  .dot.yellow { background: #ffbd2e; }
+  .dot.green { background: #27c93f; }
+
+  .url-bar {
+    flex: 1;
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 6px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    padding: 0 12px;
+    font-size: 11px;
+    color: #475569;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+
+  .left-content {
+    padding: 20px 24px 24px;
+    color: #0f172a;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    flex-shrink: 0;
+  }
+
+  .back-btn {
+    font-size: 18px;
+    font-weight: 600;
+  }
+
+  .header-title {
+    font-size: 18px;
+    font-weight: 800;
+    letter-spacing: -0.02em;
+  }
+
+  .profile {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 16px;
+    flex-shrink: 0;
+  }
+
+  .avatar {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: #475569;
+  }
+
+  .user-info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .display-name {
+    font-size: 14px;
+    font-weight: 700;
+  }
+
+  .username {
+    font-size: 12px;
+    color: #64748b;
+  }
+
+  .media-box {
+    height: 190px;
+    background: #e0f2fe;
+    border-radius: 10px;
+    margin-bottom: 16px;
+    flex-shrink: 0;
+  }
+
+  .article-title {
+    font-size: 20px;
+    font-weight: 800;
+    line-height: 1.2;
+    margin-bottom: 12px;
+    letter-spacing: -0.02em;
+    flex-shrink: 0;
+  }
+
+  .placeholder-bottom {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    flex: 1;
+  }
+
+  .line {
+    height: 6px;
+    background: #94a3b8;
+    opacity: 0.5;
+    border-radius: 3px;
+  }
+
+  .line-80 { width: 80%; }
+  .line-50 { width: 50%; }
+
+  .paragraph-gap {
+    height: 10px;
+  }
+
+  /* Center Panel: Blue Arrow */
+  .arrow-container {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    margin-top: 57px;
+  }
+
+  .blue-chevrons {
+    width: 90px;
+    height: 90px;
+    color: var(--brand-blue);
+    filter: drop-shadow(0 4px 12px rgba(29, 155, 240, 0.2));
+  }
+
+  /* Right Panel: Label + Code Window */
+  .right-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 20px;
+    width: 490px;
+    flex-shrink: 0;
+  }
+
+  .output-badge {
+    background: var(--brand-blue);
+    color: #ffffff;
+    font-weight: 700;
+    font-size: 15px;
+    padding: 8px 20px;
+    border-radius: 20px;
+    box-shadow: 0 4px 12px rgba(29, 155, 240, 0.3);
+    letter-spacing: -0.01em;
+  }
+
+  .right-window {
+    background: #1e1e1e;
+    border-radius: 16px;
+    box-shadow: 0 25px 60px rgba(0,0,0,0.35);
+    width: 100%;
+    overflow: hidden;
+    color: #d4d4d4;
+    border: 1px solid #2d2d2d;
+  }
+
+  .titlebar {
+    height: 44px;
+    background: #252526;
+    display: flex;
+    align-items: center;
+    padding: 0 16px;
+    border-bottom: 1px solid #2d2d2d;
+  }
+
+  .code-content {
+    padding: 24px;
+    font-family: 'JetBrains Mono', 'Fira Code', Consolas, Monaco, monospace;
+    font-size: 12px;
+    line-height: 1.45;
+    white-space: pre-wrap;
+    overflow: hidden;
+    height: 566px;
+  }
+
+  .yaml-key { color: #9cdcfe; }
+  .yaml-val { color: #ce9178; }
+  .yaml-num { color: #b5cea8; }
+  .yaml-dash { color: #808080; }
+  
+  .md-text { color: #d4d4d4; }
+  .md-h1 { color: #569cd6; font-weight: bold; }
+  .md-h2 { color: #569cd6; }
+  .md-italic { color: #d4d4d4; font-style: italic; }
+  .md-link { color: #4ec9b0; }
+  .md-url { color: #ce9178; }
+  .md-bracket { color: #d4d4d4; }
+  .md-list { color: #d4d4d4; }
+  .md-list-marker { color: #808080; }
+
+</style>
+</head>
+<body>
+  <div class="canvas" id="marquee">
+    <!-- Left panel -->
+    <div class="left-window">
+      <div class="browser-bar">
+        <div class="dots">
+          <div class="dot red"></div>
+          <div class="dot yellow"></div>
+          <div class="dot green"></div>
+        </div>
+        <div class="url-bar">https://x.com/author/article/1234567890</div>
+      </div>
+      <div class="left-content">
+        <div class="header">
+          <div class="back-btn">←</div>
+          <div class="header-title">Article</div>
+        </div>
+        <div class="profile">
+          <div class="avatar"></div>
+          <div class="user-info">
+            <div class="display-name">Author</div>
+            <div class="username">@author</div>
+          </div>
+        </div>
+        <div class="media-box"></div>
+        <div class="article-title">Article Title</div>
+        <div class="placeholder-bottom">
+          <div class="line"></div>
+          <div class="line"></div>
+          <div class="line"></div>
+          <div class="line line-80"></div>
+          <div class="paragraph-gap"></div>
+          <div class="line"></div>
+          <div class="line"></div>
+          <div class="line"></div>
+          <div class="line"></div>
+          <div class="line"></div>
+          <div class="line"></div>
+          <div class="line line-50"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Arrow separator -->
+    <div class="arrow-container">
+      <svg class="blue-chevrons" viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="13" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="22,22 50,50 22,78"/>
+        <polyline points="50,22 78,50 50,78"/>
+      </svg>
+    </div>
+
+    <!-- Right panel -->
+    <div class="right-panel">
+      <div class="output-badge">Markdown Output</div>
+      <div class="right-window">
+        <div class="titlebar">
+          <div class="dots">
+            <div class="dot red"></div>
+            <div class="dot yellow"></div>
+            <div class="dot green"></div>
+          </div>
+        </div>
+        <div class="code-content">
+<span class="yaml-dash">---</span>
+<span class="yaml-key">author:</span> <span class="yaml-val">"Author"</span>
+<span class="yaml-key">handle:</span> <span class="yaml-val">"@author"</span>
+<span class="yaml-key">source:</span> <span class="yaml-val">https://x.com/author/...</span>
+<span class="yaml-key">date:</span> <span class="yaml-num">2026-06-26</span>
+<span class="yaml-key">type:</span> <span class="yaml-val">article</span>
+<span class="yaml-key">likes:</span> <span class="yaml-num">118988</span>
+<span class="yaml-key">reposts:</span> <span class="yaml-num">41647</span>
+<span class="yaml-key">replies:</span> <span class="yaml-num">6601</span>
+<span class="yaml-key">bookmarks:</span> <span class="yaml-num">183944</span>
+<span class="yaml-key">views:</span> <span class="yaml-num">86270821</span>
+<span class="yaml-dash">---</span>
+
+<span class="md-h1"># Article Title</span>
+
+<span class="md-italic">*By Author (@author)*</span>
+
+<span class="md-bracket">![</span><span class="md-link">Banner</span><span class="md-bracket">](</span><span class="md-url">author/banner.jpg</span><span class="md-bracket">)</span>
+
+<span class="md-text">One of the most important aspects of archiving long-form content is preserving its original structure in a portable format.</span>
+
+<span class="md-h2">## Key Capabilities</span>
+
+<span class="md-list-marker">-</span> <span class="md-list">Preserves nested structures</span>
+<span class="md-list-marker">-</span> <span class="md-list">Keeps inline links functional</span>
+<span class="md-list-marker">-</span> <span class="md-list">Handles images seamlessly</span></div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
