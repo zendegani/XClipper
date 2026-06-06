@@ -1,8 +1,8 @@
 // Injects a "Save as Markdown" icon next to the share button in each tweet's
 // action bar. Clicking opens the tweet's permalink in a new tab with the
-// `#tweet2md=1` marker, which the main content script's bootstrap handles.
+// `#xclipper=1` marker, which the main content script's bootstrap handles.
 
-const BUTTON_ATTR = 'data-tweet2md-injected';
+const BUTTON_ATTR = 'data-xclipper-injected';
 let decorated = new WeakSet<Element>();
 
 let inlineButtonCopies = false;
@@ -119,8 +119,8 @@ function openWithMarker(
   single: boolean
 ): void {
   const sep = url.includes('#') ? '&' : '#';
-  const singleSuffix = single ? '&tweet2md_single=1' : '';
-  window.open(url + sep + 'tweet2md=' + action + singleSuffix, '_blank', 'noopener');
+  const singleSuffix = single ? '&xclipper_single=1' : '';
+  window.open(url + sep + 'xclipper=' + action + singleSuffix, '_blank', 'noopener');
 }
 
 // If the target tweet is the current page, extract in place rather than
@@ -134,7 +134,7 @@ function triggerExtract(
   const page = normalizeStatusUrl(window.location.href);
   if (target && page && target === page) {
     window.dispatchEvent(
-      new CustomEvent('tweet2md:autoextract', { detail: { action, single } })
+      new CustomEvent('xclipper:autoextract', { detail: { action, single } })
     );
     return;
   }

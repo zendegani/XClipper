@@ -111,13 +111,13 @@ migrateTweet2mdSettings();
 chrome.runtime.onInstalled.addListener(migrateTweet2mdSettings);
 
 function appendMarker(url: string, action: MenuAction, single: boolean): string {
-  // Strip any existing tweet2md marker so we don't compound them.
+  // Strip any existing xclipper marker so we don't compound them.
   const cleaned = url
-    .replace(/[#&]tweet2md(?:_single)?=(?:download|copy|obsidian|pdf|1)/g, '')
+    .replace(/[#&]xclipper(?:_single)?=(?:download|copy|obsidian|pdf|1)/g, '')
     .replace(/#$/, '');
   const sep = cleaned.includes('#') ? '&' : '#';
-  const singleSuffix = single ? '&tweet2md_single=1' : '';
-  return cleaned + sep + 'tweet2md=' + action + singleSuffix;
+  const singleSuffix = single ? '&xclipper_single=1' : '';
+  return cleaned + sep + 'xclipper=' + action + singleSuffix;
 }
 
 function menuItemAction(

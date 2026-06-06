@@ -234,7 +234,7 @@ function rehydrateMissingArticles(
   if (store.size === 0) return null;
 
   const host = document.createElement('div');
-  host.setAttribute('data-t2m-rehydrate-host', '');
+  host.setAttribute('data-xclipper-rehydrate-host', '');
   host.setAttribute(
     'style',
     'position:absolute;left:-99999px;top:0;width:1px;height:1px;' +
@@ -251,7 +251,7 @@ function rehydrateMissingArticles(
     if (a.handle.toLowerCase() !== target) continue;
     const cell = document.createElement('div');
     cell.setAttribute('data-testid', 'cellInnerDiv');
-    cell.setAttribute('data-t2m-rehydrated', id);
+    cell.setAttribute('data-xclipper-rehydrated', id);
     // cloneNode again so the stored snapshot stays usable if rehydrate
     // runs more than once during the page's lifetime.
     cell.appendChild(snapshot.cloneNode(true));

@@ -74,12 +74,12 @@ async function runPdfExport(): Promise<void> {
   await exportPdf(response.data.body, filename);
 }
 
-// ─── Auto-extract bootstrap (#tweet2md=download | #tweet2md=copy) ───
+// ─── Auto-extract bootstrap (#xclipper=download | #xclipper=copy) ───
 // Triggered when the page is opened from the inline button or context menu.
 
-const AUTO_MARKER_RE = /[#&]tweet2md=(download|copy|obsidian|pdf|1)/;
-const AUTO_SINGLE_MARKER_RE = /[#&]tweet2md_single=1/;
-const AUTO_MARKER_STRIP_RE = /[#&]tweet2md(?:_single)?=(?:download|copy|obsidian|pdf|1)/g;
+const AUTO_MARKER_RE = /[#&]xclipper=(download|copy|obsidian|pdf|1)/;
+const AUTO_SINGLE_MARKER_RE = /[#&]xclipper_single=1/;
+const AUTO_MARKER_STRIP_RE = /[#&]xclipper(?:_single)?=(?:download|copy|obsidian|pdf|1)/g;
 
 interface StoredSettings {
   downloadImages?: boolean;
@@ -295,7 +295,7 @@ function coerceAutoAction(raw: unknown): AutoAction {
   return raw === 'copy' ? 'copy' : raw === 'obsidian' ? 'obsidian' : 'download';
 }
 
-window.addEventListener('tweet2md:autoextract', (e: Event) => {
+window.addEventListener('xclipper:autoextract', (e: Event) => {
   const detail = (e as CustomEvent).detail as
     | { action?: string; single?: boolean }
     | undefined;

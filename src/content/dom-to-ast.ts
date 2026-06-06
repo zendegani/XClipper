@@ -58,8 +58,8 @@ export function domToAst(opts: { singleTweet?: boolean } = {}): Document {
   // and Mar 22+), so an id sort interleaves them and the boundary break
   // stops mid-thread.
   allArticles.sort((a, b) => {
-    const aR = a.closest('[data-t2m-rehydrate-host]') ? 0 : 1;
-    const bR = b.closest('[data-t2m-rehydrate-host]') ? 0 : 1;
+    const aR = a.closest('[data-xclipper-rehydrate-host]') ? 0 : 1;
+    const bR = b.closest('[data-xclipper-rehydrate-host]') ? 0 : 1;
     return aR - bR;
   });
 
