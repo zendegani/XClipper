@@ -55,7 +55,7 @@ describe('renderPdfHtml', () => {
       expect(html.startsWith('<!doctype html>')).toBe(true);
       expect(html).toContain('<title>');
       expect(html).toContain('<style>');
-      expect(html).toContain('class="t2m-root"');
+      expect(html).toContain('class="xclipper-root"');
       expect(html).toContain('</html>');
     });
   }
