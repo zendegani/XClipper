@@ -131,11 +131,11 @@ function parseAuthorFromElement(userNameEl: Element): { name: string; handle: st
 
   // Fallback: quoted-tweet blocks wrap the whole quote in an outer link, so the
   // inner name / handle render as plain spans (zero <a> tags). Parse from text.
-  if (name === 'Unknown' || handle === 'unknown') {
+  if (name === 'Unknown' || handle === 'unknown' || isTimestampLabel(name)) {
     const txt = (userNameEl.textContent || '').replace(/\s+/g, ' ').trim();
     const handleMatch = txt.match(/@[A-Za-z0-9_]+/);
     if (handleMatch && handle === 'unknown') handle = handleMatch[0];
-    if (name === 'Unknown') {
+    if (handleMatch && (name === 'Unknown' || isTimestampLabel(name))) {
       const idx = handleMatch ? txt.indexOf(handleMatch[0]) : -1;
       const nameText = idx > 0 ? txt.slice(0, idx).trim() : txt;
       if (nameText) name = nameText;
@@ -143,4 +143,8 @@ function parseAuthorFromElement(userNameEl: Element): { name: string; handle: st
   }
 
   return { name, handle };
+}
+
+function isTimestampLabel(value: string): boolean {
+  return /^(?:\d+[smhd]|\d+[smhd]\s|[A-Z][a-z]{2}\s+\d{1,2}|\d{1,2}:\d{2}\s*(?:AM|PM)?)$/.test(value.trim());
 }

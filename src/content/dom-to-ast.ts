@@ -475,10 +475,12 @@ function articleBlockToNodes(block: HTMLElement): Block[] {
     return [articleMediaImg];
   }
 
-  // Embedded simpleTweet card — match legacy behavior by emitting just the
-  // inner avatar image. The card surfaces author + handle + snippet inline,
-  // but the user-facing fixture has historically rendered only the avatar.
+  // Embedded simpleTweet card — X Articles can contain full tweet embeds in
+  // the article body. Preserve the tweet structure instead of collapsing the
+  // card to its avatar image.
   if (block.querySelector('[data-testid="simpleTweet"]')) {
+    const tweet = extractSimpleTweet(block);
+    if (tweet) return [tweet];
     const img = findArticleBlockImage(block);
     return img ? [img] : [];
   }
@@ -498,6 +500,13 @@ function blockHasOnlyImage(block: HTMLElement): boolean {
   // True when every text node under the block is whitespace and the only
   // meaningful descendant is a non-emoji <img>.
   return (block.textContent || '').trim() === '' && !!block.querySelector('img');
+}
+
+function extractSimpleTweet(block: HTMLElement): TweetNode | undefined {
+  const tweetArticle = block.querySelector('[data-testid="simpleTweet"] article[role="article"]')
+    || block.querySelector('[data-testid="simpleTweet"] [data-testid="tweet"]');
+  if (!tweetArticle) return undefined;
+  return articleToTweetNode(tweetArticle);
 }
 
 function findArticleBlockImage(block: HTMLElement): ImageNode | undefined {

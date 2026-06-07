@@ -295,6 +295,8 @@ function renderArticleBlock(block: Block): string {
       // In article body flow the card is the whole block — render it as a
       // blockquote stanza, same shape as the in-tweet form.
       return renderArticleCardBlock(block).replace(/^\n\n/, '');
+    case 'tweet':
+      return renderQuotedTweetBlock(block).replace(/^\n\n/, '');
     default:
       return '';
   }

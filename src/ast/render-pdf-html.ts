@@ -231,6 +231,8 @@ function renderArticleBlock(block: Block): string {
       return '<hr>';
     case 'articleCard':
       return renderArticleCard(block);
+    case 'tweet':
+      return renderQuotedTweet(block);
     default:
       return '';
   }

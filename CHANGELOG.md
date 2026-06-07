@@ -19,6 +19,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Fix an issue where the redundant `options.includeMetadata` override in `extract()` caused engagement stats to be overwritten with `undefined`.
   - Add test coverage for the article engagement rendering toggle.
 - **Captioned X Article images after AST refactor**: Restore Markdown image extraction for X Article media blocks that include captions, preventing `/article/.../media/...` links from replacing the underlying `pbs.twimg.com` image URLs.
+- **Embedded tweets in X Article bodies**: Preserve `simpleTweet` embeds as quoted tweet cards with author, text, and media instead of collapsing them to avatar images. (#50)
 
 ---
 
