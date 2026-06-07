@@ -6,7 +6,7 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
-## [2.0.3] - 2026-06-06
+## [2.0.3] - 2026-06-07
 
 ### Added
 
@@ -18,6 +18,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
   - Forward PDF rendering options to the article layout renderer and conditionally render engagement metrics below the title/banner when enabled.
   - Fix an issue where the redundant `options.includeMetadata` override in `extract()` caused engagement stats to be overwritten with `undefined`.
   - Add test coverage for the article engagement rendering toggle.
+- **Captioned X Article images after AST refactor**: Restore Markdown image extraction for X Article media blocks that include captions, preventing `/article/.../media/...` links from replacing the underlying `pbs.twimg.com` image URLs.
 
 ---
 
@@ -30,7 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [2.0.1] - 2026-06-06
+## [2.0.1] - 2026-06-05
 
 ### Fixed
 
@@ -38,7 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [2.0.0] - 2026-06-06
+## [2.0.0] - 2026-06-05
 
 ### Changed
 

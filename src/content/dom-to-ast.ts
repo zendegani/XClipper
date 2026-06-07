@@ -467,6 +467,14 @@ function articleBlockToNodes(block: HTMLElement): Block[] {
     return card ? [card] : [];
   }
 
+  // X article images are wrapped in an article media permalink. Caption text
+  // can live in the same block, so textContent is not a reliable image-only
+  // signal here.
+  const articleMediaImg = findArticleMediaImage(block);
+  if (articleMediaImg) {
+    return [articleMediaImg];
+  }
+
   // Embedded simpleTweet card — match legacy behavior by emitting just the
   // inner avatar image. The card surfaces author + handle + snippet inline,
   // but the user-facing fixture has historically rendered only the avatar.
@@ -494,6 +502,20 @@ function blockHasOnlyImage(block: HTMLElement): boolean {
 
 function findArticleBlockImage(block: HTMLElement): ImageNode | undefined {
   const imgEl = block.querySelector('img') as HTMLImageElement | null;
+  return imageNodeFromElement(imgEl);
+}
+
+function findArticleMediaImage(block: HTMLElement): ImageNode | undefined {
+  const mediaLink = block.querySelector('a[href*="/article/"][href*="/media/"], a[href*="/media/"]');
+  if (!mediaLink) return undefined;
+  const imgEl = mediaLink.querySelector('img') as HTMLImageElement | null;
+  if (!imgEl) return undefined;
+  const src = imgEl.src || '';
+  if (!hostMatches(src, 'pbs.twimg.com') || src.includes('profile_images')) return undefined;
+  return imageNodeFromElement(imgEl);
+}
+
+function imageNodeFromElement(imgEl: HTMLImageElement | null): ImageNode | undefined {
   if (!imgEl) return undefined;
   let src = imgEl.src || '';
   if (!src) return undefined;
