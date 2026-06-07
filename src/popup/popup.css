@@ -573,6 +573,30 @@ body {
   transform: translateY(0);
 }
 
+/* Action-row buttons sit near opposite popup edges. Anchor their tooltips to
+ * logical edges so each box grows toward the row's interior in both LTR and
+ * RTL locales instead of being centered past the popup boundary. */
+.action-row .btn-action:first-child[data-tooltip]::after {
+  left: auto;
+  right: auto;
+  inset-inline-start: 0;
+  transform: translateY(2px);
+}
+
+.action-row .btn-action:last-child[data-tooltip]::after {
+  left: auto;
+  right: auto;
+  inset-inline-end: 0;
+  transform: translateY(2px);
+}
+
+.action-row .btn-action:first-child[data-tooltip]:hover::after,
+.action-row .btn-action:first-child[data-tooltip]:focus-visible::after,
+.action-row .btn-action:last-child[data-tooltip]:hover::after,
+.action-row .btn-action:last-child[data-tooltip]:focus-visible::after {
+  transform: translateY(0);
+}
+
 .nav-link {
   display: inline-flex;
   align-items: center;
