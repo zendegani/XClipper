@@ -90,14 +90,16 @@
       </div>
 
       <div class="action-row">
-        <button id="btn-pdf" class="btn-pdf btn-action" type="button">
+        <button id="btn-pdf" class="btn-pdf btn-action" type="button"
+          data-tooltip="Generate a formatted PDF export with current settings, then choose where to save it."
+          data-i18n-tooltip="btn_pdf_hint">
           <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
             <polyline points="14 2 14 8 20 8" />
             <text x="7.5" y="18" font-size="6" font-weight="700" fill="currentColor" stroke="none">PDF</text>
           </svg>
-          <span class="btn-label">Download .pdf</span>
+          <span class="btn-label" data-i18n="btn_pdf">Export .pdf</span>
         </button>
 
         <button id="btn-obsidian" class="btn-obsidian btn-action" type="button"

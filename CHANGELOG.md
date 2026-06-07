@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Date in Article PDF exports**: Formatted publication date next to the author handle in the article byline.
 
+### Changed
+
+- **PDF action wording**: Rename the popup action from **Download .pdf** to **Export .pdf** and add a tooltip that describes the generated PDF export flow.
+
 ### Fixed
 
 - **Article PDF Engagement Stats and Metadata Overwrite**:

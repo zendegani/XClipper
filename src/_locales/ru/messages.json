@@ -14,6 +14,12 @@
   "btn_copy": {
     "message": "Копировать .md"
   },
+  "btn_pdf": {
+    "message": "Экспорт .pdf"
+  },
+  "btn_pdf_hint": {
+    "message": "Создать оформленный PDF-экспорт с текущими настройками, затем выбрать место сохранения."
+  },
   "btn_obsidian": {
     "message": "Добавить в Obsidian"
   },

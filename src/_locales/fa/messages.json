@@ -14,6 +14,12 @@
   "btn_copy": {
     "message": "کپی .md"
   },
+  "btn_pdf": {
+    "message": "خروجی .pdf"
+  },
+  "btn_pdf_hint": {
+    "message": "یک خروجی PDF قالب‌بندی‌شده با تنظیمات فعلی بسازید، سپس محل ذخیره را انتخاب کنید."
+  },
   "btn_obsidian": {
     "message": "افزودن به Obsidian"
   },

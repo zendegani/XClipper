@@ -14,6 +14,12 @@
   "btn_copy": {
     "message": ".mdをコピー"
   },
+  "btn_pdf": {
+    "message": ".pdf にエクスポート"
+  },
+  "btn_pdf_hint": {
+    "message": "現在の設定で整形済みのPDF書き出しを作成し、保存先を選びます。"
+  },
   "btn_obsidian": {
     "message": "Obsidianに追加"
   },
