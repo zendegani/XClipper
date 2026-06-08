@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-import { existsSync, writeFileSync, mkdirSync } from 'node:fs';
+import { existsSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { resolve, dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import puppeteer from 'puppeteer-core';
@@ -32,23 +32,11 @@ async function ensureChromeBinary() {
   return exec;
 }
 
-const SVG_CONTENT = `<svg viewBox="0 0 128 128" xmlns="http://www.w3.org/2000/svg" style="width: 100%; height: 100%; display: block; margin: 0; padding: 0;">
-  <defs>
-    <clipPath id="xc-band">
-      <rect x="0" y="12" width="128" height="104"/>
-    </clipPath>
-  </defs>
-  <g clip-path="url(#xc-band)">
-    <g transform="rotate(38 64 64)" stroke-width="7.5" fill="none" stroke-linecap="butt">
-      <line x1="52" y1="-50" x2="52" y2="178" stroke="#1d9bf0"/>
-      <line x1="64" y1="-50" x2="64" y2="178" stroke="#7C3AED"/>
-      <line x1="76" y1="-50" x2="76" y2="178" stroke="#dc2626"/>
-    </g>
-  </g>
-  <rect x="2" y="51" width="124" height="26" rx="13"
-        fill="none" stroke="#000000" stroke-width="9"
-        transform="rotate(52 64 64)"/>
-</svg>`;
+const SVG_PATH = join(ROOT, 'assets', 'xclipper-mark.svg');
+const SVG_CONTENT = readFileSync(SVG_PATH, 'utf8').replace(
+  '<svg ',
+  '<svg style="width: 100%; height: 100%; display: block; margin: 0; padding: 0;" ',
+);
 
 async function main() {
   const chromePath = await ensureChromeBinary();
