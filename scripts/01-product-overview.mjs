@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Capture Chrome Web Store capabilities screenshot from store/capabilities.html.
+// Capture Chrome Web Store capabilities screenshot from store/mockups/01-product-overview.html.
 //
 // Renders the canvas at 2× density for supersampling, then downscales
 // via `sips` to the Chrome Web Store target size:
@@ -24,7 +24,7 @@ import {
 const execFileP = promisify(execFile);
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
-const CAP_HTML = join(ROOT, 'store/01-product-overview.html');
+const CAP_HTML = join(ROOT, 'store/mockups/01-product-overview.html');
 const OUT_FILE = join(ROOT, 'assets/01-product-overview.png');
 const CHROME_CACHE = join(ROOT, '.puppeteer-cache');
 
@@ -57,7 +57,7 @@ async function ensureChromeBinary() {
 
 async function main() {
   if (!existsSync(CAP_HTML)) {
-    console.error(`store/01-product-overview.html not found at ${CAP_HTML}`);
+    console.error(`store/mockups/01-product-overview.html not found at ${CAP_HTML}`);
     process.exit(1);
   }
 

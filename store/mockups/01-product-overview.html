@@ -188,13 +188,13 @@
     box-shadow: 0 14px 32px -10px rgba(15,23,42,.22);
     padding: 16px;
   }
-  .demo-popup .ph{ display: flex; align-items: center; justify-content: space-between; }
+  .demo-popup .ph{ position: relative; display: flex; align-items: center; justify-content: center; }
   .demo-popup .ph .left{ display: flex; align-items: center; gap: 9px; }
   .demo-popup .ph .pm{ width: 22px; height: 22px; border-radius: 50%; overflow: hidden; }
   .demo-popup .ph .pm img{ width: 100%; height: 100%; display: block; }
   .demo-popup .ph .pn{ font-weight: 800; font-size: 13px; color: var(--ink); letter-spacing: -.01em; }
   .demo-popup .ph .pn b{ color: var(--brand); font-weight: 800; }
-  .demo-popup .ph .gear{ color: var(--ink-3); font-size: 13px; }
+  .demo-popup .ph .gear{ position: absolute; right: 0; color: var(--ink-3); font-size: 13px; }
   .demo-popup .pbtns{ margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
   .demo-popup .pbtn{
     height: 30px; border-radius: 8px;
@@ -495,7 +495,7 @@
           <div class="demo-popup">
             <div class="ph">
               <div class="left">
-                <div class="pm"><img src="../src/icons/icon-128.png" alt=""></div>
+                <div class="pm"><img src="../../src/icons/icon-128.png" alt=""></div>
                 <div class="pn">X<b>Clipper</b></div>
               </div>
               <div class="gear">⚙</div>
@@ -530,7 +530,7 @@
             <div class="pbtns sec">
               <div class="pbtn pdf">
                 <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-                Download .pdf
+                Export .pdf
               </div>
               <div class="pbtn obsidian">
                 <svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor" stroke="none" style="margin-right: 4px;">

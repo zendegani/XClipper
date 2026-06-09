@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Capture Chrome Web Store promo tile screenshots from store/promo.html.
+// Capture Chrome Web Store promo tile screenshots from store/mockups/promo.html.
 //
 // Renders both canvases at 2× density for supersampling, then downscales
 // via `sips` to the Chrome Web Store target sizes:
@@ -25,7 +25,7 @@ import {
 const execFileP = promisify(execFile);
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, '..');
-const PROMO_HTML = join(ROOT, 'store/promo.html');
+const PROMO_HTML = join(ROOT, 'store/mockups/promo.html');
 const OUT_DIR = join(ROOT, 'store/promo');
 const CHROME_CACHE = join(ROOT, '.puppeteer-cache');
 
@@ -61,7 +61,7 @@ async function ensureChromeBinary() {
 
 async function main() {
   if (!existsSync(PROMO_HTML)) {
-    console.error(`store/promo.html not found at ${PROMO_HTML}`);
+    console.error(`store/mockups/promo.html not found at ${PROMO_HTML}`);
     process.exit(1);
   }
   if (!existsSync(OUT_DIR)) mkdirSync(OUT_DIR, { recursive: true });

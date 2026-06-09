@@ -1,5 +1,5 @@
 #!/usr/bin/env node
-// Capture a Chrome Web Store promo screenshot from any store/*.html file.
+// Capture a Chrome Web Store promo screenshot from any store/mockups/*.html file.
 //
 // Usage:
 //   node scripts/store-screenshot.mjs <html-file> [output-png] [--selector sel] [--width W] [--height H]
