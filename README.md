@@ -6,7 +6,7 @@
 
 <p align="center">
   <a href="https://github.com/zendegani/xclipper/actions/workflows/ci.yml"><img src="https://github.com/zendegani/xclipper/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
-  <a href="LICENSE"><img src="https://img.shields.io/badge/License-MIT-blue.svg" alt="License: MIT" /></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/License-PolyForm%20Noncommercial-blue.svg" alt="License: PolyForm Noncommercial 1.0.0" /></a>
   <a href="PRIVACY.md"><img src="https://img.shields.io/badge/Privacy-100%25%20local-brightgreen" alt="Privacy: 100% local" /></a>
   <a href="src/manifest.json"><img src="https://img.shields.io/badge/Chrome-Manifest%20V3-4285F4?logo=googlechrome&logoColor=white" alt="Chrome Manifest V3" /></a>
   <a href="https://chromewebstore.google.com/detail/xclipper/epmmehilhbpkgcjbcohgkmihlalagkho"><img src="https://img.shields.io/chrome-web-store/v/epmmehilhbpkgcjbcohgkmihlalagkho?label=Chrome%20Web%20Store" alt="Chrome Web Store" /></a>
@@ -19,7 +19,7 @@
 
 ## What it does
 
-**XClipper** is an open-source Chrome extension that exports x.com content as **Markdown, PDF, or Obsidian notes** — production-ready for research, note-taking, AI workflows, and offline archiving. No X API key required.
+**XClipper** is a source-available Chrome extension that exports x.com content as **Markdown, PDF, or Obsidian notes** — production-ready for research, note-taking, AI workflows, and offline archiving. No X API key required. Free for noncommercial use ([commercial license](#license) required to sell or build a paid product on it).
 
 <p align="center">
   <img src="assets/01-product-overview.png" alt="XClipper converts X posts, threads, and articles to Markdown, PDF, and Obsidian notes" width="700" />
@@ -207,4 +207,9 @@ npm run clean      # Clean build output
 
 ## License
 
-MIT
+XClipper is **source-available** under the [PolyForm Noncommercial License 1.0.0](LICENSE) — not an OSI "open source" license.
+
+- **Free** for any noncommercial use: personal, research, education, nonprofits, hobby projects.
+- **Commercial use requires a paid license.** To sell XClipper (or a derivative), bundle it in a paid product, or otherwise use it commercially, contact the author to arrange a commercial license: [@zendegani](https://github.com/zendegani).
+
+Copyright © 2026 Ali Zendegani.
