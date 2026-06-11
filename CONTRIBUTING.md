@@ -2,6 +2,17 @@
 
 Thanks for your interest. This file captures the working conventions for the project — read it before opening a PR.
 
+## Contribution terms
+
+XClipper is **source-available** under the [PolyForm Noncommercial License](LICENSE), and the maintainer also offers separate **commercial licenses**. By submitting a contribution (a pull request, patch, or any other work), you agree to the following — it's short and it matters:
+
+1. **You have the right to contribute it.** The contribution is your own original work, or you otherwise have the right to submit it, and to your knowledge it does not infringe anyone else's rights.
+2. **You grant the maintainer a broad license.** You grant Ali Zendegani (the project's copyright holder) a perpetual, worldwide, non-exclusive, royalty-free, irrevocable license to use, reproduce, modify, distribute, sublicense, and **relicense** your contribution, in whole or in part, under **any terms** — including the project's PolyForm Noncommercial license **and** any commercial or proprietary license the maintainer grants or sells.
+3. **No compensation.** Your contribution is voluntary. You are not entitled to any payment, royalty, or revenue share for it, including when it ships in a commercially licensed version of XClipper.
+4. **You keep your copyright.** You retain ownership of your contribution; this grants the maintainer a license, not a transfer of ownership.
+
+If you can't agree to these terms, please don't submit a contribution — open an issue to discuss instead.
+
 ## Philosophy
 
 - **Smallest change that solves the problem.** Five-line fixes beat five-hundred-line ones. Refactors are welcome but kept separate from feature or bug-fix changes.
@@ -76,7 +87,7 @@ Not suitable for frontmatter:
 ## Code style
 
 - TypeScript, ES modules. Match the surrounding file for formatting (semicolons, quotes, indentation).
-- Prefer adding to an existing module over creating a new one, unless the new module has a clearly separable responsibility. The current split under `src/content/` (`markdown`, `dom`, `tweet`, `article`, `wait`) is the size we aim for.
+- Prefer adding to an existing module over creating a new one, unless the new module has a clearly separable responsibility. The current split under `src/content/` (`dom`, `tweet`, `article`, `dom-to-ast/`, `wait`) and the renderers under `src/ast/` are the size we aim for.
 - Comments explain *why*, not *what*. If well-named code is self-explanatory, leave it uncommented.
 - Avoid abstractions for single-use code. Inline a one-call-site helper.
 
