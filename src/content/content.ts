@@ -270,6 +270,7 @@ async function runBatchExtract(): Promise<void> {
       markdown: result.markdown,
       filename: result.filename,
       images: result.images.length > 0 ? result.images : undefined,
+      doc: response.data.body,
     };
   } catch (err) {
     msg = {

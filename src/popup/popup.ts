@@ -6,6 +6,7 @@
 import { applyI18n } from './i18n';
 import { initSettingsForm } from './settings-form';
 import { initActions } from './actions';
+import { initBatchUi } from './batch-ui';
 
 // ─── Footer version ───────────────────────────────────────────────────
 
@@ -40,3 +41,4 @@ btnBack?.addEventListener('click', () => {
 
 initSettingsForm();
 initActions();
+void initBatchUi();

@@ -91,7 +91,36 @@ export interface BatchStartResponse {
 // Extension page → background: control a running batch job.
 export interface BatchControlRequest {
   action: 'BATCH_CONTROL';
-  control: 'cancel';
+  control: 'cancel' | 'pause' | 'resume';
+}
+
+// Extension page → background: snapshot of the current batch job, polled by
+// the popup progress UI (the popup may close and reopen mid-job, so progress
+// must be queryable rather than pushed).
+export interface BatchStatusRequest {
+  action: 'BATCH_STATUS';
+}
+
+export interface BatchStatusResponse {
+  job?: {
+    id: string;
+    status: 'running' | 'paused' | 'done' | 'cancelled';
+    total: number;
+    completed: number;
+    failed: number;
+    folder: string;
+  };
+}
+
+// Popup → injector content script on x.com/i/bookmarks: return the status
+// permalinks harvested from the bookmarks timeline so far (the timeline is
+// virtualized, so the injector accumulates URLs as cells scroll through).
+export interface BookmarksHarvestRequest {
+  action: 'XCLIPPER_BOOKMARKS_HARVEST';
+}
+
+export interface BookmarksHarvestResponse {
+  urls: string[];
 }
 
 // Content (worker tab) → background: finished result for the batch item the
@@ -104,6 +133,8 @@ export interface BatchItemResultMessage {
   markdown?: string;
   filename?: string;
   images?: { url: string; filename: string }[];
+  // The item's AST, carried for the per-job JSON sink (ADR 0002 #11).
+  doc?: import('../ast/types').Document;
   error?: string;
 }
 
@@ -124,4 +155,6 @@ export type MessageRequest =
   | ContextUrlRequest
   | BatchStartRequest
   | BatchControlRequest
+  | BatchStatusRequest
+  | BookmarksHarvestRequest
   | BatchItemResultMessage;

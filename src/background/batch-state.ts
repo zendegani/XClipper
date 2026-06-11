@@ -9,7 +9,7 @@ export interface BatchFailure {
 
 export interface BatchJob {
   id: string;
-  status: 'running' | 'done' | 'cancelled';
+  status: 'running' | 'paused' | 'done' | 'cancelled';
   // Normalized, deduped status permalinks.
   urls: string[];
   // Index of the item currently being processed (or next to dispatch).
@@ -131,6 +131,24 @@ export function cancelJob(job: BatchJob): BatchJob {
     deadline: undefined,
     nextDispatchAt: undefined,
   };
+}
+
+// Pausing abandons the in-flight item (a late result is dropped by the
+// orchestrator's status guard); resuming re-dispatches it from scratch.
+export function pauseJob(job: BatchJob): BatchJob {
+  if (job.status !== 'running') return job;
+  return {
+    ...job,
+    status: 'paused',
+    awaitingResult: false,
+    deadline: undefined,
+    nextDispatchAt: undefined,
+  };
+}
+
+export function resumeJob(job: BatchJob): BatchJob {
+  if (job.status !== 'paused') return job;
+  return { ...job, status: 'running' };
 }
 
 // foo.md → foo-2.md, foo-3.md… until unused. `used` entries are lowercased;

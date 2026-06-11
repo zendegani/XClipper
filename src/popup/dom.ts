@@ -10,6 +10,16 @@ export const btnPdf = document.getElementById('btn-pdf') as HTMLButtonElement;
 export const btnObsidian = document.getElementById('btn-obsidian') as HTMLButtonElement;
 export const statusEl = document.getElementById('status') as HTMLDivElement;
 
+// ─── Batch export (bookmarks) ────────────────────────────────────────
+export const batchSection = document.getElementById('batch-section') as HTMLDivElement;
+export const btnBatch = document.getElementById('btn-batch') as HTMLButtonElement;
+export const btnBatchLabel = document.getElementById('btn-batch-label') as HTMLSpanElement;
+export const batchProgress = document.getElementById('batch-progress') as HTMLDivElement;
+export const batchBarFill = document.getElementById('batch-bar-fill') as HTMLDivElement;
+export const batchProgressText = document.getElementById('batch-progress-text') as HTMLSpanElement;
+export const btnBatchPause = document.getElementById('btn-batch-pause') as HTMLButtonElement;
+export const btnBatchCancel = document.getElementById('btn-batch-cancel') as HTMLButtonElement;
+
 // ─── Settings checkboxes ─────────────────────────────────────────────
 export const chkDownloadImages = document.getElementById('chk-download-images') as HTMLInputElement;
 export const chkMetadata = document.getElementById('chk-include-metadata') as HTMLInputElement;

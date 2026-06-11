@@ -175,6 +175,13 @@ Combined digest renderer (`Document[] → string`), other formats as demanded.
   An unfocused-but-visible window keeps rendering without stealing focus.
   Residual risk: a fully occluded window is treated as hidden again; affected
   items fail by per-item timeout and are recorded in the job summary.
+- **2026-06-11 (Phase B):** two open questions resolved as leaned: the JSON
+  sink is one `data.json` per job (job metadata + failures + every successful
+  item's AST, assembled from per-item `chrome.storage.session` entries), and
+  bookmark harvesting is user-controlled scroll — the injector accumulates
+  permalinks as virtualized cells pass through the DOM, and the popup exports
+  what has been loaded. Pause/resume abandons the in-flight item and
+  re-dispatches it on resume.
 
 ## References
 
