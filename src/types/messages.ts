@@ -73,6 +73,40 @@ export interface AutoExtractRequest {
   single?: boolean;
 }
 
+// Extension page → background: start a batch export job over the given status
+// permalinks (ADR 0002, Phase A). The background owns the queue, the hidden
+// worker tab, throttle/timeout policy, and the folder sink.
+export interface BatchStartRequest {
+  action: 'BATCH_START';
+  urls: string[];
+}
+
+export interface BatchStartResponse {
+  success: boolean;
+  // Items queued after normalization + dedupe + cap.
+  total?: number;
+  error?: string;
+}
+
+// Extension page → background: control a running batch job.
+export interface BatchControlRequest {
+  action: 'BATCH_CONTROL';
+  control: 'cancel';
+}
+
+// Content (worker tab) → background: finished result for the batch item the
+// worker tab currently shows. `url` is the page the result came from, so the
+// orchestrator can drop late or duplicate reports from a previous navigation.
+export interface BatchItemResultMessage {
+  action: 'BATCH_ITEM_RESULT';
+  url: string;
+  success: boolean;
+  markdown?: string;
+  filename?: string;
+  images?: { url: string; filename: string }[];
+  error?: string;
+}
+
 // Injector (content) → background: report the tweet permalink under the cursor
 // on `contextmenu`, used as the fallback target when the menu item fires over
 // an area that isn't a status link. `null` clears the last-known url.
@@ -87,4 +121,7 @@ export type MessageRequest =
   | ExportPdfRequest
   | PdfPrintRequest
   | AutoExtractRequest
-  | ContextUrlRequest;
+  | ContextUrlRequest
+  | BatchStartRequest
+  | BatchControlRequest
+  | BatchItemResultMessage;
