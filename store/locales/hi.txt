@@ -1,4 +1,4 @@
-XClipper is a free, open-source web clipper for X (Twitter) — एक Chrome extension जो threads, posts और articles को PDF या clean Markdown में डाउनलोड करता है, Obsidian, research, AI workflows और offline archiving के लिए। पूरी तरह आपके browser में चलता है: कोई API keys नहीं, कोई accounts नहीं, कोई tracking नहीं।
+XClipper, X (Twitter) के लिए एक निःशुल्क और स्रोत-उपलब्ध वेब क्लिपर है — एक Chrome extension जो threads, posts और articles को PDF या clean Markdown में डाउनलोड करता है, Obsidian, research, AI workflows और offline archiving के लिए। पूरी तरह आपके browser में चलता है: कोई API keys नहीं, कोई accounts नहीं, कोई tracking नहीं।
 
 एक क्लिक में content export:
 
@@ -44,10 +44,7 @@ XClipper is a free, open-source web clipper for X (Twitter) — एक Chrome ex
 - कुछ features x.com के structure बदलने पर प्रभावित हो सकते हैं
 - अगर extension install/update के समय x.com tab खुला हो, तो export से पहले tab reload करें — यह uninitialized page पर silent failures से बचाने के लिए है
 
-Open source:
-https://github.com/zendegani/xclipper
-
 Changelog:
 https://github.com/zendegani/xclipper/blob/main/CHANGELOG.md
 
-XClipper एक स्वतंत्र open-source project है और X या Twitter से संबद्ध नहीं है।
+XClipper एक स्वतंत्र, स्रोत-उपलब्ध परियोजना है और इसका X या Twitter से कोई संबंध नहीं है।
