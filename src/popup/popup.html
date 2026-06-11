@@ -112,6 +112,30 @@
         </button>
       </div>
 
+      <div id="batch-section" class="batch-section hidden">
+        <button id="btn-batch" class="btn-batch btn-action" type="button"
+          data-tooltip="Export every bookmark loaded on this page as Markdown files into one folder. Scroll the bookmarks page to load more."
+          data-i18n-tooltip="btn_batch_hint">
+          <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+          </svg>
+          <span class="btn-label" id="btn-batch-label" data-i18n="btn_batch">Export bookmarks</span>
+        </button>
+        <div id="batch-progress" class="batch-progress hidden">
+          <div class="batch-bar">
+            <div id="batch-bar-fill" class="batch-bar-fill"></div>
+          </div>
+          <div class="batch-progress-row">
+            <span id="batch-progress-text" class="batch-progress-text"></span>
+            <span class="batch-controls">
+              <button id="btn-batch-pause" class="batch-ctl" type="button" data-i18n="batch_pause">Pause</button>
+              <button id="btn-batch-cancel" class="batch-ctl" type="button" data-i18n="batch_stop">Stop</button>
+            </span>
+          </div>
+        </div>
+      </div>
+
       <div id="status" class="status hidden"></div>
     </main>
 

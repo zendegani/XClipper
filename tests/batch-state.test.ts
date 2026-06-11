@@ -5,7 +5,9 @@ import {
   createJob,
   currentUrl,
   normalizeStatusUrl,
+  pauseJob,
   recordResult,
+  resumeJob,
   statusIdOf,
   uniqueFilename,
   type BatchJob,
@@ -135,6 +137,37 @@ describe('cancelJob', () => {
     expect(job.awaitingResult).toBe(false);
     expect(job.deadline).toBeUndefined();
     expect(job.nextDispatchAt).toBeUndefined();
+  });
+});
+
+describe('pauseJob / resumeJob', () => {
+  it('pauses a running job, clearing the in-flight item state', () => {
+    const job = pauseJob({
+      ...createJob(['https://x.com/a/status/1'], NOW),
+      awaitingResult: true,
+      deadline: 123,
+      nextDispatchAt: 456,
+    });
+    expect(job.status).toBe('paused');
+    expect(job.awaitingResult).toBe(false);
+    expect(job.deadline).toBeUndefined();
+    expect(job.nextDispatchAt).toBeUndefined();
+  });
+
+  it('resumes a paused job at the same item', () => {
+    const paused = pauseJob(createJob(['https://x.com/a/status/1'], NOW));
+    const resumed = resumeJob(paused);
+    expect(resumed.status).toBe('running');
+    expect(resumed.nextIndex).toBe(0);
+    expect(currentUrl(resumed)).toBe('https://x.com/a/status/1');
+  });
+
+  it('does not pause/resume jobs in other states', () => {
+    const done = cancelJob(createJob(['https://x.com/a/status/1'], NOW));
+    expect(pauseJob(done)).toBe(done);
+    expect(resumeJob(done)).toBe(done);
+    const running = createJob(['https://x.com/a/status/1'], NOW);
+    expect(resumeJob(running)).toBe(running);
   });
 });
 

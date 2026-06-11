@@ -298,6 +298,47 @@ function scan(): void {
   decorateArticleTopBar();
 }
 
+// ─── Bookmarks harvester (ADR 0002, Phase B) ─────────────────────────
+// X virtualizes the bookmarks timeline — cells scrolled past are detached
+// from the DOM — so "what's in the DOM" is not "what the user has loaded".
+// Accumulate permalinks as cells pass through, in encounter order (top
+// first); the popup asks for the set when starting a batch export. The set
+// resets when the user navigates away from /i/bookmarks, so a later visit
+// doesn't export bookmarks that were removed in the meantime.
+
+const harvestedBookmarks = new Set<string>();
+let lastHarvestPath = '';
+
+function onBookmarksPage(): boolean {
+  return window.location.pathname.startsWith('/i/bookmarks');
+}
+
+function harvestBookmarks(): void {
+  if (!onBookmarksPage()) {
+    if (lastHarvestPath.startsWith('/i/bookmarks')) harvestedBookmarks.clear();
+    lastHarvestPath = window.location.pathname;
+    return;
+  }
+  lastHarvestPath = window.location.pathname;
+  for (const article of document.querySelectorAll('article[role="article"]')) {
+    const url = getStatusUrl(article);
+    if (url) harvestedBookmarks.add(url);
+  }
+}
+
+try {
+  chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+    if (msg && msg.action === 'XCLIPPER_BOOKMARKS_HARVEST') {
+      harvestBookmarks(); // catch cells rendered since the last mutation
+      sendResponse({ urls: Array.from(harvestedBookmarks) });
+      return false;
+    }
+    return false;
+  });
+} catch {
+  /* extension context gone */
+}
+
 const observer = new MutationObserver(() => {
   if (!extensionAlive()) {
     observer.disconnect();
@@ -308,11 +349,13 @@ const observer = new MutationObserver(() => {
   requestAnimationFrame(() => {
     scanScheduled = false;
     scan();
+    harvestBookmarks();
   });
 });
 
 observer.observe(document.body, { childList: true, subtree: true });
 scan();
+harvestBookmarks();
 
 // ─── Right-click tracking ────────────────────────────────────────────
 // On context menu open, find the closest tweet article and tell the background

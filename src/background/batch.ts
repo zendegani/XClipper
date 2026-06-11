@@ -10,7 +10,11 @@
 // or send { action: 'BATCH_START', urls } from any extension page. Cancel
 // with { action: 'BATCH_CONTROL', control: 'cancel' }.
 
-import type { BatchItemResultMessage, BatchStartResponse } from '../types/messages';
+import type {
+  BatchItemResultMessage,
+  BatchStartResponse,
+  BatchStatusResponse,
+} from '../types/messages';
 import { loadSettings } from '../shared/settings';
 import {
   isAllowedImageUrl,
@@ -23,11 +27,18 @@ import {
   cancelJob,
   createJob,
   currentUrl,
+  pauseJob,
   recordResult,
+  resumeJob,
   statusIdOf,
 } from './batch-state';
 
 const JOB_KEY = 'xclipper_batch_job';
+// Per-item AST payloads for the JSON sink, keyed by item index. Stored
+// individually so each result is one small write, then assembled into a
+// single data.json at finalize (ADR 0002 #11, open question resolved:
+// per-job single file).
+const DOC_KEY_PREFIX = 'xclipper_batch_doc_';
 const WATCHDOG_ALARM = 'xclipper-batch-watchdog';
 // Budget per item: navigation + waitForArticle (15 s) + the bounded thread
 // scroll-walk in loadThreadIntoDom (worst case ~40 s) + extraction.
@@ -53,7 +64,7 @@ async function saveJob(job: BatchJob): Promise<void> {
 
 export async function startBatch(rawUrls: unknown): Promise<BatchStartResponse> {
   const existing = await loadJob();
-  if (existing?.status === 'running') {
+  if (existing && (existing.status === 'running' || existing.status === 'paused')) {
     return { success: false, error: 'A batch job is already running' };
   }
   if (!Array.isArray(rawUrls)) {
@@ -152,6 +163,17 @@ async function handleItemResult(
   const { job: advanced, filename } = recordResult(job, outcome);
   if (outcome.success && filename) {
     downloadItem(advanced.folder, filename, msg.markdown as string, msg.images);
+    if (msg.doc) {
+      try {
+        await chrome.storage.session.set({
+          [DOC_KEY_PREFIX + job.nextIndex]: { url: expected, filename, doc: msg.doc },
+        });
+      } catch (err) {
+        // storage.session quota (~10 MB) — the .md files are already on disk,
+        // so a huge batch just loses this item from data.json.
+        log(`doc not kept for data.json (${expected}):`, err);
+      }
+    }
   } else if (!outcome.success) {
     log(`item failed: ${expected} — ${outcome.error}`);
   }
@@ -204,11 +226,43 @@ async function tick(): Promise<void> {
   }
 }
 
+// JSON sink (ADR 0002 #11): one data.json per job with metadata, failures,
+// and every successful item's AST. Written for cancelled jobs too — the
+// matching .md files are already on disk, partial is honest.
+async function writeJsonManifest(job: BatchJob): Promise<void> {
+  const keys = job.urls.map((_, i) => DOC_KEY_PREFIX + i);
+  const stored = await chrome.storage.session.get(keys);
+  await chrome.storage.session.remove(keys);
+  const items = keys.map((k) => stored[k]).filter((v) => v !== undefined);
+  if (items.length === 0) return;
+  const manifest = {
+    generator: 'xclipper-batch',
+    jobId: job.id,
+    exportedAt: new Date().toISOString(),
+    status: job.status,
+    completed: job.completed,
+    failures: job.failures,
+    items,
+  };
+  chrome.downloads.download({
+    url:
+      'data:application/json;charset=utf-8,' +
+      encodeURIComponent(JSON.stringify(manifest, null, 2)),
+    filename: sanitizeFilePath(`${job.folder}/data.json`),
+    saveAs: false,
+  });
+}
+
 // The finished/cancelled job stays in storage for inspection until the next
 // startBatch overwrites it.
 async function finalize(job: BatchJob): Promise<void> {
   await saveJob(job);
   await chrome.alarms.clear(WATCHDOG_ALARM);
+  try {
+    await writeJsonManifest(job);
+  } catch (err) {
+    log('data.json write failed:', err);
+  }
   log(
     `job ${job.id} ${job.status}: ${job.completed} exported, ` +
       `${job.failures.length} failed → ${job.folder}/`
@@ -266,15 +320,54 @@ export function initBatch(): void {
       startBatch(msg.urls).then(sendResponse);
       return true; // async sendResponse
     }
-    if (msg.action === 'BATCH_CONTROL' && msg.control === 'cancel') {
+    if (msg.action === 'BATCH_CONTROL') {
       if (!isExtensionPageSender(sender, chrome.runtime.id)) {
         sendResponse({ success: false, error: 'Untrusted sender' });
         return false;
       }
       void (async () => {
         const job = await loadJob();
-        if (job?.status === 'running') await finalize(cancelJob(job));
+        if (msg.control === 'cancel') {
+          if (job && (job.status === 'running' || job.status === 'paused')) {
+            await finalize(cancelJob(job));
+          }
+        } else if (msg.control === 'pause') {
+          if (job?.status === 'running') {
+            await saveJob(pauseJob(job));
+            log('job paused');
+          }
+        } else if (msg.control === 'resume') {
+          if (job?.status === 'paused') {
+            const resumed = resumeJob(job);
+            log('job resumed');
+            // Re-dispatch the item that was in flight when paused.
+            await dispatchCurrent(resumed);
+          }
+        }
         sendResponse({ success: true });
+      })();
+      return true; // async sendResponse
+    }
+    if (msg.action === 'BATCH_STATUS') {
+      if (!isExtensionPageSender(sender, chrome.runtime.id)) {
+        sendResponse({});
+        return false;
+      }
+      void (async () => {
+        const job = await loadJob();
+        const resp: BatchStatusResponse = job
+          ? {
+              job: {
+                id: job.id,
+                status: job.status,
+                total: job.urls.length,
+                completed: job.completed,
+                failed: job.failures.length,
+                folder: job.folder,
+              },
+            }
+          : {};
+        sendResponse(resp);
       })();
       return true; // async sendResponse
     }
@@ -291,7 +384,11 @@ export function initBatch(): void {
       const job = await loadJob();
       // The user closed the worker tab → cancel rather than resurrect it.
       // finalize() skips its own tabs.remove on the already-dead tab.
-      if (job?.status === 'running' && job.workerTabId === tabId) {
+      if (
+        job &&
+        (job.status === 'running' || job.status === 'paused') &&
+        job.workerTabId === tabId
+      ) {
         log('worker tab closed — cancelling job');
         await finalize(cancelJob(job));
       }

@@ -23,6 +23,42 @@
   "btn_obsidian": {
     "message": "Add to Obsidian"
   },
+  "btn_batch": {
+    "message": "Export bookmarks"
+  },
+  "btn_batch_hint": {
+    "message": "Export every bookmark loaded on this page as Markdown files into one folder. Scroll the bookmarks page to load more."
+  },
+  "batch_pause": {
+    "message": "Pause"
+  },
+  "batch_resume": {
+    "message": "Resume"
+  },
+  "batch_stop": {
+    "message": "Stop"
+  },
+  "batch_paused": {
+    "message": "Paused"
+  },
+  "batch_done": {
+    "message": "Done"
+  },
+  "batch_stopped": {
+    "message": "Stopped"
+  },
+  "batch_exported": {
+    "message": "exported"
+  },
+  "batch_failed": {
+    "message": "failed"
+  },
+  "batch_none_found": {
+    "message": "No bookmarks loaded — scroll the bookmarks page first."
+  },
+  "batch_start_failed": {
+    "message": "Could not start the batch."
+  },
   "btn_obsidian_hint": {
     "message": "Configure vault, subfolder, and frontmatter fields in Settings.\nUse the 'Download .md' button for long threads or images."
   },
