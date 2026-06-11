@@ -39,3 +39,5 @@ _local/
 screenshots/
 
 
+.mcp.json
+.codegraph/*

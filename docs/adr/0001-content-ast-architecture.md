@@ -109,7 +109,7 @@ The AST defined in this ADR is **a minimum survivable model**, not a final docum
 
 ### Phase 2 — Build `domToAst()` extractor (2–4 weeks)
 
-- New file `src/content/dom-to-ast.ts` walks the same DOM as the current extractor but emits `Document`.
+- New file `src/content/dom-to-ast.ts` walks the same DOM as the current extractor but emits `Document`. (Since split into `src/content/dom-to-ast/` — inline, cards, media, poll, quote, tweet-node, article-body modules behind an `index.ts`.)
 - Build fixture-by-fixture, smallest first: single tweet → tweet with media → quote tweet → thread → article → RTL → poll (if a fixture appears).
 - Each fixture lands with two snapshots: the AST (JSON) and a placeholder for the rendered MD (Phase 3).
 - This phase dominates the timeline. X DOM is inconsistent and edge-case-heavy; estimate accordingly.
