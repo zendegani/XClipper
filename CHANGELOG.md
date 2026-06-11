@@ -189,8 +189,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Internal
 
-- Added `CONTRIBUTING.md` covering snapshot-test discipline and fixture capture.
-- GitHub Actions CI for tests and build. (thanks @BigCactusLabs, #8)
+- **Contributing Guide**: Added `CONTRIBUTING.md` covering snapshot-test discipline and fixture capture.
+- **CI Pipeline**: GitHub Actions CI for tests and build. (thanks @BigCactusLabs, #8)
 
 ## [1.4.0] - 2026-05-11
 
@@ -204,10 +204,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Security
 
-- Background download handler now validates message sender — only x.com content scripts and trusted extension pages can trigger downloads.
-- Local image downloads restricted to known X media hosts; everything else stays as remote Markdown links.
-- Filename/path sanitization strengthened: drops `..` and absolute paths, normalizes unicode before download.
-- Contributed by [@BigCactusLabs] (#6).
+- **Download Sender Validation**: Background download handler now validates message sender — only x.com content scripts and trusted extension pages can trigger downloads. (contributed by [@BigCactusLabs], #6)
+- **Image Host Allowlist**: Local image downloads restricted to known X media hosts; everything else stays as remote Markdown links.
+- **Path Sanitization**: Filename/path sanitization strengthened — drops `..` and absolute paths, normalizes unicode before download.
 
 ### Changed
 
@@ -249,7 +248,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- Added promotional web store assets to project repository.
+- **Web Store Assets**: Added promotional web store assets to the project repository.
 
 ### Changed
 
@@ -287,6 +286,6 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Initial Features
 
-- Core extraction functionality for basic tweets, threads, and X Articles/Notes.
-- Automatic DOM cleaning to strip follow buttons, engagement bars, and unwanted navigation.
-- Turndown.js integration with custom rules for inline links, emojis, and @mentions.
+- **Core Extraction**: Tweets, threads, and X Articles/Notes.
+- **DOM Cleaning**: Strips follow buttons, engagement bars, and unwanted navigation automatically.
+- **Markdown Conversion**: Turndown.js integration with custom rules for inline links, emojis, and @mentions.
