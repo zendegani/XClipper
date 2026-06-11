@@ -183,7 +183,7 @@ xclipper/
 │   ├── _locales/       # i18n translations (en, es, de, fr, it, ja, pt_BR, ru, zh_CN, ar, fa, hi)
 │   └── manifest.json   # Chrome MV3 manifest
 ├── dist/               # Build output (load this in Chrome)
-├── docs/               # Architecture decision record + Content AST schema
+├── docs/               # architecture.md overview + ADR + Content AST schema
 ├── tests/              # Vitest + JSDOM extractor/AST snapshot tests
 ├── build.mjs           # esbuild build script
 ├── package.json
