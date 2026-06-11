@@ -4,7 +4,7 @@ import { loadSettings } from '../shared/settings';
 import { buildObsidianUrl } from '../shared/obsidian';
 import { delay, isArticlePage } from './dom';
 import { extractArticle } from './article';
-import { extractTweetAsync, extractEngagementMetadata } from './tweet';
+import { extractTweetAsync } from './tweet';
 import { waitForArticle } from './wait';
 import { exportPdf } from './pdf-export';
 
