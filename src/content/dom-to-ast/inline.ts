@@ -7,7 +7,7 @@ export function extractArticleInline(el: Element): InlineNode[] {
   for (const child of el.childNodes) {
     walkInline(child, null, out);
   }
-  return collapseEdges(trimAroundBreaks(mergeAdjacentText(out)));
+  return collapseEdges(trimAroundBreaks(collapseSpaceRuns(mergeAdjacentText(out))));
 }
 
 // ─── Inline walker ──────────────────────────────────────────────────
@@ -17,7 +17,7 @@ export function extractInline(textEl: Element, quoteContainer: Element | null): 
   for (const child of textEl.childNodes) {
     walkInline(child, quoteContainer, out);
   }
-  return collapseEdges(trimAroundBreaks(mergeAdjacentText(out)));
+  return collapseEdges(trimAroundBreaks(collapseSpaceRuns(mergeAdjacentText(out))));
 }
 
 function walkInline(node: Node, quoteContainer: Element | null, out: InlineNode[]): void {
@@ -90,11 +90,16 @@ function anchorToInline(a: Element): EntityNode | LinkNode | null {
   if (xPath) {
     const mention = xPath.match(/^\/@?([A-Za-z0-9_]+)$/);
     if (mention && text.startsWith('@')) {
+      // Prefer the display text for the handle's case: X lowercases mention
+      // hrefs in some renders (/huggingface) while the anchor text keeps the
+      // case the author typed (@HuggingFace).
+      const fromText = text.slice(1);
+      const value = /^[A-Za-z0-9_]+$/.test(fromText) ? fromText : mention[1];
       return {
         type: 'entity',
         kind: 'mention',
-        value: mention[1],
-        url: `https://x.com/${mention[1]}`,
+        value,
+        url: `https://x.com/${value}`,
       };
     }
     const hashtag = xPath.match(/^\/hashtag\/([^/?#]+)/);
@@ -148,6 +153,17 @@ function resolveExternalUrl(href: string, text: string): string {
     if (/^[a-z0-9.-]+\.[a-z]{2,}(\/|$)/i.test(text)) return `https://${text}`;
   }
   return href;
+}
+
+// X's live DOM sometimes splits a sentence into adjacent text nodes with a
+// trailing + leading space ("the " + " question"); merging then yields a
+// double space the author never typed. Blank runs are insignificant in
+// rendered markdown, so collapse them. (Code blocks never pass through the
+// inline walker, so indentation is unaffected.)
+function collapseSpaceRuns(nodes: InlineNode[]): InlineNode[] {
+  return nodes.map((n) =>
+    n.type === 'text' ? { ...n, value: n.value.replace(/[ \t]{2,}/g, ' ') } : n
+  );
 }
 
 function mergeAdjacentText(nodes: InlineNode[]): InlineNode[] {
