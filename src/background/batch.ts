@@ -296,12 +296,17 @@ function writeJsonManifest(job: BatchJob, items: StoredItem[]): void {
 }
 
 // Digest sink (ADR 0002, Phase D): one reading-oriented markdown file for
-// the whole batch. Opt-in via settings.
+// the whole batch — x-compilation-<date>.md, as advertised by the settings
+// toggle. Opt-in via settings.
 function writeDigest(folder: string, items: StoredItem[]): void {
   const markdown = renderDigest(items.map((i) => i.doc));
+  const d = new Date();
+  const stamp =
+    `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}` +
+    String(d.getDate()).padStart(2, '0');
   chrome.downloads.download({
     url: 'data:text/markdown;charset=utf-8,' + encodeURIComponent(markdown),
-    filename: sanitizeFilePath(`${folder}/digest.md`),
+    filename: sanitizeFilePath(`${folder}/x-compilation-${stamp}.md`),
     saveAs: false,
   });
 }
