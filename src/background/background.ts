@@ -1,4 +1,5 @@
 import type {
+  AutoExtractRequest,
   DownloadRequest,
   PdfPrintRequest,
   PdfPrintResponse,
@@ -153,11 +154,12 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
   // a reply's timestamp on a permalink page still opens a new tab because the
   // link URL points to a different status id than the page URL.
   if (pageNormalized && pageNormalized === target && tab?.id !== undefined) {
-    chrome.tabs.sendMessage(tab.id, {
-      action: 'TWEET2MD_AUTOEXTRACT',
+    const autoExtract: AutoExtractRequest = {
+      action: 'XCLIPPER_AUTOEXTRACT',
       subAction: action,
       single,
-    });
+    };
+    chrome.tabs.sendMessage(tab.id, autoExtract);
     return;
   }
 
@@ -165,7 +167,7 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
 });
 
 chrome.runtime.onMessage.addListener((msg, sender, _sendResponse) => {
-  if (!msg || msg.action !== 'TWEET2MD_CTX_URL') return false;
+  if (!msg || msg.action !== 'XCLIPPER_CTX_URL') return false;
   if (!isTrustedXContentSender(sender)) return false;
 
   lastContextUrl = typeof msg.url === 'string' ? msg.url : null;

@@ -64,8 +64,27 @@ export interface ExtractResponse {
   error?: string;
 }
 
+// Background → content: run an in-place extraction on the current tab, used by
+// the inline button / context menu when the target tweet is already the open
+// permalink. `subAction` selects the flow; `pdf` routes to the PDF pipeline.
+export interface AutoExtractRequest {
+  action: 'XCLIPPER_AUTOEXTRACT';
+  subAction: 'download' | 'copy' | 'obsidian' | 'pdf';
+  single?: boolean;
+}
+
+// Injector (content) → background: report the tweet permalink under the cursor
+// on `contextmenu`, used as the fallback target when the menu item fires over
+// an area that isn't a status link. `null` clears the last-known url.
+export interface ContextUrlRequest {
+  action: 'XCLIPPER_CTX_URL';
+  url: string | null;
+}
+
 export type MessageRequest =
   | ExtractRequest
   | DownloadRequest
   | ExportPdfRequest
-  | PdfPrintRequest;
+  | PdfPrintRequest
+  | AutoExtractRequest
+  | ContextUrlRequest;

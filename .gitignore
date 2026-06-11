@@ -23,6 +23,9 @@ dist/
 # Test HTML fixtures (large, regenerated locally; not worth versioning)
 tests/fixtures/*.html
 
+# Local scratch (notes, link dumps — never versioned)
+_local/
+
 # Logs and temp files
 *.log
 *.bak

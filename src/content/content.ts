@@ -29,8 +29,6 @@ export async function extract(options?: {
       ? extractArticle()
       : await extractTweetAsync({ singleTweet: options?.singleTweet });
 
-
-
     return { success: true, data };
   } catch (err) {
     return {
@@ -283,7 +281,7 @@ window.addEventListener('xclipper:autoextract', (e: Event) => {
 });
 
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
-  if (msg && msg.action === 'TWEET2MD_AUTOEXTRACT') {
+  if (msg && msg.action === 'XCLIPPER_AUTOEXTRACT') {
     if (msg.subAction === 'pdf') {
       // PDF uses its own AST → HTML → print pipeline, not the markdown flow.
       runPdfExport()
