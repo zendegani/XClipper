@@ -1417,3 +1417,21 @@ details.option-group[open] .option-group-chevron {
 .batch-dedup-row.hidden {
   display: none;
 }
+
+/* Dim only the disabled button's children — NOT the button itself. A
+ * parent-level opacity cascades into the [data-tooltip]::after
+ * pseudo-element and renders the hint semi-transparent (same rule as the
+ * issue #38 fix for toggle labels). The batch button is the one action
+ * button that sits disabled WITH a tooltip (off the bookmarks page). */
+.btn-batch:disabled {
+  opacity: 1;
+  border-color: color-mix(in srgb, var(--batch) 45%, transparent);
+}
+.btn-batch:disabled .btn-icon,
+.btn-batch:disabled .btn-label {
+  opacity: 0.5;
+}
+.btn-batch:disabled:hover {
+  background: transparent;
+  box-shadow: none;
+}
