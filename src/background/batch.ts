@@ -108,12 +108,15 @@ async function dispatchCurrent(job: BatchJob): Promise<void> {
     }
   }
   if (tabId === undefined) {
+    // Width must stay above X's narrow-layout breakpoint: the mobile layout
+    // drops the longform-header-*/list CSS classes that article extraction
+    // keys on, so a 480px window silently degraded article exports.
     const win = await chrome.windows.create({
       url: target,
       focused: false,
       type: 'popup',
-      width: 480,
-      height: 720,
+      width: 1100,
+      height: 900,
     });
     tabId = win?.tabs?.[0]?.id;
     windowId = win?.id;

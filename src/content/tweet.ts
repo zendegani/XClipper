@@ -133,6 +133,21 @@ async function loadThreadIntoDom(): Promise<Element | null> {
   // sessions where the user navigates between threads.
   const captured: Map<string, Element> = new Map();
 
+  // A freshly navigated permalink may show only the focal tweet while the
+  // conversation timeline streams in; walking immediately would conclude
+  // "thread complete" with just the root captured. Give replies a bounded
+  // window to start mounting — only when the page is visibly still loading,
+  // so settled pages pay nothing.
+  const READY_BUDGET_MS = 3000;
+  const readyStart = Date.now();
+  while (
+    Date.now() - readyStart < READY_BUDGET_MS &&
+    document.querySelectorAll('article[role="article"]').length <= 1 &&
+    isTimelineLoading()
+  ) {
+    await delay(250);
+  }
+
   // Upward walk: coax X into loading any ancestors above the focused tweet.
   // No capture yet — we don't know the thread author until ancestors settle.
   const MAX_UP_STEPS = 30;
@@ -198,6 +213,27 @@ async function loadThreadIntoDom(): Promise<Element | null> {
   return rehydrateMissingArticles(captured, threadAuthor.handle);
 }
 
+// X shows a [role="progressbar"] spinner while a timeline streams in. Note a
+// fully loaded page often KEEPS one (the infinite-scroll loader at the bottom
+// of the replies), so spinner-visible can only gate a bounded wait — never an
+// unbounded "still loading" loop.
+function isTimelineLoading(): boolean {
+  return !!document.querySelector('main [role="progressbar"]');
+}
+
+// Hydration score for an article snapshot: mounted videos and src-bearing
+// photos. A tweet cell can enter the DOM before its media hydrates; a clone
+// taken at that moment would lose the images for good, so captures with a
+// higher score replace earlier ones. Text length breaks ties (e.g. link-card
+// descriptions that stream in late).
+function hydrationScore(article: Element): number {
+  let score = article.querySelectorAll('video').length * 2;
+  for (const img of article.querySelectorAll('[data-testid="tweetPhoto"] img')) {
+    if ((img as HTMLImageElement).src) score += 1;
+  }
+  return score;
+}
+
 // Snapshot helpers. We use cloneNode rather than outerHTML so X.com-specific
 // markup (article cards, link cards, etc.) round-trips without parsing, and
 // so there's no HTML-string injection path. Clones are detached; originals
@@ -211,7 +247,22 @@ function captureArticles(store: Map<string, Element>, authorHandle: string): voi
     if (a.handle === 'unknown') continue;
     if (a.handle.toLowerCase() !== target) break; // boundary
     const id = getTweetStatusId(article);
-    if (!id || store.has(id)) continue;
+    if (!id) continue;
+    const existing = store.get(id);
+    if (existing) {
+      // Re-capture only if this pass sees a better-hydrated version.
+      // Map.set on an existing key keeps insertion order, so thread order
+      // is preserved.
+      const oldScore = hydrationScore(existing);
+      const newScore = hydrationScore(article);
+      if (
+        newScore < oldScore ||
+        (newScore === oldScore &&
+          (article.textContent || '').length <= (existing.textContent || '').length)
+      ) {
+        continue;
+      }
+    }
     store.set(id, article.cloneNode(true) as Element);
   }
 }

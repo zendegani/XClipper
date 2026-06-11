@@ -199,9 +199,9 @@
         ],
         "media": [
           {
-            "kind": "image",
-            "url": "https://pbs.twimg.com/tweet_video_thumb/HE6ZO2kXgAA7P_j?format=jpg&name=large",
-            "alt": "Embedded video"
+            "kind": "video",
+            "url": "https://pbs.twimg.com/tweet_video_thumb/HE6ZO2kXgAA7P_j.jpg",
+            "posterUrl": "https://pbs.twimg.com/tweet_video_thumb/HE6ZO2kXgAA7P_j.jpg"
           }
         ],
         "engagement": "<ignored>"
