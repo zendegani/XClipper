@@ -14,15 +14,15 @@
 
 
 <p align="center">
-  <img src="assets/04-popup-clipping-interface.png" alt="XClipper extension UI" width="500" />
+  <img src="assets/04-popup-clipping-interface.png" alt="XClipper extension popup — export X posts, threads, and articles to Markdown, PDF, or Obsidian" width="500" />
 </p>
 
 ## What it does
 
-**XClipper** is an open-source Chrome extension that turns x.com content into production-ready Markdown for research, note-taking, AI workflows, and offline archiving. No X API key required.
+**XClipper** is an open-source Chrome extension that exports x.com content as **Markdown, PDF, or Obsidian notes** — production-ready for research, note-taking, AI workflows, and offline archiving. No X API key required.
 
 <p align="center">
-  <img src="assets/01-product-overview.png" alt="XClipper converts X content to clean Markdown" width="700" />
+  <img src="assets/01-product-overview.png" alt="XClipper converts X posts, threads, and articles to Markdown, PDF, and Obsidian notes" width="700" />
 </p>
 
 ### Key Features
@@ -57,7 +57,7 @@ Skip the popup. The download icon sits next to share on every tweet. One click o
 ### Right-click context menu
 
 <p align="center">
-  <img src="assets/03-context-menu-shortcut.png" alt="Right-click context menu with Save and Copy as Markdown items" width="700" />
+  <img src="assets/03-context-menu-shortcut.png" alt="Right-click context menu: save tweet as Markdown or PDF, copy, or add to Obsidian" width="700" />
 </p>
 
 Right-click anywhere on a tweet — the body, an image, or the timestamp — and pick **Save tweet as Markdown**, **Copy tweet as Markdown**, or **Add tweet to Obsidian**. XClipper figures out which tweet you meant.
@@ -80,7 +80,7 @@ The popup keeps the things you adjust per export — **Save images locally**, **
 
 ### Technical Specs
 
-- **Format:** Markdown (.md) with YAML Frontmatter
+- **Formats:** Markdown (.md) with YAML Frontmatter, PDF (native print engine), and Obsidian (`obsidian://` deeplink)
 - **Requirements:** No X API key required
 - **Privacy:** Local-only execution (no server-side processing)
 - **Architecture:** Zero-API — works directly in your browser with no API keys or accounts
@@ -134,9 +134,11 @@ Filenames: `@handle-tweetId.md` (tweets/threads) or `@handle-article-slug.md` (a
 ## How it works
 
 - Content script auto-injects on `x.com/*/status/*` pages
-- **Tweets/threads**: Turndown.js with custom rules (t.co resolution, emoji inlining, @mention cleanup)
-- **Articles**: Manual Draft.js block parsing for precise heading/list/code-block extraction
-- DOM is cloned and cleaned (engagement bars, follow buttons, navigation stripped) before conversion
+- DOM is parsed into a typed, JSON-serializable **Content AST** (the single source of truth); separate renderers turn it into Markdown or PDF — see [`docs/adr/0001`](docs/adr/0001-content-ast-architecture.md)
+- **Tweets/threads**: custom AST rendering (t.co resolution, emoji inlining, @mention cleanup)
+- **Articles**: manual Draft.js block parsing for precise heading/list/code-block extraction
+- **PDF**: the same AST renders to HTML and prints via Chrome's native engine (selectable text, clickable links, Unicode)
+- DOM is cleaned (engagement bars, follow buttons, navigation stripped) before extraction
 - Downloads via `chrome.downloads` API after the background worker validates the message sender and sanitizes download paths
 - Local image downloads are limited to expected X media hosts; external image URLs are left as remote Markdown links rather than downloaded
 - Nothing leaves your browser
@@ -162,7 +164,7 @@ Filenames: `@handle-tweetId.md` (tweets/threads) or `@handle-article-slug.md` (a
 ## Tech stack
 
 - **TypeScript** + **esbuild** (content IIFE, background ESM)
-- **Turndown.js** — HTML → Markdown for tweets
+- **Content AST** → custom Markdown / PDF renderers (no Turndown)
 - **Manifest V3**
 
 ## Project structure
@@ -170,14 +172,19 @@ Filenames: `@handle-tweetId.md` (tweets/threads) or `@handle-article-slug.md` (a
 ```text
 xclipper/
 ├── src/
-│   ├── content/        # DOM extraction + Turndown + Draft.js parsing
-│   ├── background/     # Service worker (chrome.downloads)
-│   ├── popup/          # Extension popup UI + trigger
-│   ├── types/          # Shared TypeScript interfaces
+│   ├── content/        # DOM → Content AST (dom-to-ast/), inline button, PDF trigger
+│   ├── ast/            # Content AST types + renderers (Markdown, PDF HTML)
+│   ├── background/     # Service worker (downloads, context menu, PDF print)
+│   ├── popup/          # Popup UI, split: dom / settings-form / actions / widgets
+│   ├── print/          # Print page for native PDF export
+│   ├── shared/         # Cross-context logic (post-process, settings, media, obsidian)
+│   ├── types/          # Shared TypeScript interfaces (messages)
 │   ├── icons/          # Extension icons (16, 32, 48, 128px)
 │   ├── _locales/       # i18n translations (en, es, de, fr, it, ja, pt_BR, ru, zh_CN, ar, fa, hi)
 │   └── manifest.json   # Chrome MV3 manifest
 ├── dist/               # Build output (load this in Chrome)
+├── docs/               # Architecture decision record + Content AST schema
+├── tests/              # Vitest + JSDOM extractor/AST snapshot tests
 ├── build.mjs           # esbuild build script
 ├── package.json
 └── tsconfig.json
