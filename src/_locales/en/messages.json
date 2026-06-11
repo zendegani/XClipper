@@ -116,6 +116,9 @@
   "batch_start_failed": {
     "message": "Could not start the batch."
   },
+  "batch_running": {
+    "message": "A batch job is already running."
+  },
   "btn_obsidian_hint": {
     "message": "Configure vault, subfolder, and frontmatter fields in Settings.\nUse the 'Download .md' button for long threads or images."
   },

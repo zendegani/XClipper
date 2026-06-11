@@ -61,6 +61,10 @@ const TAB_ICONS: Record<BatchTab, SVGElement> = {
 };
 
 let activeTab: BatchTab = 'bookmarks';
+// One job at a time (the background enforces this — one worker window,
+// politeness throttle toward X). Tabs stay browsable mid-job; this flag
+// just keeps the start button disabled everywhere while a job runs.
+let jobIsActive = false;
 let jobPollTimer: ReturnType<typeof setInterval> | undefined;
 let countPollTimer: ReturnType<typeof setInterval> | undefined;
 let pageTabId: number | undefined;
@@ -101,6 +105,11 @@ async function loadLedgerSet(): Promise<Set<string>> {
 
 function setButton(label: string, enabled: boolean, tooltip: string): void {
   btnBatchLabel.textContent = label;
+  if (jobIsActive) {
+    btnBatch.disabled = true;
+    btnBatch.setAttribute('data-tooltip', t('batch_running', 'A batch job is already running.'));
+    return;
+  }
   btnBatch.disabled = !enabled;
   btnBatch.setAttribute('data-tooltip', tooltip);
 }
@@ -170,6 +179,9 @@ function setActiveTab(tab: BatchTab): void {
     TAB_BUTTONS[k].classList.toggle('active', k === tab);
     TAB_ICONS[k].classList.toggle('hidden', k !== tab);
   });
+  // A finished job's report belongs to that job, not the tab — clear it when
+  // moving on. A live job's progress stays visible on every tab.
+  if (!jobIsActive) batchProgress.classList.add('hidden');
   void refreshIdleUi();
   startCountPolling();
 }
@@ -181,15 +193,11 @@ function render(job: JobSnapshot): void {
   batchBarFill.style.width = `${pct}%`;
 
   const active = job.status === 'running' || job.status === 'paused';
-  btnBatch.classList.toggle('hidden', active);
-  // Tabs stay visible for layout stability but can't switch mid-job (the
-  // action button is hidden, so another tab would have nothing to show).
-  // The digest toggle stays live — finalize reads it when the job ends.
-  (Object.keys(TAB_BUTTONS) as BatchTab[]).forEach((k) => {
-    TAB_BUTTONS[k].disabled = active;
-  });
-  // refreshIdleUi() re-evaluates the dedup row once the job is over.
-  if (active) batchDedupRow.classList.add('hidden');
+  jobIsActive = active;
+  if (active) {
+    btnBatch.disabled = true;
+    btnBatch.setAttribute('data-tooltip', t('batch_running', 'A batch job is already running.'));
+  }
   btnBatchPause.classList.toggle('hidden', !active);
   btnBatchCancel.classList.toggle('hidden', !active);
   btnBatchPause.textContent =
@@ -243,12 +251,10 @@ function startCountPolling(): void {
   countPollTimer = setInterval(() => void refreshIdleUi(), COUNT_POLL_MS);
 }
 
-// Job finished/stopped: bring the idle controls back and resume live counts.
+// Job finished/stopped: re-enable starting and resume live counts. The
+// final report stays visible until the user switches tabs.
 async function backToIdle(): Promise<void> {
-  btnBatch.classList.remove('hidden');
-  (Object.keys(TAB_BUTTONS) as BatchTab[]).forEach((k) => {
-    TAB_BUTTONS[k].disabled = false;
-  });
+  jobIsActive = false;
   await refreshIdleUi();
   startCountPolling();
 }
@@ -274,7 +280,6 @@ async function startExport(): Promise<void> {
   }
 
   btnBatch.disabled = true;
-  stopCountPolling();
   const { urls } = await harvest();
   const resp = (await chrome.runtime.sendMessage({
     action: 'BATCH_START',
@@ -312,12 +317,9 @@ export async function initBatchUi(): Promise<void> {
   if (pageIsX) pageTabId = tab!.id;
 
   const job = await fetchJob();
-  const jobActive = job && (job.status === 'running' || job.status === 'paused');
-
-  if (jobActive && job) {
-    render(job);
+  if (job && (job.status === 'running' || job.status === 'paused')) {
+    render(job); // sets jobIsActive, so tab setup below keeps Start disabled
     startJobPolling();
-    return;
   }
 
   // Land on the tab that matches the current page; Selection is the
