@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
+## [2.0.4] - 2026-06-11
+
+### Changed
+
+- **Internal restructuring (no behavior change)**: Consolidated the user-settings shape into a single shared module so the popup, content script, and PDF flow can no longer drift apart, and split the popup script into focused modules (DOM references, settings view, export actions, reusable widgets). Reduces the chance of regressions when adding a setting or an export target. Also enabled stricter TypeScript checks (`noUnusedLocals` / `noUnusedParameters`).
+
+### Fixed
+
+- **Frontmatter field selection in inline-button, context-menu, and PDF exports**: These flows now apply the same default-merged frontmatter field map as the popup, so a partial field selection saved by an older version no longer drops newly-added fields. Default selections are unaffected.
+
+---
 ## [2.0.3] - 2026-06-07
 
 ### Added
