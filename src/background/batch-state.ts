@@ -36,6 +36,19 @@ export interface BatchJob {
 // Hard batch cap (ADR 0002 #7).
 export const BATCH_MAX_ITEMS = 200;
 
+// Ledger of status ids already exported by past batch jobs, persisted in
+// chrome.storage.local. startBatch skips these so re-running on a longer
+// scroll of the same bookmarks doesn't duplicate files; the popup's Reset
+// control clears it. Pure helpers here; storage I/O lives in batch.ts.
+export const EXPORTED_LEDGER_KEY = 'xclipper_batch_exported';
+export const LEDGER_CAP = 5000;
+
+export function appendToLedger(ledger: string[], id: string): string[] {
+  if (ledger.includes(id)) return ledger;
+  const next = [...ledger, id];
+  return next.length > LEDGER_CAP ? next.slice(next.length - LEDGER_CAP) : next;
+}
+
 // Strip any path beyond /status/<id> (e.g. /history, /photo/1) and drop any
 // query/hash, so the worker tab always loads the canonical permalink.
 export function normalizeStatusUrl(url: string): string | null {

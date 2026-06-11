@@ -2,6 +2,13 @@
 // owns the job; this module only starts/controls it and polls BATCH_STATUS
 // for progress — the popup can close and reopen mid-job without losing
 // anything.
+//
+// The section is always visible so the feature is discoverable; the start
+// button is only enabled on x.com/i/bookmarks. While the popup is open on
+// the bookmarks page, the count is re-polled so scrolling the page behind
+// the popup updates the "(N new)" label live. "N new" excludes bookmarks a
+// previous job already exported (the background's ledger); Reset clears
+// that memory.
 
 import type {
   BatchStartResponse,
@@ -9,8 +16,12 @@ import type {
   BookmarksHarvestResponse,
 } from '../types/messages';
 import { hostMatches } from '../shared/media';
+// Pure module (no chrome.* at import time) — safe to share with the popup.
+import { EXPORTED_LEDGER_KEY, statusIdOf } from '../background/batch-state';
 import {
   batchBarFill,
+  batchDedupRow,
+  batchDedupText,
   batchProgress,
   batchProgressText,
   batchSection,
@@ -18,14 +29,17 @@ import {
   btnBatchCancel,
   btnBatchLabel,
   btnBatchPause,
+  btnBatchReset,
 } from './dom';
 
 type JobSnapshot = NonNullable<BatchStatusResponse['job']>;
 
-const POLL_MS = 800;
+const JOB_POLL_MS = 800;
+const COUNT_POLL_MS = 1000;
 const t = (key: string, fallback: string): string => chrome.i18n.getMessage(key) || fallback;
 
-let pollTimer: ReturnType<typeof setInterval> | undefined;
+let jobPollTimer: ReturnType<typeof setInterval> | undefined;
+let countPollTimer: ReturnType<typeof setInterval> | undefined;
 let bookmarksTabId: number | undefined;
 
 async function fetchJob(): Promise<JobSnapshot | undefined> {
@@ -51,6 +65,15 @@ async function harvest(tabId: number): Promise<string[]> {
   }
 }
 
+async function loadLedgerSet(): Promise<Set<string>> {
+  return new Promise((resolve) => {
+    chrome.storage.local.get(EXPORTED_LEDGER_KEY, (result) => {
+      const raw = result[EXPORTED_LEDGER_KEY];
+      resolve(new Set(Array.isArray(raw) ? raw.filter((v) => typeof v === 'string') : []));
+    });
+  });
+}
+
 function isBookmarksUrl(url: string): boolean {
   if (!hostMatches(url, 'x.com', 'www.x.com')) return false;
   try {
@@ -60,9 +83,24 @@ function isBookmarksUrl(url: string): boolean {
   }
 }
 
-function setStartLabel(count: number): void {
-  btnBatchLabel.textContent = `${t('btn_batch', 'Export bookmarks')} (${count})`;
-  btnBatch.disabled = count === 0;
+// "Export bookmarks (N new)" — N excludes already-exported items. The dedup
+// row appears once anything is being skipped, with the Reset escape hatch.
+async function refreshCount(): Promise<void> {
+  if (bookmarksTabId === undefined) return;
+  const urls = await harvest(bookmarksTabId);
+  const ledger = await loadLedgerSet();
+  const fresh = urls.filter((u) => {
+    const id = statusIdOf(u);
+    return !id || !ledger.has(id);
+  });
+  const skipped = urls.length - fresh.length;
+  const suffix = skipped > 0 ? ` (${fresh.length} ${t('batch_new', 'new')})` : ` (${fresh.length})`;
+  btnBatchLabel.textContent = t('btn_batch', 'Export bookmarks') + suffix;
+  btnBatch.disabled = fresh.length === 0;
+  batchDedupRow.classList.toggle('hidden', skipped === 0);
+  if (skipped > 0) {
+    batchDedupText.textContent = `${skipped} ${t('batch_already_exported', 'already exported')}`;
+  }
 }
 
 function render(job: JobSnapshot): void {
@@ -73,6 +111,8 @@ function render(job: JobSnapshot): void {
 
   const active = job.status === 'running' || job.status === 'paused';
   btnBatch.classList.toggle('hidden', active);
+  // refreshCount() re-evaluates the dedup row once the job is over.
+  if (active) batchDedupRow.classList.add('hidden');
   btnBatchPause.classList.toggle('hidden', !active);
   btnBatchCancel.classList.toggle('hidden', !active);
   btnBatchPause.textContent =
@@ -90,33 +130,48 @@ function render(job: JobSnapshot): void {
   }
 }
 
-function stopPolling(): void {
-  if (pollTimer !== undefined) {
-    clearInterval(pollTimer);
-    pollTimer = undefined;
+function stopJobPolling(): void {
+  if (jobPollTimer !== undefined) {
+    clearInterval(jobPollTimer);
+    jobPollTimer = undefined;
   }
 }
 
-function startPolling(): void {
-  stopPolling();
-  pollTimer = setInterval(async () => {
+function startJobPolling(): void {
+  stopJobPolling();
+  jobPollTimer = setInterval(async () => {
     const job = await fetchJob();
     if (!job) {
-      stopPolling();
+      stopJobPolling();
       return;
     }
     render(job);
     if (job.status === 'done' || job.status === 'cancelled') {
-      stopPolling();
-      await refreshStartButton();
+      stopJobPolling();
+      await backToIdle();
     }
-  }, POLL_MS);
+  }, JOB_POLL_MS);
 }
 
-async function refreshStartButton(): Promise<void> {
+function stopCountPolling(): void {
+  if (countPollTimer !== undefined) {
+    clearInterval(countPollTimer);
+    countPollTimer = undefined;
+  }
+}
+
+function startCountPolling(): void {
+  stopCountPolling();
+  if (bookmarksTabId === undefined) return;
+  countPollTimer = setInterval(() => void refreshCount(), COUNT_POLL_MS);
+}
+
+// Job finished/stopped: bring the start button back and resume live counts.
+async function backToIdle(): Promise<void> {
   if (bookmarksTabId === undefined) return;
   btnBatch.classList.remove('hidden');
-  setStartLabel((await harvest(bookmarksTabId)).length);
+  await refreshCount();
+  startCountPolling();
 }
 
 async function control(controlAction: 'pause' | 'resume' | 'cancel'): Promise<void> {
@@ -132,16 +187,8 @@ async function control(controlAction: 'pause' | 'resume' | 'cancel'): Promise<vo
 async function startExport(): Promise<void> {
   if (bookmarksTabId === undefined) return;
   btnBatch.disabled = true;
+  stopCountPolling();
   const urls = await harvest(bookmarksTabId);
-  if (urls.length === 0) {
-    batchProgress.classList.remove('hidden');
-    batchProgressText.textContent = t(
-      'batch_none_found',
-      'No bookmarks loaded — scroll the bookmarks page first.'
-    );
-    btnBatch.disabled = false;
-    return;
-  }
   const resp = (await chrome.runtime.sendMessage({
     action: 'BATCH_START',
     urls,
@@ -149,12 +196,12 @@ async function startExport(): Promise<void> {
   if (!resp?.success) {
     batchProgress.classList.remove('hidden');
     batchProgressText.textContent = resp?.error || t('batch_start_failed', 'Could not start the batch.');
-    btnBatch.disabled = false;
+    await backToIdle();
     return;
   }
   const job = await fetchJob();
   if (job) render(job);
-  startPolling();
+  startJobPolling();
 }
 
 export async function initBatchUi(): Promise<void> {
@@ -163,11 +210,15 @@ export async function initBatchUi(): Promise<void> {
   btnBatchPause.addEventListener('click', () => {
     const resuming = btnBatchPause.textContent === t('batch_resume', 'Resume');
     void control(resuming ? 'resume' : 'pause');
-    if (resuming) startPolling();
+    if (resuming) startJobPolling();
+  });
+  btnBatchReset.addEventListener('click', () => {
+    chrome.storage.local.remove(EXPORTED_LEDGER_KEY, () => void refreshCount());
   });
 
-  // An active job is shown wherever the popup opens; the start button only
-  // appears on the bookmarks page itself.
+  // Always visible for discoverability; the start button only works on the
+  // bookmarks page itself.
+  batchSection.classList.remove('hidden');
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   const onBookmarks = !!tab?.id && isBookmarksUrl(tab.url || '');
   if (onBookmarks) bookmarksTabId = tab.id;
@@ -175,14 +226,21 @@ export async function initBatchUi(): Promise<void> {
   const job = await fetchJob();
   const jobActive = job && (job.status === 'running' || job.status === 'paused');
 
-  if (!onBookmarks && !jobActive) return;
-  batchSection.classList.remove('hidden');
-
   if (jobActive && job) {
     render(job);
     btnBatch.classList.add('hidden');
-    startPolling();
-  } else if (onBookmarks && bookmarksTabId !== undefined) {
-    setStartLabel((await harvest(bookmarksTabId)).length);
+    startJobPolling();
+    return;
+  }
+
+  if (onBookmarks) {
+    await refreshCount();
+    startCountPolling();
+  } else {
+    btnBatch.disabled = true;
+    btnBatch.setAttribute(
+      'data-tooltip',
+      t('btn_batch_open_bookmarks', 'Open x.com/i/bookmarks to batch-export your bookmarks.')
+    );
   }
 }

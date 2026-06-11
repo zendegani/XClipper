@@ -24,6 +24,8 @@ import {
 } from './security';
 import {
   type BatchJob,
+  EXPORTED_LEDGER_KEY,
+  appendToLedger,
   cancelJob,
   createJob,
   currentUrl,
@@ -62,6 +64,19 @@ async function saveJob(job: BatchJob): Promise<void> {
   await chrome.storage.session.set({ [JOB_KEY]: job });
 }
 
+async function loadLedger(): Promise<string[]> {
+  const result = await chrome.storage.local.get(EXPORTED_LEDGER_KEY);
+  const raw = result[EXPORTED_LEDGER_KEY];
+  return Array.isArray(raw) ? raw.filter((v): v is string => typeof v === 'string') : [];
+}
+
+async function recordExported(url: string): Promise<void> {
+  const id = statusIdOf(url);
+  if (!id) return;
+  const ledger = await loadLedger();
+  await chrome.storage.local.set({ [EXPORTED_LEDGER_KEY]: appendToLedger(ledger, id) });
+}
+
 export async function startBatch(rawUrls: unknown): Promise<BatchStartResponse> {
   const existing = await loadJob();
   if (existing && (existing.status === 'running' || existing.status === 'paused')) {
@@ -76,6 +91,20 @@ export async function startBatch(rawUrls: unknown): Promise<BatchStartResponse> 
   if (job.urls.length === 0) {
     return { success: false, error: 'No valid x.com status URLs given' };
   }
+  // Skip anything a previous job already exported, so re-running on a longer
+  // scroll of the same list only picks up the new items.
+  const ledger = new Set(await loadLedger());
+  const fresh = job.urls.filter((u) => {
+    const id = statusIdOf(u);
+    return !id || !ledger.has(id);
+  });
+  if (fresh.length === 0) {
+    return { success: false, error: 'Everything loaded was already exported — use Reset to export again' };
+  }
+  if (fresh.length < job.urls.length) {
+    log(`${job.urls.length - fresh.length} already-exported item(s) skipped`);
+  }
+  job = { ...job, urls: fresh };
   // Snapshot the user's download subfolder once so the whole job lands in one
   // place even if the setting changes mid-run.
   const settings = await loadSettings();
@@ -163,6 +192,7 @@ async function handleItemResult(
   const { job: advanced, filename } = recordResult(job, outcome);
   if (outcome.success && filename) {
     downloadItem(advanced.folder, filename, msg.markdown as string, msg.images);
+    await recordExported(expected);
     if (msg.doc) {
       try {
         await chrome.storage.session.set({
