@@ -128,6 +128,18 @@
             data-tooltip="Forget which bookmarks were already exported, so the next batch exports everything loaded."
             data-i18n-tooltip="batch_reset_hint" data-i18n="batch_reset">Reset</button>
         </div>
+        <div id="batch-tools-row" class="batch-tools-row">
+          <label class="batch-digest-label"
+            data-tooltip="Also write a single digest.md containing every exported post, for reading top to bottom."
+            data-i18n-tooltip="opt_batch_digest_hint">
+            <input type="checkbox" id="chk-batch-digest" class="toggle-input" />
+            <span class="toggle-switch toggle-switch-mini"></span>
+            <span data-i18n="opt_batch_digest">digest.md</span>
+          </label>
+          <button id="btn-batch-select" class="batch-ctl" type="button"
+            data-tooltip="Pick individual tweets on the current page with checkboxes, then export the selection."
+            data-i18n-tooltip="btn_batch_select_hint" data-i18n="btn_batch_select">Select tweets…</button>
+        </div>
         <div id="batch-progress" class="batch-progress hidden">
           <div class="batch-bar">
             <div id="batch-bar-fill" class="batch-bar-fill"></div>

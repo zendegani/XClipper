@@ -1435,3 +1435,24 @@ details.option-group[open] .option-group-chevron {
   background: transparent;
   box-shadow: none;
 }
+
+.batch-tools-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 6px;
+  font-size: 12px;
+  color: var(--text-secondary, #71767b);
+}
+
+.batch-tools-row.hidden {
+  display: none;
+}
+
+.batch-digest-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+}

@@ -298,39 +298,245 @@ function scan(): void {
   decorateArticleTopBar();
 }
 
-// ─── Bookmarks harvester (ADR 0002, Phase B) ─────────────────────────
-// X virtualizes the bookmarks timeline — cells scrolled past are detached
-// from the DOM — so "what's in the DOM" is not "what the user has loaded".
-// Accumulate permalinks as cells pass through, in encounter order (top
-// first); the popup asks for the set when starting a batch export. The set
-// resets when the user navigates away from /i/bookmarks, so a later visit
-// doesn't export bookmarks that were removed in the meantime.
+// ─── Timeline harvester (ADR 0002, Phases B–C) ───────────────────────
+// X virtualizes timelines — cells scrolled past are detached from the DOM —
+// so "what's in the DOM" is not "what the user has loaded". Accumulate
+// permalinks as cells pass through, in encounter order (top first); the
+// popup asks for the set when starting a batch export. Sources: the
+// bookmarks page, and profile pages (where reposts are skipped by keeping
+// only the owner's own /<handle>/status/ links). The set resets when the
+// source changes, so a later visit doesn't export items removed meanwhile.
 
-const harvestedBookmarks = new Set<string>();
-let lastHarvestPath = '';
+// Top-level x.com paths that are app surfaces, not profile handles.
+const NON_PROFILE_PATHS = new Set([
+  'home', 'explore', 'notifications', 'messages', 'settings', 'search',
+  'compose', 'jobs', 'communities', 'premium', 'verified-orgs', 'about',
+  'tos', 'privacy', 'login', 'logout', 'signup', 'share', 'intent',
+  'hashtag', 'places', 'topics', 'account', 'follower_requests',
+]);
 
-function onBookmarksPage(): boolean {
-  return window.location.pathname.startsWith('/i/bookmarks');
+type HarvestSource =
+  | { kind: 'bookmarks'; key: string }
+  | { kind: 'profile'; key: string; handle: string }
+  | null;
+
+function harvestSourceOfPage(): HarvestSource {
+  const path = window.location.pathname;
+  if (path.startsWith('/i/bookmarks')) return { kind: 'bookmarks', key: 'bookmarks' };
+  const m = path.match(/^\/([A-Za-z0-9_]{1,15})$/);
+  if (m && !NON_PROFILE_PATHS.has(m[1].toLowerCase())) {
+    return { kind: 'profile', key: `profile:${m[1].toLowerCase()}`, handle: m[1] };
+  }
+  return null;
 }
 
-function harvestBookmarks(): void {
-  if (!onBookmarksPage()) {
-    if (lastHarvestPath.startsWith('/i/bookmarks')) harvestedBookmarks.clear();
-    lastHarvestPath = window.location.pathname;
-    return;
+const harvested = new Set<string>();
+let harvestKey = '';
+
+function harvestTimeline(): HarvestSource {
+  const source = harvestSourceOfPage();
+  if (!source) {
+    if (harvestKey) {
+      harvested.clear();
+      harvestKey = '';
+    }
+    return null;
   }
-  lastHarvestPath = window.location.pathname;
+  if (source.key !== harvestKey) {
+    harvested.clear();
+    harvestKey = source.key;
+  }
   for (const article of document.querySelectorAll('article[role="article"]')) {
     const url = getStatusUrl(article);
-    if (url) harvestedBookmarks.add(url);
+    if (!url) continue;
+    if (source.kind === 'profile') {
+      // Repost cells link to the original author's permalink — skip them so
+      // a profile export contains the profile owner's own posts.
+      const author = url.match(/x\.com\/([^/]+)\/status\//)?.[1] || '';
+      if (author.toLowerCase() !== source.handle.toLowerCase()) continue;
+    }
+    harvested.add(url);
   }
+  return source;
+}
+
+// ─── Selection mode (ADR 0002, Phase C) ──────────────────────────────
+// Toggled from the popup on any timeline: overlay a check mark on each tweet
+// cell and a floating bar with the count + Export. Selection is keyed by
+// permalink, so it survives X's cell virtualization; checks are re-painted
+// by the mutation observer as cells re-mount.
+
+const SELECT_MARK_ATTR = 'data-xclipper-select';
+const SELECTED_ATTR = 'data-xclipper-selected';
+const ACCENT = 'rgb(14,165,233)';
+
+let selectionMode = false;
+const selectedUrls = new Set<string>();
+let selectionBar: HTMLElement | null = null;
+let selectionCountEl: HTMLElement | null = null;
+
+function syncMark(mark: HTMLElement, selected: boolean): void {
+  mark.textContent = selected ? '✓' : '';
+  mark.style.background = selected ? ACCENT : 'rgba(15,20,25,0.55)';
+  mark.style.borderColor = selected ? ACCENT : '#fff';
+}
+
+function decorateSelection(): void {
+  if (!selectionMode) return;
+  for (const article of document.querySelectorAll('article[role="article"]')) {
+    const url = getStatusUrl(article);
+    if (!url) continue;
+    let mark = article.querySelector(`[${SELECT_MARK_ATTR}]`) as HTMLElement | null;
+    if (!mark) {
+      const host = article as HTMLElement;
+      if (getComputedStyle(host).position === 'static') host.style.position = 'relative';
+      mark = document.createElement('div');
+      mark.setAttribute(SELECT_MARK_ATTR, '1');
+      mark.style.cssText = [
+        'position:absolute',
+        'top:10px',
+        'right:10px',
+        'width:22px',
+        'height:22px',
+        'border-radius:9999px',
+        'border:2px solid #fff',
+        'box-shadow:0 1px 4px rgba(0,0,0,0.4)',
+        'color:#fff',
+        'font:700 14px/18px system-ui,sans-serif',
+        'text-align:center',
+        'cursor:pointer',
+        'z-index:10',
+        'user-select:none',
+      ].join(';');
+      mark.addEventListener('click', (e) => {
+        e.stopPropagation();
+        e.preventDefault();
+        const fresh = getStatusUrl(article) || url;
+        if (selectedUrls.has(fresh)) {
+          selectedUrls.delete(fresh);
+          article.removeAttribute(SELECTED_ATTR);
+        } else {
+          selectedUrls.add(fresh);
+          article.setAttribute(SELECTED_ATTR, '1');
+        }
+        syncMark(mark as HTMLElement, selectedUrls.has(fresh));
+        updateSelectionBar();
+      });
+      article.appendChild(mark);
+    }
+    // Cells get recycled by the virtualizer — re-sync visuals from state.
+    const isSelected = selectedUrls.has(url);
+    syncMark(mark, isSelected);
+    if (isSelected) article.setAttribute(SELECTED_ATTR, '1');
+    else article.removeAttribute(SELECTED_ATTR);
+  }
+}
+
+function updateSelectionBar(): void {
+  if (selectionCountEl) {
+    selectionCountEl.textContent = `${selectedUrls.size} ${chrome.i18n.getMessage('batch_bar_selected') || 'selected'}`;
+  }
+}
+
+function barButton(label: string, solid: boolean, onClick: () => void): HTMLElement {
+  const b = document.createElement('button');
+  b.type = 'button';
+  b.textContent = label;
+  b.style.cssText = [
+    'font:600 13px/1 system-ui,sans-serif',
+    'padding:7px 14px',
+    'border-radius:9999px',
+    'cursor:pointer',
+    solid ? `background:${ACCENT};border:1px solid ${ACCENT};color:#fff`
+          : 'background:transparent;border:1px solid rgba(255,255,255,0.5);color:#fff',
+  ].join(';');
+  b.addEventListener('click', (e) => {
+    e.stopPropagation();
+    onClick();
+  });
+  return b;
+}
+
+function enterSelection(): void {
+  if (selectionMode) return;
+  selectionMode = true;
+
+  selectionBar = document.createElement('div');
+  selectionBar.style.cssText = [
+    'position:fixed',
+    'bottom:20px',
+    'left:50%',
+    'transform:translateX(-50%)',
+    'display:flex',
+    'align-items:center',
+    'gap:12px',
+    'background:rgba(15,20,25,0.95)',
+    'color:#fff',
+    'padding:10px 16px',
+    'border-radius:9999px',
+    'box-shadow:0 4px 20px rgba(0,0,0,0.35)',
+    'z-index:2147483647',
+    'font:500 13px/1.2 system-ui,sans-serif',
+  ].join(';');
+
+  selectionCountEl = document.createElement('span');
+  selectionBar.appendChild(selectionCountEl);
+  selectionBar.appendChild(
+    barButton(chrome.i18n.getMessage('batch_bar_export') || 'Export', true, () => {
+      if (selectedUrls.size === 0) return;
+      try {
+        chrome.runtime.sendMessage(
+          { action: 'BATCH_START', urls: Array.from(selectedUrls) },
+          (resp) => {
+            void chrome.runtime.lastError;
+            if (resp?.success) {
+              if (selectionCountEl) {
+                selectionCountEl.textContent =
+                  chrome.i18n.getMessage('batch_started') || 'Batch started';
+              }
+              setTimeout(exitSelection, 1200);
+            } else if (selectionCountEl) {
+              selectionCountEl.textContent = resp?.error || 'Could not start the batch.';
+            }
+          }
+        );
+      } catch {
+        /* extension context gone */
+      }
+    })
+  );
+  selectionBar.appendChild(barButton('✕', false, exitSelection));
+  document.body.appendChild(selectionBar);
+
+  updateSelectionBar();
+  decorateSelection();
+}
+
+function exitSelection(): void {
+  selectionMode = false;
+  selectedUrls.clear();
+  document.querySelectorAll(`[${SELECT_MARK_ATTR}]`).forEach((m) => m.remove());
+  document.querySelectorAll(`[${SELECTED_ATTR}]`).forEach((a) => a.removeAttribute(SELECTED_ATTR));
+  selectionBar?.remove();
+  selectionBar = null;
+  selectionCountEl = null;
 }
 
 try {
   chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
-    if (msg && msg.action === 'XCLIPPER_BOOKMARKS_HARVEST') {
-      harvestBookmarks(); // catch cells rendered since the last mutation
-      sendResponse({ urls: Array.from(harvestedBookmarks) });
+    if (msg && msg.action === 'XCLIPPER_HARVEST') {
+      const source = harvestTimeline(); // catch cells rendered since the last mutation
+      sendResponse({
+        source: source ? source.kind : null,
+        ...(source?.kind === 'profile' ? { handle: source.handle } : {}),
+        urls: Array.from(harvested),
+      });
+      return false;
+    }
+    if (msg && msg.action === 'XCLIPPER_SELECTION') {
+      if (msg.enable) enterSelection();
+      else exitSelection();
+      sendResponse({ ok: true });
       return false;
     }
     return false;
@@ -349,13 +555,14 @@ const observer = new MutationObserver(() => {
   requestAnimationFrame(() => {
     scanScheduled = false;
     scan();
-    harvestBookmarks();
+    harvestTimeline();
+    decorateSelection();
   });
 });
 
 observer.observe(document.body, { childList: true, subtree: true });
 scan();
-harvestBookmarks();
+harvestTimeline();
 
 // ─── Right-click tracking ────────────────────────────────────────────
 // On context menu open, find the closest tweet article and tell the background

@@ -182,6 +182,21 @@ Combined digest renderer (`Document[] → string`), other formats as demanded.
   permalinks as virtualized cells pass through the DOM, and the popup exports
   what has been loaded. Pause/resume abandons the in-flight item and
   re-dispatches it on resume.
+- **2026-06-11 (post-Phase B):** duplicate avoidance via a persistent ledger
+  of exported status ids (`chrome.storage.local`, capped at 5000):
+  `startBatch` skips them, the popup counts "(N new)", and a Reset control
+  clears the memory.
+- **2026-06-11 (Phase C):** the profile source reuses the same harvester —
+  user-controlled scroll on the profile page, not a "last N posts" count
+  prompt — and skips reposts by keeping only the owner's own
+  `/<handle>/status/` links (resolves the retweet open question: skip).
+  Selection mode overlays per-cell check marks plus a floating export bar on
+  any x.com timeline; it starts the batch from the injector, so BATCH_START
+  also accepts our own x.com content-script sender.
+- **2026-06-11 (Phase D):** combined digest ships as `renderDigest(docs)` —
+  rendered documents joined with separators, written as `digest.md` next to
+  the per-item files. Opt-in via a popup toggle (default off) since it's an
+  extra file per batch.
 
 ## References
 

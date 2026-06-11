@@ -15,6 +15,8 @@ import type {
   BatchStartResponse,
   BatchStatusResponse,
 } from '../types/messages';
+import type { Document } from '../ast/types';
+import { renderDigest } from '../ast/render-digest';
 import { loadSettings } from '../shared/settings';
 import {
   isAllowedImageUrl,
@@ -256,15 +258,25 @@ async function tick(): Promise<void> {
   }
 }
 
-// JSON sink (ADR 0002 #11): one data.json per job with metadata, failures,
-// and every successful item's AST. Written for cancelled jobs too — the
-// matching .md files are already on disk, partial is honest.
-async function writeJsonManifest(job: BatchJob): Promise<void> {
+interface StoredItem {
+  url: string;
+  filename: string;
+  doc: Document;
+}
+
+async function takeStoredItems(job: BatchJob): Promise<StoredItem[]> {
   const keys = job.urls.map((_, i) => DOC_KEY_PREFIX + i);
   const stored = await chrome.storage.session.get(keys);
   await chrome.storage.session.remove(keys);
-  const items = keys.map((k) => stored[k]).filter((v) => v !== undefined);
-  if (items.length === 0) return;
+  return keys
+    .map((k) => stored[k] as StoredItem | undefined)
+    .filter((v): v is StoredItem => v !== undefined);
+}
+
+// JSON sink (ADR 0002 #11): one data.json per job with metadata, failures,
+// and every successful item's AST. Written for cancelled jobs too — the
+// matching .md files are already on disk, partial is honest.
+function writeJsonManifest(job: BatchJob, items: StoredItem[]): void {
   const manifest = {
     generator: 'xclipper-batch',
     jobId: job.id,
@@ -283,15 +295,30 @@ async function writeJsonManifest(job: BatchJob): Promise<void> {
   });
 }
 
+// Digest sink (ADR 0002, Phase D): one reading-oriented markdown file for
+// the whole batch. Opt-in via settings.
+function writeDigest(folder: string, items: StoredItem[]): void {
+  const markdown = renderDigest(items.map((i) => i.doc));
+  chrome.downloads.download({
+    url: 'data:text/markdown;charset=utf-8,' + encodeURIComponent(markdown),
+    filename: sanitizeFilePath(`${folder}/digest.md`),
+    saveAs: false,
+  });
+}
+
 // The finished/cancelled job stays in storage for inspection until the next
 // startBatch overwrites it.
 async function finalize(job: BatchJob): Promise<void> {
   await saveJob(job);
   await chrome.alarms.clear(WATCHDOG_ALARM);
   try {
-    await writeJsonManifest(job);
+    const items = await takeStoredItems(job);
+    if (items.length > 0) {
+      writeJsonManifest(job, items);
+      if ((await loadSettings()).batchDigest) writeDigest(job.folder, items);
+    }
   } catch (err) {
-    log('data.json write failed:', err);
+    log('data.json/digest write failed:', err);
   }
   log(
     `job ${job.id} ${job.status}: ${job.completed} exported, ` +
@@ -343,7 +370,12 @@ export function initBatch(): void {
   chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     if (!msg) return false;
     if (msg.action === 'BATCH_START') {
-      if (!isExtensionPageSender(sender, chrome.runtime.id)) {
+      // Extension pages (popup), plus our own injector content script on
+      // x.com — selection mode starts batches from the page (Phase C).
+      if (
+        !isExtensionPageSender(sender, chrome.runtime.id) &&
+        !isTrustedXContentSender(sender)
+      ) {
         sendResponse({ success: false, error: 'Untrusted sender' });
         return false;
       }

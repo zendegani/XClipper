@@ -27,6 +27,8 @@ export interface Settings {
   obsidianTagsTemplate: string;
   downloadFolder: string;
   filenameTemplate: string;
+  // Batch export: also write a combined digest.md into the job's folder.
+  batchDigest: boolean;
   frontmatterFields: FieldMap;
   frontmatterFieldsObsidian: FieldMap;
   // Section ids in most-recently-opened order (max length = SECTION_MAX_OPEN).
@@ -54,6 +56,7 @@ export const DEFAULT_SETTINGS: Settings = {
   obsidianTagsTemplate: '', // empty → use DEFAULT_TAGS_TEMPLATE in post-process
   downloadFolder: '', // empty → save directly in Downloads
   filenameTemplate: '', // empty → legacy {handle}-{id}.md / {handle}-{slug}.md
+  batchDigest: false, // off — extra file per batch, opt-in
   frontmatterFields: allEnabled(FRONTMATTER_FIELDS_DEFAULT),
   frontmatterFieldsObsidian: allEnabled(FRONTMATTER_FIELDS_OBSIDIAN),
   settingsSectionsOpen: ['downloads', 'obsidian'],

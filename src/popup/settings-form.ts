@@ -21,6 +21,7 @@ import {
 } from '../shared/post-process';
 import { attachPlaceholderAutocomplete } from './placeholder-autocomplete';
 import {
+  chkBatchDigest,
   chkDownloadImages,
   chkMetadata,
   chkCloseTab,
@@ -71,6 +72,7 @@ function persistAll(): void {
     obsidianTagsTemplate: txtObsidianTags.value.trim(),
     downloadFolder: txtDownloadFolder.value.trim(),
     filenameTemplate: txtFilenameTemplate.value.trim(),
+    batchDigest: chkBatchDigest.checked,
     frontmatterFields,
     frontmatterFieldsObsidian,
     settingsSectionsOpen,
@@ -246,6 +248,7 @@ export function initSettingsForm(): void {
     txtObsidianTags.value = settings.obsidianTagsTemplate;
     txtDownloadFolder.value = settings.downloadFolder;
     txtFilenameTemplate.value = settings.filenameTemplate;
+    chkBatchDigest.checked = settings.batchDigest;
     frontmatterFields = { ...settings.frontmatterFields };
     frontmatterFieldsObsidian = { ...settings.frontmatterFieldsObsidian };
     settingsSectionsOpen = [...settings.settingsSectionsOpen];
@@ -324,6 +327,7 @@ export function initSettingsForm(): void {
 
   // ─── Plain change/blur persistence for the remaining controls ───
   chkDownloadImages.addEventListener('change', persistAll);
+  chkBatchDigest.addEventListener('change', persistAll);
   chkMetadata.addEventListener('change', () => {
     // Mirror of the Obsidian-friendly → metadata rule: if metadata goes off,
     // Obsidian-friendly has nothing to reshape, so flip it off too.

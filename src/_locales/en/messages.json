@@ -65,8 +65,35 @@
   "batch_reset_hint": {
     "message": "Forget which bookmarks were already exported, so the next batch exports everything loaded."
   },
-  "btn_batch_open_bookmarks": {
-    "message": "Open x.com/i/bookmarks to batch-export your bookmarks."
+  "btn_batch_open_x": {
+    "message": "Open x.com to batch-export bookmarks or a profile."
+  },
+  "btn_batch_open_source": {
+    "message": "Open x.com/i/bookmarks or a profile page to batch-export its posts."
+  },
+  "btn_batch_profile": {
+    "message": "Export posts"
+  },
+  "btn_batch_select": {
+    "message": "Select tweets…"
+  },
+  "btn_batch_select_hint": {
+    "message": "Pick individual tweets on the current page with checkboxes, then export the selection."
+  },
+  "opt_batch_digest": {
+    "message": "digest.md"
+  },
+  "opt_batch_digest_hint": {
+    "message": "Also write a single digest.md containing every exported post, for reading top to bottom."
+  },
+  "batch_bar_selected": {
+    "message": "selected"
+  },
+  "batch_bar_export": {
+    "message": "Export"
+  },
+  "batch_started": {
+    "message": "Batch started"
   },
   "batch_start_failed": {
     "message": "Could not start the batch."

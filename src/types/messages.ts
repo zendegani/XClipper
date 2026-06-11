@@ -112,15 +112,27 @@ export interface BatchStatusResponse {
   };
 }
 
-// Popup → injector content script on x.com/i/bookmarks: return the status
-// permalinks harvested from the bookmarks timeline so far (the timeline is
-// virtualized, so the injector accumulates URLs as cells scroll through).
-export interface BookmarksHarvestRequest {
-  action: 'XCLIPPER_BOOKMARKS_HARVEST';
+// Popup → injector content script: return the status permalinks harvested
+// from the current page's timeline so far (timelines are virtualized, so the
+// injector accumulates URLs as cells scroll through). `source` says what
+// kind of page the injector recognizes — null means batch export doesn't
+// apply here.
+export interface HarvestRequest {
+  action: 'XCLIPPER_HARVEST';
 }
 
-export interface BookmarksHarvestResponse {
+export interface HarvestResponse {
+  source: 'bookmarks' | 'profile' | null;
+  // Profile owner's handle when source is 'profile'.
+  handle?: string;
   urls: string[];
+}
+
+// Popup → injector content script: enter/exit tweet selection mode — the
+// injector overlays checkboxes on timeline cells and a floating export bar.
+export interface SelectionRequest {
+  action: 'XCLIPPER_SELECTION';
+  enable: boolean;
 }
 
 // Content (worker tab) → background: finished result for the batch item the
@@ -156,5 +168,6 @@ export type MessageRequest =
   | BatchStartRequest
   | BatchControlRequest
   | BatchStatusRequest
-  | BookmarksHarvestRequest
+  | HarvestRequest
+  | SelectionRequest
   | BatchItemResultMessage;
