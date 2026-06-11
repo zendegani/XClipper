@@ -2,13 +2,14 @@
 // job; this module only starts/controls it and polls BATCH_STATUS for
 // progress — the popup can close and reopen mid-job without losing anything.
 //
-// The section is always visible so the feature is discoverable. The start
-// button activates on harvestable pages (bookmarks, profiles) and the count
-// re-polls while the popup is open, so scrolling the page behind the popup
-// updates the "(N new)" label live. "N new" excludes items a previous job
-// already exported (the background's ledger); Reset clears that memory.
-// "Select tweets…" hands off to the injector's selection mode on any
-// x.com timeline.
+// Layout: a Bookmarks | Profile | Selection tab strip over one action
+// button, so every source is always discoverable without stretching the
+// popup. A tab's button activates when the current page matches its source
+// (Selection works on any x.com timeline); otherwise it's disabled with a
+// "where to go" hint. While the popup is open on a matching page, the count
+// re-polls so scrolling behind the popup updates the "(N new)" label live.
+// "N new" excludes items a previous job already exported (the background's
+// ledger); Reset clears that memory.
 
 import type {
   BatchStartResponse,
@@ -25,21 +26,32 @@ import {
   batchProgress,
   batchProgressText,
   batchSection,
+  batchTabs,
   batchToolsRow,
   btnBatch,
   btnBatchCancel,
   btnBatchLabel,
   btnBatchPause,
   btnBatchReset,
-  btnBatchSelect,
+  tabBatchBookmarks,
+  tabBatchProfile,
+  tabBatchSelection,
 } from './dom';
 
 type JobSnapshot = NonNullable<BatchStatusResponse['job']>;
+type BatchTab = 'bookmarks' | 'profile' | 'selection';
 
 const JOB_POLL_MS = 800;
 const COUNT_POLL_MS = 1000;
 const t = (key: string, fallback: string): string => chrome.i18n.getMessage(key) || fallback;
 
+const TAB_BUTTONS: Record<BatchTab, HTMLButtonElement> = {
+  bookmarks: tabBatchBookmarks,
+  profile: tabBatchProfile,
+  selection: tabBatchSelection,
+};
+
+let activeTab: BatchTab = 'bookmarks';
 let jobPollTimer: ReturnType<typeof setInterval> | undefined;
 let countPollTimer: ReturnType<typeof setInterval> | undefined;
 let pageTabId: number | undefined;
@@ -78,25 +90,49 @@ async function loadLedgerSet(): Promise<Set<string>> {
   });
 }
 
-function disableStart(tooltipKey: string, tooltipFallback: string): void {
-  btnBatch.disabled = true;
-  btnBatchLabel.textContent = t('btn_batch', 'Export bookmarks');
-  btnBatch.setAttribute('data-tooltip', t(tooltipKey, tooltipFallback));
-  batchDedupRow.classList.add('hidden');
+function setButton(label: string, enabled: boolean, tooltip: string): void {
+  btnBatchLabel.textContent = label;
+  btnBatch.disabled = !enabled;
+  btnBatch.setAttribute('data-tooltip', tooltip);
 }
 
-// "Export bookmarks (N new)" / "Export @handle (N new)" — N excludes
-// already-exported items. The dedup row appears once anything is being
-// skipped, with the Reset escape hatch.
-async function refreshCount(): Promise<void> {
-  const { source, handle, urls } = await harvest();
-  if (!source) {
-    disableStart(
-      'btn_batch_open_source',
-      'Open x.com/i/bookmarks or a profile page to batch-export its posts.'
+// Refresh the action button for the active tab. Counts only apply when the
+// current page matches the tab's source; otherwise the button points the
+// user at the right page.
+async function refreshIdleUi(): Promise<void> {
+  if (activeTab === 'selection') {
+    batchDedupRow.classList.add('hidden');
+    setButton(
+      t('btn_batch_select', 'Select tweets…'),
+      pageIsX,
+      pageIsX
+        ? t('btn_batch_select_hint', 'Pick individual tweets on the current page with checkboxes, then export the selection.')
+        : t('btn_batch_open_x', 'Open x.com to batch-export bookmarks, a profile, or a selection.')
     );
     return;
   }
+
+  const { source, handle, urls } = await harvest();
+
+  if (activeTab === 'bookmarks' && source !== 'bookmarks') {
+    batchDedupRow.classList.add('hidden');
+    setButton(
+      t('btn_batch', 'Export bookmarks'),
+      false,
+      t('btn_batch_open_bookmarks', 'Open x.com/i/bookmarks to export your bookmarks.')
+    );
+    return;
+  }
+  if (activeTab === 'profile' && source !== 'profile') {
+    batchDedupRow.classList.add('hidden');
+    setButton(
+      t('btn_batch_profile', 'Export posts'),
+      false,
+      t('btn_batch_open_profile', 'Open a profile page on x.com to export its posts. Reposts are skipped.')
+    );
+    return;
+  }
+
   const ledger = await loadLedgerSet();
   const fresh = urls.filter((u) => {
     const id = statusIdOf(u);
@@ -104,16 +140,28 @@ async function refreshCount(): Promise<void> {
   });
   const skipped = urls.length - fresh.length;
   const base =
-    source === 'profile' && handle
-      ? `${t('btn_batch_profile', 'Export posts')} @${handle}`
+    activeTab === 'profile'
+      ? `${t('btn_batch_profile', 'Export posts')}${handle ? ` @${handle}` : ''}`
       : t('btn_batch', 'Export bookmarks');
   const suffix = skipped > 0 ? ` (${fresh.length} ${t('batch_new', 'new')})` : ` (${fresh.length})`;
-  btnBatchLabel.textContent = base + suffix;
-  btnBatch.disabled = fresh.length === 0;
+  const tooltip =
+    activeTab === 'profile'
+      ? t('btn_batch_profile_hint', "Export this profile's own posts loaded on the page as Markdown files into one folder. Reposts are skipped; scroll to load more.")
+      : t('btn_batch_hint', 'Export every bookmark loaded on this page as Markdown files into one folder. Scroll the bookmarks page to load more.');
+  setButton(base + suffix, fresh.length > 0, tooltip);
   batchDedupRow.classList.toggle('hidden', skipped === 0);
   if (skipped > 0) {
     batchDedupText.textContent = `${skipped} ${t('batch_already_exported', 'already exported')}`;
   }
+}
+
+function setActiveTab(tab: BatchTab): void {
+  activeTab = tab;
+  (Object.keys(TAB_BUTTONS) as BatchTab[]).forEach((k) => {
+    TAB_BUTTONS[k].classList.toggle('active', k === tab);
+  });
+  void refreshIdleUi();
+  startCountPolling();
 }
 
 function render(job: JobSnapshot): void {
@@ -124,8 +172,9 @@ function render(job: JobSnapshot): void {
 
   const active = job.status === 'running' || job.status === 'paused';
   btnBatch.classList.toggle('hidden', active);
+  batchTabs.classList.toggle('hidden', active);
   batchToolsRow.classList.toggle('hidden', active);
-  // refreshCount() re-evaluates the dedup row once the job is over.
+  // refreshIdleUi() re-evaluates the dedup row once the job is over.
   if (active) batchDedupRow.classList.add('hidden');
   btnBatchPause.classList.toggle('hidden', !active);
   btnBatchCancel.classList.toggle('hidden', !active);
@@ -176,15 +225,16 @@ function stopCountPolling(): void {
 
 function startCountPolling(): void {
   stopCountPolling();
-  if (pageTabId === undefined || !pageIsX) return;
-  countPollTimer = setInterval(() => void refreshCount(), COUNT_POLL_MS);
+  if (pageTabId === undefined || !pageIsX || activeTab === 'selection') return;
+  countPollTimer = setInterval(() => void refreshIdleUi(), COUNT_POLL_MS);
 }
 
-// Job finished/stopped: bring the start controls back and resume live counts.
+// Job finished/stopped: bring the idle controls back and resume live counts.
 async function backToIdle(): Promise<void> {
   btnBatch.classList.remove('hidden');
+  batchTabs.classList.remove('hidden');
   batchToolsRow.classList.remove('hidden');
-  await refreshCount();
+  await refreshIdleUi();
   startCountPolling();
 }
 
@@ -199,6 +249,15 @@ async function control(controlAction: 'pause' | 'resume' | 'cancel'): Promise<vo
 }
 
 async function startExport(): Promise<void> {
+  if (activeTab === 'selection') {
+    if (pageTabId === undefined) return;
+    chrome.tabs.sendMessage(pageTabId, { action: 'XCLIPPER_SELECTION', enable: true }, () => {
+      void chrome.runtime.lastError;
+      window.close(); // hand the page over to selection mode
+    });
+    return;
+  }
+
   btnBatch.disabled = true;
   stopCountPolling();
   const { urls } = await harvest();
@@ -226,38 +285,28 @@ export async function initBatchUi(): Promise<void> {
     if (resuming) startJobPolling();
   });
   btnBatchReset.addEventListener('click', () => {
-    chrome.storage.local.remove(EXPORTED_LEDGER_KEY, () => void refreshCount());
+    chrome.storage.local.remove(EXPORTED_LEDGER_KEY, () => void refreshIdleUi());
   });
-  btnBatchSelect.addEventListener('click', () => {
-    if (pageTabId === undefined) return;
-    chrome.tabs.sendMessage(pageTabId, { action: 'XCLIPPER_SELECTION', enable: true }, () => {
-      void chrome.runtime.lastError;
-      window.close(); // hand the page over to selection mode
-    });
+  (Object.keys(TAB_BUTTONS) as BatchTab[]).forEach((tab) => {
+    TAB_BUTTONS[tab].addEventListener('click', () => setActiveTab(tab));
   });
 
-  // Always visible for discoverability; the controls only work on x.com.
   batchSection.classList.remove('hidden');
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   pageIsX = !!tab?.id && hostMatches(tab.url || '', 'x.com', 'www.x.com');
   if (pageIsX) pageTabId = tab!.id;
-  btnBatchSelect.disabled = !pageIsX;
 
   const job = await fetchJob();
   const jobActive = job && (job.status === 'running' || job.status === 'paused');
 
   if (jobActive && job) {
     render(job);
-    btnBatch.classList.add('hidden');
-    batchToolsRow.classList.add('hidden');
     startJobPolling();
     return;
   }
 
-  if (pageIsX) {
-    await refreshCount();
-    startCountPolling();
-  } else {
-    disableStart('btn_batch_open_x', 'Open x.com to batch-export bookmarks or a profile.');
-  }
+  // Land on the tab that matches the current page; Selection is the
+  // fallback since it works on any x.com timeline.
+  const { source } = await harvest();
+  setActiveTab(source ?? (pageIsX ? 'selection' : 'bookmarks'));
 }
