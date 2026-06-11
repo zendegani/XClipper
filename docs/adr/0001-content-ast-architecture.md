@@ -1,14 +1,19 @@
 # ADR 0001 — Content AST as the source of truth for tweet/article content
 
-- Status: **Accepted**
+- Status: **Accepted — implemented**
 - Date: 2026-06-03
 - Deciders: @zendegani
 - Supersedes: —
 - Superseded by: —
 
+> **Implementation status:** cutover complete. The Content AST is the source of
+> truth; Markdown, PDF, and Obsidian are renderers over it. Turndown has been
+> removed as a runtime dependency. The "Context" below describes the pre-decision
+> pipeline and is kept as a historical record.
+
 ## Context
 
-XClipper extracts X (Twitter) content (tweets, threads, articles) and produces Markdown. The pipeline today is:
+XClipper extracts X (Twitter) content (tweets, threads, articles) and produces Markdown. When this decision was taken, the pipeline was:
 
 ```
 DOM → metadata + Turndown(DOM) → ExtractedContent { markdown: string, … } → .md file

@@ -332,7 +332,7 @@ document.addEventListener('contextmenu', (e) => {
     url = window.location.href;
   }
   try {
-    chrome.runtime.sendMessage({ action: 'TWEET2MD_CTX_URL', url }, () => {
+    chrome.runtime.sendMessage({ action: 'XCLIPPER_CTX_URL', url }, () => {
       // Read lastError to suppress "Unchecked runtime.lastError" log when the
       // background hasn't registered the listener yet or context is gone.
       void chrome.runtime.lastError;

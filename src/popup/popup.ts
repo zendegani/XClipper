@@ -14,13 +14,13 @@ import {
   loadSettings,
   saveSettings,
   DEFAULT_SETTINGS,
-  SECTION_IDS,
   SECTION_MAX_OPEN,
-  type Settings,
   type FieldMap,
 } from '../shared/settings';
 import { buildObsidianUrl } from '../shared/obsidian';
 import { hostMatches } from '../shared/media';
+import { applyI18n } from './i18n';
+import { attachPlaceholderAutocomplete } from './placeholder-autocomplete';
 
 const btnDownload = document.getElementById('btn-download') as HTMLButtonElement;
 const btnCopy = document.getElementById('btn-copy') as HTMLButtonElement;
@@ -88,46 +88,7 @@ if (footerVersion) {
 
 // ─── Initialize i18n ──────────────────────────────────────────────────
 
-// Chrome ships canonical direction + locale tokens per active UI language.
-// Setting them on <html> is what makes bidi text (e.g. Latin words embedded
-// in Arabic/Persian sentences) flow correctly and lets logical CSS props
-// (inset-inline-*, margin-inline-*) mirror the layout for RTL locales.
-const bidiDir = chrome.i18n.getMessage('@@bidi_dir');
-if (bidiDir === 'rtl' || bidiDir === 'ltr') {
-  document.documentElement.setAttribute('dir', bidiDir);
-}
-const uiLocale = chrome.i18n.getMessage('@@ui_locale');
-if (uiLocale) {
-  document.documentElement.setAttribute('lang', uiLocale.replace(/_/g, '-'));
-}
-
-document.querySelectorAll('[data-i18n]').forEach((el) => {
-  const key = el.getAttribute('data-i18n');
-  if (key) {
-    el.textContent = chrome.i18n.getMessage(key) || el.textContent;
-  }
-});
-
-document.querySelectorAll('[data-i18n-tooltip]').forEach((el) => {
-  const key = el.getAttribute('data-i18n-tooltip');
-  if (key) {
-    el.setAttribute('data-tooltip', chrome.i18n.getMessage(key) || el.getAttribute('data-tooltip') || '');
-  }
-});
-document.querySelectorAll('[data-i18n-placeholder]').forEach((el) => {
-  const key = el.getAttribute('data-i18n-placeholder');
-  if (key) {
-    const msg = chrome.i18n.getMessage(key);
-    if (msg) el.setAttribute('placeholder', msg);
-  }
-});
-document.querySelectorAll('[data-i18n-aria-label]').forEach((el) => {
-  const key = el.getAttribute('data-i18n-aria-label');
-  if (key) {
-    const msg = chrome.i18n.getMessage(key);
-    if (msg) el.setAttribute('aria-label', msg);
-  }
-});
+applyI18n();
 
 // ─── View switching: main ↔ settings ──────────────────────────────────
 
@@ -392,16 +353,28 @@ function updateTagsPreview(): void {
   );
 }
 
+// ─── Placeholder autocomplete (`{` opens, filters as user types) ──
+
+const tagsAutocompleteWidget = attachPlaceholderAutocomplete({
+  input: txtObsidianTags,
+  popover: tagsAutocomplete,
+  placeholders: TAGS_PLACEHOLDERS,
+  onSelect: () => {
+    updateTagsPreview();
+    persistAll();
+  },
+});
+
 txtObsidianTags.addEventListener('input', () => {
   updateTagsPreview();
-  handleTagsAutocompleteOnInput();
+  tagsAutocompleteWidget.handleInput();
 });
 txtObsidianTags.addEventListener('change', persistAll);
 txtObsidianTags.addEventListener('blur', () => {
   // Delay just enough to let an autocomplete click register before the popover
   // is forced shut by the blur.
   setTimeout(() => {
-    closeTagsAutocomplete();
+    tagsAutocompleteWidget.close();
     persistAll();
   }, 120);
 });
@@ -410,115 +383,8 @@ btnTagsReset.addEventListener('click', (e) => {
   e.preventDefault();
   txtObsidianTags.value = '';
   updateTagsPreview();
-  closeTagsAutocomplete();
+  tagsAutocompleteWidget.close();
   persistAll();
-});
-
-// ─── Placeholder autocomplete (`{` opens, filters as user types) ──
-
-interface AutocompleteState {
-  triggerStart: number; // index of the `{` in the input
-  highlighted: number; // index of the currently highlighted option
-  items: readonly string[]; // placeholders without braces
-}
-
-let autocompleteState: AutocompleteState | null = null;
-
-function closeTagsAutocomplete(): void {
-  autocompleteState = null;
-  tagsAutocomplete.hidden = true;
-  tagsAutocomplete.replaceChildren();
-}
-
-function renderAutocomplete(items: readonly string[], highlighted: number): void {
-  tagsAutocomplete.replaceChildren(
-    ...items.map((name, i) => {
-      const opt = document.createElement('button');
-      opt.type = 'button';
-      opt.className = 'placeholder-autocomplete-item' + (i === highlighted ? ' highlighted' : '');
-      opt.textContent = `{${name}}`;
-      opt.addEventListener('mousedown', (e) => {
-        // mousedown (not click) so the input's blur doesn't race with selection
-        e.preventDefault();
-        applyAutocompleteChoice(i);
-      });
-      return opt;
-    })
-  );
-  tagsAutocomplete.hidden = false;
-}
-
-function handleTagsAutocompleteOnInput(): void {
-  const caret = txtObsidianTags.selectionStart ?? txtObsidianTags.value.length;
-  // Walk back from the caret to the most recent `{` not yet closed.
-  const head = txtObsidianTags.value.slice(0, caret);
-  const open = head.lastIndexOf('{');
-  if (open < 0) {
-    closeTagsAutocomplete();
-    return;
-  }
-  const fragment = head.slice(open + 1);
-  // A `}` between the `{` and the caret means the placeholder is already
-  // closed; the next `{` (if any) will open a new context on a later keystroke.
-  if (fragment.includes('}')) {
-    closeTagsAutocomplete();
-    return;
-  }
-  const filtered = TAGS_PLACEHOLDERS.filter((p) => p.startsWith(fragment));
-  if (filtered.length === 0) {
-    closeTagsAutocomplete();
-    return;
-  }
-  autocompleteState = { triggerStart: open, highlighted: 0, items: filtered };
-  renderAutocomplete(filtered, 0);
-}
-
-function applyAutocompleteChoice(index: number): void {
-  if (!autocompleteState) return;
-  const choice = autocompleteState.items[index];
-  if (!choice) return;
-  const value = txtObsidianTags.value;
-  const caret = txtObsidianTags.selectionStart ?? value.length;
-  const before = value.slice(0, autocompleteState.triggerStart);
-  const after = value.slice(caret);
-  const insertion = `{${choice}}`;
-  txtObsidianTags.value = before + insertion + after;
-  const newCaret = before.length + insertion.length;
-  txtObsidianTags.setSelectionRange(newCaret, newCaret);
-  closeTagsAutocomplete();
-  updateTagsPreview();
-  persistAll();
-  txtObsidianTags.focus();
-}
-
-txtObsidianTags.addEventListener('keydown', (e) => {
-  if (!autocompleteState) return;
-  switch (e.key) {
-    case 'ArrowDown': {
-      e.preventDefault();
-      const next = (autocompleteState.highlighted + 1) % autocompleteState.items.length;
-      autocompleteState.highlighted = next;
-      renderAutocomplete(autocompleteState.items, next);
-      break;
-    }
-    case 'ArrowUp': {
-      e.preventDefault();
-      const len = autocompleteState.items.length;
-      const next = (autocompleteState.highlighted - 1 + len) % len;
-      autocompleteState.highlighted = next;
-      renderAutocomplete(autocompleteState.items, next);
-      break;
-    }
-    case 'Enter':
-    case 'Tab':
-      e.preventDefault();
-      applyAutocompleteChoice(autocompleteState.highlighted);
-      break;
-    case 'Escape':
-      e.preventDefault();
-      closeTagsAutocomplete();
-      break;
-  }
 });
 
 chkDownloadImages.addEventListener('change', persistAll);

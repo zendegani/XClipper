@@ -9,6 +9,7 @@
     "watch": "node build.mjs --watch",
     "package": "npm run build && cd dist && zip -r ../xclipper.zip . && echo '📦 xclipper.zip created'",
     "clean": "rm -rf dist xclipper.zip",
+    "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
     "screenshots": "npm run build && node scripts/popup-screenshots.mjs",
