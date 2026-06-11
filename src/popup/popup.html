@@ -113,6 +113,14 @@
       </div>
 
       <div id="batch-section" class="batch-section hidden">
+        <div id="batch-tabs" class="batch-tabs" role="tablist">
+          <button id="tab-batch-bookmarks" class="batch-tab" type="button" role="tab"
+            data-i18n="batch_tab_bookmarks">Bookmarks</button>
+          <button id="tab-batch-profile" class="batch-tab" type="button" role="tab"
+            data-i18n="batch_tab_profile">Profile</button>
+          <button id="tab-batch-selection" class="batch-tab" type="button" role="tab"
+            data-i18n="batch_tab_selection">Selection</button>
+        </div>
         <button id="btn-batch" class="btn-batch btn-action" type="button"
           data-tooltip="Export every bookmark loaded on this page as Markdown files into one folder. Scroll the bookmarks page to load more."
           data-i18n-tooltip="btn_batch_hint">
@@ -132,13 +140,10 @@
           <label class="batch-digest-label"
             data-tooltip="Also write a single digest.md containing every exported post, for reading top to bottom."
             data-i18n-tooltip="opt_batch_digest_hint">
-            <input type="checkbox" id="chk-batch-digest" class="toggle-input" />
-            <span class="toggle-switch toggle-switch-mini"></span>
+            <input type="checkbox" id="chk-batch-digest" class="fm-field-input" />
+            <span class="toggle-switch-mini"></span>
             <span data-i18n="opt_batch_digest">digest.md</span>
           </label>
-          <button id="btn-batch-select" class="batch-ctl" type="button"
-            data-tooltip="Pick individual tweets on the current page with checkboxes, then export the selection."
-            data-i18n-tooltip="btn_batch_select_hint" data-i18n="btn_batch_select">Select tweets…</button>
         </div>
         <div id="batch-progress" class="batch-progress hidden">
           <div class="batch-bar">

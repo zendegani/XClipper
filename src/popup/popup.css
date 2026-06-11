@@ -1456,3 +1456,37 @@ details.option-group[open] .option-group-chevron {
   gap: 6px;
   cursor: pointer;
 }
+
+.batch-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 8px;
+  padding: 3px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 9999px;
+}
+
+.batch-tabs.hidden {
+  display: none;
+}
+
+.batch-tab {
+  flex: 1;
+  font: 600 12px/1 var(--font);
+  padding: 6px 0;
+  border: none;
+  border-radius: 9999px;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+
+.batch-tab:hover {
+  color: var(--batch);
+}
+
+.batch-tab.active {
+  background: var(--batch-glow);
+  color: var(--batch);
+}

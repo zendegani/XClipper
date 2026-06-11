@@ -24,7 +24,10 @@ export const batchDedupText = document.getElementById('batch-dedup-text') as HTM
 export const btnBatchReset = document.getElementById('btn-batch-reset') as HTMLButtonElement;
 export const batchToolsRow = document.getElementById('batch-tools-row') as HTMLDivElement;
 export const chkBatchDigest = document.getElementById('chk-batch-digest') as HTMLInputElement;
-export const btnBatchSelect = document.getElementById('btn-batch-select') as HTMLButtonElement;
+export const batchTabs = document.getElementById('batch-tabs') as HTMLDivElement;
+export const tabBatchBookmarks = document.getElementById('tab-batch-bookmarks') as HTMLButtonElement;
+export const tabBatchProfile = document.getElementById('tab-batch-profile') as HTMLButtonElement;
+export const tabBatchSelection = document.getElementById('tab-batch-selection') as HTMLButtonElement;
 
 // ─── Settings checkboxes ─────────────────────────────────────────────
 export const chkDownloadImages = document.getElementById('chk-download-images') as HTMLInputElement;

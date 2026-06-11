@@ -66,13 +66,28 @@
     "message": "Forget which bookmarks were already exported, so the next batch exports everything loaded."
   },
   "btn_batch_open_x": {
-    "message": "Open x.com to batch-export bookmarks or a profile."
+    "message": "Open x.com to batch-export bookmarks, a profile, or a selection."
   },
-  "btn_batch_open_source": {
-    "message": "Open x.com/i/bookmarks or a profile page to batch-export its posts."
+  "btn_batch_open_bookmarks": {
+    "message": "Open x.com/i/bookmarks to export your bookmarks."
+  },
+  "btn_batch_open_profile": {
+    "message": "Open a profile page on x.com to export its posts. Reposts are skipped."
   },
   "btn_batch_profile": {
     "message": "Export posts"
+  },
+  "btn_batch_profile_hint": {
+    "message": "Export this profile's own posts loaded on the page as Markdown files into one folder. Reposts are skipped; scroll to load more."
+  },
+  "batch_tab_bookmarks": {
+    "message": "Bookmarks"
+  },
+  "batch_tab_profile": {
+    "message": "Profile"
+  },
+  "batch_tab_selection": {
+    "message": "Selection"
   },
   "btn_batch_select": {
     "message": "Select tweets…"
