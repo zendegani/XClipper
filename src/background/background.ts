@@ -10,6 +10,8 @@ import {
   isTrustedXContentSender,
   sanitizeFilePath,
 } from './security';
+import { initBatch } from './batch';
+import { normalizeStatusUrl } from './batch-state';
 
 // ─── Context menu: Save / Copy tweet as Markdown ────────────────────
 
@@ -21,13 +23,6 @@ const MENU_OBSIDIAN = 'xclipper-obsidian';
 const MENU_PDF = 'xclipper-pdf';
 
 type MenuAction = 'download' | 'copy' | 'obsidian' | 'pdf';
-
-// Strip any path beyond /status/<id> (e.g. /history, /photo/1, /analytics) and
-// drop any existing query/hash, so we always open the canonical permalink.
-function normalizeStatusUrl(url: string): string | null {
-  const m = url.match(/^(https?:\/\/(?:www\.)?x\.com\/[^/]+\/status\/\d+)/);
-  return m ? m[1] : null;
-}
 
 // Last known tweet URL under the user's cursor, set by the injector content
 // script on `contextmenu`. Used when info.linkUrl is missing (right-click on
@@ -92,6 +87,9 @@ function registerContextMenus(): void {
 
 chrome.runtime.onInstalled.addListener(registerContextMenus);
 chrome.runtime.onStartup.addListener(registerContextMenus);
+
+// Batch export orchestrator (ADR 0002) — registers its own listeners.
+initBatch();
 
 // One-time migration: project renamed tweet2md → XClipper in v2.0.0. Existing
 // users have preferences stored under the old `tweet2md_settings` key. Copy

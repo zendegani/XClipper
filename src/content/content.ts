@@ -1,4 +1,4 @@
-import type { DownloadRequest, ExtractResponse } from '../types/messages';
+import type { BatchItemResultMessage, DownloadRequest, ExtractResponse } from '../types/messages';
 import { postProcess, resolveDownloadImages, buildFilename } from '../shared/post-process';
 import { loadSettings } from '../shared/settings';
 import { buildObsidianUrl } from '../shared/obsidian';
@@ -227,6 +227,71 @@ if (autoMatch) {
     const singleTweet = AUTO_SINGLE_MARKER_RE.test(window.location.hash);
     autoExtract(action, { singleTweet });
   }
+}
+
+// ─── Batch extraction (#xclipper=batch) ─────────────────────────────
+// The hidden worker tab opened by the background batch orchestrator
+// (ADR 0002) lands here. Extract with the user's saved settings, finalize the
+// markdown locally, and report back — the background owns the queue, the
+// throttle, and the folder sink. Errors are reported too, so the orchestrator
+// can skip-and-record instead of waiting for its timeout.
+
+const BATCH_MARKER_RE = /[#&]xclipper=batch/;
+
+async function runBatchExtract(): Promise<void> {
+  let msg: BatchItemResultMessage;
+  try {
+    const article = await waitForArticle();
+    if (!article) throw new Error('Timed out waiting for tweet content');
+
+    const settings = await loadSettings();
+    const response = await extract({
+      includeMetadata: settings.includeMetadata || settings.inlineStats,
+    });
+    if (!response.success || !response.data) {
+      throw new Error(response.error || 'Extraction failed');
+    }
+    // Same option resolution as the auto-extract 'download' flow above.
+    const frontmatterFields = settings.obsidianFriendly
+      ? settings.frontmatterFieldsObsidian
+      : settings.frontmatterFields;
+    const result = postProcess(response.data, {
+      includeMetadata: settings.includeMetadata,
+      downloadImages: resolveDownloadImages('download', settings.downloadImages),
+      inlineStats: settings.inlineStats,
+      obsidianFriendly: settings.obsidianFriendly,
+      filenameTemplate: settings.filenameTemplate.trim(),
+      frontmatterFields,
+    });
+    msg = {
+      action: 'BATCH_ITEM_RESULT',
+      url: window.location.href,
+      success: true,
+      markdown: result.markdown,
+      filename: result.filename,
+      images: result.images.length > 0 ? result.images : undefined,
+    };
+  } catch (err) {
+    msg = {
+      action: 'BATCH_ITEM_RESULT',
+      url: window.location.href,
+      success: false,
+      error: err instanceof Error ? err.message : String(err),
+    };
+  }
+  // Stop loading below-the-fold recommendations/ads while the orchestrator's
+  // throttle runs (ADR 0002 #9). Only safe *after* extraction — stopping
+  // earlier can abort the fetches that hydrate the rest of a thread.
+  try {
+    window.stop();
+  } catch {
+    // ignore
+  }
+  chrome.runtime.sendMessage(msg);
+}
+
+if (BATCH_MARKER_RE.test(window.location.hash)) {
+  runBatchExtract();
 }
 
 // ─── In-place toast ─────────────────────────────────────────────────

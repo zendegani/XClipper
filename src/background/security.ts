@@ -18,7 +18,7 @@ function isHttpsXUrl(raw: string | undefined): boolean {
   return url?.protocol === 'https:' && url.hostname === 'x.com';
 }
 
-function isExtensionPageSender(
+export function isExtensionPageSender(
   sender: chrome.runtime.MessageSender,
   extensionId: string
 ): boolean {
