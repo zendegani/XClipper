@@ -19,6 +19,9 @@ export const batchBarFill = document.getElementById('batch-bar-fill') as HTMLDiv
 export const batchProgressText = document.getElementById('batch-progress-text') as HTMLSpanElement;
 export const btnBatchPause = document.getElementById('btn-batch-pause') as HTMLButtonElement;
 export const btnBatchCancel = document.getElementById('btn-batch-cancel') as HTMLButtonElement;
+export const batchDedupRow = document.getElementById('batch-dedup-row') as HTMLDivElement;
+export const batchDedupText = document.getElementById('batch-dedup-text') as HTMLSpanElement;
+export const btnBatchReset = document.getElementById('btn-batch-reset') as HTMLButtonElement;
 
 // ─── Settings checkboxes ─────────────────────────────────────────────
 export const chkDownloadImages = document.getElementById('chk-download-images') as HTMLInputElement;

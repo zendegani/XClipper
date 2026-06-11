@@ -53,8 +53,20 @@
   "batch_failed": {
     "message": "failed"
   },
-  "batch_none_found": {
-    "message": "No bookmarks loaded — scroll the bookmarks page first."
+  "batch_new": {
+    "message": "new"
+  },
+  "batch_already_exported": {
+    "message": "already exported"
+  },
+  "batch_reset": {
+    "message": "Reset"
+  },
+  "batch_reset_hint": {
+    "message": "Forget which bookmarks were already exported, so the next batch exports everything loaded."
+  },
+  "btn_batch_open_bookmarks": {
+    "message": "Open x.com/i/bookmarks to batch-export your bookmarks."
   },
   "batch_start_failed": {
     "message": "Could not start the batch."

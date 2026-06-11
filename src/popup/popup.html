@@ -122,6 +122,12 @@
           </svg>
           <span class="btn-label" id="btn-batch-label" data-i18n="btn_batch">Export bookmarks</span>
         </button>
+        <div id="batch-dedup-row" class="batch-dedup-row hidden">
+          <span id="batch-dedup-text"></span>
+          <button id="btn-batch-reset" class="batch-ctl" type="button"
+            data-tooltip="Forget which bookmarks were already exported, so the next batch exports everything loaded."
+            data-i18n-tooltip="batch_reset_hint" data-i18n="batch_reset">Reset</button>
+        </div>
         <div id="batch-progress" class="batch-progress hidden">
           <div class="batch-bar">
             <div id="batch-bar-fill" class="batch-bar-fill"></div>
