@@ -17,6 +17,7 @@ export interface BatchJob {
   // Downloads subfolder all of this job's files land in.
   folder: string;
   workerTabId?: number;
+  workerWindowId?: number;
   // True once the current item's URL has been loaded in the worker tab and
   // we're waiting on the content script's BATCH_ITEM_RESULT.
   awaitingResult: boolean;

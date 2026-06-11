@@ -165,6 +165,17 @@ Combined digest renderer (`Document[] → string`), other formats as demanded.
 - Retweets/reposts in sources: export the underlying tweet, skip, or make it
   a toggle.
 
+## Amendments
+
+- **2026-06-11 (Phase A testing):** the worker is a small *unfocused popup
+  window*, not an inactive background tab (amends choice #5). Chrome never
+  paints hidden tabs — `requestAnimationFrame` doesn't fire, so X's
+  virtualized timeline neither mounts thread continuation tweets nor hydrates
+  lazy media; batch exports came back with root-only threads and no images.
+  An unfocused-but-visible window keeps rendering without stealing focus.
+  Residual risk: a fully occluded window is treated as hidden again; affected
+  items fail by per-item timeout and are recorded in the job summary.
+
 ## References
 
 - ADR 0001 — Content AST architecture (`0001-content-ast-architecture.md`)

@@ -29,8 +29,9 @@ import {
 
 const JOB_KEY = 'xclipper_batch_job';
 const WATCHDOG_ALARM = 'xclipper-batch-watchdog';
-// Budget per item: worker-tab navigation + waitForArticle (15 s) + extraction.
-const ITEM_TIMEOUT_MS = 60_000;
+// Budget per item: navigation + waitForArticle (15 s) + the bounded thread
+// scroll-walk in loadThreadIntoDom (worst case ~40 s) + extraction.
+const ITEM_TIMEOUT_MS = 90_000;
 const BATCH_MARKER = '#xclipper=batch';
 
 // Behave like a patient user in their own session: 2–4 s between permalink
@@ -76,8 +77,16 @@ export async function startBatch(rawUrls: unknown): Promise<BatchStartResponse> 
   return { success: true, total: job.urls.length };
 }
 
-// Navigate the worker tab to the current item (creating the tab for the first
-// one) and arm the per-item timeout.
+// Navigate the worker to the current item (creating it for the first one)
+// and arm the per-item timeout.
+//
+// The worker is a small UNFOCUSED popup window, not a background tab: Chrome
+// never paints hidden tabs, so requestAnimationFrame doesn't fire there and
+// X's virtualized timeline neither mounts the rest of a thread nor hydrates
+// lazy media — extractions came back with only the root tweet and no images.
+// An unfocused-but-visible window keeps rendering without stealing focus.
+// (A fully occluded window is treated as hidden again; items then fail by
+// timeout and are recorded, not lost silently.)
 async function dispatchCurrent(job: BatchJob): Promise<void> {
   const url = currentUrl(job);
   if (!url) {
@@ -86,24 +95,33 @@ async function dispatchCurrent(job: BatchJob): Promise<void> {
   }
   const target = url + BATCH_MARKER;
   let tabId = job.workerTabId;
+  let windowId = job.workerWindowId;
   if (tabId !== undefined) {
     try {
       await chrome.tabs.update(tabId, { url: target });
     } catch {
       // Tab is gone. If that was a user-close, the onRemoved handler has
-      // already cancelled the job — re-check before resurrecting the tab.
+      // already cancelled the job — re-check before resurrecting the worker.
       const fresh = await loadJob();
       if (fresh?.status !== 'running') return;
       tabId = undefined;
     }
   }
   if (tabId === undefined) {
-    const tab = await chrome.tabs.create({ url: target, active: false });
-    tabId = tab.id;
+    const win = await chrome.windows.create({
+      url: target,
+      focused: false,
+      type: 'popup',
+      width: 480,
+      height: 720,
+    });
+    tabId = win?.tabs?.[0]?.id;
+    windowId = win?.id;
   }
   await saveJob({
     ...job,
     workerTabId: tabId,
+    workerWindowId: windowId,
     awaitingResult: true,
     deadline: Date.now() + ITEM_TIMEOUT_MS,
     nextDispatchAt: undefined,
@@ -193,7 +211,13 @@ async function finalize(job: BatchJob): Promise<void> {
       `${job.failures.length} failed → ${job.folder}/`
   );
   for (const f of job.failures) log(`  failed: ${f.url} — ${f.error}`);
-  if (job.workerTabId !== undefined) {
+  if (job.workerWindowId !== undefined) {
+    try {
+      await chrome.windows.remove(job.workerWindowId);
+    } catch {
+      // already closed
+    }
+  } else if (job.workerTabId !== undefined) {
     try {
       await chrome.tabs.remove(job.workerTabId);
     } catch {
