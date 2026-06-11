@@ -10,6 +10,8 @@ export interface BatchFailure {
 export interface BatchJob {
   id: string;
   status: 'running' | 'paused' | 'done' | 'cancelled';
+  // Surface that launched the job; the popup scopes progress display to it.
+  origin?: 'bookmarks' | 'profile' | 'selection';
   // Normalized, deduped status permalinks.
   urls: string[];
   // Index of the item currently being processed (or next to dispatch).

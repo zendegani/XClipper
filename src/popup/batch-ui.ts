@@ -65,6 +65,9 @@ let activeTab: BatchTab = 'bookmarks';
 // politeness throttle toward X). Tabs stay browsable mid-job; this flag
 // just keeps the start button disabled everywhere while a job runs.
 let jobIsActive = false;
+// Last polled snapshot, so a tab switch can re-evaluate progress visibility
+// immediately instead of waiting for the next poll.
+let lastJob: JobSnapshot | undefined;
 let jobPollTimer: ReturnType<typeof setInterval> | undefined;
 let countPollTimer: ReturnType<typeof setInterval> | undefined;
 let pageTabId: number | undefined;
@@ -179,15 +182,23 @@ function setActiveTab(tab: BatchTab): void {
     TAB_BUTTONS[k].classList.toggle('active', k === tab);
     TAB_ICONS[k].classList.toggle('hidden', k !== tab);
   });
-  // A finished job's report belongs to that job, not the tab — clear it when
-  // moving on. A live job's progress stays visible on every tab.
-  if (!jobIsActive) batchProgress.classList.add('hidden');
+  // Progress and reports belong to the tab the job was started from; other
+  // tabs just show their (disabled) start button.
+  if (jobIsActive && lastJob) {
+    render(lastJob);
+  } else {
+    batchProgress.classList.add('hidden');
+  }
   void refreshIdleUi();
   startCountPolling();
 }
 
 function render(job: JobSnapshot): void {
-  batchProgress.classList.remove('hidden');
+  lastJob = job;
+  // Show progress only on the tab the job came from (no origin = legacy
+  // job from before origins existed — show everywhere).
+  const onOriginTab = !job.origin || job.origin === activeTab;
+  batchProgress.classList.toggle('hidden', !onOriginTab);
   const processed = job.completed + job.failed;
   const pct = job.total > 0 ? Math.round((processed / job.total) * 100) : 0;
   batchBarFill.style.width = `${pct}%`;
@@ -284,6 +295,7 @@ async function startExport(): Promise<void> {
   const resp = (await chrome.runtime.sendMessage({
     action: 'BATCH_START',
     urls,
+    origin: activeTab,
   })) as BatchStartResponse | undefined;
   if (!resp?.success) {
     batchProgress.classList.remove('hidden');
