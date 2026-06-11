@@ -486,7 +486,7 @@ function enterSelection(): void {
       if (selectedUrls.size === 0) return;
       try {
         chrome.runtime.sendMessage(
-          { action: 'BATCH_START', urls: Array.from(selectedUrls) },
+          { action: 'BATCH_START', urls: Array.from(selectedUrls), origin: 'selection' },
           (resp) => {
             void chrome.runtime.lastError;
             if (resp?.success) {

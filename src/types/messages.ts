@@ -79,6 +79,9 @@ export interface AutoExtractRequest {
 export interface BatchStartRequest {
   action: 'BATCH_START';
   urls: string[];
+  // Which surface launched the job — the popup scopes progress display to
+  // the matching tab.
+  origin?: 'bookmarks' | 'profile' | 'selection';
 }
 
 export interface BatchStartResponse {
@@ -105,6 +108,7 @@ export interface BatchStatusResponse {
   job?: {
     id: string;
     status: 'running' | 'paused' | 'done' | 'cancelled';
+    origin?: 'bookmarks' | 'profile' | 'selection';
     total: number;
     completed: number;
     failed: number;

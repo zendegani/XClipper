@@ -79,7 +79,15 @@ async function recordExported(url: string): Promise<void> {
   await chrome.storage.local.set({ [EXPORTED_LEDGER_KEY]: appendToLedger(ledger, id) });
 }
 
-export async function startBatch(rawUrls: unknown): Promise<BatchStartResponse> {
+const JOB_ORIGINS = ['bookmarks', 'profile', 'selection'] as const;
+
+function coerceOrigin(raw: unknown): BatchJob['origin'] {
+  return JOB_ORIGINS.includes(raw as (typeof JOB_ORIGINS)[number])
+    ? (raw as BatchJob['origin'])
+    : undefined;
+}
+
+export async function startBatch(rawUrls: unknown, origin?: BatchJob['origin']): Promise<BatchStartResponse> {
   const existing = await loadJob();
   if (existing && (existing.status === 'running' || existing.status === 'paused')) {
     return { success: false, error: 'A batch job is already running' };
@@ -106,7 +114,7 @@ export async function startBatch(rawUrls: unknown): Promise<BatchStartResponse> 
   if (fresh.length < job.urls.length) {
     log(`${job.urls.length - fresh.length} already-exported item(s) skipped`);
   }
-  job = { ...job, urls: fresh };
+  job = { ...job, urls: fresh, ...(origin ? { origin } : {}) };
   // Snapshot the user's download subfolder once so the whole job lands in one
   // place even if the setting changes mid-run.
   const settings = await loadSettings();
@@ -384,7 +392,7 @@ export function initBatch(): void {
         sendResponse({ success: false, error: 'Untrusted sender' });
         return false;
       }
-      startBatch(msg.urls).then(sendResponse);
+      startBatch(msg.urls, coerceOrigin(msg.origin)).then(sendResponse);
       return true; // async sendResponse
     }
     if (msg.action === 'BATCH_CONTROL') {
@@ -427,6 +435,7 @@ export function initBatch(): void {
               job: {
                 id: job.id,
                 status: job.status,
+                ...(job.origin ? { origin: job.origin } : {}),
                 total: job.urls.length,
                 completed: job.completed,
                 failed: job.failures.length,
