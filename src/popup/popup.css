@@ -1417,11 +1417,11 @@ details.option-group[open] .option-group-chevron {
 }
 
 .batch-bar {
-  height: 6px;
+  height: 8px;
+  flex: 1;
   border-radius: 9999px;
   background: rgba(14, 165, 233, 0.15);
   overflow: hidden;
-  margin: 6px 0 6px;
 }
 
 .batch-bar-fill {
@@ -1432,14 +1432,17 @@ details.option-group[open] .option-group-chevron {
   transition: width 300ms ease;
 }
 
+/* Player-style control row: pause/resume + stop in front, the bar fills the
+ * rest, and the status text sits on its own line below. */
 .batch-progress-row {
   display: flex;
   align-items: center;
-  justify-content: space-between;
   gap: 8px;
 }
 
 .batch-progress-text {
+  display: block;
+  margin-top: 6px;
   font-size: 12px;
   color: var(--text-secondary, #71767b);
   overflow: hidden;
@@ -1453,6 +1456,10 @@ details.option-group[open] .option-group-chevron {
   flex-shrink: 0;
 }
 
+.batch-controls.hidden {
+  display: none;
+}
+
 .batch-ctl {
   font-size: 12px;
   padding: 2px 10px;
@@ -1464,6 +1471,25 @@ details.option-group[open] .option-group-chevron {
 }
 .batch-ctl:hover {
   background: var(--batch-glow);
+}
+
+/* Pause / stop as compact square icon buttons sitting in front of the bar. */
+.batch-ctl-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+}
+
+.batch-ico {
+  width: 14px;
+  height: 14px;
+}
+
+.batch-ico.hidden {
+  display: none;
 }
 
 .btn-batch.hidden,

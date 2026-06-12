@@ -42,6 +42,12 @@ import { setExportMode } from './mode';
 type JobSnapshot = NonNullable<BatchStatusResponse['job']>;
 type BatchTab = 'bookmarks' | 'profile' | 'selection';
 
+// The pause button swaps between a pause and a play (resume) glyph.
+const icoPause = btnBatchPause.querySelector('.batch-ico-pause');
+const icoPlay = btnBatchPause.querySelector('.batch-ico-play');
+// Hidden as a unit when idle so the bar doesn't keep a leading gap.
+const batchControls = document.querySelector('.batch-controls');
+
 const JOB_POLL_MS = 800;
 const COUNT_POLL_MS = 1000;
 const t = (key: string, fallback: string): string => chrome.i18n.getMessage(key) || fallback;
@@ -209,10 +215,19 @@ function render(job: JobSnapshot): void {
     btnBatch.disabled = true;
     btnBatch.setAttribute('data-tooltip', t('batch_running', 'A batch job is already running.'));
   }
+  // Keep the start button visible (disabled) during a job — its label keeps
+  // counting items as the user scrolls to load more. The controls + bar sit
+  // below it.
+  batchControls?.classList.toggle('hidden', !active);
   btnBatchPause.classList.toggle('hidden', !active);
   btnBatchCancel.classList.toggle('hidden', !active);
-  btnBatchPause.textContent =
-    job.status === 'paused' ? t('batch_resume', 'Resume') : t('batch_pause', 'Pause');
+  const paused = job.status === 'paused';
+  icoPlay?.classList.toggle('hidden', !paused);
+  icoPause?.classList.toggle('hidden', paused);
+  btnBatchPause.setAttribute(
+    'aria-label',
+    paused ? t('batch_resume', 'Resume') : t('batch_pause', 'Pause')
+  );
 
   const failedSuffix =
     job.failed > 0 ? ` · ${job.failed} ${t('batch_failed', 'failed')}` : '';
@@ -312,7 +327,7 @@ export async function initBatchUi(): Promise<void> {
   btnBatch.addEventListener('click', () => void startExport());
   btnBatchCancel.addEventListener('click', () => void control('cancel'));
   btnBatchPause.addEventListener('click', () => {
-    const resuming = btnBatchPause.textContent === t('batch_resume', 'Resume');
+    const resuming = lastJob?.status === 'paused';
     void control(resuming ? 'resume' : 'pause');
     if (resuming) startJobPolling();
   });

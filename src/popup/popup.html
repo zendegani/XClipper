@@ -74,7 +74,7 @@
             <span class="toggle-switch"></span>
           </label>
           <label id="opt-batch-digest" class="toggle-label hidden"
-            data-tooltip="Batch export only: also write every exported post into a single x-compilation-<date> file in the batch folder."
+            data-tooltip="Also write every exported post into a single x-compilation-<date> file in the batch folder."
             data-i18n-tooltip="opt_batch_digest_hint">
             <span class="toggle-text">
               <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -83,7 +83,7 @@
                 <polyline points="2 17 12 22 22 17" />
                 <polyline points="2 12 12 17 22 12" />
               </svg>
-              <span data-i18n="opt_batch_digest">Export as one file (x-compilation-&lt;date&gt;)</span>
+              <span data-i18n="opt_batch_digest">Export also as one file</span>
             </span>
             <input type="checkbox" id="chk-batch-digest" class="toggle-input" />
             <span class="toggle-switch"></span>
@@ -171,16 +171,30 @@
             data-i18n-tooltip="batch_reset_hint" data-i18n="batch_reset">Reset dedup</button>
         </div>
         <div id="batch-progress" class="batch-progress hidden">
-          <div class="batch-bar">
-            <div id="batch-bar-fill" class="batch-bar-fill"></div>
-          </div>
           <div class="batch-progress-row">
-            <span id="batch-progress-text" class="batch-progress-text"></span>
             <span class="batch-controls">
-              <button id="btn-batch-pause" class="batch-ctl" type="button" data-i18n="batch_pause">Pause</button>
-              <button id="btn-batch-cancel" class="batch-ctl" type="button" data-i18n="batch_stop">Stop</button>
+              <button id="btn-batch-pause" class="batch-ctl batch-ctl-icon" type="button"
+                aria-label="Pause" data-i18n-aria-label="batch_pause">
+                <svg class="batch-ico batch-ico-pause" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <rect x="6" y="5" width="4" height="14" rx="1" />
+                  <rect x="14" y="5" width="4" height="14" rx="1" />
+                </svg>
+                <svg class="batch-ico batch-ico-play hidden" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <path d="M7 4.5v15l13-7.5z" />
+                </svg>
+              </button>
+              <button id="btn-batch-cancel" class="batch-ctl batch-ctl-icon" type="button"
+                aria-label="Stop" data-i18n-aria-label="batch_stop">
+                <svg class="batch-ico" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                  <rect x="6" y="6" width="12" height="12" rx="1.5" />
+                </svg>
+              </button>
             </span>
+            <div class="batch-bar">
+              <div id="batch-bar-fill" class="batch-bar-fill"></div>
+            </div>
           </div>
+          <span id="batch-progress-text" class="batch-progress-text"></span>
         </div>
       </div>
 
