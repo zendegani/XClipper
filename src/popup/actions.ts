@@ -3,8 +3,9 @@
 // current selections from the DOM refs and the settings-form field maps; it
 // does not own any settings state.
 
-import type { ExtractResponse, DownloadRequest } from '../types/messages';
-import { postProcess, resolveDownloadImages, type PostProcessResult } from '../shared/post-process';
+import type { ExtractResponse, DownloadRequest, ExtractedContent } from '../types/messages';
+import { postProcess, resolveDownloadImages, buildFilename, type PostProcessResult } from '../shared/post-process';
+import { buildFormatExport, type ExportFormat } from '../shared/export-formats';
 import { buildObsidianUrl } from '../shared/obsidian';
 import { hostMatches } from '../shared/media';
 import { currentFrontmatterFields } from './settings-form';
@@ -13,6 +14,10 @@ import {
   btnCopy,
   btnPdf,
   btnObsidian,
+  btnHtml,
+  btnJson,
+  btnTxt,
+  btnCsv,
   statusEl,
   chkMetadata,
   chkInlineStats,
@@ -23,6 +28,11 @@ import {
   txtObsidianVault,
   txtObsidianFolder,
 } from './dom';
+
+// Every button the export flows disable while one of them is running, so a
+// second click can't race an in-flight extraction.
+const formatButtons = [btnHtml, btnJson, btnTxt, btnCsv];
+const allExportButtons = [btnDownload, btnCopy, btnPdf, btnObsidian, ...formatButtons];
 
 function showStatus(
   message: string,
@@ -40,10 +50,7 @@ function showStatus(
 }
 
 function setLoading(loading: boolean, target?: 'download' | 'copy' | 'obsidian' | 'pdf'): void {
-  btnDownload.disabled = loading;
-  btnCopy.disabled = loading;
-  btnObsidian.disabled = loading;
-  btnPdf.disabled = loading;
+  for (const btn of allExportButtons) btn.disabled = loading;
 
   // Only animate the button that was actually clicked
   if (target === 'download' || !target) {
@@ -84,9 +91,10 @@ function setLoading(loading: boolean, target?: 'download' | 'copy' | 'obsidian' 
   }
 }
 
-async function extractMarkdown(
-  forAction: 'download' | 'copy' | 'obsidian' = 'download',
-): Promise<PostProcessResult> {
+// Shared up-front guard + extraction: resolve the active tab, confirm it's a
+// specific X.com status page, and run EXTRACT. Both the Markdown flows and the
+// alternate-format exports build on the ExtractedContent it returns.
+async function extractContent(includeMetadata: boolean): Promise<ExtractedContent> {
   const [tab] = await chrome.tabs.query({
     active: true,
     currentWindow: true,
@@ -107,6 +115,21 @@ async function extractMarkdown(
     );
   }
 
+  const response: ExtractResponse = await chrome.tabs.sendMessage(tab.id, {
+    action: 'EXTRACT',
+    includeMetadata,
+  });
+
+  if (!response.success || !response.data) {
+    throw new Error(response.error || chrome.i18n.getMessage('error_failed') || 'Failed to extract content.');
+  }
+
+  return response.data;
+}
+
+async function extractMarkdown(
+  forAction: 'download' | 'copy' | 'obsidian' = 'download',
+): Promise<PostProcessResult> {
   const includeMetadata = chkMetadata.checked;
   const inlineStats = chkInlineStats.checked;
   // "Add to Obsidian" is *the* Obsidian path — force the Obsidian schema
@@ -119,17 +142,10 @@ async function extractMarkdown(
   const downloadImages =
     forAction === 'obsidian' ? false : resolveDownloadImages(forAction, chkDownloadImages.checked);
 
-  const response: ExtractResponse = await chrome.tabs.sendMessage(tab.id, {
-    action: 'EXTRACT',
-    // Need engagement data if either renderer wants it.
-    includeMetadata: includeMetadata || inlineStats,
-  });
+  // Need engagement data if either renderer wants it.
+  const data = await extractContent(includeMetadata || inlineStats);
 
-  if (!response.success || !response.data) {
-    throw new Error(response.error || chrome.i18n.getMessage('error_failed') || 'Failed to extract content.');
-  }
-
-  return postProcess(response.data, {
+  return postProcess(data, {
     includeMetadata,
     downloadImages,
     inlineStats,
@@ -288,4 +304,59 @@ export function initActions(): void {
       handleExtractionError(err);
     }
   });
+
+  // ─── Alternate-format exports (HTML / JSON / TXT / CSV) ───
+  const formatTargets: { btn: HTMLButtonElement; format: ExportFormat }[] = [
+    { btn: btnHtml, format: 'html' },
+    { btn: btnJson, format: 'json' },
+    { btn: btnTxt, format: 'txt' },
+    { btn: btnCsv, format: 'csv' },
+  ];
+  for (const { btn, format } of formatTargets) {
+    btn.addEventListener('click', () => runFormatExport(format, btn));
+  }
+}
+
+// Build one of the alternate formats from the current page and hand it to the
+// background download handler. Metadata is always requested so CSV/JSON/HTML
+// have engagement counts available regardless of the popup toggles.
+async function runFormatExport(format: ExportFormat, btn: HTMLButtonElement): Promise<void> {
+  for (const b of allExportButtons) b.disabled = true;
+  btn.classList.add('loading');
+  statusEl.className = 'status hidden';
+
+  try {
+    const data = await extractContent(true);
+    const obsidianFriendly = chkObsidianFriendly.checked;
+    const exported = buildFormatExport(format, data, {
+      includeEngagement: chkInlineStats.checked,
+      obsidianFriendly,
+      frontmatterFields: currentFrontmatterFields(obsidianFriendly),
+      obsidianTagsTemplate: txtObsidianTags.value.trim(),
+    });
+
+    const filename = buildFilename(data, txtFilenameTemplate.value.trim()).replace(/\.md$/i, `.${exported.ext}`);
+
+    const downloadMsg: DownloadRequest = {
+      action: 'DOWNLOAD_MD',
+      content: exported.content,
+      filename,
+      mime: exported.mime,
+    };
+
+    chrome.runtime.sendMessage(downloadMsg, (downloadResponse) => {
+      if (chrome.runtime.lastError || !downloadResponse?.success) {
+        showStatus(downloadResponse?.error || chrome.i18n.getMessage('download_failed') || 'Download failed.', 'error');
+      } else {
+        showStatus(`✓ .${exported.ext} ${chrome.i18n.getMessage('downloaded') || 'Downloaded!'}`, 'success');
+      }
+      btn.classList.remove('loading');
+      for (const b of allExportButtons) b.disabled = false;
+    });
+  } catch (err) {
+    // handleExtractionError → setLoading(false) re-enables the buttons; it only
+    // clears the loading class on the Markdown/PDF buttons, so drop ours here.
+    btn.classList.remove('loading');
+    handleExtractionError(err);
+  }
 }

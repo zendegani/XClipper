@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
+## [Unreleased]
+
+### Added
+
+- **More single-export formats** (issue #54): alongside Markdown and PDF, a single post can now be saved as **HTML** (a styled, self-contained file), **JSON** (the raw structured document), **TXT** (plain text, markup stripped), or **CSV** (one metadata row whose columns follow your selected Default/Obsidian frontmatter fields). Four new icon buttons sit below the PDF/Obsidian row in the popup.
+
+---
 ## [2.1.0] - 2026-06-12
 
 ### Added

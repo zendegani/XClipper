@@ -37,6 +37,10 @@ export interface DownloadRequest {
   content: string;
   filename: string;
   images?: { url: string; filename: string }[];
+  // MIME type for the data: URL. Defaults to text/markdown. Set by the
+  // alternate-format exports (HTML/JSON/TXT/CSV) so the saved file carries the
+  // right type; Chrome still names the file from `filename`'s extension.
+  mime?: string;
 }
 
 export interface ExportPdfRequest {
