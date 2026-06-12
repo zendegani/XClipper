@@ -2,6 +2,7 @@ import type { BatchItemResultMessage, DownloadRequest, ExtractResponse } from '.
 import { postProcess, resolveDownloadImages, buildFilename } from '../shared/post-process';
 import { loadSettings } from '../shared/settings';
 import { buildObsidianUrl } from '../shared/obsidian';
+import { recordExport } from '../shared/review-prompt';
 import { delay, isArticlePage } from './dom';
 import { extractArticle } from './article';
 import { extractTweetAsync } from './tweet';
@@ -172,6 +173,7 @@ async function runAutoExtract(
       // the URL off to the OS, then show a confirmation toast.
       window.open(url, '_blank', 'noopener');
     }
+    void recordExport();
   } else {
     const downloadMsg: DownloadRequest = {
       action: 'DOWNLOAD_MD',
@@ -182,6 +184,7 @@ async function runAutoExtract(
     await new Promise<void>((resolve) => {
       chrome.runtime.sendMessage(downloadMsg, () => resolve());
     });
+    void recordExport();
   }
 
   // In-place runs (inline button / context menu on the current page) get a
@@ -220,7 +223,7 @@ if (autoMatch) {
         .replace(/^#$/, '');
       history.replaceState(null, '', window.location.pathname + window.location.search + (cleanHash || ''));
     } catch { /* history may be unavailable */ }
-    runPdfExport().catch((err) => console.error('XClipper PDF export failed:', err));
+    runPdfExport().then(() => void recordExport()).catch((err) => console.error('XClipper PDF export failed:', err));
   } else {
     const action: AutoAction =
       raw === 'copy' ? 'copy' : raw === 'obsidian' ? 'obsidian' : 'download';

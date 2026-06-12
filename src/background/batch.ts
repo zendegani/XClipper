@@ -18,6 +18,7 @@ import type {
 import type { Document } from '../ast/types';
 import { renderDigest } from '../ast/render-digest';
 import { loadSettings } from '../shared/settings';
+import { recordExport } from '../shared/review-prompt';
 import {
   isAllowedImageUrl,
   isExtensionPageSender,
@@ -371,6 +372,8 @@ async function finalize(job: BatchJob): Promise<void> {
       `${job.failures.length} failed → ${job.folder}/`
   );
   for (const f of job.failures) log(`  failed: ${f.url} — ${f.error}`);
+  // A whole batch counts as one export toward the review prompt (not per file).
+  if (job.completed > 0) void recordExport();
   if (job.workerWindowId !== undefined) {
     try {
       await chrome.windows.remove(job.workerWindowId);
