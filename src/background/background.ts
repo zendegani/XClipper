@@ -132,6 +132,10 @@ async function ensureThemeWatcher(): Promise<void> {
   }
 }
 
+// Theme reports arrive from two places: the offscreen watcher (covers the
+// at-rest toolbar, even if the popup never opens) and the popup itself (a
+// guaranteed-correct prefers-color-scheme oracle that also catches cases the
+// offscreen document may miss). Both send XCLIPPER_THEME; last write wins.
 chrome.runtime.onMessage.addListener((message: ThemeReport, _sender, _sendResponse) => {
   if (!message || message.action !== 'XCLIPPER_THEME') return false;
   chrome.action.setIcon({ path: message.dark ? ICON_DARK : ICON_LIGHT });

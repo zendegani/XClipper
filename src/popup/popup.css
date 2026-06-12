@@ -101,6 +101,22 @@ body {
   object-fit: contain;
 }
 
+/* Swap the header mark for its light-slash variant in dark mode so the slash
+ * doesn't vanish against the dark popup. The popup is a rendered page, so this
+ * media query reliably follows the active color scheme. */
+.logo-icon-dark {
+  display: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  .logo-icon-light {
+    display: none;
+  }
+  .logo-icon-dark {
+    display: inline-block;
+  }
+}
+
 .logo-text {
   font-size: 20px;
   font-weight: 700;
