@@ -69,8 +69,12 @@ const TAB_ICONS: Record<BatchTab, SVGElement> = {
 let activeTab: BatchTab = 'bookmarks';
 // One job at a time (the background enforces this — one worker window,
 // politeness throttle toward X). Tabs stay browsable mid-job; this flag
-// just keeps the start button disabled everywhere while a job runs.
+// just keeps the start button disabled everywhere while a job runs, except
+// where it can append to that job (see `appendable`).
 let jobIsActive = false;
+// True when the action button should ADD the loaded items to the running
+// job's queue (same-source job in progress) instead of starting a new one.
+let appendable = false;
 // Last polled snapshot, so a tab switch can re-evaluate progress visibility
 // immediately instead of waiting for the next poll.
 let lastJob: JobSnapshot | undefined;
@@ -114,7 +118,7 @@ async function loadLedgerSet(): Promise<Set<string>> {
 
 function setButton(label: string, enabled: boolean, tooltip: string): void {
   btnBatchLabel.textContent = label;
-  if (jobIsActive) {
+  if (jobIsActive && !appendable) {
     btnBatch.disabled = true;
     btnBatch.setAttribute('data-tooltip', t('batch_running', 'A batch job is already running.'));
     return;
@@ -127,6 +131,7 @@ function setButton(label: string, enabled: boolean, tooltip: string): void {
 // current page matches the tab's source; otherwise the button points the
 // user at the right page.
 async function refreshIdleUi(): Promise<void> {
+  appendable = false;
   if (activeTab === 'selection') {
     batchDedupRow.classList.add('hidden');
     setButton(
@@ -160,24 +165,40 @@ async function refreshIdleUi(): Promise<void> {
     return;
   }
 
+  // On the running job's own source the button appends loaded items to its
+  // queue instead of starting a new job — bookmarks always; a profile only
+  // when it's the same handle (a different profile stays disabled).
+  const onSameSourceJob =
+    jobIsActive &&
+    lastJob?.origin === activeTab &&
+    (activeTab !== 'profile' || (lastJob?.handle ?? '') === (handle ?? ''));
+  appendable = onSameSourceJob;
+
+  // While appending, also exclude what's already in the queue (not just the
+  // exported ledger), so the count reflects only items the queue lacks.
+  const queued = onSameSourceJob ? new Set(lastJob?.queuedIds ?? []) : undefined;
   const ledger = await loadLedgerSet();
   const fresh = urls.filter((u) => {
     const id = statusIdOf(u);
-    return !id || !ledger.has(id);
+    return !id || (!ledger.has(id) && !queued?.has(id));
   });
   const skipped = urls.length - fresh.length;
-  const base =
-    activeTab === 'profile'
+  const base = onSameSourceJob
+    ? t('btn_batch_add', 'Add to queue')
+    : activeTab === 'profile'
       ? `${t('btn_batch_profile', 'Export posts')}${handle ? ` @${handle}` : ''}`
       : t('btn_batch', 'Export bookmarks');
   const suffix = skipped > 0 ? ` (${fresh.length} ${t('batch_new', 'new')})` : ` (${fresh.length})`;
-  const tooltip =
-    activeTab === 'profile'
+  const tooltip = onSameSourceJob
+    ? t('btn_batch_add_hint', 'Add the newly-loaded posts to the running batch queue.')
+    : activeTab === 'profile'
       ? t('btn_batch_profile_hint', "Export this profile's own posts loaded on the page as Markdown files into one folder. Reposts are skipped; scroll to load more.")
       : t('btn_batch_hint', 'Export every bookmark loaded on this page as Markdown files into one folder. Scroll the bookmarks page to load more.');
   setButton(base + suffix, fresh.length > 0, tooltip);
-  batchDedupRow.classList.toggle('hidden', skipped === 0);
-  if (skipped > 0) {
+  // The "already exported" note is about past jobs; while appending to a live
+  // job the queue-exclusion handles dupes, so hide it there.
+  batchDedupRow.classList.toggle('hidden', skipped === 0 || onSameSourceJob);
+  if (skipped > 0 && !onSameSourceJob) {
     batchDedupText.textContent = `${skipped} ${t('batch_already_exported', 'already exported')}`;
   }
 }
@@ -306,11 +327,12 @@ async function startExport(): Promise<void> {
   }
 
   btnBatch.disabled = true;
-  const { urls } = await harvest();
+  const { urls, handle } = await harvest();
   const resp = (await chrome.runtime.sendMessage({
     action: 'BATCH_START',
     urls,
     origin: activeTab,
+    ...(activeTab === 'profile' && handle ? { handle } : {}),
   })) as BatchStartResponse | undefined;
   if (!resp?.success) {
     batchProgress.classList.remove('hidden');
@@ -323,8 +345,20 @@ async function startExport(): Promise<void> {
   startJobPolling();
 }
 
+// Add the page's freshly-loaded items to the running same-source job. The
+// background dedupes against the queue and ledger; we then re-poll so the
+// count and progress reflect the longer queue.
+async function appendExport(): Promise<void> {
+  btnBatch.disabled = true;
+  const { urls } = await harvest();
+  await chrome.runtime.sendMessage({ action: 'BATCH_APPEND', urls });
+  const job = await fetchJob();
+  if (job) render(job); // refresh lastJob.queuedIds before recomputing the count
+  await refreshIdleUi();
+}
+
 export async function initBatchUi(): Promise<void> {
-  btnBatch.addEventListener('click', () => void startExport());
+  btnBatch.addEventListener('click', () => void (appendable ? appendExport() : startExport()));
   btnBatchCancel.addEventListener('click', () => void control('cancel'));
   btnBatchPause.addEventListener('click', () => {
     const resuming = lastJob?.status === 'paused';

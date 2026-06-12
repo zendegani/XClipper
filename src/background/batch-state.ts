@@ -12,6 +12,9 @@ export interface BatchJob {
   status: 'running' | 'paused' | 'done' | 'cancelled';
   // Surface that launched the job; the popup scopes progress display to it.
   origin?: 'bookmarks' | 'profile' | 'selection';
+  // Profile owner's handle (only when origin === 'profile'); lets the popup
+  // offer "add to queue" on the same profile but not a different one.
+  handle?: string;
   // Normalized, deduped status permalinks.
   urls: string[];
   // Index of the item currently being processed (or next to dispatch).
@@ -136,6 +139,38 @@ export function recordResult(
   next.nextIndex += 1;
   if (next.nextIndex >= next.urls.length) next.status = 'done';
   return { job: next, filename };
+}
+
+// Add freshly-loaded items to a live job's queue — used when the user scrolls
+// in more posts while a same-source job is running, instead of waiting for it
+// to finish or stopping and restarting. Normalizes, then skips anything
+// already queued/processed in this job or already exported by a past job, and
+// respects the hard cap. Returns the new job and the number actually added.
+export function appendUrls(
+  job: BatchJob,
+  rawUrls: string[],
+  exportedIds: Set<string>
+): { job: BatchJob; added: number } {
+  if (job.status !== 'running' && job.status !== 'paused') return { job, added: 0 };
+  const seen = new Set<string>();
+  for (const u of job.urls) {
+    const id = statusIdOf(u);
+    if (id) seen.add(id);
+  }
+  const room = BATCH_MAX_ITEMS - job.urls.length;
+  if (room <= 0) return { job, added: 0 };
+  const additions: string[] = [];
+  for (const raw of rawUrls) {
+    const normalized = normalizeStatusUrl(raw);
+    if (!normalized) continue;
+    const id = statusIdOf(normalized);
+    if (!id || seen.has(id) || exportedIds.has(id)) continue;
+    seen.add(id);
+    additions.push(normalized);
+    if (additions.length >= room) break;
+  }
+  if (additions.length === 0) return { job, added: 0 };
+  return { job: { ...job, urls: [...job.urls, ...additions] }, added: additions.length };
 }
 
 export function cancelJob(job: BatchJob): BatchJob {

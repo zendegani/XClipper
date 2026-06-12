@@ -98,6 +98,12 @@
   "btn_batch_select_hint": {
     "message": "Pick individual tweets on the current page with checkboxes, then export the selection."
   },
+  "btn_batch_add": {
+    "message": "Add to queue"
+  },
+  "btn_batch_add_hint": {
+    "message": "Add the newly-loaded posts to the running batch queue."
+  },
   "opt_batch_digest": {
     "message": "Export also as one file"
   },

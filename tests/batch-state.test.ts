@@ -3,6 +3,7 @@ import {
   BATCH_MAX_ITEMS,
   LEDGER_CAP,
   appendToLedger,
+  appendUrls,
   cancelJob,
   createJob,
   currentUrl,
@@ -202,5 +203,60 @@ describe('uniqueFilename', () => {
 
   it('handles names without an extension', () => {
     expect(uniqueFilename(['foo'], 'foo')).toBe('foo-2');
+  });
+});
+
+describe('appendUrls', () => {
+  const u = (id: string) => `https://x.com/user/status/${id}`;
+
+  it('appends new normalized items not already queued', () => {
+    const job = createJob([u('1'), u('2')], NOW);
+    const { job: next, added } = appendUrls(job, [u('3'), u('4')], new Set());
+    expect(added).toBe(2);
+    expect(next.urls).toEqual([u('1'), u('2'), u('3'), u('4')]);
+  });
+
+  it('skips items already in the queue (by status id) and exported ids', () => {
+    const job = createJob([u('1'), u('2')], NOW);
+    const { job: next, added } = appendUrls(
+      job,
+      [u('2'), u('3'), u('4')],
+      new Set(['4'])
+    );
+    expect(added).toBe(1); // 2 already queued, 4 already exported
+    expect(next.urls).toEqual([u('1'), u('2'), u('3')]);
+  });
+
+  it('skips non-status urls and dedupes within the additions', () => {
+    const job = createJob([u('1')], NOW);
+    const { job: next, added } = appendUrls(
+      job,
+      ['not a url', u('2'), u('2')],
+      new Set()
+    );
+    expect(added).toBe(1);
+    expect(next.urls).toEqual([u('1'), u('2')]);
+  });
+
+  it('returns the job unchanged when nothing is new', () => {
+    const job = createJob([u('1')], NOW);
+    const result = appendUrls(job, [u('1')], new Set());
+    expect(result.added).toBe(0);
+    expect(result.job).toBe(job);
+  });
+
+  it('respects the hard item cap', () => {
+    const many = Array.from({ length: BATCH_MAX_ITEMS }, (_, i) => u(`${i}`));
+    const job = createJob(many, NOW);
+    const result = appendUrls(job, [u('9001'), u('9002')], new Set());
+    expect(result.added).toBe(0);
+    expect(result.job.urls).toHaveLength(BATCH_MAX_ITEMS);
+  });
+
+  it('is a no-op once the job is no longer running or paused', () => {
+    const done = cancelJob(createJob([u('1')], NOW));
+    const result = appendUrls(done, [u('2')], new Set());
+    expect(result.added).toBe(0);
+    expect(result.job).toBe(done);
   });
 });
