@@ -28,6 +28,7 @@
 ### Key Features
 
 - **Three Ways to Trigger** — Toolbar popup, inline button on every tweet's action bar, or the right-click context menu
+- **Batch Export** — Export many posts at once from three sources via a **Bookmarks | Profile | Selection** tab strip: every bookmark loaded on your bookmarks page, a profile's own posts (reposts skipped), or a manual selection of individual tweets picked with checkboxes on any timeline. Runs in the background (one job at a time) with a live progress bar and **pause / resume / stop** — close and reopen the popup mid-job. A dedup ledger skips already-exported items, and you can keep adding newly-scrolled posts to a running job. Optional **single-file digest** (`x-compilation-<date>`) alongside the per-post files
 - **Local Image Downloads** — Download embedded X media locally alongside your `.md` file to prevent link rot
 - **PDF Export** — Save tweets, threads, and articles as PDFs via the browser's native print engine. Selectable text, clickable links, embedded images, and full Unicode/emoji support
 - **Add to Obsidian** — One-click handoff to Obsidian via the `obsidian://` URI scheme, with an optional vault name for direct targeting
