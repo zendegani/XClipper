@@ -60,7 +60,7 @@
     "message": "already exported"
   },
   "batch_reset": {
-    "message": "Reset"
+    "message": "Reset dedup"
   },
   "batch_reset_hint": {
     "message": "Forget which bookmarks were already exported, so the next batch exports everything loaded."

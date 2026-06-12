@@ -597,6 +597,19 @@ body {
   transform: translateY(0);
 }
 
+/* Reset dedup sits at the popup's end edge — a centered tooltip would spill
+ * off-screen, so anchor it to that edge and let it grow inward. */
+#btn-batch-reset[data-tooltip]::after {
+  left: auto;
+  right: auto;
+  inset-inline-end: 0;
+  transform: translateY(2px);
+}
+#btn-batch-reset[data-tooltip]:hover::after,
+#btn-batch-reset[data-tooltip]:focus-visible::after {
+  transform: translateY(0);
+}
+
 .nav-link {
   display: inline-flex;
   align-items: center;
