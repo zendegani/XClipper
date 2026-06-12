@@ -46,3 +46,15 @@ initSettingsForm();
 initActions();
 void initBatchUi();
 void initReviewBanner();
+
+// ─── Toolbar-icon theme oracle ────────────────────────────────────────
+// The popup is a real rendered page, so its prefers-color-scheme is
+// authoritative. Report it to the background (which swaps the toolbar icon)
+// whenever the popup opens — this corrects the icon even in cases the offscreen
+// watcher may miss.
+const themeMedia = matchMedia('(prefers-color-scheme: dark)');
+const reportTheme = () => {
+  void chrome.runtime.sendMessage({ action: 'XCLIPPER_THEME', dark: themeMedia.matches }).catch(() => {});
+};
+themeMedia.addEventListener('change', reportTheme);
+reportTheme();
