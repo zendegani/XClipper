@@ -37,6 +37,7 @@ import {
   tabBatchProfile,
   tabBatchSelection,
 } from './dom';
+import { setExportMode } from './mode';
 
 type JobSnapshot = NonNullable<BatchStatusResponse['job']>;
 type BatchTab = 'bookmarks' | 'profile' | 'selection';
@@ -327,13 +328,17 @@ export async function initBatchUi(): Promise<void> {
   if (pageIsX) pageTabId = tab!.id;
 
   const job = await fetchJob();
-  if (job && (job.status === 'running' || job.status === 'paused')) {
-    render(job); // sets jobIsActive, so tab setup below keeps Start disabled
+  const activeJob =
+    job && (job.status === 'running' || job.status === 'paused') ? job : undefined;
+  if (activeJob) {
+    setExportMode(false, false); // reopening mid-job lands on Batch, not Single
+    render(activeJob); // sets jobIsActive, so tab setup below keeps Start disabled
     startJobPolling();
   }
 
-  // Land on the tab that matches the current page; Selection is the
-  // fallback since it works on any x.com timeline.
+  // Land on the running job's origin tab (so its progress is visible), else
+  // the tab matching the current page; Selection is the fallback since it
+  // works on any x.com timeline.
   const { source } = await harvest();
-  setActiveTab(source ?? (pageIsX ? 'selection' : 'bookmarks'));
+  setActiveTab(activeJob?.origin ?? source ?? (pageIsX ? 'selection' : 'bookmarks'));
 }
