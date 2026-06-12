@@ -10,11 +10,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Batch export**: Export many posts at once from three sources, picked via a **Bookmarks | Profile | Selection** tab strip in the popup — your Bookmarks page, a profile's own posts (reposts skipped), or a manual **Selection** of individual tweets ticked with checkboxes on any x.com timeline. The job runs in the background, one at a time, so the popup can be closed and reopened without losing progress; a live progress bar offers **pause / resume / stop**. A dedup ledger remembers what was already exported, so re-running a batch only grabs new items — **Reset** clears that memory. An optional **Export also as one file** digest additionally writes every exported post into a single `x-compilation-<date>` file in the batch folder.
+- **Batch export**: Export many posts at once from three sources, picked via a **Bookmarks | Profile | Selection** tab strip in the popup — your Bookmarks page, a profile's own posts (reposts skipped), or a manual **Selection** of individual tweets ticked with checkboxes on any x.com timeline. The job runs in the background, one at a time, so the popup can be closed and reopened without losing progress; a live progress bar offers **pause / resume / stop**. A dedup ledger remembers what was already exported, so re-running a batch only grabs new items — **Reset dedup** clears that memory. An optional **Export also as one file** digest additionally writes every exported post into a single `x-compilation-<date>` file in the batch folder.
+- **Add to a running batch**: While a job runs, scrolling the page in more posts now lets you append them to that job's queue (same source only) instead of waiting for it to finish or stopping and restarting.
 
 ### Changed
 
-- **Popup layout**: Reorganized into a **Single export | Batch export** tabbed layout.
+- **Popup layout**: Reorganized into a **Single export | Batch export** tabbed layout, with player-style batch controls (pause/resume/stop in front of the progress bar) and a clearer Export settings panel.
+- **Selection bar**: Larger and easier to spot, with a slide-up entrance and a "Tap tweets to select" hint.
 
 ---
 ## [2.0.4] - 2026-06-11

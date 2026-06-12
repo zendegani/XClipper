@@ -1,6 +1,6 @@
 # ADR 0002 — Batch export: harvest URLs, extract per permalink in a worker tab
 
-- Status: **Accepted — Phase A in progress**
+- Status: **Accepted — Phases A–D shipped in v2.1.0**
 - Date: 2026-06-11
 - Deciders: @zendegani
 - Supersedes: —
