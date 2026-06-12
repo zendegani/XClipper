@@ -99,10 +99,10 @@
     "message": "Pick individual tweets on the current page with checkboxes, then export the selection."
   },
   "opt_batch_digest": {
-    "message": "Export as one file (x-compilation-<date>.md)"
+    "message": "Export also as one file"
   },
   "opt_batch_digest_hint": {
-    "message": "Batch export only: also write every exported post into a single x-compilation-<date>.md in the batch folder."
+    "message": "Also write every exported post into a single x-compilation-<date> file in the batch folder."
   },
   "batch_bar_selected": {
     "message": "selected"

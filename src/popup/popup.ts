@@ -43,6 +43,8 @@ const tabModeSingle = document.getElementById('tab-mode-single');
 const tabModeBatch = document.getElementById('tab-mode-batch');
 const panelSingle = document.getElementById('panel-single');
 const panelBatch = document.getElementById('batch-section');
+// "Export as one file" only applies to batch runs, so it rides with the mode.
+const optBatchDigest = document.getElementById('opt-batch-digest');
 
 function setExportMode(single: boolean): void {
   tabModeSingle?.classList.toggle('active', single);
@@ -51,6 +53,7 @@ function setExportMode(single: boolean): void {
   tabModeBatch?.setAttribute('aria-selected', String(!single));
   panelSingle?.classList.toggle('hidden', !single);
   panelBatch?.classList.toggle('hidden', single);
+  optBatchDigest?.classList.toggle('hidden', single);
 }
 
 tabModeSingle?.addEventListener('click', () => setExportMode(true));
