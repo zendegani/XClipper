@@ -32,11 +32,21 @@ async function ensureChromeBinary() {
   return exec;
 }
 
-const SVG_PATH = join(ROOT, 'assets', 'xclipper-mark.svg');
-const SVG_CONTENT = readFileSync(SVG_PATH, 'utf8').replace(
-  '<svg ',
-  '<svg style="width: 100%; height: 100%; display: block; margin: 0; padding: 0;" ',
-);
+// Light + dark marks. The dark mark only differs in the slash color (near-white
+// instead of black) so it stays visible on a dark Chrome toolbar; the
+// background swaps to the `-dark` set via chrome.action.setIcon when the OS is
+// in dark mode (see src/offscreen + background.ts).
+const MARKS = [
+  { svg: 'xclipper-mark.svg', suffix: '' },
+  { svg: 'xclipper-mark-dark.svg', suffix: '-dark' },
+];
+
+function loadSvg(name) {
+  return readFileSync(join(ROOT, 'assets', name), 'utf8').replace(
+    '<svg ',
+    '<svg style="width: 100%; height: 100%; display: block; margin: 0; padding: 0;" ',
+  );
+}
 
 async function main() {
   const chromePath = await ensureChromeBinary();
@@ -46,50 +56,51 @@ async function main() {
 
   try {
     const page = await browser.newPage();
-    
-    // Set standard transparent background
-    await page.setContent(`
-      <!DOCTYPE html>
-      <html>
-        <head>
-          <style>
-            body, html {
-              margin: 0;
-              padding: 0;
-              width: 100%;
-              height: 100%;
-              overflow: hidden;
-              background: transparent;
-            }
-          </style>
-        </head>
-        <body>
-          ${SVG_CONTENT}
-        </body>
-      </html>
-    `);
-
     const sizes = [16, 32, 48, 128];
     const outDir = join(ROOT, 'src', 'icons');
     mkdirSync(outDir, { recursive: true });
 
-    for (const size of sizes) {
-      await page.setViewport({
-        width: size,
-        height: size,
-        deviceScaleFactor: 1,
-      });
+    for (const { svg, suffix } of MARKS) {
+      // Set standard transparent background
+      await page.setContent(`
+        <!DOCTYPE html>
+        <html>
+          <head>
+            <style>
+              body, html {
+                margin: 0;
+                padding: 0;
+                width: 100%;
+                height: 100%;
+                overflow: hidden;
+                background: transparent;
+              }
+            </style>
+          </head>
+          <body>
+            ${loadSvg(svg)}
+          </body>
+        </html>
+      `);
 
-      // Let rendering settle
-      await new Promise((r) => setTimeout(r, 100));
+      for (const size of sizes) {
+        await page.setViewport({
+          width: size,
+          height: size,
+          deviceScaleFactor: 1,
+        });
 
-      const outFile = join(outDir, `icon-${size}.png`);
-      await page.screenshot({
-        path: outFile,
-        omitBackground: true,
-        type: 'png',
-      });
-      log(`✓ Generated: ${outFile} (${size}x${size})`);
+        // Let rendering settle
+        await new Promise((r) => setTimeout(r, 100));
+
+        const outFile = join(outDir, `icon-${size}${suffix}.png`);
+        await page.screenshot({
+          path: outFile,
+          omitBackground: true,
+          type: 'png',
+        });
+        log(`✓ Generated: ${outFile} (${size}x${size})`);
+      }
     }
   } finally {
     await browser.close();

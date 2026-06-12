@@ -10,6 +10,7 @@
     "alarms",
     "contextMenus",
     "downloads",
+    "offscreen",
     "storage"
   ],
   "action": {

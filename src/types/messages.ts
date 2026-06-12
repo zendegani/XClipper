@@ -47,6 +47,13 @@ export interface ExportPdfRequest {
   action: 'EXPORT_PDF';
 }
 
+// Offscreen theme watcher → background: the current OS color scheme, used to
+// pick a toolbar icon that stays visible on a light or dark Chrome toolbar.
+export interface ThemeReport {
+  action: 'XCLIPPER_THEME';
+  dark: boolean;
+}
+
 // Content → background: open the print-preview tab so Chrome's native print
 // engine can render and save the PDF. The browser handles selectable text,
 // clickable links, Unicode, and pagination — see ADR 0001 "Renderer
