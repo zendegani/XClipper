@@ -731,6 +731,10 @@ details.option-group[open] .option-group-chevron {
   transition: opacity var(--transition);
 }
 
+.toggle-label.hidden {
+  display: none;
+}
+
 .toggle-label:hover {
   opacity: 0.9;
 }
@@ -1511,7 +1515,9 @@ details.option-group[open] .option-group-chevron {
   transition: background var(--transition), color var(--transition), box-shadow var(--transition);
 }
 
-.batch-tab:hover:not(:disabled) {
+/* Don't re-color the active tab on hover — its label is white on a blue
+ * fill, so tinting it blue would make the text vanish. */
+.batch-tab:hover:not(:disabled):not(.active) {
   color: var(--batch);
 }
 
