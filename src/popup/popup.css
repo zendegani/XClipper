@@ -5,6 +5,7 @@
   --bg-hover: #e4e8eb;
   --accent: #1d9bf0;
   --accent-glow: rgba(29, 155, 240, 0.25);
+  --accent-tint: rgba(29, 155, 240, 0.12);
   --accent-hover: #1a8cd8;
   --text-primary: #0f1419;
   --text-secondary: #536471;
@@ -258,6 +259,30 @@ body {
 
 .btn-obsidian .btn-icon {
   color: var(--obsidian);
+}
+
+/* Download (.btn-primary) + Copy (.btn-secondary): outlined accent, matching
+ * the PDF/Obsidian buttons. The old solid fill read like the active tab
+ * toggle; outlining keeps all four action buttons consistent. */
+.btn-primary,
+.btn-secondary {
+  background: transparent;
+  color: var(--accent);
+  border: 1px solid var(--accent);
+}
+.btn-primary .btn-icon,
+.btn-secondary .btn-icon {
+  color: var(--accent);
+}
+.btn-primary:hover,
+.btn-secondary:hover {
+  background: var(--accent-tint);
+  color: var(--accent);
+  box-shadow: 0 4px 16px var(--accent-glow);
+}
+.btn-primary:active,
+.btn-secondary:active {
+  box-shadow: 0 2px 8px var(--accent-glow);
 }
 
 /* ─── Loading State ─────────────────────────────────────────── */
