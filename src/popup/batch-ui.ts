@@ -232,13 +232,11 @@ function render(job: JobSnapshot): void {
 
   const active = job.status === 'running' || job.status === 'paused';
   jobIsActive = active;
-  if (active) {
-    btnBatch.disabled = true;
-    btnBatch.setAttribute('data-tooltip', t('batch_running', 'A batch job is already running.'));
-  }
-  // Keep the start button visible (disabled) during a job — its label keeps
-  // counting items as the user scrolls to load more. The controls + bar sit
-  // below it.
+  // The start button's enabled state + tooltip are owned entirely by
+  // setButton (via refreshIdleUi) — render must not touch them, or the two
+  // pollers fight and the button flickers between disabled and append-enabled.
+  // The button stays visible so its label keeps counting as the user scrolls;
+  // the controls + bar sit below it.
   batchControls?.classList.toggle('hidden', !active);
   btnBatchPause.classList.toggle('hidden', !active);
   btnBatchCancel.classList.toggle('hidden', !active);
