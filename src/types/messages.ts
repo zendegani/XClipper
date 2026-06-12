@@ -82,6 +82,15 @@ export interface BatchStartRequest {
   // Which surface launched the job — the popup scopes progress display to
   // the matching tab.
   origin?: 'bookmarks' | 'profile' | 'selection';
+  // Profile owner's handle when origin === 'profile'.
+  handle?: string;
+}
+
+// Extension page → background: add newly-loaded permalinks to the running
+// job's queue (the user scrolled in more posts on the same source).
+export interface BatchAppendRequest {
+  action: 'BATCH_APPEND';
+  urls: string[];
 }
 
 export interface BatchStartResponse {
@@ -109,10 +118,16 @@ export interface BatchStatusResponse {
     id: string;
     status: 'running' | 'paused' | 'done' | 'cancelled';
     origin?: 'bookmarks' | 'profile' | 'selection';
+    // Set when origin === 'profile' — the popup only offers "add to queue"
+    // on the same profile.
+    handle?: string;
     total: number;
     completed: number;
     failed: number;
     folder: string;
+    // Status ids already in the queue (processed or pending), so the popup
+    // can exclude them from the "new items to add" count without re-adding.
+    queuedIds: string[];
   };
 }
 

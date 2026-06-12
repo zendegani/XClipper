@@ -28,6 +28,7 @@ import {
   type BatchJob,
   EXPORTED_LEDGER_KEY,
   appendToLedger,
+  appendUrls,
   cancelJob,
   createJob,
   currentUrl,
@@ -87,7 +88,11 @@ function coerceOrigin(raw: unknown): BatchJob['origin'] {
     : undefined;
 }
 
-export async function startBatch(rawUrls: unknown, origin?: BatchJob['origin']): Promise<BatchStartResponse> {
+export async function startBatch(
+  rawUrls: unknown,
+  origin?: BatchJob['origin'],
+  handle?: string
+): Promise<BatchStartResponse> {
   const existing = await loadJob();
   if (existing && (existing.status === 'running' || existing.status === 'paused')) {
     return { success: false, error: 'A batch job is already running' };
@@ -114,7 +119,12 @@ export async function startBatch(rawUrls: unknown, origin?: BatchJob['origin']):
   if (fresh.length < job.urls.length) {
     log(`${job.urls.length - fresh.length} already-exported item(s) skipped`);
   }
-  job = { ...job, urls: fresh, ...(origin ? { origin } : {}) };
+  job = {
+    ...job,
+    urls: fresh,
+    ...(origin ? { origin } : {}),
+    ...(origin === 'profile' && handle ? { handle } : {}),
+  };
   // Snapshot the user's download subfolder once so the whole job lands in one
   // place even if the setting changes mid-run.
   const settings = await loadSettings();
@@ -125,6 +135,29 @@ export async function startBatch(rawUrls: unknown, origin?: BatchJob['origin']):
   chrome.alarms.create(WATCHDOG_ALARM, { periodInMinutes: 0.5 });
   await dispatchCurrent(job);
   return { success: true, total: job.urls.length };
+}
+
+// Add newly-scrolled items to the live job's queue. The popup only offers
+// this on the running job's own source, so a long batch can keep absorbing
+// items the user loads instead of finishing short or being restarted.
+export async function appendBatch(rawUrls: unknown): Promise<BatchStartResponse> {
+  const job = await loadJob();
+  if (!job || (job.status !== 'running' && job.status !== 'paused')) {
+    return { success: false, error: 'No batch job is running' };
+  }
+  if (!Array.isArray(rawUrls)) {
+    return { success: false, error: 'urls must be an array of status permalinks' };
+  }
+  const urls = rawUrls.filter((u): u is string => typeof u === 'string');
+  const exportedIds = new Set(await loadLedger());
+  const { job: next, added } = appendUrls(job, urls, exportedIds);
+  if (added === 0) return { success: false, error: 'Nothing new to add' };
+  await saveJob(next);
+  log(`appended ${added} item(s) to job ${job.id}: ${next.urls.length} total`);
+  // If the job had drained to its last item and was idling between dispatches,
+  // nudge the loop so the freshly-queued items get picked up promptly.
+  if (next.status === 'running' && !next.awaitingResult) void tick();
+  return { success: true, total: next.urls.length };
 }
 
 // Navigate the worker to the current item (creating it for the first one)
@@ -392,7 +425,19 @@ export function initBatch(): void {
         sendResponse({ success: false, error: 'Untrusted sender' });
         return false;
       }
-      startBatch(msg.urls, coerceOrigin(msg.origin)).then(sendResponse);
+      const handle = typeof msg.handle === 'string' ? msg.handle : undefined;
+      startBatch(msg.urls, coerceOrigin(msg.origin), handle).then(sendResponse);
+      return true; // async sendResponse
+    }
+    if (msg.action === 'BATCH_APPEND') {
+      if (
+        !isExtensionPageSender(sender, chrome.runtime.id) &&
+        !isTrustedXContentSender(sender)
+      ) {
+        sendResponse({ success: false, error: 'Untrusted sender' });
+        return false;
+      }
+      appendBatch(msg.urls).then(sendResponse);
       return true; // async sendResponse
     }
     if (msg.action === 'BATCH_CONTROL') {
@@ -436,10 +481,14 @@ export function initBatch(): void {
                 id: job.id,
                 status: job.status,
                 ...(job.origin ? { origin: job.origin } : {}),
+                ...(job.handle ? { handle: job.handle } : {}),
                 total: job.urls.length,
                 completed: job.completed,
                 failed: job.failures.length,
                 folder: job.folder,
+                queuedIds: job.urls
+                  .map((u) => statusIdOf(u))
+                  .filter((id): id is string => id !== null),
               },
             }
           : {};
