@@ -23,6 +23,18 @@
   "btn_obsidian": {
     "message": "Add to Obsidian"
   },
+  "btn_html_hint": {
+    "message": "Save as a styled, self-contained HTML file."
+  },
+  "btn_json_hint": {
+    "message": "Save the raw structured document (AST) as JSON."
+  },
+  "btn_txt_hint": {
+    "message": "Save as plain text with markup stripped."
+  },
+  "btn_csv_hint": {
+    "message": "Save one metadata row using your selected frontmatter fields."
+  },
   "btn_batch": {
     "message": "Export bookmarks"
   },

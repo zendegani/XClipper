@@ -253,8 +253,9 @@ chrome.runtime.onMessage.addListener(
         }
       }
 
+      const mime = message.mime || 'text/markdown';
       const dataUrl =
-        'data:text/markdown;charset=utf-8,' +
+        `data:${mime};charset=utf-8,` +
         encodeURIComponent(message.content);
 
       chrome.downloads.download(

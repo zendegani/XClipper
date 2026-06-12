@@ -59,11 +59,11 @@ export const DEFAULT_TAGS_TEMPLATE = 'clippings, x, {type}';
 
 const DESCRIPTION_MAX_CHARS = 200;
 
-function todayISODate(): string {
+export function todayISODate(): string {
   return new Date().toISOString().slice(0, 10);
 }
 
-function isoToDateOnly(iso: string): string {
+export function isoToDateOnly(iso: string): string {
   const m = iso.match(/^(\d{4}-\d{2}-\d{2})/);
   return m ? m[1] : iso;
 }
@@ -71,7 +71,7 @@ function isoToDateOnly(iso: string): string {
 // Pull a short, plain-text preview from the markdown body. Drops the
 // author H1, frontmatter, blockquotes, list bullets, link/image syntax,
 // and emoji-prefixed UI lines so the description reads like prose.
-function buildDescription(markdown: string): string {
+export function buildDescription(markdown: string): string {
   let body = markdown.replace(/^---[\s\S]*?---\s*/m, '');
   body = body.replace(/^# .*$/m, '');
   const lines = body.split('\n');
@@ -94,7 +94,7 @@ function buildDescription(markdown: string): string {
   return text.slice(0, DESCRIPTION_MAX_CHARS).replace(/\s+\S*$/, '') + '…';
 }
 
-function buildTitle(data: ExtractedContent): string {
+export function buildTitle(data: ExtractedContent): string {
   if (data.type === 'article' && data.title) return data.title;
   const noun = data.type === 'thread' ? 'Thread' : 'Post';
   return `${noun} by ${data.author.handle} on X`;

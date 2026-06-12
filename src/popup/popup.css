@@ -261,6 +261,44 @@ body {
   color: var(--obsidian);
 }
 
+/* Alternate formats (HTML / JSON / TXT / CSV): four neutral buttons in one
+ * row below PDF/Obsidian. Kept grey so they don't compete with the colored
+ * Markdown/PDF/Obsidian actions above. Label is just the file extension. */
+.format-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.btn-format {
+  flex: 1 1 0;
+  /* Tighter than the half-width action buttons — four fit the popup width. */
+  padding: 9px 6px;
+  gap: 4px;
+  font-size: 12px;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid var(--text-secondary);
+}
+
+.btn-format .btn-icon {
+  width: 14px;
+  height: 14px;
+  color: currentColor;
+}
+
+.btn-format:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+  border-color: var(--text-primary);
+  box-shadow: none;
+}
+
+.btn-format:active {
+  box-shadow: none;
+}
+
 /* Download (.btn-primary) + Copy (.btn-secondary): outlined accent, matching
  * the PDF/Obsidian buttons. The old solid fill read like the active tab
  * toggle; outlining keeps all four action buttons consistent. */
