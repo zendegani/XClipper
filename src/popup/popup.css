@@ -1317,29 +1317,60 @@ details.option-group[open] .option-group-chevron {
 
 /* ─── Batch export (bookmarks) ─────────────────────────────────────── */
 
-.batch-section {
-  --batch: #0ea5e9;
-  --batch-glow: rgba(14, 165, 233, 0.18);
-  margin-bottom: 8px;
-  padding: 10px 12px;
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
+/* ─── Tier-1 export mode tabs (Single | Batch) ──────────────── */
+.export-tabs {
+  display: flex;
+  gap: 4px;
+  padding: 3px;
+  background: var(--bg-elevated);
+  border-radius: 9999px;
 }
 
-/* Bordered group for the four single-export buttons, mirroring the batch
- * box so the two tiers read side by side. */
-.single-export-box {
+.export-tab {
+  flex: 1;
+  font: 700 13px/1 var(--font);
+  padding: 9px 0;
+  border: none;
+  border-radius: 9999px;
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition:
+    background var(--transition),
+    color var(--transition),
+    box-shadow var(--transition);
+}
+
+.export-tab:hover:not(.active) {
+  color: var(--text-primary);
+}
+
+.export-tab.active {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 2px 8px var(--accent-glow);
+}
+
+/* Tier-1 panels (Single / Batch) are borderless — the mode tabs above carry
+ * the framing, so the buttons keep full width (German labels need the room). */
+.export-panel {
   display: flex;
   flex-direction: column;
   gap: 8px;
-  padding: 10px 12px;
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-  margin-bottom: 8px;
 }
 
-.single-export-box .action-row {
+.export-panel.hidden {
+  display: none;
+}
+
+.export-panel .action-row,
+.export-panel .batch-tabs {
   margin-bottom: 0;
+}
+
+.batch-section {
+  --batch: #0ea5e9;
+  --batch-glow: rgba(14, 165, 233, 0.18);
 }
 
 .batch-section.hidden {

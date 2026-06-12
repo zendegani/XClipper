@@ -28,8 +28,14 @@
     </header>
 
     <main class="popup-main" id="view-main">
-      <div class="single-export-box">
-        <div class="option-group-label" data-i18n="group_single">Single export</div>
+      <div class="export-tabs" role="tablist">
+        <button id="tab-mode-single" class="export-tab active" type="button" role="tab"
+          aria-selected="true" data-i18n="group_single">Single export</button>
+        <button id="tab-mode-batch" class="export-tab" type="button" role="tab"
+          aria-selected="false" data-i18n="group_batch">Batch export</button>
+      </div>
+
+      <div id="panel-single" class="export-panel">
         <div class="btn-group">
         <button id="btn-download" class="btn-primary btn-action" type="button">
           <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -74,49 +80,7 @@
         </div>
       </div>
 
-      <div class="options">
-        <div class="option-group">
-          <div class="option-group-label" data-i18n="group_export">Export settings</div>
-          <label class="toggle-label" data-tooltip="Download images to a folder next to the markdown file" data-i18n-tooltip="opt_save_images_title">
-            <span class="toggle-text">
-              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                <circle cx="8.5" cy="8.5" r="1.5" />
-                <polyline points="21 15 16 10 5 21" />
-              </svg>
-              <span data-i18n="opt_save_images">Save images locally</span>
-            </span>
-            <input type="checkbox" id="chk-download-images" class="toggle-input" />
-            <span class="toggle-switch"></span>
-          </label>
-          <label class="toggle-label" data-tooltip="Render likes, reposts, replies, bookmarks, and views as a row in the Markdown body" data-i18n-tooltip="opt_inline_stats_title">
-            <span class="toggle-text">
-              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-              </svg>
-              <span data-i18n="opt_inline_stats">Show engagement stats inline</span>
-            </span>
-            <input type="checkbox" id="chk-inline-stats" class="toggle-input" />
-            <span class="toggle-switch"></span>
-          </label>
-          <label class="toggle-label" data-tooltip="Add likes, reposts, views as YAML frontmatter" data-i18n-tooltip="opt_metadata_title">
-            <span class="toggle-text">
-              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-              </svg>
-              <span data-i18n="opt_metadata">Include metadata</span>
-            </span>
-            <input type="checkbox" id="chk-include-metadata" class="toggle-input" />
-            <span class="toggle-switch"></span>
-          </label>
-        </div>
-      </div>
-
-      <div id="batch-section" class="batch-section hidden">
-        <div class="option-group-label" data-i18n="group_batch">Batch export</div>
+      <div id="batch-section" class="batch-section export-panel hidden">
         <div id="batch-tabs" class="batch-tabs" role="tablist">
           <button id="tab-batch-bookmarks" class="batch-tab" type="button" role="tab"
             data-i18n="batch_tab_bookmarks">Bookmarks</button>
@@ -161,6 +125,62 @@
               <button id="btn-batch-cancel" class="batch-ctl" type="button" data-i18n="batch_stop">Stop</button>
             </span>
           </div>
+        </div>
+      </div>
+
+      <div class="options">
+        <div class="option-group">
+          <div class="option-group-label" data-i18n="group_export">Export settings</div>
+          <label class="toggle-label" data-tooltip="Download images to a folder next to the markdown file" data-i18n-tooltip="opt_save_images_title">
+            <span class="toggle-text">
+              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                <circle cx="8.5" cy="8.5" r="1.5" />
+                <polyline points="21 15 16 10 5 21" />
+              </svg>
+              <span data-i18n="opt_save_images">Save images locally</span>
+            </span>
+            <input type="checkbox" id="chk-download-images" class="toggle-input" />
+            <span class="toggle-switch"></span>
+          </label>
+          <label class="toggle-label" data-tooltip="Render likes, reposts, replies, bookmarks, and views as a row in the Markdown body" data-i18n-tooltip="opt_inline_stats_title">
+            <span class="toggle-text">
+              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+              </svg>
+              <span data-i18n="opt_inline_stats">Show engagement stats inline</span>
+            </span>
+            <input type="checkbox" id="chk-inline-stats" class="toggle-input" />
+            <span class="toggle-switch"></span>
+          </label>
+          <label class="toggle-label" data-tooltip="Add likes, reposts, views as YAML frontmatter" data-i18n-tooltip="opt_metadata_title">
+            <span class="toggle-text">
+              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+              </svg>
+              <span data-i18n="opt_metadata">Include metadata</span>
+            </span>
+            <input type="checkbox" id="chk-include-metadata" class="toggle-input" />
+            <span class="toggle-switch"></span>
+          </label>
+          <label class="toggle-label"
+            data-tooltip="Batch export only: also write every exported post into a single x-compilation-<date>.md in the batch folder."
+            data-i18n-tooltip="opt_batch_digest_hint">
+            <span class="toggle-text">
+              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polygon points="12 2 2 7 12 12 22 7 12 2" />
+                <polyline points="2 17 12 22 22 17" />
+                <polyline points="2 12 12 17 22 12" />
+              </svg>
+              <span data-i18n="opt_batch_digest">Export as one file (x-compilation-&lt;date&gt;.md)</span>
+            </span>
+            <input type="checkbox" id="chk-batch-digest" class="toggle-input" />
+            <span class="toggle-switch"></span>
+          </label>
         </div>
       </div>
 
@@ -235,21 +255,6 @@
             <span class="field-preview-label" data-i18n="opt_filename_preview">Preview:</span>
             <code id="filename-preview" class="field-preview-value"></code>
           </div>
-          <label class="toggle-label"
-            data-tooltip="Batch export only: also write every exported post into a single x-compilation-<date>.md in the batch folder."
-            data-i18n-tooltip="opt_batch_digest_hint">
-            <span class="toggle-text">
-              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <polygon points="12 2 2 7 12 12 22 7 12 2" />
-                <polyline points="2 17 12 22 22 17" />
-                <polyline points="2 12 12 17 22 12" />
-              </svg>
-              <span data-i18n="opt_batch_digest">Export as one file (x-compilation-&lt;date&gt;.md)</span>
-            </span>
-            <input type="checkbox" id="chk-batch-digest" class="toggle-input" />
-            <span class="toggle-switch"></span>
-          </label>
         </details>
 
         <details class="option-group" data-section-id="obsidian">

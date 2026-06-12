@@ -37,6 +37,25 @@ btnBack?.addEventListener('click', () => {
   btnSettings?.classList.remove('hidden');
 });
 
+// ─── Export mode tabs: single ↔ batch ─────────────────────────────────
+
+const tabModeSingle = document.getElementById('tab-mode-single');
+const tabModeBatch = document.getElementById('tab-mode-batch');
+const panelSingle = document.getElementById('panel-single');
+const panelBatch = document.getElementById('batch-section');
+
+function setExportMode(single: boolean): void {
+  tabModeSingle?.classList.toggle('active', single);
+  tabModeBatch?.classList.toggle('active', !single);
+  tabModeSingle?.setAttribute('aria-selected', String(single));
+  tabModeBatch?.setAttribute('aria-selected', String(!single));
+  panelSingle?.classList.toggle('hidden', !single);
+  panelBatch?.classList.toggle('hidden', single);
+}
+
+tabModeSingle?.addEventListener('click', () => setExportMode(true));
+tabModeBatch?.addEventListener('click', () => setExportMode(false));
+
 // ─── Feature modules ──────────────────────────────────────────────────
 
 initSettingsForm();
