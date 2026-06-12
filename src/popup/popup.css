@@ -1340,7 +1340,7 @@ details.option-group[open] .option-group-chevron {
   gap: 4px;
   padding: 3px;
   background: var(--bg-elevated);
-  border-radius: 9999px;
+  border-radius: var(--radius);
 }
 
 .export-tab {
@@ -1348,7 +1348,7 @@ details.option-group[open] .option-group-chevron {
   font: 700 13px/1 var(--font);
   padding: 9px 0;
   border: none;
-  border-radius: 9999px;
+  border-radius: var(--radius-sm);
   background: transparent;
   color: var(--text-secondary);
   cursor: pointer;
@@ -1456,7 +1456,7 @@ details.option-group[open] .option-group-chevron {
 .batch-ctl {
   font-size: 12px;
   padding: 2px 10px;
-  border-radius: 9999px;
+  border-radius: var(--radius-sm);
   border: 1px solid var(--batch);
   background: transparent;
   color: var(--batch);
@@ -1509,7 +1509,7 @@ details.option-group[open] .option-group-chevron {
   margin-bottom: 8px;
   padding: 3px;
   border: 1px solid var(--border-subtle);
-  border-radius: 9999px;
+  border-radius: var(--radius);
 }
 
 .batch-tabs.hidden {
@@ -1521,7 +1521,7 @@ details.option-group[open] .option-group-chevron {
   font: 700 13px/1 var(--font);
   padding: 8px 0;
   border: none;
-  border-radius: 9999px;
+  border-radius: var(--radius-sm);
   background: transparent;
   color: var(--text-secondary);
   cursor: pointer;
