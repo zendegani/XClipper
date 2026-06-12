@@ -8,6 +8,7 @@ import { initSettingsForm } from './settings-form';
 import { initActions } from './actions';
 import { initBatchUi } from './batch-ui';
 import { initModeTabs } from './mode';
+import { initReviewBanner } from './review-banner';
 
 // ─── Footer version ───────────────────────────────────────────────────
 
@@ -44,3 +45,4 @@ initModeTabs();
 initSettingsForm();
 initActions();
 void initBatchUi();
+void initReviewBanner();

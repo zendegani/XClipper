@@ -299,6 +299,97 @@ body {
   box-shadow: none;
 }
 
+/* ─── Review prompt banner ──────────────────────────────────── */
+.review-banner {
+  position: relative;
+  background: var(--accent-tint);
+  border: 1px solid var(--accent-glow);
+  border-radius: var(--radius);
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  animation: fadeIn 0.3s ease-out;
+}
+
+.review-banner.hidden {
+  display: none;
+}
+
+.review-close {
+  position: absolute;
+  top: 6px;
+  inset-inline-end: 6px;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: background var(--transition), color var(--transition);
+}
+
+.review-close svg {
+  width: 14px;
+  height: 14px;
+}
+
+.review-close:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.review-text {
+  font-size: 12.5px;
+  line-height: 1.45;
+  color: var(--text-primary);
+  /* room so the text never runs under the close button */
+  padding-inline-end: 18px;
+}
+
+.review-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.review-rate {
+  flex: 1;
+  padding: 8px 10px;
+  background: var(--accent);
+  color: #ffffff;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: var(--font);
+  font-size: 12.5px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background var(--transition);
+}
+
+.review-rate:hover {
+  background: var(--accent-hover);
+}
+
+.review-later {
+  padding: 8px 10px;
+  background: transparent;
+  color: var(--text-secondary);
+  border: none;
+  border-radius: var(--radius-sm);
+  font-family: var(--font);
+  font-size: 12.5px;
+  cursor: pointer;
+  transition: color var(--transition);
+}
+
+.review-later:hover {
+  color: var(--text-primary);
+}
+
 /* Download (.btn-primary) + Copy (.btn-secondary): outlined accent, matching
  * the PDF/Obsidian buttons. The old solid fill read like the active tab
  * toggle; outlining keeps all four action buttons consistent. */

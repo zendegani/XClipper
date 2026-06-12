@@ -28,6 +28,22 @@
     </header>
 
     <main class="popup-main" id="view-main">
+      <div id="review-banner" class="review-banner hidden" role="region" aria-label="Review request">
+        <button id="review-close" class="review-close" type="button" aria-label="Dismiss"
+          data-i18n-aria-label="review_dismiss">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        </button>
+        <p class="review-text" data-i18n="review_text">Enjoying XClipper? It's free and built with a lot of passion — a quick ★★★★★ review really helps it reach more people.</p>
+        <div class="review-actions">
+          <button id="review-rate" class="review-rate" type="button" data-i18n="review_rate">Rate on Chrome Web Store</button>
+          <button id="review-later" class="review-later" type="button" data-i18n="review_later">Maybe later</button>
+        </div>
+      </div>
+
       <div class="export-tabs" role="tablist">
         <button id="tab-mode-single" class="export-tab active" type="button" role="tab"
           aria-selected="true" data-i18n="group_single">Single export</button>

@@ -35,6 +35,18 @@
   "btn_csv_hint": {
     "message": "Save one metadata row using your selected frontmatter fields."
   },
+  "review_text": {
+    "message": "Enjoying XClipper? It's free and built with a lot of passion — a quick ★★★★★ review really helps it reach more people."
+  },
+  "review_rate": {
+    "message": "Rate on Chrome Web Store"
+  },
+  "review_later": {
+    "message": "Maybe later"
+  },
+  "review_dismiss": {
+    "message": "Dismiss"
+  },
   "btn_batch": {
     "message": "Export bookmarks"
   },

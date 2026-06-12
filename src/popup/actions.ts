@@ -6,6 +6,7 @@
 import type { ExtractResponse, DownloadRequest, ExtractedContent } from '../types/messages';
 import { postProcess, resolveDownloadImages, buildFilename, type PostProcessResult } from '../shared/post-process';
 import { buildFormatExport, type ExportFormat } from '../shared/export-formats';
+import { recordExport } from '../shared/review-prompt';
 import { buildObsidianUrl } from '../shared/obsidian';
 import { hostMatches } from '../shared/media';
 import { currentFrontmatterFields } from './settings-form';
@@ -196,6 +197,7 @@ export function initActions(): void {
           };
           const label = typeLabels[result.type] || chrome.i18n.getMessage('downloaded') || 'Downloaded!';
           showStatus(`✓ ${label}`, 'success');
+          void recordExport();
         }
         setLoading(false);
       });
@@ -252,6 +254,7 @@ export function initActions(): void {
           showStatus(resp?.error || chrome.i18n.getMessage('pdf_failed') || 'PDF export failed.', 'error');
         } else {
           showStatus(`✓ ${chrome.i18n.getMessage('pdf_downloaded') || 'PDF downloaded!'}`, 'success');
+          void recordExport();
         }
         setLoading(false);
       });
@@ -270,6 +273,7 @@ export function initActions(): void {
       const vault = txtObsidianVault.value.trim();
       const folder = txtObsidianFolder.value.trim();
       const url = buildObsidianUrl(result.markdown, result.filename, vault, folder);
+      void recordExport();
 
       // Navigate the popup itself to the obsidian:// URL. The OS handler picks
       // it up; the popup closes either way, so we don't leave a blank tab.
@@ -349,6 +353,7 @@ async function runFormatExport(format: ExportFormat, btn: HTMLButtonElement): Pr
         showStatus(downloadResponse?.error || chrome.i18n.getMessage('download_failed') || 'Download failed.', 'error');
       } else {
         showStatus(`✓ .${exported.ext} ${chrome.i18n.getMessage('downloaded') || 'Downloaded!'}`, 'success');
+        void recordExport();
       }
       btn.classList.remove('loading');
       for (const b of allExportButtons) b.disabled = false;
