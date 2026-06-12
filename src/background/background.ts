@@ -3,6 +3,7 @@ import type {
   DownloadRequest,
   PdfPrintRequest,
   PdfPrintResponse,
+  ThemeReport,
 } from '../types/messages';
 import {
   isAllowedImageUrl,
@@ -87,6 +88,59 @@ function registerContextMenus(): void {
 
 chrome.runtime.onInstalled.addListener(registerContextMenus);
 chrome.runtime.onStartup.addListener(registerContextMenus);
+
+// ─── Theme-aware toolbar icon ───────────────────────────────────────
+//
+// Chrome has no manifest light/dark icon switch (that's Firefox's
+// `theme_icons`), and the service worker can't read `prefers-color-scheme`.
+// So a small offscreen document watches the OS theme and reports it here; we
+// swap the action icon to the dark-optimized PNG set (near-white slash) so it
+// stays visible on a dark toolbar instead of the black slash vanishing.
+
+const ICON_LIGHT: Record<number, string> = {
+  16: 'icons/icon-16.png',
+  32: 'icons/icon-32.png',
+  48: 'icons/icon-48.png',
+  128: 'icons/icon-128.png',
+};
+const ICON_DARK: Record<number, string> = {
+  16: 'icons/icon-16-dark.png',
+  32: 'icons/icon-32-dark.png',
+  48: 'icons/icon-48-dark.png',
+  128: 'icons/icon-128-dark.png',
+};
+
+async function ensureThemeWatcher(): Promise<void> {
+  // chrome.offscreen is Chrome-only. On Firefox this is a clean no-op — the
+  // Firefox port should use the manifest's native `action.theme_icons` instead.
+  if (!chrome.offscreen) return;
+  try {
+    const exists = (await chrome.offscreen.hasDocument?.()) ?? false;
+    if (!exists) {
+      await chrome.offscreen.createDocument({
+        url: 'offscreen.html',
+        reasons: [chrome.offscreen.Reason.MATCH_MEDIA],
+        justification:
+          'Detect the OS light/dark theme to pick a toolbar icon that stays visible.',
+      });
+    }
+    // Whether freshly created or pre-existing (SW restarted), ask for the
+    // current scheme so the icon is correct without waiting for a change.
+    chrome.runtime.sendMessage({ action: 'XCLIPPER_THEME_QUERY' }).catch(() => {});
+  } catch {
+    // createDocument races (one already exists) are benign — the watcher is up.
+  }
+}
+
+chrome.runtime.onMessage.addListener((message: ThemeReport, _sender, _sendResponse) => {
+  if (!message || message.action !== 'XCLIPPER_THEME') return false;
+  chrome.action.setIcon({ path: message.dark ? ICON_DARK : ICON_LIGHT });
+  return false;
+});
+
+chrome.runtime.onInstalled.addListener(ensureThemeWatcher);
+chrome.runtime.onStartup.addListener(ensureThemeWatcher);
+void ensureThemeWatcher();
 
 // Batch export orchestrator (ADR 0002) — registers its own listeners.
 initBatch();
