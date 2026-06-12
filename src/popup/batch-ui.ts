@@ -25,7 +25,6 @@ import {
   batchDedupText,
   batchProgress,
   batchProgressText,
-  batchSection,
   btnBatch,
   btnBatchCancel,
   btnBatchIconBookmarks,
@@ -323,7 +322,6 @@ export async function initBatchUi(): Promise<void> {
     TAB_BUTTONS[tab].addEventListener('click', () => setActiveTab(tab));
   });
 
-  batchSection.classList.remove('hidden');
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   pageIsX = !!tab?.id && hostMatches(tab.url || '', 'x.com', 'www.x.com');
   if (pageIsX) pageTabId = tab!.id;

@@ -11,7 +11,6 @@ export const btnObsidian = document.getElementById('btn-obsidian') as HTMLButton
 export const statusEl = document.getElementById('status') as HTMLDivElement;
 
 // ─── Batch export (bookmarks) ────────────────────────────────────────
-export const batchSection = document.getElementById('batch-section') as HTMLDivElement;
 export const btnBatch = document.getElementById('btn-batch') as HTMLButtonElement;
 export const btnBatchLabel = document.getElementById('btn-batch-label') as HTMLSpanElement;
 export const batchProgress = document.getElementById('batch-progress') as HTMLDivElement;
