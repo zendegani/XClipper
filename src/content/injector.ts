@@ -433,9 +433,13 @@ function decorateSelection(): void {
 }
 
 function updateSelectionBar(): void {
-  if (selectionCountEl) {
-    selectionCountEl.textContent = `${selectedUrls.size} ${chrome.i18n.getMessage('batch_bar_selected') || 'selected'}`;
-  }
+  if (!selectionCountEl) return;
+  // Lead with an instruction so it's obvious what mode this is; switch to the
+  // running count once the user starts picking tweets.
+  selectionCountEl.textContent =
+    selectedUrls.size === 0
+      ? chrome.i18n.getMessage('batch_bar_hint') || 'Tap tweets to select'
+      : `${selectedUrls.size} ${chrome.i18n.getMessage('batch_bar_selected') || 'selected'}`;
 }
 
 function barButton(label: string, solid: boolean, onClick: () => void): HTMLElement {
@@ -443,10 +447,11 @@ function barButton(label: string, solid: boolean, onClick: () => void): HTMLElem
   b.type = 'button';
   b.textContent = label;
   b.style.cssText = [
-    'font:600 13px/1 system-ui,sans-serif',
-    'padding:7px 14px',
-    'border-radius:9999px',
+    'font:600 14px/1 system-ui,sans-serif',
+    'padding:10px 18px',
+    'border-radius:10px',
     'cursor:pointer',
+    'white-space:nowrap',
     solid ? `background:${ACCENT};border:1px solid ${ACCENT};color:#fff`
           : 'background:transparent;border:1px solid rgba(255,255,255,0.5);color:#fff',
   ].join(';');
@@ -464,19 +469,30 @@ function enterSelection(): void {
   selectionBar = document.createElement('div');
   selectionBar.style.cssText = [
     'position:fixed',
-    'bottom:20px',
+    'bottom:28px',
     'left:50%',
-    'transform:translateX(-50%)',
+    // Size to content (and cap to the viewport) so the centered bar never
+    // wraps to two lines — a fixed box at left:50% otherwise shrink-fits to
+    // only half the viewport width.
+    'width:max-content',
+    'max-width:calc(100vw - 24px)',
+    // Start a touch lower and transparent so the bar slides up into view
+    // (revealed via requestAnimationFrame below) instead of appearing
+    // silently where a scrolling user wouldn't notice it.
+    'transform:translateX(-50%) translateY(16px)',
+    'opacity:0',
+    'transition:opacity .22s ease, transform .22s ease',
     'display:flex',
     'align-items:center',
-    'gap:12px',
-    'background:rgba(15,20,25,0.95)',
+    'gap:14px',
+    'background:rgba(15,20,25,0.97)',
     'color:#fff',
-    'padding:10px 16px',
-    'border-radius:9999px',
-    'box-shadow:0 4px 20px rgba(0,0,0,0.35)',
+    'padding:14px 20px',
+    'border-radius:14px',
+    // Accent ring + deep shadow so it stands clear of the timeline.
+    `box-shadow:0 8px 28px rgba(0,0,0,0.45), 0 0 0 1px ${ACCENT}`,
     'z-index:2147483647',
-    'font:500 13px/1.2 system-ui,sans-serif',
+    'font:600 15px/1.2 system-ui,sans-serif',
   ].join(';');
 
   selectionCountEl = document.createElement('span');
@@ -510,6 +526,13 @@ function enterSelection(): void {
 
   updateSelectionBar();
   decorateSelection();
+
+  // Next frame: animate from the hidden initial state into view.
+  requestAnimationFrame(() => {
+    if (!selectionBar) return;
+    selectionBar.style.opacity = '1';
+    selectionBar.style.transform = 'translateX(-50%) translateY(0)';
+  });
 }
 
 function exitSelection(): void {

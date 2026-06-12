@@ -113,6 +113,9 @@
   "batch_bar_selected": {
     "message": "selected"
   },
+  "batch_bar_hint": {
+    "message": "Tap tweets to select"
+  },
   "batch_bar_export": {
     "message": "Export"
   },
