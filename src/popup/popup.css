@@ -159,7 +159,7 @@ body {
    * its label fit easily. Pinning the basis kills the asymmetry. */
   flex: 0 0 calc(50% - 4px);
   min-width: 0;
-  padding: 12px 10px;
+  padding: 10px 10px;
   /* Transparent 1px border so outlined variants (.btn-obsidian) have the
    * same computed height as filled ones — border-box only includes the
    * border when an explicit height is set; with height:auto, a border
@@ -284,7 +284,6 @@ body {
   display: flex;
   gap: 8px;
   align-items: center;
-  margin-bottom: 8px;
 }
 
 .btn-format {
@@ -316,13 +315,21 @@ body {
 }
 
 /* Collapsible wrapper around the secondary-format row. Open by default;
- * the caret lets users who never touch these formats tuck them away. */
+ * the caret lets users who never touch these formats tuck them away.
+ * Flex column so the summary↔row gap matches every other inter-row gap
+ * (the 8px set on .popup-main and .export-panel) rather than a separate
+ * margin that would stack on top of the panel's flex gap. */
+.format-details {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .format-summary {
   display: flex;
   align-items: center;
   gap: 6px;
   padding: 4px 2px;
-  margin-bottom: 8px;
   cursor: pointer;
   list-style: none;
   font-size: 12px;
