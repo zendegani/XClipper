@@ -6,12 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
-## [Unreleased]
+## [2.2.0] - 2026-06-13
 
 ### Added
 
-- **More single-export formats** (issue #54): alongside Markdown and PDF, a single post can now be saved as **HTML** (a styled, self-contained file), **JSON** (the raw structured document), **TXT** (plain text, markup stripped), or **CSV** (one metadata row whose columns follow your selected Default/Obsidian frontmatter fields). Four new icon buttons sit below the PDF/Obsidian row in the popup.
+- **Likes as a batch source**: export the posts you've liked from your Likes page — the fourth batch source alongside Bookmarks, Profile, and Selection.
+- **Batch export formats**: batch jobs can now be saved as **Markdown**, **HTML**, **JSON**, **TXT**, or **CSV** (PDF isn't batchable), chosen from a **Format** dropdown in the batch Export settings.
+- **More single-export formats** (issue #54): alongside Markdown and PDF, a single post can now be saved as **HTML** (a styled, self-contained file), **JSON** (the raw structured document), **TXT** (plain text, markup stripped), or **CSV** (your selected Default/Obsidian frontmatter fields as columns, plus a `text` column with the post body). The buttons live under a collapsible **More formats** row in the popup.
 - **Review prompt**: after 30 exports (files, not Copy), the popup shows a one-time, dismissible banner inviting a Chrome Web Store review. "Maybe later" snoozes it once; "Rate" or dismissing it never shows it again.
+
+### Changed
+
+- **Batch output — Separate / Both / Combined**: a tri-state control replaces the old "Export also as one file" toggle — write per-post files, a single combined file, or both. CSV is always one combined file (one row per post).
+- **Batch source tabs are now icons**: Bookmarks, Profile, Likes, and Selection each show their icon (name on hover) so all four fit the strip cleanly.
+- **Batch export marked Beta** in the popup while it's still being tuned.
 
 ### Fixed
 
