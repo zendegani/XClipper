@@ -4,18 +4,38 @@
 // We never ask for a password or a paid API key. With the opt-in `webRequest`
 // permission granted, we observe the auth headers the browser ALREADY sends on
 // your own x.com GraphQL requests, then replay the timeline endpoint ourselves —
-// paginating by cursor (timeline.ts) and mapping each tweet to the AST
-// (jsonToAst), so the existing renderers/sinks apply unchanged.
+// paginating by cursor (timeline.ts), mapping each tweet to the AST (jsonToAst),
+// then writing through the SHARED batch sinks (batch-sink.ts) with the user's
+// batch settings — so Fast Batch produces the same files as Standard batch, just
+// far faster. Only acquisition differs.
 //
 // This module is impure (webRequest, fetch, permissions) and therefore not
-// unit-tested — its pure dependencies (parse/paginate/map) are. Verify it live:
+// unit-tested — its pure dependencies (parse/paginate/map/sinks) are. Verify it
+// live:
 //   1) chrome://extensions → XClipper → service worker (Inspect)
-//   2) await xclipperFastBatch()      // grants permission, then walks bookmarks
+//   2) await xclipperFastBatch()      // grants permission, then EXPORTS bookmarks
 // If it says no request was captured, open https://x.com/i/bookmarks, scroll
 // once, and re-run.
 
 import { jsonToAst } from '../graphql/json-to-ast';
-import { paginateTimeline } from '../graphql/timeline';
+import { getVariables, paginateTimeline, setVariablesParam } from '../graphql/timeline';
+import { loadSettings } from '../shared/settings';
+import { postProcess, resolveDownloadImages } from '../shared/post-process';
+import { recordExport } from '../shared/review-prompt';
+import {
+  docToExtracted,
+  writeCombined,
+  writeJsonManifest,
+  writePerItem,
+  type StoredItem,
+} from './batch-sink';
+import {
+  BATCH_MAX_ITEMS,
+  EXPORTED_LEDGER_KEY,
+  appendToLedger,
+  batchFolderName,
+  uniqueFilename,
+} from './batch-state';
 
 const GRAPHQL_FILTER = '*://x.com/i/api/graphql/*';
 const FAST_BATCH_ORIGINS = ['*://x.com/*'];
@@ -96,29 +116,111 @@ async function authedFetchJson(url: string): Promise<unknown> {
   return res.json();
 }
 
-// Phase-A console harness: prove the live fetch→paginate→map path end to end
-// before any UI/sink exists. Returns mapped handles/ids so it's easy to eyeball.
-async function fastBatchTest(maxPages = 2): Promise<string[]> {
+async function loadLedger(): Promise<string[]> {
+  const r = await chrome.storage.local.get(EXPORTED_LEDGER_KEY);
+  const raw = r[EXPORTED_LEDGER_KEY];
+  return Array.isArray(raw) ? raw.filter((v): v is string => typeof v === 'string') : [];
+}
+
+export interface FastBatchResult {
+  exported: number;
+  skipped: number;
+  folder: string;
+}
+
+// Phase-A trigger (no UI yet, like ADR 0002 batch): fetch the bookmarks
+// timeline via GraphQL, map each tweet to the AST, postProcess + write through
+// the SHARED sinks (per-item files / combined / data.json) using the user's
+// batch settings. Honors the dedup ledger and the hard item cap. Console:
+//   await xclipperFastBatch()
+async function runFastBatchExport(maxItems = BATCH_MAX_ITEMS): Promise<FastBatchResult | null> {
   if (!(await requestFastBatchAccess())) {
     log('permission denied — Fast Batch needs the optional webRequest access');
-    return [];
+    return null;
   }
   const template = templates.Bookmarks;
   if (!template) {
     log('no Bookmarks request seen yet — open https://x.com/i/bookmarks, scroll once, then re-run');
-    return [];
+    return null;
   }
-  const refs: string[] = [];
-  for await (const tweets of paginateTimeline(template, authedFetchJson, { maxPages })) {
-    for (const t of tweets) {
-      const doc = jsonToAst(t);
-      refs.push(`${doc.metadata.author.handle}/${doc.metadata.tweetId}`);
+
+  const settings = await loadSettings();
+  const format = settings.batchFormat ?? 'md';
+  // CSV is metadata-only — always one combined file (mirrors Standard batch).
+  const output = format === 'csv' ? 'combined' : settings.batchOutput ?? 'separate';
+  const frontmatterFields = settings.obsidianFriendly
+    ? settings.frontmatterFieldsObsidian
+    : settings.frontmatterFields;
+
+  const now = new Date();
+  const prefix = settings.downloadFolder.trim();
+  const folder = (prefix ? `${prefix}/` : '') + batchFolderName(now);
+
+  const ledger = new Set(await loadLedger());
+  let ledgerArr = [...ledger];
+  const usedFilenames: string[] = [];
+  const items: StoredItem[] = [];
+  let skipped = 0;
+
+  // Start from the top of the feed — drop any mid-scroll cursor the captured
+  // request happened to carry.
+  const vars = JSON.parse(getVariables(template)) as Record<string, unknown>;
+  delete vars.cursor;
+  const initialUrl = setVariablesParam(template, JSON.stringify(vars));
+
+  try {
+    for await (const tweets of paginateTimeline(initialUrl, authedFetchJson, { maxPages: 25 })) {
+      for (const raw of tweets) {
+        if (items.length >= maxItems) break;
+        const doc = jsonToAst(raw);
+        const id = doc.metadata.tweetId;
+        if (id && ledger.has(id)) {
+          skipped++;
+          continue;
+        }
+        const result = postProcess(docToExtracted(doc), {
+          includeMetadata: settings.includeMetadata,
+          downloadImages: resolveDownloadImages('download', settings.downloadImages),
+          inlineStats: settings.inlineStats,
+          obsidianFriendly: settings.obsidianFriendly,
+          filenameTemplate: settings.filenameTemplate.trim(),
+          frontmatterFields,
+        });
+        const filename = uniqueFilename(usedFilenames, result.filename);
+        usedFilenames.push(filename.toLowerCase());
+        if (output !== 'combined') {
+          writePerItem(folder, format, filename, result.markdown, result.images, doc, settings);
+        }
+        items.push({ url: doc.metadata.sourceUrl, filename, doc });
+        if (id) {
+          ledger.add(id);
+          ledgerArr = appendToLedger(ledgerArr, id);
+        }
+      }
+      log(`fetched ${items.length}${skipped ? ` (skipped ${skipped} already-exported)` : ''}`);
+      if (items.length >= maxItems) break;
     }
-    log(`page: +${tweets.length} (total ${refs.length})`);
+  } catch (err) {
+    // Partial export is honest — files already written stay on disk.
+    log('fetch stopped early:', err);
   }
-  log(`done — mapped ${refs.length} tweets; first: ${refs.slice(0, 3).join(', ')}`);
-  return refs;
+
+  if (items.length > 0) {
+    writeJsonManifest(
+      folder,
+      { jobId: `fast-${now.getTime()}`, status: 'done', completed: items.length, failures: [] },
+      items
+    );
+    if (output === 'both' || output === 'combined') {
+      writeCombined(folder, format, items.map((i) => i.doc), settings);
+    }
+    await chrome.storage.local.set({ [EXPORTED_LEDGER_KEY]: ledgerArr });
+    void recordExport();
+  }
+  log(`done — exported ${items.length} → ${folder}/ (${skipped} skipped; ${format}/${output})`);
+  return { exported: items.length, skipped, folder };
 }
+
 
 export function initFastBatch(): void {
   // Re-arm capture across service-worker restarts if access was already granted.
@@ -129,5 +231,5 @@ export function initFastBatch(): void {
     if (p.permissions?.includes('webRequest')) startCapturing();
   });
   // Phase-A trigger (see header).
-  (globalThis as Record<string, unknown>).xclipperFastBatch = fastBatchTest;
+  (globalThis as Record<string, unknown>).xclipperFastBatch = runFastBatchExport;
 }
