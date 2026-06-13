@@ -39,6 +39,21 @@ btnBack?.addEventListener('click', () => {
   btnSettings?.classList.remove('hidden');
 });
 
+// ─── Collapsible "More formats" row ───────────────────────────────────
+// The native <details> handles expand/collapse; we only remember the state
+// across popup opens. Defaults to open — only an explicit collapse sticks.
+
+const FORMATS_KEY = 'formatsExpanded';
+const formatDetails = document.getElementById('format-details') as HTMLDetailsElement | null;
+if (formatDetails) {
+  chrome.storage.local.get(FORMATS_KEY, (res) => {
+    if (res[FORMATS_KEY] === false) formatDetails.open = false;
+  });
+  formatDetails.addEventListener('toggle', () => {
+    chrome.storage.local.set({ [FORMATS_KEY]: formatDetails.open });
+  });
+}
+
 // ─── Feature modules ──────────────────────────────────────────────────
 
 initModeTabs();

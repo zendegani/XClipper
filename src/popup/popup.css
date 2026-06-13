@@ -315,6 +315,47 @@ body {
   box-shadow: none;
 }
 
+/* Collapsible wrapper around the secondary-format row. Open by default;
+ * the caret lets users who never touch these formats tuck them away. */
+.format-summary {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 2px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  list-style: none;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  user-select: none;
+}
+
+.format-summary::-webkit-details-marker {
+  display: none;
+}
+
+.format-summary:hover {
+  color: var(--text-primary);
+}
+
+.format-caret {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
+}
+
+/* Chevron points down when open; rotate it to point toward the row's start
+ * edge (right in LTR, left in RTL) when collapsed. */
+.format-details:not([open]) .format-caret {
+  transform: rotate(-90deg);
+}
+
+[dir='rtl'] .format-details:not([open]) .format-caret {
+  transform: rotate(90deg);
+}
+
 /* ─── Review prompt banner ──────────────────────────────────── */
 .review-banner {
   position: relative;
@@ -764,6 +805,30 @@ body {
 .action-row .btn-action:first-child[data-tooltip]:focus-visible::after,
 .action-row .btn-action:last-child[data-tooltip]:hover::after,
 .action-row .btn-action:last-child[data-tooltip]:focus-visible::after {
+  transform: translateY(0);
+}
+
+/* The .html and .csv buttons sit at the format row's edges — a centered
+ * tooltip would spill off the popup and get clipped. Anchor them to the
+ * logical edges so each grows inward (mirrors the action-row rule above). */
+.format-row .btn-format:first-child[data-tooltip]::after {
+  left: auto;
+  right: auto;
+  inset-inline-start: 0;
+  transform: translateY(2px);
+}
+
+.format-row .btn-format:last-child[data-tooltip]::after {
+  left: auto;
+  right: auto;
+  inset-inline-end: 0;
+  transform: translateY(2px);
+}
+
+.format-row .btn-format:first-child[data-tooltip]:hover::after,
+.format-row .btn-format:first-child[data-tooltip]:focus-visible::after,
+.format-row .btn-format:last-child[data-tooltip]:hover::after,
+.format-row .btn-format:last-child[data-tooltip]:focus-visible::after {
   transform: translateY(0);
 }
 

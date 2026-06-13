@@ -164,6 +164,9 @@
   "group_export": {
     "message": "Export settings"
   },
+  "group_more_formats": {
+    "message": "More formats"
+  },
   "group_single": {
     "message": "Single export"
   },
