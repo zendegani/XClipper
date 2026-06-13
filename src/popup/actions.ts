@@ -116,11 +116,19 @@ async function extractContent(includeMetadata: boolean): Promise<ExtractedConten
     );
   }
 
-  const response: ExtractResponse = await chrome.tabs.sendMessage(tab.id, {
+  const response: ExtractResponse | undefined = await chrome.tabs.sendMessage(tab.id, {
     action: 'EXTRACT',
     includeMetadata,
   });
 
+  // After an extension reload the content script already in the tab is
+  // orphaned: its async EXTRACT handler can't answer, so tabs.sendMessage
+  // resolves `undefined` (instead of rejecting with "Receiving end does not
+  // exist"). Surface the same "reload the page" hint rather than letting a
+  // raw `undefined.success` TypeError leak through.
+  if (!response) {
+    throw new Error(chrome.i18n.getMessage('error_reload') || 'Reload the page and try again.');
+  }
   if (!response.success || !response.data) {
     throw new Error(response.error || chrome.i18n.getMessage('error_failed') || 'Failed to extract content.');
   }
