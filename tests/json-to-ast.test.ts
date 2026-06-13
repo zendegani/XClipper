@@ -1,0 +1,267 @@
+import { describe, it, expect } from 'vitest';
+import { jsonToAst, jsonToTweetNode } from '../src/graphql/json-to-ast';
+import { renderMarkdown } from '../src/ast/render-markdown';
+
+// Fixtures here are MODELED ON X's documented GraphQL schema, not captured from
+// a live response (that needs a logged-in session — see ADR 0003). They pin the
+// mapper's behavior; field paths must be re-validated against a real capture
+// before the fetch layer is trusted.
+
+const user = {
+  is_blue_verified: true,
+  legacy: {
+    name: 'Bob Example',
+    screen_name: 'bob',
+    profile_image_url_https: 'https://pbs.twimg.com/bob.jpg',
+  },
+};
+
+// Build a tweet_results.result. `legacy` merges into the legacy object;
+// `extra` merges at the tweet top level (note_tweet, card, quoted_status…).
+function tweet(legacy: Record<string, unknown> = {}, extra: Record<string, unknown> = {}) {
+  return {
+    rest_id: '123',
+    core: { user_results: { result: user } },
+    legacy: {
+      id_str: '123',
+      created_at: 'Wed Oct 10 20:19:24 +0000 2018',
+      full_text: 'hello world',
+      favorite_count: 5,
+      retweet_count: 2,
+      reply_count: 1,
+      bookmark_count: 3,
+      entities: {},
+      ...legacy,
+    },
+    views: { count: '1000' },
+    ...extra,
+  };
+}
+
+describe('jsonToAst — metadata', () => {
+  it('maps author, date, id, engagement, and derives sourceUrl', () => {
+    const doc = jsonToAst(tweet());
+    expect(doc.metadata.type).toBe('tweet');
+    expect(doc.metadata.tweetId).toBe('123');
+    expect(doc.metadata.author).toEqual({
+      name: 'Bob Example',
+      handle: 'bob',
+      avatarUrl: 'https://pbs.twimg.com/bob.jpg',
+      verified: true,
+    });
+    expect(doc.metadata.date).toBe(new Date('Wed Oct 10 20:19:24 +0000 2018').toISOString());
+    expect(doc.metadata.engagement).toEqual({
+      replies: 1,
+      reposts: 2,
+      likes: 5,
+      bookmarks: 3,
+      views: 1000,
+    });
+    expect(doc.metadata.sourceUrl).toBe('https://x.com/bob/status/123');
+  });
+
+  it('honors an explicit sourceUrl', () => {
+    const doc = jsonToAst(tweet(), 'https://x.com/bob/status/123/photo/1');
+    expect(doc.metadata.sourceUrl).toBe('https://x.com/bob/status/123/photo/1');
+  });
+});
+
+describe('jsonToTweetNode — inline text from entities', () => {
+  it('splices mentions, hashtags, cashtags, and url links by codepoint indices', () => {
+    const node = jsonToTweetNode(
+      tweet({
+        full_text: 'hi @bob #ai $TSLA https://t.co/x',
+        entities: {
+          user_mentions: [{ screen_name: 'bob', indices: [3, 7] }],
+          hashtags: [{ text: 'ai', indices: [8, 11] }],
+          symbols: [{ text: 'TSLA', indices: [12, 17] }],
+          urls: [
+            {
+              url: 'https://t.co/x',
+              expanded_url: 'https://example.com',
+              display_url: 'example.com',
+              indices: [18, 32],
+            },
+          ],
+        },
+      })
+    );
+    expect(node.text).toEqual([
+      { type: 'text', value: 'hi ' },
+      { type: 'entity', kind: 'mention', value: 'bob', url: 'https://x.com/bob' },
+      { type: 'text', value: ' ' },
+      { type: 'entity', kind: 'hashtag', value: 'ai', url: 'https://x.com/hashtag/ai' },
+      { type: 'text', value: ' ' },
+      { type: 'entity', kind: 'cashtag', value: 'TSLA', url: 'https://x.com/search?q=%24TSLA' },
+      { type: 'text', value: ' ' },
+      { type: 'link', url: 'https://example.com', children: [{ type: 'text', value: 'example.com' }] },
+    ]);
+  });
+
+  it('drops the trailing media t.co link and decodes HTML entities', () => {
+    const node = jsonToTweetNode(
+      tweet({
+        full_text: 'me &amp; you https://t.co/m',
+        entities: { media: [{ url: 'https://t.co/m', indices: [13, 27] }] },
+      })
+    );
+    expect(node.text).toEqual([{ type: 'text', value: 'me & you' }]);
+  });
+
+  it('splits newlines into break nodes', () => {
+    const node = jsonToTweetNode(tweet({ full_text: 'line one\nline two' }));
+    expect(node.text).toEqual([
+      { type: 'text', value: 'line one' },
+      { type: 'break' },
+      { type: 'text', value: 'line two' },
+    ]);
+  });
+
+  it('prefers note_tweet long-form text over truncated full_text', () => {
+    const node = jsonToTweetNode(
+      tweet(
+        { full_text: 'short truncated…' },
+        { note_tweet: { note_tweet_results: { result: { text: 'the full long text' } } } }
+      )
+    );
+    expect(node.text).toEqual([{ type: 'text', value: 'the full long text' }]);
+  });
+});
+
+describe('jsonToTweetNode — media', () => {
+  it('maps photos and picks the highest-bitrate mp4 video variant', () => {
+    const node = jsonToTweetNode(
+      tweet({
+        extended_entities: {
+          media: [
+            { type: 'photo', media_url_https: 'https://pbs.twimg.com/p.jpg', ext_alt_text: 'a cat' },
+            {
+              type: 'video',
+              media_url_https: 'https://pbs.twimg.com/poster.jpg',
+              video_info: {
+                variants: [
+                  { content_type: 'application/x-mpegURL', url: 'https://video/x.m3u8' },
+                  { content_type: 'video/mp4', bitrate: 256000, url: 'https://video/low.mp4' },
+                  { content_type: 'video/mp4', bitrate: 2176000, url: 'https://video/high.mp4' },
+                ],
+              },
+            },
+          ],
+        },
+      })
+    );
+    expect(node.media).toEqual([
+      { kind: 'image', url: 'https://pbs.twimg.com/p.jpg', alt: 'a cat' },
+      { kind: 'video', url: 'https://video/high.mp4', posterUrl: 'https://pbs.twimg.com/poster.jpg' },
+    ]);
+  });
+});
+
+describe('jsonToTweetNode — quotes and wrappers', () => {
+  it('recurses into a quoted tweet', () => {
+    const quoted = tweet({ id_str: '999', full_text: 'quoted body' }, { rest_id: '999' });
+    const node = jsonToTweetNode(tweet({}, { quoted_status_result: { result: quoted } }));
+    expect(node.quotedTweet?.tweetId).toBe('999');
+    expect(node.quotedTweet?.text).toEqual([{ type: 'text', value: 'quoted body' }]);
+  });
+
+  it('unwraps TweetWithVisibilityResults', () => {
+    const node = jsonToTweetNode({
+      __typename: 'TweetWithVisibilityResults',
+      tweet: tweet({ full_text: 'visible' }),
+    });
+    expect(node.text).toEqual([{ type: 'text', value: 'visible' }]);
+  });
+});
+
+describe('jsonToAst — renderer compatibility', () => {
+  // The premise of Fast Batch (ADR 0003): a mapped Document feeds the existing
+  // renderers unchanged. This proves the output is renderer-compatible — text,
+  // entity link, and image all survive into Markdown.
+  it('renders to Markdown via the existing renderMarkdown', () => {
+    const doc = jsonToAst(
+      tweet({
+        full_text: 'see @bob https://t.co/x',
+        entities: {
+          user_mentions: [{ screen_name: 'bob', indices: [4, 8] }],
+          urls: [
+            {
+              url: 'https://t.co/x',
+              expanded_url: 'https://example.com',
+              display_url: 'example.com',
+              indices: [9, 23],
+            },
+          ],
+        },
+        extended_entities: {
+          media: [{ type: 'photo', media_url_https: 'https://pbs.twimg.com/p.jpg', ext_alt_text: 'cat' }],
+        },
+      })
+    );
+    const md = renderMarkdown(doc);
+    expect(md).toContain('@bob');
+    expect(md).toContain('https://example.com');
+    expect(md).toContain('https://pbs.twimg.com/p.jpg');
+    expect(md.length).toBeGreaterThan(0);
+  });
+});
+
+describe('jsonToTweetNode — cards', () => {
+  it('maps a poll card to a PollNode with computed percents', () => {
+    const node = jsonToTweetNode(
+      tweet(
+        {},
+        {
+          card: {
+            legacy: {
+              name: 'poll2choice_text_only',
+              binding_values: [
+                { key: 'choice1_label', value: { string_value: 'Cats' } },
+                { key: 'choice1_count', value: { string_value: '30' } },
+                { key: 'choice2_label', value: { string_value: 'Dogs' } },
+                { key: 'choice2_count', value: { string_value: '10' } },
+              ],
+            },
+          },
+        }
+      )
+    );
+    expect(node.poll).toEqual({
+      type: 'poll',
+      choices: [
+        { label: 'Cats', percent: 75 },
+        { label: 'Dogs', percent: 25 },
+      ],
+    });
+  });
+
+  it('maps a summary card to a LinkCardNode', () => {
+    const node = jsonToTweetNode(
+      tweet(
+        {},
+        {
+          card: {
+            legacy: {
+              name: 'summary_large_image',
+              binding_values: [
+                { key: 'title', value: { string_value: 'A Title' } },
+                { key: 'description', value: { string_value: 'A desc' } },
+                { key: 'domain', value: { string_value: 'example.com' } },
+                { key: 'card_url', value: { string_value: 'https://t.co/card' } },
+                { key: 'thumbnail_image_large', value: { image_value: { url: 'https://pbs.twimg.com/thumb.jpg' } } },
+              ],
+            },
+          },
+        }
+      )
+    );
+    expect(node.linkCard).toEqual({
+      type: 'linkCard',
+      url: 'https://t.co/card',
+      title: 'A Title',
+      description: 'A desc',
+      imageUrl: 'https://pbs.twimg.com/thumb.jpg',
+      domain: 'example.com',
+    });
+  });
+});
