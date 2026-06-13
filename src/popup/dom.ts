@@ -31,9 +31,11 @@ export const chkBatchDigest = document.getElementById('chk-batch-digest') as HTM
 export const btnBatchIconBookmarks = document.getElementById('btn-batch-icon-bookmarks') as unknown as SVGElement;
 export const btnBatchIconProfile = document.getElementById('btn-batch-icon-profile') as unknown as SVGElement;
 export const btnBatchIconSelection = document.getElementById('btn-batch-icon-selection') as unknown as SVGElement;
+export const btnBatchIconLikes = document.getElementById('btn-batch-icon-likes') as unknown as SVGElement;
 export const tabBatchBookmarks = document.getElementById('tab-batch-bookmarks') as HTMLButtonElement;
 export const tabBatchProfile = document.getElementById('tab-batch-profile') as HTMLButtonElement;
 export const tabBatchSelection = document.getElementById('tab-batch-selection') as HTMLButtonElement;
+export const tabBatchLikes = document.getElementById('tab-batch-likes') as HTMLButtonElement;
 
 // ─── Settings checkboxes ─────────────────────────────────────────────
 export const chkDownloadImages = document.getElementById('chk-download-images') as HTMLInputElement;

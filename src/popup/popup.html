@@ -210,11 +210,39 @@
       <div id="batch-section" class="batch-section export-panel hidden">
         <div id="batch-tabs" class="batch-tabs" role="tablist">
           <button id="tab-batch-bookmarks" class="batch-tab" type="button" role="tab"
-            data-i18n="batch_tab_bookmarks">Bookmarks</button>
+            aria-label="Bookmarks" data-i18n-aria-label="batch_tab_bookmarks"
+            data-tooltip="Bookmarks" data-i18n-tooltip="batch_tab_bookmarks">
+            <svg class="batch-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z" />
+            </svg>
+          </button>
           <button id="tab-batch-profile" class="batch-tab" type="button" role="tab"
-            data-i18n="batch_tab_profile">Profile</button>
+            aria-label="Profile" data-i18n-aria-label="batch_tab_profile"
+            data-tooltip="Profile" data-i18n-tooltip="batch_tab_profile">
+            <svg class="batch-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+              <circle cx="12" cy="7" r="4" />
+            </svg>
+          </button>
+          <button id="tab-batch-likes" class="batch-tab" type="button" role="tab"
+            aria-label="Likes" data-i18n-aria-label="batch_tab_likes"
+            data-tooltip="Likes" data-i18n-tooltip="batch_tab_likes">
+            <svg class="batch-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+            </svg>
+          </button>
           <button id="tab-batch-selection" class="batch-tab" type="button" role="tab"
-            data-i18n="batch_tab_selection">Selection</button>
+            aria-label="Selection" data-i18n-aria-label="batch_tab_selection"
+            data-tooltip="Selection" data-i18n-tooltip="batch_tab_selection">
+            <svg class="batch-tab-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="9 11 12 14 22 4" />
+              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+            </svg>
+          </button>
         </div>
         <button id="btn-batch" class="btn-batch btn-action" type="button"
           data-tooltip="Export every bookmark loaded on this page as Markdown files into one folder. Scroll the bookmarks page to load more."
@@ -232,6 +260,10 @@
             stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
             <polyline points="9 11 12 14 22 4" />
             <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+          </svg>
+          <svg id="btn-batch-icon-likes" class="btn-icon hidden" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+            stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
           </svg>
           <span class="btn-label" id="btn-batch-label" data-i18n="btn_batch">Export bookmarks</span>
         </button>

@@ -104,6 +104,15 @@
   "btn_batch_profile_hint": {
     "message": "Export this profile's own posts loaded on the page as Markdown files into one folder. Reposts are skipped; scroll to load more."
   },
+  "btn_batch_likes": {
+    "message": "Export likes"
+  },
+  "btn_batch_likes_hint": {
+    "message": "Export every liked post loaded on this page as Markdown files into one folder. Scroll your Likes page to load more."
+  },
+  "btn_batch_open_likes": {
+    "message": "Open your Likes page on x.com to export the posts you have liked."
+  },
   "group_batch": {
     "message": "Batch export"
   },
@@ -115,6 +124,9 @@
   },
   "batch_tab_selection": {
     "message": "Selection"
+  },
+  "batch_tab_likes": {
+    "message": "Likes"
   },
   "btn_batch_select": {
     "message": "Select tweets…"
