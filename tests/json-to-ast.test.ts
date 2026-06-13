@@ -126,6 +126,46 @@ describe('jsonToTweetNode — inline text from entities', () => {
     );
     expect(node.text).toEqual([{ type: 'text', value: 'the full long text' }]);
   });
+
+  it('splices long-form text with note_tweet entity_set, NOT legacy.entities', () => {
+    // Real-data bug guard: legacy.entities indices are relative to the
+    // truncated full_text; using them against the full note text mis-places
+    // links. The link lands correctly only if entity_set drives the splice.
+    const node = jsonToTweetNode(
+      tweet(
+        {
+          full_text: 'WRONG truncated https://t.co/trunc',
+          entities: {
+            urls: [{ url: 'https://t.co/trunc', expanded_url: 'https://wrong', display_url: 'wrong', indices: [0, 5] }],
+          },
+        },
+        {
+          note_tweet: {
+            note_tweet_results: {
+              result: {
+                text: 'long body link https://t.co/x end',
+                entity_set: {
+                  urls: [
+                    {
+                      url: 'https://t.co/x',
+                      expanded_url: 'https://full.example',
+                      display_url: 'full.example',
+                      indices: [15, 29],
+                    },
+                  ],
+                },
+              },
+            },
+          },
+        }
+      )
+    );
+    expect(node.text).toEqual([
+      { type: 'text', value: 'long body link ' },
+      { type: 'link', url: 'https://full.example', children: [{ type: 'text', value: 'full.example' }] },
+      { type: 'text', value: ' end' },
+    ]);
+  });
 });
 
 describe('jsonToTweetNode — media', () => {

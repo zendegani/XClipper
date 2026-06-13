@@ -87,7 +87,10 @@ interface RawTweet {
   rest_id?: string;
   core?: { user_results?: { result?: RawUser } };
   legacy?: RawLegacy;
-  note_tweet?: { note_tweet_results?: { result?: { text?: string } } };
+  // Long-form (>280) tweets: `text` is the FULL untruncated body and
+  // `entity_set` holds entities whose indices align with that full text.
+  // legacy.full_text/entities are the truncated form — never mix the two.
+  note_tweet?: { note_tweet_results?: { result?: { text?: string; entity_set?: RawEntities } } };
   quoted_status_result?: { result?: RawResult };
   card?: RawCard;
   views?: { count?: string };
@@ -120,8 +123,14 @@ export function jsonToAst(raw: unknown, sourceUrl?: string): Document {
 export function jsonToTweetNode(raw: unknown): TweetNode {
   const t = unwrap(raw);
   const legacy = t.legacy ?? {};
-  const longText = t.note_tweet?.note_tweet_results?.result?.text;
-  const text = buildInline(longText ?? legacy.full_text ?? '', legacy.entities ?? {});
+  // Long-form tweets carry the full body + matching entities under note_tweet;
+  // fall back to the truncated legacy pair. The text and the entities used to
+  // splice it MUST come from the same source so indices line up.
+  const note = t.note_tweet?.note_tweet_results?.result;
+  const text =
+    note?.text !== undefined
+      ? buildInline(note.text, note.entity_set ?? {})
+      : buildInline(legacy.full_text ?? '', legacy.entities ?? {});
 
   const node: TweetNode = {
     type: 'tweet',
