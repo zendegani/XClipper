@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Faster batch export**: the politeness gap between posts dropped from 2–4 s to ~0.6–1.2 s, roughly halving wall-clock on single-post batches. To keep a tighter pace safe, a batch now **auto-pauses** when it hits a login or rate-limit wall, or after several failures in a row — the popup shows why, and Resume picks up where it left off.
+- **Faster batch export**: the politeness gap between posts dropped from 2–4 s to ~0.6–1.2 s, and the per-post thread/media hydration now settles adaptively — it proceeds the instant content mounts instead of always waiting a fixed delay, while keeping the same upper bound so slow-loading threads are never truncated. Together these noticeably cut batch wall-clock. To keep the tighter pace safe, a batch now **auto-pauses** when it hits a login or rate-limit wall, or after several failures in a row — the popup shows why, and Resume picks up where it left off.
 
 ---
 ## [2.2.0] - 2026-06-13

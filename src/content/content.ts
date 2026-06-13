@@ -265,7 +265,9 @@ function detectBatchInterstitial(): string | null {
 async function runBatchExtract(): Promise<void> {
   let msg: BatchItemResultMessage;
   try {
+    const tWait0 = performance.now();
     const article = await waitForArticle();
+    const waitMs = Math.round(performance.now() - tWait0);
     if (!article) {
       const interstitial = detectBatchInterstitial();
       if (interstitial) {
@@ -282,9 +284,11 @@ async function runBatchExtract(): Promise<void> {
     }
 
     const settings = await loadSettings();
+    const tEx0 = performance.now();
     const response = await extract({
       includeMetadata: settings.includeMetadata || settings.inlineStats,
     });
+    const extractMs = Math.round(performance.now() - tEx0);
     if (!response.success || !response.data) {
       throw new Error(response.error || 'Extraction failed');
     }
@@ -308,6 +312,7 @@ async function runBatchExtract(): Promise<void> {
       filename: result.filename,
       images: result.images.length > 0 ? result.images : undefined,
       doc: response.data.body,
+      timings: { waitMs, extractMs },
     };
   } catch (err) {
     msg = {

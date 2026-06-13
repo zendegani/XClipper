@@ -128,6 +128,29 @@ export async function extractTweetAsync(
   }
 }
 
+// Wait until a new article mounts or the page grows taller (X streamed in more
+// of the thread), polling fast and returning the instant something appears — or
+// false once idleCapMs passes with no change. Replaces fixed settle delays:
+// the ceiling is unchanged, so a slow render still gets its full window, but a
+// step where content has already mounted no longer pays the whole wait.
+async function waitForGrowth(
+  beforeCount: number,
+  beforeHeight: number,
+  idleCapMs: number
+): Promise<boolean> {
+  const start = Date.now();
+  while (Date.now() - start < idleCapMs) {
+    await delay(80);
+    if (
+      document.querySelectorAll('article[role="article"]').length > beforeCount ||
+      document.documentElement.scrollHeight > beforeHeight
+    ) {
+      return true;
+    }
+  }
+  return false;
+}
+
 async function loadThreadIntoDom(): Promise<Element | null> {
   // Fresh map per extraction — keeps memory bounded in long X.com SPA
   // sessions where the user navigates between threads.
@@ -151,15 +174,16 @@ async function loadThreadIntoDom(): Promise<Element | null> {
   // Upward walk: coax X into loading any ancestors above the focused tweet.
   // No capture yet — we don't know the thread author until ancestors settle.
   const MAX_UP_STEPS = 30;
-  const UP_SETTLE_DELAY = 500;
+  // Ancestors render with the conversation view rather than streaming in lazily,
+  // so a short idle cap confirms "nothing more above" quickly; a genuinely long
+  // chain still walks fully via the growth signal (only the final no-growth step
+  // pays the cap).
+  const UP_SETTLE_CAP = 300;
   for (let step = 0; step < MAX_UP_STEPS; step++) {
     const beforeCount = document.querySelectorAll('article[role="article"]').length;
     const beforeHeight = document.documentElement.scrollHeight;
     window.scrollTo({ top: 0, behavior: 'instant' });
-    await delay(UP_SETTLE_DELAY);
-    const afterCount = document.querySelectorAll('article[role="article"]').length;
-    const afterHeight = document.documentElement.scrollHeight;
-    if (afterCount === beforeCount && afterHeight === beforeHeight) break;
+    if (!(await waitForGrowth(beforeCount, beforeHeight, UP_SETTLE_CAP))) break;
   }
 
   // X.com virtualizes the timeline — articles scrolled off-screen are
@@ -201,14 +225,18 @@ async function loadThreadIntoDom(): Promise<Element | null> {
     const atBottom =
       window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 50;
     if (atBottom && seen.size === sizeBefore) break;
+    const beforeHeight = document.documentElement.scrollHeight;
     window.scrollBy({ top: SCROLL_STEP, behavior: 'instant' });
-    await delay(400);
+    // Continue the instant the next thread tweet mounts, but still allow the
+    // full 400 ms when it streams in slowly — same ceiling as before, so a slow
+    // render never truncates the thread.
+    await waitForGrowth(articles.length, beforeHeight, 400);
   }
 
   // Final pass: capture at bottom, scroll-back-to-top + settle + capture.
   captureArticles(captured, threadAuthor.handle);
   window.scrollTo({ top: 0, behavior: 'instant' });
-  await delay(400);
+  await delay(250);
   captureArticles(captured, threadAuthor.handle);
   return rehydrateMissingArticles(captured, threadAuthor.handle);
 }

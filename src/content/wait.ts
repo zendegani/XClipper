@@ -12,7 +12,7 @@ export async function waitForArticle(timeoutMs = 15000): Promise<Element | null>
   while (Date.now() - start < timeoutMs) {
     article = document.querySelector('article[role="article"]');
     if (article) break;
-    await delay(200);
+    await delay(120);
   }
   if (!article) return null;
 

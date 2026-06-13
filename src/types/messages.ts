@@ -190,6 +190,9 @@ export interface BatchItemResultMessage {
   // orchestrator pauses the whole job with this reason rather than recording it
   // and hammering on. Human-readable; surfaced in the popup's paused state.
   interstitial?: string;
+  // Diagnostic phase timings for perf tuning, logged by the background (not
+  // persisted or shown to users): waitForArticle vs. extract (thread-walk + AST).
+  timings?: { waitMs: number; extractMs: number };
 }
 
 // Injector (content) → background: report the tweet permalink under the cursor

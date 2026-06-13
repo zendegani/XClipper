@@ -343,6 +343,18 @@ async function handleItemResult(
     return;
   }
 
+  // Perf breakdown for tuning (deadline = dispatchedAt + ITEM_TIMEOUT_MS, so
+  // total is wall-time since the worker was pointed at this item; nav is the
+  // remainder after the worker's own wait/extract phases — page load + boot).
+  if (msg.timings && job.deadline !== undefined) {
+    const total = Date.now() - (job.deadline - ITEM_TIMEOUT_MS);
+    const nav = total - msg.timings.waitMs - msg.timings.extractMs;
+    log(
+      `item ${total}ms (nav ~${nav}ms, wait ${msg.timings.waitMs}ms, ` +
+        `extract ${msg.timings.extractMs}ms): ${expected}`
+    );
+  }
+
   const outcome =
     msg.success && typeof msg.markdown === 'string' && typeof msg.filename === 'string'
       ? { success: true as const, filename: msg.filename }
