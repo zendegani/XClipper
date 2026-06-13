@@ -143,6 +143,9 @@ export interface BatchStatusResponse {
     // Status ids already in the queue (processed or pending), so the popup
     // can exclude them from the "new items to add" count without re-adding.
     queuedIds: string[];
+    // Why the job auto-paused (login/rate-limit wall, or a run of failures), so
+    // the popup can explain the stop instead of just showing "Paused".
+    pauseReason?: string;
   };
 }
 
@@ -182,6 +185,11 @@ export interface BatchItemResultMessage {
   // The item's AST, carried for the per-job JSON sink (ADR 0002 #11).
   doc?: import('../ast/types').Document;
   error?: string;
+  // Set when the worker landed on a login or rate-limit wall instead of the
+  // tweet (ADR 0002 #7). A session-level stop, not a per-item failure: the
+  // orchestrator pauses the whole job with this reason rather than recording it
+  // and hammering on. Human-readable; surfaced in the popup's paused state.
+  interstitial?: string;
 }
 
 // Injector (content) → background: report the tweet permalink under the cursor

@@ -61,11 +61,19 @@ const WATCHDOG_ALARM = 'xclipper-batch-watchdog';
 const ITEM_TIMEOUT_MS = 90_000;
 const BATCH_MARKER = '#xclipper=batch';
 
-// Behave like a patient user in their own session: 2–4 s between permalink
-// loads (ADR 0002 #7).
+// Politeness gap between permalink loads (ADR 0002 #7) — enough jitter to not
+// look like a metronome, but far below the original 2–4 s, which dominated
+// wall-clock on single-tweet batches. Interstitial detection + the
+// consecutive-failure auto-pause below are what make a tight gap safe: if X
+// starts throttling, the job pauses instead of hammering through.
 function throttleMs(): number {
-  return 2000 + Math.random() * 2000;
+  return 600 + Math.random() * 600;
 }
+
+// Pause the whole job after this many failures in a row. Individual bad tweets
+// (deleted, restricted) are rare enough that a run this long almost always
+// means X is rate-limiting or serving walls the in-page check didn't catch.
+const FAILURE_PAUSE_THRESHOLD = 5;
 
 const log = (...args: unknown[]): void => console.log('[xclipper batch]', ...args);
 
@@ -325,6 +333,16 @@ async function handleItemResult(
   const expected = currentUrl(job);
   if (!expected || statusIdOf(msg.url || '') !== statusIdOf(expected)) return;
 
+  // A login/rate-limit wall is a session-level stop, not a per-item failure:
+  // pause the whole job (ADR 0002 #7) with the worker's reason and leave this
+  // item un-advanced, so Resume retries it once the user has cleared the wall.
+  // The worker window stays open (the user may need it to sign in).
+  if (msg.interstitial) {
+    log(`auto-paused — ${msg.interstitial}`);
+    await saveJob({ ...pauseJob(job), pauseReason: msg.interstitial });
+    return;
+  }
+
   const outcome =
     msg.success && typeof msg.markdown === 'string' && typeof msg.filename === 'string'
       ? { success: true as const, filename: msg.filename }
@@ -360,6 +378,15 @@ async function handleItemResult(
 async function continueAfter(job: BatchJob): Promise<void> {
   if (job.status !== 'running') {
     await finalize(job);
+    return;
+  }
+  // A run of failures past the threshold almost always means X is rate-limiting
+  // or serving walls (ADR 0002 #7) — pause instead of grinding the rest of the
+  // queue into the same wall. Resume clears the counter for a fresh attempt.
+  if (job.consecutiveFailures >= FAILURE_PAUSE_THRESHOLD) {
+    const reason = `${job.consecutiveFailures} items failed in a row — X may be rate-limiting`;
+    log(`auto-paused — ${reason}`);
+    await saveJob({ ...pauseJob(job), pauseReason: reason });
     return;
   }
   const wait = throttleMs();
@@ -623,6 +650,7 @@ export function initBatch(): void {
                 queuedIds: job.urls
                   .map((u) => statusIdOf(u))
                   .filter((id): id is string => id !== null),
+                ...(job.pauseReason ? { pauseReason: job.pauseReason } : {}),
               },
             }
           : {};

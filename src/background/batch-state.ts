@@ -36,6 +36,13 @@ export interface BatchJob {
   nextDispatchAt?: number;
   completed: number;
   failures: BatchFailure[];
+  // Failures since the last success — a run of these means something systemic
+  // (rate limit, interstitial) rather than individual bad tweets, so the
+  // orchestrator auto-pauses past a threshold (ADR 0002 #7).
+  consecutiveFailures: number;
+  // Why the job auto-paused, when it did (login/rate-limit wall or a failure
+  // run). Surfaced in the popup; cleared on resume.
+  pauseReason?: string;
   // Lowercased filenames already written, for -2/-3 collision suffixes
   // (ADR 0002 #13).
   usedFilenames: string[];
@@ -92,6 +99,7 @@ export function createJob(rawUrls: string[], now: Date): BatchJob {
     awaitingResult: false,
     completed: 0,
     failures,
+    consecutiveFailures: 0,
     usedFilenames: [],
   };
 }
@@ -136,8 +144,10 @@ export function recordResult(
     filename = uniqueFilename(next.usedFilenames, outcome.filename);
     next.usedFilenames = [...next.usedFilenames, filename.toLowerCase()];
     next.completed += 1;
+    next.consecutiveFailures = 0;
   } else {
     next.failures = [...next.failures, { url, error: outcome.error }];
+    next.consecutiveFailures += 1;
   }
   next.nextIndex += 1;
   if (next.nextIndex >= next.urls.length) next.status = 'done';
@@ -201,7 +211,9 @@ export function pauseJob(job: BatchJob): BatchJob {
 
 export function resumeJob(job: BatchJob): BatchJob {
   if (job.status !== 'paused') return job;
-  return { ...job, status: 'running' };
+  // Clear the auto-pause reason and the failure run so resuming starts clean —
+  // otherwise a single post-resume failure could re-trip the threshold pause.
+  return { ...job, status: 'running', pauseReason: undefined, consecutiveFailures: 0 };
 }
 
 // foo.md → foo-2.md, foo-3.md… until unused. `used` entries are lowercased;

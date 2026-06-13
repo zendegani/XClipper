@@ -271,7 +271,8 @@ function render(job: JobSnapshot): void {
   if (job.status === 'running') {
     batchProgressText.textContent = `${processed}/${job.total}${failedSuffix}`;
   } else if (job.status === 'paused') {
-    batchProgressText.textContent = `${t('batch_paused', 'Paused')} — ${processed}/${job.total}${failedSuffix}`;
+    const reason = job.pauseReason ? ` · ${job.pauseReason}` : '';
+    batchProgressText.textContent = `${t('batch_paused', 'Paused')} — ${processed}/${job.total}${failedSuffix}${reason}`;
   } else {
     const label = job.status === 'done' ? t('batch_done', 'Done') : t('batch_stopped', 'Stopped');
     batchProgressText.textContent = `${label} — ${job.completed} ${t('batch_exported', 'exported')}${failedSuffix}`;

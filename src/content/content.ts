@@ -241,11 +241,45 @@ if (autoMatch) {
 
 const BATCH_MARKER_RE = /[#&]xclipper=batch/;
 
+// X serves a login or rate-limit wall (not the tweet) when the session expires
+// or a batch has been navigating permalinks too fast. These are session-level
+// problems, not per-item ones, so the orchestrator pauses the whole job (ADR
+// 0002 #7) rather than recording a failure and pressing on. Only consulted when
+// no <article> rendered — a deleted/withheld tweet ("unavailable"/"doesn't
+// exist") also has no article but uses different copy, so it stays a per-item
+// skip and returns null here.
+function detectBatchInterstitial(): string | null {
+  if (/^\/(i\/flow\/login|login|account\/access)/.test(window.location.pathname)) {
+    return 'Signed out of X';
+  }
+  if (document.querySelector('input[autocomplete="username"], input[name="text"][autocapitalize="none"]')) {
+    return 'X is asking you to sign in';
+  }
+  const text = (document.querySelector('#react-root')?.textContent || '').toLowerCase();
+  if (text.includes('rate limit') || text.includes('try reloading')) {
+    return 'X is rate-limiting';
+  }
+  return null;
+}
+
 async function runBatchExtract(): Promise<void> {
   let msg: BatchItemResultMessage;
   try {
     const article = await waitForArticle();
-    if (!article) throw new Error('Timed out waiting for tweet content');
+    if (!article) {
+      const interstitial = detectBatchInterstitial();
+      if (interstitial) {
+        msg = {
+          action: 'BATCH_ITEM_RESULT',
+          url: window.location.href,
+          success: false,
+          interstitial,
+        };
+        chrome.runtime.sendMessage(msg);
+        return;
+      }
+      throw new Error('Timed out waiting for tweet content');
+    }
 
     const settings = await loadSettings();
     const response = await extract({

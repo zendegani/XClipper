@@ -126,6 +126,19 @@ describe('recordResult', () => {
     expect(job).toBe(cancelled);
     expect(filename).toBeUndefined();
   });
+
+  it('counts consecutive failures and resets the run on success', () => {
+    const job = createJob(
+      ['https://x.com/a/status/1', 'https://x.com/b/status/2', 'https://x.com/c/status/3'],
+      NOW
+    );
+    const f1 = recordResult(job, { success: false, error: 'Timed out' });
+    expect(f1.job.consecutiveFailures).toBe(1);
+    const f2 = recordResult(f1.job, { success: false, error: 'Timed out' });
+    expect(f2.job.consecutiveFailures).toBe(2);
+    const ok = recordResult(f2.job, { success: true, filename: 'c.md' });
+    expect(ok.job.consecutiveFailures).toBe(0);
+  });
 });
 
 describe('cancelJob', () => {
@@ -163,6 +176,17 @@ describe('pauseJob / resumeJob', () => {
     expect(resumed.status).toBe('running');
     expect(resumed.nextIndex).toBe(0);
     expect(currentUrl(resumed)).toBe('https://x.com/a/status/1');
+  });
+
+  it('clears the auto-pause reason and failure run on resume', () => {
+    const paused = {
+      ...pauseJob(createJob(['https://x.com/a/status/1'], NOW)),
+      pauseReason: 'X is rate-limiting',
+      consecutiveFailures: 5,
+    };
+    const resumed = resumeJob(paused);
+    expect(resumed.pauseReason).toBeUndefined();
+    expect(resumed.consecutiveFailures).toBe(0);
   });
 
   it('does not pause/resume jobs in other states', () => {

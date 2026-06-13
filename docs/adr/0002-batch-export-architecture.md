@@ -216,6 +216,15 @@ Combined digest renderer (`Document[] → string`), other formats as demanded.
   CSV carries the tweet text plus the active frontmatter fields as columns and
   is always one combined file. The per-job `data.json` AST sink (#11) is
   unchanged. Settings `batchDigest` → `batchFormat` + `batchOutput`.
+- **2026-06-13 (throttle tightening):** the inter-item gap (#7) dropped from
+  2–4 s to ~0.6–1.2 s — it was the dominant cost on single-tweet batches. The
+  ADR's "X rate-limit or logout walls must pause, never hammer" half of #7 is
+  now implemented to keep the tighter pace safe: the worker detects a login or
+  rate-limit wall in place of the tweet (`detectBatchInterstitial`) and the
+  orchestrator auto-pauses the job with a `pauseReason` instead of recording a
+  failure; as a backstop for walls the in-page check misses, a run of
+  `FAILURE_PAUSE_THRESHOLD` (5) consecutive failures also auto-pauses. Resume
+  clears the reason and the failure run and re-dispatches the paused item.
 
 ## References
 
