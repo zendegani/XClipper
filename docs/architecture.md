@@ -1,9 +1,9 @@
 # XClipper architecture
 
 A living overview of how XClipper turns x.com pages into Markdown, PDF, and
-Obsidian notes — and how that design is meant to scale to multi-tweet and batch
-export. For the per-node AST contract see [`ast-schema.md`](./ast-schema.md);
-for *why* the AST exists see [`adr/0001`](./adr/0001-content-ast-architecture.md).
+Obsidian notes — one item at a time or in batch. For the per-node AST contract
+see [`ast-schema.md`](./ast-schema.md); for *why* the AST exists see
+[`adr/0001`](./adr/0001-content-ast-architecture.md).
 
 ## The one diagram
 
@@ -137,75 +137,68 @@ validation + path sanitization), the context menus, the PDF print tab, and the
 one-time `tweet2md → xclipper` settings migration. `shared/` holds logic both the
 popup and content script need (`post-process`, `settings`, `media`, `obsidian`).
 
-## Scaling: multi-tweet & batch (target design)
+## Batch export (shipped in v2.1.0)
 
-Goal: select many tweets on a timeline (mixed threads / articles), or scrape
-bookmarks in batches, and export each to the right pipeline — individually or as
-one combined file. The current single-permalink flow is the `N = 1` case of this.
+Export many tweets/threads/articles in one job, sourced from **bookmarks**, a
+**profile**, or a **timeline selection**. Batch is not a second pipeline — it is
+the single-permalink flow run N times, so fidelity is identical by construction.
+The rationale and the choices behind it live in
+[`adr/0002`](./adr/0002-batch-export-architecture.md); this is the shape.
 
-### The one change that unlocks it
-
-Today `domToAst()` reads page globals (`window.location`, `document`). The hub it
-delegates to, `articleToTweetNode(article: Element)`, is **already element-scoped**.
-So the enabling refactor is small and local to the orchestrator:
-
-```ts
-// today (implicit page context)
-domToAst(opts): Document
-
-// target (explicit per-item context)
-extractOne(target: { root: Element; url: string; tweetId: string }): Document
-```
-
-Everything below the orchestrator — and every renderer — is reused unchanged.
-
-### Target shape
+Three stages: *source adapters* harvest status URLs → a *background-owned
+orchestrator* drives one worker window through each permalink → *sinks* write the
+results.
 
 ```mermaid
 flowchart LR
-  subgraph Sources["Selection sources (pluggable)"]
-    Sel["Timeline multi-select"]
-    Bm["Bookmark scraper<br/>(scroll, batch of 25)"]
-    One["Single permalink (today)"]
+  subgraph Sources["Source adapters (injector.js on the list page)"]
+    Bm["Bookmarks scroll"]
+    Pf["Profile scroll<br/>(owner's own posts)"]
+    Sel["Timeline selection<br/>(checkboxes)"]
   end
-  Sources --> Targets["Target[]<br/>{ root, url, id }"]
-  Targets --> Queue["Job queue<br/>(sequential extract,<br/>backpressure)"]
-  Queue --> Extract["extractOne(target)"]
-  Extract --> Docs[("Document[]")]
-  Docs --> Agg{"Aggregator"}
-  Agg -->|per item| Many["N outputs"]
-  Agg -->|combined| Coll["Collection → one MD / one PDF"]
-  Many --> Sink["Output sink<br/>download · clipboard · obsidian · pdf"]
-  Coll --> Sink
+  Sources -->|"XCLIPPER_HARVEST<br/>status URLs"| Queue
+  subgraph BG["Background service worker"]
+    Queue["BatchJob queue<br/>(persisted to storage.session,<br/>resumable; dedup ledger)"]
+    Worker["one reused worker window"]
+    Queue -->|"navigate + #xclipper=batch"| Worker
+    Worker -->|"BATCH_ITEM_RESULT"| Queue
+  end
+  Worker -.->|"domToAst → Document → renderMarkdown → postProcess"| Worker
+  Queue --> Folder["folder of per-item .md"]
+  Queue --> Json["per-job data.json (AST)"]
+  Queue --> Digest["opt-in digest.md"]
 ```
 
-New layers (everything else is reused):
+How the stages map onto the single-item architecture above — everything below the
+orchestrator, and every renderer, is reused unchanged:
 
-| Layer | Responsibility | Notes |
+| Stage | Responsibility | Reuses |
 |---|---|---|
-| **SelectionSource** | produce `Target[]` from a surface | timeline selection, bookmark scraper, single permalink |
-| **Job queue** | run extraction sequentially, with progress | extraction reads the live DOM, so serialize it; rendering is pure and can parallelize |
-| **`extractOne`** | one `Target` → one `Document` | scoped `domToAst`; auto-detects tweet/thread/article per item |
-| **Aggregator** | `Document[]` → per-item *or* combined | see decision below |
-| **OutputSink** | deliver to the chosen format | existing renderers + `postProcess` + background |
+| **Source adapter** | scroll a list page, collect `a[href*="/status/"]` + light metadata | `injector.js` (already on all of x.com); depends only on status-link hrefs, so it survives X markup churn |
+| **Orchestrator** | sequential job queue, throttle, pause/resume/stop, per-item failure recording | the background — the only context that survives popup close and owns tabs/windows |
+| **Worker window** | navigate to each permalink, extract on load, report the result | the `#xclipper=` auto-extract hash, plus `domToAst` and every renderer unchanged |
+| **Sink** | write per-item `.md`, a per-job `data.json`, and an opt-in `digest.md` | `postProcess` per item; `renderDigest(docs)` joins already-rendered documents |
 
-### Positions taken
+### Positions taken (see ADR 0002 for the full table)
 
-- **Combine at the AST level, not the render level.** For "all as one PDF/file",
-  introduce a `Collection` (an ordered `Document[]` with collection metadata) and
-  a thin collection renderer that calls the existing per-item renderers and joins
-  them with separators / page breaks. Concatenating rendered strings would re-derive
-  layout and lose the structure renderers already understand. `renderPdfHtml`'s
-  existing `renderThread` (many cards, one document) is the proof-of-shape.
-- **Bookmarks are a SelectionSource, not a special pipeline.** The scraper handles
-  X's DOM virtualization (only on-screen tweets exist in the DOM) by scrolling and
-  collecting in batches; each collected item is just another `Target`. Thread
-  rehydration already has precedent in `content/tweet.ts`.
-- **Dedup threads at selection time.** If several selected tweets belong to one
-  thread, collapse them to a single thread `Target` before extraction.
+- **Visit every permalink; never parse list cells.** A thread's root tweet is
+  rendered identically to a standalone tweet in a bookmarks cell — there is no DOM
+  signal that more tweets follow. Thread membership is only knowable after loading
+  the permalink, which is exactly what the single-item extractor already does. One
+  extractor, one fixture suite, full fidelity for threads/articles/quotes/polls.
+- **The orchestrator lives in the background, not the popup.** Only the service
+  worker survives popup close. Job state is persisted to `chrome.storage.session`
+  after every item, so an MV3 worker restart resumes rather than orphaning a
+  half-done batch.
+- **One reused, unfocused worker *window*** (not a hidden tab): Chrome never paints
+  hidden tabs, so X's virtualized timeline wouldn't mount thread-continuation
+  tweets or hydrate lazy media. An unfocused-but-visible window keeps rendering
+  without stealing focus.
+- **Stream each result to the sink as it completes.** ASTs are not accumulated in
+  memory, so large batches stay bounded and partial output survives a crash.
+- **A dedup ledger** of exported status ids (`chrome.storage.local`, capped at
+  5000) lets the popup count "(N new)" and skip already-exported items; a Reset
+  control clears it.
 
-### Deferred to ADR 0002 (when we build it)
-
-Combined-output UI (per-file vs. zip vs. one doc), cross-item image-folder layout,
-how far the bookmark scraper auto-scrolls, and concurrency limits for media
-downloads. None of these affect the shape above — they're policy on top of it.
+State lives in `src/background/batch.ts` and `batch-state.ts`; the harvest and
+selection message contracts are in `src/types/messages.ts`.
