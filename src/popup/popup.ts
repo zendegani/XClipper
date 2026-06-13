@@ -9,6 +9,7 @@ import { initActions } from './actions';
 import { initBatchUi } from './batch-ui';
 import { initModeTabs } from './mode';
 import { initReviewBanner } from './review-banner';
+import { initFastBatchConsent } from './fast-batch-consent';
 
 // ─── Footer version ───────────────────────────────────────────────────
 
@@ -61,6 +62,7 @@ initSettingsForm();
 initActions();
 void initBatchUi();
 void initReviewBanner();
+initFastBatchConsent();
 
 // ─── Toolbar-icon theme oracle ────────────────────────────────────────
 // The popup is a real rendered page, so its prefers-color-scheme is
