@@ -213,9 +213,9 @@ Combined digest renderer (`Document[] → string`), other formats as demanded.
   toggle of Phase D. The worker still reports postProcessed Markdown + the AST;
   the background derives every non-Markdown format from the AST (the source of
   truth, #10), so per-item conversion stays format-agnostic on the worker side.
-  CSV is metadata-only and is always one combined file. The per-job `data.json`
-  AST sink (#11) is unchanged. Settings `batchDigest` → `batchFormat` +
-  `batchOutput`, with legacy `batchDigest=true` migrating to `both`.
+  CSV carries the tweet text plus the active frontmatter fields as columns and
+  is always one combined file. The per-job `data.json` AST sink (#11) is
+  unchanged. Settings `batchDigest` → `batchFormat` + `batchOutput`.
 
 ## References
 

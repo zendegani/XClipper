@@ -95,16 +95,9 @@ export async function loadSettings(): Promise<Settings> {
       // Deduplicate while preserving order, then trim to the cap.
       const settingsSectionsOpen = Array.from(new Set(rawSections)).slice(0, SECTION_MAX_OPEN);
 
-      // Migration: the old boolean `batchDigest` (on = write a combined file
-      // alongside the per-item ones) maps to the new tri-state 'both'.
-      const legacyDigest = (saved as { batchDigest?: boolean }).batchDigest;
-      const batchOutput =
-        saved.batchOutput ?? (legacyDigest ? 'both' : DEFAULT_SETTINGS.batchOutput);
-
       resolve({
         ...DEFAULT_SETTINGS,
         ...saved,
-        batchOutput,
         frontmatterFields,
         frontmatterFieldsObsidian,
         settingsSectionsOpen,

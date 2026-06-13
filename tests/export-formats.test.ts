@@ -52,13 +52,15 @@ describe('buildCsvRow', () => {
   it('emits the default field set as header + one row', () => {
     const csv = buildCsvRow(data, { obsidianFriendly: false });
     const [header, row] = csv.trimEnd().split('\n');
-    expect(header).toBe('author,handle,source,date,type,likes,reposts,replies,bookmarks,views');
+    expect(header).toBe('author,handle,source,date,type,likes,reposts,replies,bookmarks,views,text');
     const cols = row.split(',');
     expect(cols[0]).toBe('Jane Doe');
     expect(cols[1]).toBe('@jane');
     expect(cols[5]).toBe('5'); // likes
     expect(cols[6]).toBe('2'); // reposts
     expect(cols[7]).toBe(''); // replies absent
+    // The trailing `text` column carries the post body, not just metadata.
+    expect(csv).toContain('Hello bold and a link (https://example.com)');
   });
 
   it('honors per-field toggles', () => {
@@ -66,7 +68,7 @@ describe('buildCsvRow', () => {
       obsidianFriendly: false,
       frontmatterFields: { likes: false, reposts: false, replies: false, bookmarks: false, views: false },
     });
-    expect(csv.split('\n')[0]).toBe('author,handle,source,date,type');
+    expect(csv.split('\n')[0]).toBe('author,handle,source,date,type,text');
   });
 
   it('uses the handle for author in the Obsidian field set', () => {
