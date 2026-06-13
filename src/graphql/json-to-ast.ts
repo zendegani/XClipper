@@ -13,7 +13,9 @@
 // defensive (optional chaining, both old/new field locations) for that reason.
 
 import type {
+  ArticleNode,
   AuthorInfo,
+  Block,
   Document,
   EngagementCounts,
   InlineNode,
@@ -94,6 +96,17 @@ interface RawTweet {
   quoted_status_result?: { result?: RawResult };
   card?: RawCard;
   views?: { count?: string };
+  // X long-form Article. The bookmarks/timeline response carries only title +
+  // preview_text + cover (no full body), so we map a labelled stub here; the
+  // full body needs a separate article-content fetch (ADR 0003 Phase 3).
+  article?: { article_results?: { result?: RawArticle } };
+}
+
+interface RawArticle {
+  rest_id?: string;
+  title?: string;
+  preview_text?: string;
+  cover_media?: { media_info?: { original_img_url?: string } };
 }
 
 // A timeline entry's tweet may be wrapped (e.g. TweetWithVisibilityResults).
@@ -105,6 +118,10 @@ interface RawResult extends RawTweet {
 // ─── Entry points ───────────────────────────────────────────────────
 
 export function jsonToAst(raw: unknown, sourceUrl?: string): Document {
+  const t = unwrap(raw);
+  const article = t.article?.article_results?.result;
+  if (article) return articleDocument(t, article, sourceUrl);
+
   const tweet = jsonToTweetNode(raw);
   return {
     version: 1,
@@ -117,6 +134,46 @@ export function jsonToAst(raw: unknown, sourceUrl?: string): Document {
       ...(tweet.engagement ? { engagement: tweet.engagement } : {}),
     },
     body: tweet,
+  };
+}
+
+// X long-form Article. The bookmarks/timeline response only carries title,
+// preview_text, and cover image — NOT the body — so this is a faithful *stub*:
+// correct type + title + cover + preview + a link to read the rest on X. The
+// full body requires a separate article-content fetch (ADR 0003 Phase 3); until
+// then this is honest and far better than mislabeling it a tweet.
+function articleDocument(t: RawTweet, article: RawArticle, sourceUrl?: string): Document {
+  const tweetId = t.rest_id ?? t.legacy?.id_str ?? '';
+  const url =
+    t.legacy?.entities?.urls?.[0]?.expanded_url?.replace(/^http:/, 'https:') ??
+    `https://x.com/i/article/${article.rest_id ?? tweetId}`;
+
+  const children: Block[] = [];
+  if (article.preview_text) {
+    children.push({ type: 'paragraph', children: [{ type: 'text', value: article.preview_text }] });
+  }
+  children.push({
+    type: 'paragraph',
+    children: [{ type: 'link', url, children: [{ type: 'text', value: 'Read the full article on X' }] }],
+  });
+
+  const body: ArticleNode = { type: 'article', children };
+  const cover = article.cover_media?.media_info?.original_img_url;
+  if (cover) body.banner = { type: 'image', url: cover };
+
+  const eng = engagement(t);
+  return {
+    version: 1,
+    metadata: {
+      type: 'article',
+      sourceUrl: sourceUrl ?? url,
+      tweetId,
+      author: author(t),
+      date: toIso(t.legacy?.created_at),
+      title: article.title ?? '',
+      ...(eng ? { engagement: eng } : {}),
+    },
+    body,
   };
 }
 

@@ -246,6 +246,51 @@ describe('jsonToAst — renderer compatibility', () => {
   });
 });
 
+describe('jsonToAst — X Articles', () => {
+  const articleResult = {
+    rest_id: '123',
+    core: { user_results: { result: user } },
+    legacy: {
+      id_str: '123',
+      created_at: 'Wed Oct 10 20:19:24 +0000 2018',
+      full_text: 'https://t.co/abc',
+      favorite_count: 7,
+      entities: { urls: [{ expanded_url: 'http://x.com/i/article/999', indices: [0, 16] }] },
+    },
+    views: { count: '50' },
+    article: {
+      article_results: {
+        result: {
+          rest_id: '999',
+          title: 'My Long Read',
+          preview_text: 'A teaser of the article body.',
+          cover_media: { media_info: { original_img_url: 'https://pbs.twimg.com/media/cover.jpg' } },
+        },
+      },
+    },
+  };
+
+  it('detects an article, labels the type, and builds a title + cover + preview + link stub', () => {
+    const doc = jsonToAst(articleResult);
+    expect(doc.metadata.type).toBe('article');
+    expect(doc.metadata.title).toBe('My Long Read');
+    expect(doc.metadata.engagement).toEqual({ likes: 7, views: 50 });
+    expect(doc.body).toEqual({
+      type: 'article',
+      banner: { type: 'image', url: 'https://pbs.twimg.com/media/cover.jpg' },
+      children: [
+        { type: 'paragraph', children: [{ type: 'text', value: 'A teaser of the article body.' }] },
+        {
+          type: 'paragraph',
+          children: [
+            { type: 'link', url: 'https://x.com/i/article/999', children: [{ type: 'text', value: 'Read the full article on X' }] },
+          ],
+        },
+      ],
+    });
+  });
+});
+
 describe('jsonToTweetNode — cards', () => {
   it('maps a poll card to a PollNode with computed percents', () => {
     const node = jsonToTweetNode(
