@@ -5,7 +5,8 @@
 //   - HTML reuses renderPdfHtml (the same standalone document the PDF flow prints)
 //   - JSON serializes the canonical AST Document (same shape as the batch JSON sink)
 //   - TXT strips markup from the AST-rendered Markdown, keeping link URLs
-//   - CSV emits one row whose columns are the active frontmatter fields
+//   - CSV emits the active frontmatter fields as columns plus a `text` column
+//     with the post body (one row per post)
 //
 // The popup picks the format; this module turns an ExtractedContent (+ the
 // user's current settings) into { content, mime, ext } ready for DOWNLOAD_MD.
@@ -111,19 +112,22 @@ export function buildCsvRow(data: ExtractedContent, opts: FormatOptions = {}): s
   return buildCsvTable([data], opts);
 }
 
-// Combined CSV for a batch: one header row + one data row per item. Used by
-// the batch flow, where CSV is always a single file (per-item one-row CSVs
-// would be pointless).
+// CSV table: one header row + one data row per item. A trailing `text` column
+// carries the post body as plain text — the frontmatter fields alone are just
+// metadata, so without it the export has no actual content. Used for single
+// export (one row) and the batch flow (where CSV is always one combined file).
 export function buildCsvTable(rows: ExtractedContent[], opts: FormatOptions = {}): string {
   const fieldOrder = opts.obsidianFriendly ? FRONTMATTER_FIELDS_OBSIDIAN : FRONTMATTER_FIELDS_DEFAULT;
   const enabled = opts.frontmatterFields;
   const includeField = (key: string) => !enabled || enabled[key] !== false;
 
   const columns = fieldOrder.filter(includeField);
-  const header = columns.map(csvEscape).join(',');
-  const lines = rows.map((data) =>
-    columns.map((key) => csvEscape(fieldValue(key, data, opts))).join(',')
-  );
+  const header = [...columns, 'text'].map(csvEscape).join(',');
+  const lines = rows.map((data) => {
+    const values = columns.map((key) => fieldValue(key, data, opts));
+    values.push(markdownToPlainText(data.markdown).trim());
+    return values.map(csvEscape).join(',');
+  });
   return [header, ...lines].join('\n') + '\n';
 }
 
