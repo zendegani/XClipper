@@ -1606,6 +1606,21 @@ details.option-group[open] .option-group-chevron {
   box-shadow: 0 2px 8px var(--accent-glow);
 }
 
+/* "Beta" pill on the Batch tab. Outlined in currentColor so it stays legible
+ * in both tab states — grey when inactive, white-on-accent when active. */
+.beta-badge {
+  margin-inline-start: 5px;
+  padding: 1px 5px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-size: 9px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  vertical-align: middle;
+  opacity: 0.75;
+}
+
 /* Tier-1 panels (Single / Batch) are borderless — the mode tabs above carry
  * the framing, so the buttons keep full width (German labels need the room). */
 .export-panel {

@@ -167,6 +167,9 @@
   "group_more_formats": {
     "message": "More formats"
   },
+  "beta": {
+    "message": "Beta"
+  },
   "group_single": {
     "message": "Single export"
   },
