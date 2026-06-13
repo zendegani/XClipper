@@ -2,51 +2,61 @@
   <img src="assets/xclipper-wordmark.svg" alt="XClipper" height="72" />
 </h1>
 
-<p align="center"><em>X / Twitter Web Clipper: Save Posts, Threads & Articles to Markdown, PDF, HTML, JSON, CSV & Obsidian — one at a time or in batch.</em></p>
+<p align="center"><em>The high-fidelity X / Twitter web clipper — save posts, threads & articles to Markdown, PDF, HTML, JSON, CSV & Obsidian, one at a time or in batch.</em></p>
 
 <p align="center">
   <a href="https://github.com/zendegani/xclipper/actions/workflows/ci.yml"><img src="https://github.com/zendegani/xclipper/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-PolyForm%20Noncommercial-blue.svg" alt="License: PolyForm Noncommercial 1.0.0" /></a>
   <a href="PRIVACY.md"><img src="https://img.shields.io/badge/Privacy-100%25%20local-brightgreen" alt="Privacy: 100% local" /></a>
   <a href="src/manifest.json"><img src="https://img.shields.io/badge/Chrome-Manifest%20V3-4285F4?logo=googlechrome&logoColor=white" alt="Chrome Manifest V3" /></a>
-  <a href="https://chromewebstore.google.com/detail/xclipper/epmmehilhbpkgcjbcohgkmihlalagkho"><img src="https://img.shields.io/chrome-web-store/v/epmmehilhbpkgcjbcohgkmihlalagkho?label=Chrome%20Web%20Store" alt="Chrome Web Store" /></a>
 </p>
 
+<p align="center">
+  <a href="https://chromewebstore.google.com/detail/xclipper/epmmehilhbpkgcjbcohgkmihlalagkho"><img src="https://img.shields.io/badge/Install-Chrome%20Web%20Store-4285F4?logo=googlechrome&logoColor=white&style=for-the-badge" alt="Install from the Chrome Web Store" /></a>
+</p>
+
+<p align="center">
+  <a href="#why-xclipper">Why</a> · <a href="#features">Features</a> · <a href="#install">Install</a> · <a href="#usage">Usage</a> · <a href="#for-developers">For developers</a>
+</p>
 
 <p align="center">
   <img src="assets/04-popup-clipping-interface.png" alt="XClipper extension popup — export X posts, threads, and articles to Markdown, PDF, or Obsidian" width="500" />
 </p>
 
-## What it does
+**XClipper** is a source-available Chrome extension that exports x.com content as **Markdown, PDF, HTML, JSON, TXT, CSV, or Obsidian notes** — one post at a time, or in **batch** from your bookmarks, a profile, your likes, or a hand-picked selection. It runs entirely in your browser: no X API key, no account, no server. Free for noncommercial use ([commercial license](#license) required to sell or build a paid product on it).
 
-**XClipper** is a source-available Chrome extension that exports x.com content as **Markdown, PDF, HTML, JSON, TXT, CSV, or Obsidian notes** — one post at a time, or in **batch** from your bookmarks, a profile, your likes, or a hand-picked selection. Production-ready for research, note-taking, AI workflows, and offline archiving. No X API key required. Free for noncommercial use ([commercial license](#license) required to sell or build a paid product on it).
+## Why XClipper
+
+Most "tweet to markdown" tools run a post through a generic HTML→Markdown converter and stop there. XClipper is built differently, and it shows up in four places:
+
+- **Output you won't have to clean up.** The DOM is parsed into a typed **Content AST** before anything is rendered, so structure survives: nested threads, quote tweets, polls, link cards, and full long-form **Articles** (headings, lists, code blocks) all come through faithfully. `t.co` links are resolved to real URLs, emoji and @mentions stay intact, truncated posts are expanded, and engagement bars, follow prompts, and trackers are stripped.
+- **Real PDFs, not screenshots.** PDF export goes through Chrome's native print engine — selectable text, clickable links, embedded images, and full Unicode/emoji — so the result is an actual document, not a flattened image.
+- **Batch, not one-at-a-time.** Export your entire **Bookmarks**, **Likes**, a **Profile**, or a hand-picked **Selection** in a single background job, with progress, pause/resume/stop, and dedup.
+- **100% local, zero setup.** No API keys, no accounts, nothing leaves your browser. Install and clip.
 
 <p align="center">
   <img src="assets/01-product-overview.png" alt="XClipper converts X posts, threads, and articles to Markdown, PDF, and Obsidian notes" width="700" />
 </p>
 
-### Key Features
+## Features
 
-- **Three Ways to Trigger** — Toolbar popup, inline button on every tweet's action bar, or the right-click context menu
-- **Batch Export** — Export many posts at once from four sources via an icon tab strip: **Bookmarks** (every bookmark loaded on your bookmarks page), **Profile** (a profile's own posts, reposts skipped), **Likes** (the posts you've liked), or **Selection** (individual tweets ticked with checkboxes on any timeline). Pick the file **format** (Markdown, HTML, JSON, TXT, or CSV) and whether to write **Separate** per-post files, one **Combined** file (`x-compilation-<date>`), or **Both**. Runs in the background (one job at a time) with a live progress bar and **pause / resume / stop** — close and reopen the popup mid-job. A dedup ledger skips already-exported items, and you can keep adding newly-scrolled posts to a running job
-- **Multiple Export Formats** — Save a single post as Markdown, PDF, HTML, JSON, TXT, or CSV; batch jobs support all of those except PDF. CSV pairs your metadata columns with a `text` column for the post body
-- **Local Image Downloads** — Download embedded X media locally alongside your `.md` file to prevent link rot
-- **PDF Export** — Save tweets, threads, and articles as PDFs via the browser's native print engine. Selectable text, clickable links, embedded images, and full Unicode/emoji support
-- **Add to Obsidian** — One-click handoff to Obsidian via the `obsidian://` URI scheme, with an optional vault name for direct targeting
-- **Obsidian-friendly Frontmatter** — Optional schema with `[[@handle]]` wikilinks for backlinks, synthesized title, `published`/`created` dates, prose description, and a **customizable tags list** (defaults to `clippings, x, {type}`; supports placeholders like `{handle}` and `{date}` with `{`-autocomplete in Settings)
-- **X Articles** — Full support for long-form Articles (formerly Notes) with headings, lists, and code blocks
-- **Tweets & Threads** — Extract tweets, nested threads, and quote tweets into clean Markdown
-- **Single-Tweet Export** — Grab just one tweet without its thread via the right-click menu's **Copy just this tweet (no thread)** item, or by Shift/Alt-clicking the inline button
-- **Quoted Posts** — Preserve quoted-post structure and context in a reusable format, with the original author's name and handle
-- **Link Cards** — Capture external link previews including the title, domain, and high-res Open Graph image
-- **Customizable Filename Template** — Configure the exported filename with placeholders (`{date}`, `{datetime}`, `{handle}`, `{author}`, `{id}`, `{slug}`, `{type}`); live preview in Settings. Default keeps the existing behaviour
-- **YAML Frontmatter** — Rich metadata with author, handle, date, source URL, content type, and engagement stats (likes, reposts, replies, bookmarks, views)
-- **Frontmatter Field Picker** — Per-field toggle switches in Settings to include or omit each YAML entry (e.g. drop `views` and `bookmarks` if you don't need them). Saved separately for the default schema and the Obsidian-friendly schema, so flipping the schema toggle preserves both sets
-- **Inline Engagement Stats** — Optional X-style row in the Markdown body: `💬 284 · 🔁 1.5K · ❤️ 8K · 🔖 253 · 👁 100K`
-- **Copy or Download** — Copy Markdown to clipboard or download as a file
-- **Clean Output** — Automatically expand truncated posts and strip engagement buttons, follow prompts, and trackers
-- **Multi-Language UI** — Popup available in English, Spanish, German, French, Italian, Russian, Japanese, Portuguese (Brazil), Chinese (Simplified), Hindi, Arabic, and Persian. Content extraction works on any language regardless of UI translation
-- **Light & Dark Mode** — Popup matches your system preferences
+### Headline
+
+- **Batch export** — Export many posts at once from four sources via an icon tab strip: **Bookmarks**, **Profile** (own posts; reposts skipped), **Likes**, or **Selection** (tick individual tweets with checkboxes on any timeline). Pick the **format** and whether to write **Separate** per-post files, one **Combined** file (`x-compilation-<date>`), or **Both**. Runs in the background (one job at a time) with a live progress bar and **pause / resume / stop** — close and reopen the popup mid-job. A dedup ledger skips already-exported items, and you can keep adding newly-scrolled posts to a running job.
+- **Seven export formats** — Save a single post as **Markdown, PDF, HTML, JSON, TXT, or CSV**, or hand it to **Obsidian**. Batch jobs support all of these except PDF. CSV pairs your metadata columns with a `text` column for the post body.
+- **High-fidelity Markdown** — Tweets, nested threads, quote tweets, polls, link cards, and X Articles render cleanly via the AST pipeline (no Turndown), with resolved `t.co` links, inlined emoji, and tidy @mentions.
+- **True PDF export** — Tweets, threads, and articles printed through Chrome's native engine: selectable text, clickable links, embedded images, full Unicode.
+- **Obsidian integration** — One-click handoff via the `obsidian://` URI scheme with optional vault targeting, plus an **Obsidian-friendly frontmatter** schema (`[[@handle]]` wikilinks, synthesized title, `published`/`created` dates, prose description, and a customizable tags list with `{`-autocomplete).
+- **Local image downloads** — Save embedded X media next to your file to prevent link rot.
+
+### Also included
+
+- **Three ways to trigger** — Toolbar popup, an inline button on every tweet's action bar, and the right-click context menu.
+- **Rich YAML frontmatter + field picker** — Author, handle, date, source URL, content type, and engagement stats — with per-field toggles, saved separately for the default and Obsidian-friendly schemas.
+- **Customizable filename template** — Placeholders (`{date}`, `{datetime}`, `{handle}`, `{author}`, `{id}`, `{slug}`, `{type}`) with a live preview in Settings.
+- **Single-tweet export** — Grab one tweet without its thread via the context menu or by Shift/Alt-clicking the inline button.
+
+Plus: copy-to-clipboard or download · optional inline engagement-stats row (`💬 284 · 🔁 1.5K · ❤️ 8K · 🔖 253 · 👁 100K`) · 12-language UI (extraction works in any language) · light & dark mode.
 
 ### Inline button — one click on any tweet
 
@@ -54,7 +64,7 @@
   <img src="assets/02-one-click-timeline-export.png" alt="Inline download button on a tweet's action bar" width="700" />
 </p>
 
-Skip the popup. The download icon sits next to share on every tweet. One click opens the tweet's permalink in a new tab and exports it automatically. Toggle in the popup to make it copy to clipboard instead, and optionally close the tab once the export is done.
+The download icon sits next to share on every tweet. One click opens the permalink in a new tab and exports it automatically. Toggle it to copy instead, and optionally close the tab once done.
 
 ### Right-click context menu
 
@@ -62,121 +72,90 @@ Skip the popup. The download icon sits next to share on every tweet. One click o
   <img src="assets/03-context-menu-shortcut.png" alt="Right-click context menu: save tweet as Markdown or PDF, copy, or add to Obsidian" width="700" />
 </p>
 
-Right-click anywhere on a tweet — the body, an image, or the timestamp — and pick **Save tweet as Markdown**, **Copy tweet as Markdown**, or **Add tweet to Obsidian**. XClipper figures out which tweet you meant.
+Right-click anywhere on a tweet — body, image, or timestamp — and pick **Save tweet as Markdown**, **Copy tweet as Markdown**, or **Add tweet to Obsidian**. XClipper figures out which tweet you meant.
 
-### Settings — tune behaviour once, forget about it
+### Settings — tune once, forget about it
 
 <p align="center">
   <img src="assets/06-metadata-customization-settings.png" alt="XClipper popup and settings view side by side" width="700" />
 </p>
 
-The popup keeps the things you adjust per export — **Save images locally**, **Show engagement stats inline**, **Include metadata** — front and centre. Click the gear icon at the top-right to flip to **Settings**, where the set-once knobs live in four collapsible sections: **Downloads** (subfolder + filename template with placeholders like `{date}`, `{handle}`, `{slug}` and a live preview), **Obsidian** (the Obsidian-friendly frontmatter toggle, optional vault name, optional vault subfolder, and a customizable tags list with `{`-autocomplete and a Reset button), **Frontmatter fields** (per-field toggle switches that decide which YAML entries land in the export — saved per schema so flipping Obsidian-friendly preserves both selections), and **Inline button & context menu**. At most two sections stay expanded at once so the panel never gets unwieldy; the last layout is remembered. Settings persist across sessions via `chrome.storage`.
+The popup keeps per-export toggles (**Save images locally**, **Show engagement stats inline**, **Include metadata**) front and centre. The gear icon opens **Settings**, where set-once knobs live in four collapsible sections — **Downloads**, **Obsidian**, **Frontmatter fields**, and **Inline button & context menu** — persisted across sessions via `chrome.storage`.
 
-### Great For
+## Great For
 
 - Importing X content into **Obsidian**, **Notion**, **Logseq**, **Hugo**, or any Markdown-based PKM system
-- Exporting clean text for **LLM prompts**, **RAG pipelines**, or AI training workflows
+- Exporting clean text for **LLM prompts**, **RAG pipelines**, or AI workflows
 - Archiving research threads, news references, and long-form articles offline
 - Building a searchable **Second Brain** from your Twitter/X activity
 - Preparing source material for writing, translation, or summarization
 
-### Technical Specs
-
-- **Formats:** Markdown (.md) with YAML Frontmatter, PDF (native print engine), and Obsidian (`obsidian://` deeplink)
-- **Requirements:** No X API key required
-- **Privacy:** Local-only execution (no server-side processing)
-- **Architecture:** Zero-API — works directly in your browser with no API keys or accounts
-- **Compatibility:** Supports X Articles (formerly Notes), nested threads, and media
-
 ## Install
 
-### From Chrome Web Store
+### From the Chrome Web Store
 
-Install `XClipper` from the [Chrome Web Store](https://chromewebstore.google.com/detail/xclipper/epmmehilhbpkgcjbcohgkmihlalagkho)
+Install **XClipper** from the [Chrome Web Store](https://chromewebstore.google.com/detail/xclipper/epmmehilhbpkgcjbcohgkmihlalagkho).
 
 ### From source
 
-1. Clone and build:
+```bash
+git clone https://github.com/zendegani/xclipper.git
+cd xclipper
+npm install
+npm run build
+```
 
-   ```bash
-   git clone https://github.com/zendegani/xclipper.git
-   cd xclipper
-   npm install
-   npm run build
-   ```
-
-2. Open `chrome://extensions/` → enable **Developer mode** → **Load unpacked** → select `dist/`
+Then open `chrome://extensions/` → enable **Developer mode** → **Load unpacked** → select `dist/`.
 
 ## Usage
 
 Pick whichever entry point you prefer — they all run the same extractor and respect the same toggles:
 
-- **Toolbar popup** — Click the XClipper icon, then **Download .md**, **Copy .md**, **Download .pdf**, or **Add to Obsidian**.
-- **Inline button** — Click the download icon at the right of any tweet's action bar (and at the top of long-form articles). Opens the tweet in a new tab and exports automatically. Shift/Alt-click to export just that tweet without its thread.
+- **Toolbar popup** — Click the XClipper icon, then **Download .md**, **Copy .md**, **Export .pdf**, or **Add to Obsidian** (more formats under the **More formats** row).
+- **Inline button** — Click the download icon on any tweet's action bar (and at the top of long-form articles). Shift/Alt-click to export just that tweet without its thread.
 - **Right-click menu** — Right-click any tweet and pick **Save tweet as Markdown**, **Copy tweet as Markdown**, or **Copy just this tweet (no thread)**.
 
-Main-view toggles (configure per export):
+Per-export toggles live in the main popup; set-once options live under the gear icon. See [Settings](#settings--tune-once-forget-about-it) above.
 
-- **Save images locally** — downloads embedded X media alongside the `.md` file in a sibling folder
-- **Show engagement stats inline** — renders likes / reposts / replies / bookmarks / views as a row in the Markdown body, X-style
-- **Include metadata** — adds YAML frontmatter (likes, reposts, replies, bookmarks, views, date)
+> **Add to Obsidian tip:** for long threads or content where you want images permanently archived, use **Download .md** with **Save images locally** and drag the resulting folder into your vault. The Obsidian deeplink is best for quick capture — it has an OS-level URL-length limit and leaves images as remote URLs.
 
-Settings (gear icon, top-right of the popup):
-
-- **Obsidian-friendly frontmatter** — emits an Obsidian-optimized schema (`[[@handle]]` wikilink, synthesized title, `published`/`created` dates, description, tags). Off by default; current users see no change.
-- **Vault name** — optional. Used by **Add to Obsidian**: when set, notes land in that vault; when blank, Obsidian picks the last-used vault.
-- **Show inline button on tweets** — toggle the per-tweet download icon on or off (useful if it visually conflicts with another extension)
-- **Inline button copies instead** — makes the inline icon copy to clipboard rather than download
-- **Close the new tab after export** — auto-closes tabs opened by the inline button / context menu once extraction completes
-
-> **Add to Obsidian tip:** for long threads or content where you want the images permanently archived, use **Download .md** with **Save images locally** and drag the resulting folder into your vault. The Obsidian deeplink is best for quick capture — it has an OS-level URL-length limit and leaves images as remote URLs.
-
-Filenames: `@handle-tweetId.md` (tweets/threads) or `@handle-article-slug.md` (articles).
-
-## How it works
-
-- Content script auto-injects on `x.com/*/status/*` pages
-- DOM is parsed into a typed, JSON-serializable **Content AST** (the single source of truth); separate renderers turn it into Markdown or PDF — see [`docs/adr/0001`](docs/adr/0001-content-ast-architecture.md)
-- **Tweets/threads**: custom AST rendering (t.co resolution, emoji inlining, @mention cleanup)
-- **Articles**: manual Draft.js block parsing for precise heading/list/code-block extraction
-- **PDF**: the same AST renders to HTML and prints via Chrome's native engine (selectable text, clickable links, Unicode)
-- DOM is cleaned (engagement bars, follow buttons, navigation stripped) before extraction
-- Downloads via `chrome.downloads` API after the background worker validates the message sender and sanitizes download paths
-- Local image downloads are limited to expected X media hosts; external image URLs are left as remote Markdown links rather than downloaded
-- Nothing leaves your browser
+Filenames default to `@handle-tweetId.md` (tweets/threads) or `@handle-article-slug.md` (articles), and are fully configurable via the filename template.
 
 ## Current Limitations
 
 - Videos and GIFs are not exported as playable media files
-- Requires a page reload if the extension was installed or updated after opening the tab
+- Requires a page reload if the extension was installed or updated after the tab was opened
 - Some content may stop working if x.com changes its page structure significantly
 
-## Permissions
+---
 
-| Permission     | Why                                                  |
-|----------------|------------------------------------------------------|
-| `activeTab`    | Read the current page's DOM when you click           |
-| `downloads`    | Save the `.md` file and allowed X media images to Downloads |
-| `storage`      | Remember your popup toggle preferences and the optional Obsidian vault name |
-| `contextMenus` | Add **Save / Copy tweet as Markdown** to the right-click menu (X.com only) |
-| `host` (X.com) | Inject a content script on X.com to extract post / article content and draw the inline download button |
+## For developers
 
-**Your data never leaves your device. No data is collected, transmitted, or stored externally.** See [PRIVACY.md](PRIVACY.md).
+### How it works
 
-## Tech stack
+- Content script auto-injects on `x.com/*/status/*` pages.
+- DOM is parsed into a typed, JSON-serializable **Content AST** (the single source of truth); separate renderers turn it into Markdown or PDF — see [`docs/adr/0001`](docs/adr/0001-content-ast-architecture.md).
+- **Tweets/threads:** custom AST rendering (t.co resolution, emoji inlining, @mention cleanup).
+- **Articles:** manual Draft.js block parsing for precise heading/list/code-block extraction.
+- **PDF:** the same AST renders to HTML and prints via Chrome's native engine.
+- DOM is cleaned (engagement bars, follow buttons, navigation) before extraction.
+- Downloads go through the `chrome.downloads` API after the background worker validates the message sender and sanitizes paths. Local image downloads are limited to expected X media hosts; external image URLs stay as remote Markdown links.
+- Nothing leaves your browser.
+
+### Tech stack
 
 - **TypeScript** + **esbuild** (content IIFE, background ESM)
 - **Content AST** → custom Markdown / PDF renderers (no Turndown)
 - **Manifest V3**
 
-## Project structure
+### Project structure
 
 ```text
 xclipper/
 ├── src/
 │   ├── content/        # DOM → Content AST (dom-to-ast/), inline button, PDF trigger
 │   ├── ast/            # Content AST types + renderers (Markdown, PDF HTML)
-│   ├── background/     # Service worker (downloads, context menu, PDF print)
+│   ├── background/     # Service worker (downloads, context menu, PDF print, batch)
 │   ├── popup/          # Popup UI, split: dom / settings-form / actions / widgets
 │   ├── print/          # Print page for native PDF export
 │   ├── shared/         # Cross-context logic (post-process, settings, media, obsidian)
@@ -192,7 +171,7 @@ xclipper/
 └── tsconfig.json
 ```
 
-## Development
+### Development
 
 ```bash
 npm install        # Install dependencies
@@ -206,6 +185,18 @@ npm run clean      # Clean build output
 ### Tests
 
 `tests/extractor.test.ts` runs the extractor against saved HTML fixtures and compares output against versioned `.md` snapshots (volatile frontmatter fields like `likes` and `date` are normalized). HTML fixtures are gitignored — capture them locally via `copy(document.documentElement.outerHTML)` in DevTools after the page is fully loaded. If no local fixtures are present, the suite keeps a passing baseline so fresh checkouts can still run tests.
+
+### Permissions
+
+| Permission     | Why                                                  |
+|----------------|------------------------------------------------------|
+| `activeTab`    | Read the current page's DOM when you click           |
+| `downloads`    | Save the `.md` file and allowed X media images to Downloads |
+| `storage`      | Remember your popup toggle preferences and the optional Obsidian vault name |
+| `contextMenus` | Add **Save / Copy tweet as Markdown** to the right-click menu (X.com only) |
+| `host` (X.com) | Inject a content script on X.com to extract post / article content and draw the inline download button |
+
+**Your data never leaves your device. No data is collected, transmitted, or stored externally.** See [PRIVACY.md](PRIVACY.md).
 
 ## License
 
