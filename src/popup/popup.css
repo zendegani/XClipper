@@ -283,6 +283,12 @@ body {
   display: flex;
   gap: 8px;
   align-items: center;
+  /* Gap up to the summary. Lives on the row (not a flex gap on the
+   * <details>) so it collapses away when the row is hidden — a flex gap
+   * would still apply between the summary and the zero-height
+   * ::details-content box, leaving more space below "More formats" than
+   * above it. */
+  margin-top: 8px;
 }
 
 .btn-format {
@@ -314,16 +320,7 @@ body {
 }
 
 /* Collapsible wrapper around the secondary-format row. Open by default;
- * the caret lets users who never touch these formats tuck them away.
- * Flex column so the summary↔row gap matches every other inter-row gap
- * (the 8px set on .popup-main and .export-panel) rather than a separate
- * margin that would stack on top of the panel's flex gap. */
-.format-details {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
+ * the caret lets users who never touch these formats tuck them away. */
 .format-summary {
   display: flex;
   align-items: center;
