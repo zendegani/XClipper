@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { existsSync, readFileSync } from 'node:fs';
 import { jsonToAst } from '../src/graphql/json-to-ast';
+import { parseTimelinePage } from '../src/graphql/timeline';
 import { renderMarkdown } from '../src/ast/render-markdown';
 
 // Exercises jsonToAst against a REAL captured X GraphQL Bookmarks response.
@@ -29,10 +30,18 @@ function tweetResults(raw: unknown): unknown[] {
 }
 
 describe.skipIf(!path)('jsonToAst — real captured bookmarks response', () => {
-  const results = tweetResults(JSON.parse(readFileSync(path as string, 'utf8')));
+  const raw = JSON.parse(readFileSync(path as string, 'utf8'));
+  const results = tweetResults(raw);
 
   it('finds tweet entries in the capture', () => {
     expect(results.length).toBeGreaterThan(0);
+  });
+
+  it('parseTimelinePage agrees with the entries and yields a cursor', () => {
+    const pageData = parseTimelinePage(raw);
+    expect(pageData.tweetResults.length).toBe(results.length);
+    expect(pageData.bottomCursor).toBeTruthy();
+    expect(pageData.done).toBe(false);
   });
 
   it('maps every entry to a renderable Document with author + id', () => {
