@@ -2,7 +2,7 @@
   <img src="assets/xclipper-wordmark.svg" alt="XClipper" height="72" />
 </h1>
 
-<p align="center"><em>X / Twitter Web Clipper: Save Threads & Articles to Markdown, PDF, Obsidian.</em></p>
+<p align="center"><em>X / Twitter Web Clipper: Save Posts, Threads & Articles to Markdown, PDF, HTML, JSON, CSV & Obsidian — one at a time or in batch.</em></p>
 
 <p align="center">
   <a href="https://github.com/zendegani/xclipper/actions/workflows/ci.yml"><img src="https://github.com/zendegani/xclipper/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
@@ -19,7 +19,7 @@
 
 ## What it does
 
-**XClipper** is a source-available Chrome extension that exports x.com content as **Markdown, PDF, or Obsidian notes** — production-ready for research, note-taking, AI workflows, and offline archiving. No X API key required. Free for noncommercial use ([commercial license](#license) required to sell or build a paid product on it).
+**XClipper** is a source-available Chrome extension that exports x.com content as **Markdown, PDF, HTML, JSON, TXT, CSV, or Obsidian notes** — one post at a time, or in **batch** from your bookmarks, a profile, your likes, or a hand-picked selection. Production-ready for research, note-taking, AI workflows, and offline archiving. No X API key required. Free for noncommercial use ([commercial license](#license) required to sell or build a paid product on it).
 
 <p align="center">
   <img src="assets/01-product-overview.png" alt="XClipper converts X posts, threads, and articles to Markdown, PDF, and Obsidian notes" width="700" />
