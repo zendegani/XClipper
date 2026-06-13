@@ -117,18 +117,39 @@ export function buildCsvRow(data: ExtractedContent, opts: FormatOptions = {}): s
 // carries the post body as plain text — the frontmatter fields alone are just
 // metadata, so without it the export has no actual content. Used for single
 // export (one row) and the batch flow (where CSV is always one combined file).
+// Curated column order for spreadsheet readability — independent of the YAML
+// field order (which is cosmetic). Covers every field across the Default and
+// Obsidian sets; only the active, enabled ones for the current set appear, in
+// this sequence. The long `text` body always trails (appended below).
+const CSV_COLUMN_ORDER = [
+  'date', 'published', 'created',
+  'author', 'author_name', 'handle', 'title',
+  'type', 'description', 'tags',
+  'likes', 'reposts', 'replies', 'bookmarks', 'views',
+  'source',
+];
+
 export function buildCsvTable(rows: ExtractedContent[], opts: FormatOptions = {}): string {
   const fieldOrder = opts.obsidianFriendly ? FRONTMATTER_FIELDS_OBSIDIAN : FRONTMATTER_FIELDS_DEFAULT;
   const enabled = opts.frontmatterFields;
   const includeField = (key: string) => !enabled || enabled[key] !== false;
 
-  const columns = fieldOrder.filter(includeField);
-  const header = [...columns, 'text'].map(csvEscape).join(',');
-  const lines = rows.map((data) => {
-    const values = columns.map((key) => fieldValue(key, data, opts));
-    values.push(csvBodyText(data));
-    return values.map(csvEscape).join(',');
-  });
+  // Active fields for the current set (a disabled toggle drops its column),
+  // reordered for CSV; the body `text` column is always last.
+  const active: string[] = fieldOrder.filter(includeField);
+  const columns = [
+    ...CSV_COLUMN_ORDER.filter((k) => active.includes(k)),
+    ...active.filter((k) => !CSV_COLUMN_ORDER.includes(k)),
+    'text',
+  ];
+
+  const header = columns.map(csvEscape).join(',');
+  const lines = rows.map((data) =>
+    columns
+      .map((key) => (key === 'text' ? csvBodyText(data) : fieldValue(key, data, opts)))
+      .map(csvEscape)
+      .join(',')
+  );
   return [header, ...lines].join('\n') + '\n';
 }
 

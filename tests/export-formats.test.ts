@@ -49,16 +49,16 @@ describe('markdownToPlainText', () => {
 });
 
 describe('buildCsvRow', () => {
-  it('emits the default field set as header + one row', () => {
+  it('emits the default field set in CSV column order + a row', () => {
     const csv = buildCsvRow(data, { obsidianFriendly: false });
     const [header, row] = csv.trimEnd().split('\n');
-    expect(header).toBe('author,handle,source,date,type,likes,reposts,replies,bookmarks,views,text');
+    expect(header).toBe('date,author,handle,type,likes,reposts,replies,bookmarks,views,source,text');
     const cols = row.split(',');
-    expect(cols[0]).toBe('Jane Doe');
-    expect(cols[1]).toBe('@jane');
-    expect(cols[5]).toBe('5'); // likes
-    expect(cols[6]).toBe('2'); // reposts
-    expect(cols[7]).toBe(''); // replies absent
+    expect(cols[1]).toBe('Jane Doe'); // author
+    expect(cols[2]).toBe('@jane'); // handle
+    expect(cols[4]).toBe('5'); // likes
+    expect(cols[5]).toBe('2'); // reposts
+    expect(cols[6]).toBe(''); // replies absent
     // The trailing `text` column carries the post body only — not the author
     // header or the Source/Date footer (those already have their own columns).
     expect(row.endsWith('"Hello, world"')).toBe(true);
@@ -71,7 +71,7 @@ describe('buildCsvRow', () => {
       obsidianFriendly: false,
       frontmatterFields: { likes: false, reposts: false, replies: false, bookmarks: false, views: false },
     });
-    expect(csv.split('\n')[0]).toBe('author,handle,source,date,type,text');
+    expect(csv.split('\n')[0]).toBe('date,author,handle,type,source,text');
   });
 
   it('uses the handle for author in the Obsidian field set', () => {
@@ -84,7 +84,7 @@ describe('buildCsvRow', () => {
   it('quotes values containing commas', () => {
     const withComma: ExtractedContent = { ...data, author: { name: 'Doe, Jane', handle: '@jane' } };
     const csv = buildCsvRow(withComma, { obsidianFriendly: false });
-    expect(csv.split('\n')[1].startsWith('"Doe, Jane"')).toBe(true);
+    expect(csv).toContain('"Doe, Jane"');
   });
 });
 
