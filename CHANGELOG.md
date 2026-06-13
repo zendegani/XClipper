@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
+## [Unreleased]
+
+### Changed
+
+- **Faster batch export**: the politeness gap between posts dropped from 2–4 s to ~0.6–1.2 s, roughly halving wall-clock on single-post batches. To keep a tighter pace safe, a batch now **auto-pauses** when it hits a login or rate-limit wall, or after several failures in a row — the popup shows why, and Resume picks up where it left off.
+
+---
 ## [2.2.0] - 2026-06-13
 
 ### Added
@@ -13,7 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Likes as a batch source**: export the posts you've liked from your Likes page — the fourth batch source alongside Bookmarks, Profile, and Selection.
 - **Batch export formats**: batch jobs can now be saved as **Markdown**, **HTML**, **JSON**, **TXT**, or **CSV** (PDF isn't batchable), chosen from a **Format** dropdown in the batch Export settings.
 - **More single-export formats** (issue #54): alongside Markdown and PDF, a single post can now be saved as **HTML** (a styled, self-contained file), **JSON** (the raw structured document), **TXT** (plain text, markup stripped), or **CSV** (your selected Default/Obsidian frontmatter fields as columns, plus a `text` column with the post body). The buttons live under a collapsible **More formats** row in the popup.
-- **Review prompt**: after 30 exports (files, not Copy), the popup shows a one-time, dismissible banner inviting a Chrome Web Store review. "Maybe later" snoozes it once; "Rate" or dismissing it never shows it again.
+- **Web Store review prompt**: after 30 exports (files, not Copy), the popup shows a one-time, dismissible banner inviting a Chrome Web Store review. "Maybe later" snoozes it once; "Rate" or dismissing it never shows it again.
 
 ### Changed
 
@@ -36,15 +43,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Popup layout**: Reorganized into a **Single export | Batch export** tabbed layout, with player-style batch controls (pause/resume/stop in front of the progress bar) and a clearer Export settings panel.
-- **Selection bar**: Larger and easier to spot, with a slide-up entrance and a "Tap tweets to select" hint.
+- **Popup split into Single / Batch tabs**: Reorganized into a **Single export | Batch export** tabbed layout, with player-style batch controls (pause/resume/stop in front of the progress bar) and a clearer Export settings panel.
+- **Selection bar made easier to spot**: Larger and easier to spot, with a slide-up entrance and a "Tap tweets to select" hint.
 
 ---
 ## [2.0.4] - 2026-06-11
 
 ### Changed
 
-- **License**: Relicensed from MIT to the [PolyForm Noncommercial License 1.0.0](LICENSE) — free for noncommercial use, paid license required for commercial use; contributor terms updated to match. Forward-only: prior releases remain under MIT.
+- **Relicensed to PolyForm Noncommercial**: Relicensed from MIT to the [PolyForm Noncommercial License 1.0.0](LICENSE) — free for noncommercial use, paid license required for commercial use; contributor terms updated to match. Forward-only: prior releases remain under MIT.
 - **Internal restructuring (no behavior change)**: Consolidated the user-settings shape into a single shared module so the popup, content script, and PDF flow can no longer drift apart, split the popup script into focused modules (DOM references, settings view, export actions, reusable widgets), and split the DOM→AST extractor into per-concern modules (inline, cards, media, poll, quote, tweet, article). Reduces the chance of regressions when adding a setting or an export target. Also enabled stricter TypeScript checks (`noUnusedLocals` / `noUnusedParameters`).
 
 ### Fixed
@@ -60,16 +67,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **PDF action wording**: Rename the popup action from **Download .pdf** to **Export .pdf** and add a tooltip that describes the generated PDF export flow.
+- **PDF action renamed to "Export .pdf"**: Rename the popup action from **Download .pdf** to **Export .pdf** and add a tooltip that describes the generated PDF export flow.
 
 ### Fixed
 
-- **Article PDF Engagement Stats and Metadata Overwrite**:
+- **Article PDF engagement stats overwrite fixed**:
   - Forward PDF rendering options to the article layout renderer and conditionally render engagement metrics below the title/banner when enabled.
   - Fix an issue where the redundant `options.includeMetadata` override in `extract()` caused engagement stats to be overwritten with `undefined`.
   - Add test coverage for the article engagement rendering toggle.
-- **Captioned X Article images after AST refactor**: Restore Markdown image extraction for X Article media blocks that include captions, preventing `/article/.../media/...` links from replacing the underlying `pbs.twimg.com` image URLs.
-- **Embedded tweets in X Article bodies**: Preserve `simpleTweet` embeds as quoted tweet cards with author, text, and media instead of collapsing them to avatar images. (#50)
+- **Captioned X Article images restored after AST refactor**: Restore Markdown image extraction for X Article media blocks that include captions, preventing `/article/.../media/...` links from replacing the underlying `pbs.twimg.com` image URLs.
+- **Embedded tweets in X Articles preserved**: Preserve `simpleTweet` embeds as quoted tweet cards with author, text, and media instead of collapsing them to avatar images. (#50)
 
 ---
 
@@ -78,7 +85,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **PDF Export respect Engagement toggle** (#46): Engagement metrics are now stripped from the PDF export when the *Engagement* toggle is turned off.
-- **Thread Engagement Stats position** (#47): For threads, the engagement stats line in Markdown is now placed right after the first tweet (before the separator) instead of after the last tweet.
+- **Thread engagement stats repositioned** (#47): For threads, the engagement stats line in Markdown is now placed right after the first tweet (before the separator) instead of after the last tweet.
 
 ---
 
@@ -113,7 +120,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Popup layout**: **Download .pdf** and **Add to Obsidian** share one row at full label width across all locales.
+- **Popup: PDF + Obsidian share a row**: **Download .pdf** and **Add to Obsidian** share one row at full label width across all locales.
 
 ### Fixed
 
@@ -132,7 +139,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Obsidian row redesign**: The *Add to Obsidian* button no longer shares its row with a hint paragraph that clipped its label in some locales (e.g. German, Russian). The button is centered at ~62.5% width and the hint moved into a ⓘ tooltip on the right. The tooltip now also nudges toward Settings: *Configure vault, subfolder, and frontmatter fields in Settings. Use the 'Download .md' button for long threads or images.* Translated across all 12 locales. (#33)
 - **"Download .md" hint wording**: The reference to the Download button is now wrapped in quotes — single quotes for most languages, 「…」 for ja and zh_CN — so it's unambiguously read as a button label, not a separate tool. pt_BR / hi / ja hints also realigned to match their actual button labels. (#33)
-- **"Activate all" button**: More horizontal padding and `nowrap` so the label has room and never wraps in long-translation locales. (#33)
+- **"Activate all" button no longer wraps**: More horizontal padding and `nowrap` so the label has room and never wraps in long-translation locales. (#33)
 
 ### Fixed
 
@@ -148,8 +155,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **Polls**: Tweet polls are now captured — choices, result percentages once voted, and the vote total/status line. Previously they were dropped entirely. (#28)
-- **Translation gaps**: Corrected a stale tooltip in 7 locales (the **Close the tab after export** option still described old behaviour), filled in 5 Frontmatter fields strings missing since 1.6.1 across the existing non-English locales, and polished hi/it/ru/fr wording per native review.
+- **Polls now captured**: Tweet polls are now captured — choices, result percentages once voted, and the vote total/status line. Previously they were dropped entirely. (#28)
+- **Translation gaps filled**: Corrected a stale tooltip in 7 locales (the **Close the tab after export** option still described old behaviour), filled in 5 Frontmatter fields strings missing since 1.6.1 across the existing non-English locales, and polished hi/it/ru/fr wording per native review.
 - **Thread completeness on deep-link permalinks**: Opening a mid-thread reply (e.g. the 10th tweet in a chain) now walks up to the thread root before exporting, so all parent tweets are captured. Tombstone articles (deleted or hidden parents) are skipped instead of terminating the walk. (#22)
 
 ## [1.6.1] - 2026-05-21
@@ -163,9 +170,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **Collapsible Settings Sections**: The four Settings groups are now each collapsible, with Downloads + Obsidian open by default and a cap of two expanded at once. Opening Frontmatter fields auto-opens Obsidian (whose toggle picks the Frontmatter mode); the last layout is persisted.
-- **Settings Topbar**: The "Hover over labels for more info" hint moved to a small ⓘ tooltip icon top-right so long translations don't crowd the topbar. The popup footer is hidden in the Settings view.
+- **Settings hint moved to a tooltip**: The "Hover over labels for more info" hint moved to a small ⓘ tooltip icon top-right so long translations don't crowd the topbar. The popup footer is hidden in the Settings view.
 - **Instant CSS Tooltips**: All label/button tooltips migrated from native `title=` to a unified CSS pattern that stays inside the popup window, with consistent 500ms-delay behaviour.
-- **Toolbar Icon**: Icons (16/32/48/128) now have a transparent background — no white square frame in dark mode. Rim cleaned via color-to-alpha so there's no antialiasing halo either.
+- **Toolbar icon background made transparent**: Icons (16/32/48/128) now have a transparent background — no white square frame in dark mode. Rim cleaned via color-to-alpha so there's no antialiasing halo either.
 
 ## [1.6.0] - 2026-05-18
 
@@ -176,7 +183,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Extension Name**: Renamed to *X Threads Articles to Markdown or Obsidian* across all 9 locales for better Chrome Web Store search match. `short_name` remains `tweet2md`.
+- **Extension renamed for Web Store search**: Renamed to *X Threads Articles to Markdown or Obsidian* across all 9 locales for better Chrome Web Store search match. `short_name` remains `tweet2md`.
 
 ### Fixed
 
@@ -190,7 +197,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Extension Description**: The Web Store description now mentions the Obsidian handoff. Updated across all 9 locales.
+- **Extension description now mentions Obsidian**: The Web Store description now mentions the Obsidian handoff. Updated across all 9 locales.
 
 ## [1.5.0] - 2026-05-15
 
@@ -199,13 +206,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Add to Obsidian**: One-click handoff via the `obsidian://new` URI scheme with the rendered Markdown prefilled. Local — no network call. Forces Obsidian-friendly frontmatter; images stay as remote URLs.
 - **Obsidian-friendly Frontmatter**: Optional export schema with wikilinked author handles (`[[@username]]`), synthesized title, `published`/`created` dates, prose `description`, and `tags: [clippings, x, <type>]`. Toggle off = identical to the previous schema.
 - **Obsidian Vault Setting**: Optional vault name in Settings; included in the deeplink so notes land in a specific vault. Blank = Obsidian picks the last-used vault.
-- **Link Cards**: External link previews in tweets are now captured (title, source domain, Open Graph image — kept as a remote URL).
+- **Link cards now captured**: External link previews in tweets are now captured (title, source domain, Open Graph image — kept as a remote URL).
 - **Multi-View Popup**: A gear icon at the top-right slides over to a dedicated settings view, separating per-export controls from set-once configuration.
 
 ### Changed
 
 - **Grouped Settings**: Inline-button / context-menu toggles and Obsidian settings moved into the settings view; the main view focuses on Download / Copy / Add to Obsidian and per-export toggles.
-- **Popup Layout**: Download/Copy split into a half-width grid on top, Export options card below, and a half-width Obsidian button paired with its hint paragraph.
+- **Popup layout reorganized**: Download/Copy split into a half-width grid on top, Export options card below, and a half-width Obsidian button paired with its hint paragraph.
 
 ## [1.4.1] - 2026-05-12
 
@@ -248,7 +255,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Inline Button Visual Match**: Icon redesigned with X's solid-fill style and now mirrors the sibling action-bar icon's exact size and color across every X surface (timeline, focused tweet, light, dark).
 - **Cleaner Context Menu**: Save / Copy items nest under an explicit "tweet2md" parent label instead of Chrome's auto-grouped full extension name.
 - **Toast Position**: Top-center with a 2-second hold so it's harder to miss.
-- **Wording**: "Close tab after export" → "Close the new tab after export" — clearer that only the tweet2md-opened tab closes.
+- **"Close tab" wording clarified**: "Close tab after export" → "Close the new tab after export" — clearer that only the tweet2md-opened tab closes.
 - **Internal Refactor**: `content.ts` split into focused modules; the "copy never downloads images" rule consolidated into one helper. No behavior change.
 
 ### Fixed
@@ -276,8 +283,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Permission Added**: New `contextMenus` permission for the right-click menu. No data collection, telemetry, or network calls — see [PRIVACY.md](PRIVACY.md).
-- **Localization**: Translations for the new settings and context-menu items added across all 9 languages.
+- **contextMenus permission added**: New `contextMenus` permission for the right-click menu. No data collection, telemetry, or network calls — see [PRIVACY.md](PRIVACY.md).
+- **Localization for new settings & menu**: Translations for the new settings and context-menu items added across all 9 languages.
 
 ## [1.2.1] - 2026-04-19
 
@@ -287,9 +294,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
-- **Popup UI**: Relocated the instruction hint to the header and updated the footer to include a direct link to the GitHub repository for issues and suggestions.
-- **Localization**: Polished translations across 9 supported languages to ensure better native phrasing.
-- **Manifest**: Updated extension metadata and localized descriptions for Web Store consistency.
+- **Popup hint relocated to header**: Relocated the instruction hint to the header and updated the footer to include a direct link to the GitHub repository for issues and suggestions.
+- **Localization polished across 9 languages**: Polished translations across 9 supported languages to ensure better native phrasing.
+- **Manifest metadata updated**: Updated extension metadata and localized descriptions for Web Store consistency.
 
 ## [1.2.0] - 2026-04-01
 
@@ -301,7 +308,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **Markdown Formatting**: Fixed a bug causing improper bold and italic rendering when text nodes contained trailing or leading whitespaces.
+- **Markdown bold/italic whitespace fix**: Fixed a bug causing improper bold and italic rendering when text nodes contained trailing or leading whitespaces.
 
 ## [1.1.0] - 2026-03-22
 
@@ -314,7 +321,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Improved
 
 - **Quote Tweet Extraction**: Refined extraction logic to accurately differentiate between main tweet text and quoted tweet text, preventing messy or duplicated text in the output.
-- **Popup UI**: Replaced basic checkboxes with modern, animated toggle switches with SVGs.
+- **Popup toggle switches**: Replaced basic checkboxes with modern, animated toggle switches with SVGs.
 - **Path Sanitization**: Better handling of invalid characters in generated markdown and image filenames.
 
 ## [1.0.0] - 2026-02-15
