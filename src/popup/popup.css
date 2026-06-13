@@ -237,7 +237,6 @@ body {
   display: flex;
   gap: 8px;
   align-items: center;
-  margin-bottom: 8px;
 }
 
 .btn-pdf {
@@ -329,7 +328,7 @@ body {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 2px;
+  padding: 0 2px;
   cursor: pointer;
   list-style: none;
   font-size: 12px;
@@ -1622,7 +1621,6 @@ details.option-group[open] .option-group-chevron {
   display: none;
 }
 
-.export-panel .action-row,
 .export-panel .batch-tabs {
   margin-bottom: 0;
 }
