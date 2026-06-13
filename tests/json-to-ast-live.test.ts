@@ -47,11 +47,21 @@ describe.skipIf(!path)('jsonToAst — real captured bookmarks response', () => {
   it('maps every entry to a renderable Document with author + id', () => {
     for (const result of results) {
       const doc = jsonToAst(result);
-      expect(doc.body.type).toBe('tweet');
+      // type is 'tweet' for tweets, 'article' for X long-form articles.
+      expect(['tweet', 'article']).toContain(doc.metadata.type);
+      expect(doc.body.type).toBe(doc.metadata.type);
       expect(doc.metadata.tweetId).toMatch(/^\d+$/);
       expect(doc.metadata.author.handle.length).toBeGreaterThan(0);
       // The whole point of ADR 0003: a mapped Document renders unchanged.
       expect(() => renderMarkdown(doc)).not.toThrow();
+    }
+  });
+
+  it('labels X long-form articles as type "article"', () => {
+    const hasArticle = (r: unknown): boolean =>
+      !!(r as { article?: { article_results?: { result?: unknown } } }).article?.article_results?.result;
+    for (const result of results.filter(hasArticle)) {
+      expect(jsonToAst(result).metadata.type).toBe('article');
     }
   });
 });
