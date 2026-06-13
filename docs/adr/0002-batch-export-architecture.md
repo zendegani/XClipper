@@ -100,7 +100,8 @@ timeline selection    ─┘      → one hidden worker tab,      └─→  fut
 
 - GraphQL/API interception (recorded above; revisit only if permalink
   visiting proves untenable).
-- Likes as a source, scheduled/automatic re-sync, multi-platform sources.
+- ~~Likes as a source~~ (added 2026-06-13 — see Amendments), scheduled/automatic
+  re-sync, multi-platform sources.
 - Parallel worker tabs in v1 (revisit if throttle headroom allows two).
 - New renderers (digest, EPUB) — sinks consume existing renderer output.
 
@@ -197,6 +198,15 @@ Combined digest renderer (`Document[] → string`), other formats as demanded.
   rendered documents joined with separators, written as `digest.md` next to
   the per-item files. Opt-in via a popup toggle (default off) since it's an
   extra file per batch.
+- **2026-06-13 (Likes source):** added Likes as a fourth source, reversing the
+  original non-goal. It reuses the harvest mechanism unchanged — the injector
+  recognizes `/<handle>/likes` and, unlike a profile, keeps every author's
+  permalink (likes are of other people's posts, not the page owner's). The
+  `likes` origin is threaded through `HarvestResponse`, `BatchStartRequest`,
+  and `BatchJob`; no new sink or folder logic, since the per-job folder name is
+  origin-independent. The four sources now render as an icon-only tab strip
+  (Bookmarks · Profile · Likes · Selection), each tab reusing its action
+  button's glyph with the name moved to an aria-label + tooltip.
 
 ## References
 

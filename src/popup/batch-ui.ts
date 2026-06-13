@@ -2,9 +2,9 @@
 // job; this module only starts/controls it and polls BATCH_STATUS for
 // progress — the popup can close and reopen mid-job without losing anything.
 //
-// Layout: a Bookmarks | Profile | Selection tab strip over one action
-// button, so every source is always discoverable without stretching the
-// popup. A tab's button activates when the current page matches its source
+// Layout: a Bookmarks | Profile | Likes | Selection icon-tab strip over one
+// action button, so every source is always discoverable without stretching
+// the popup. A tab's button activates when the current page matches its source
 // (Selection works on any x.com timeline); otherwise it's disabled with a
 // "where to go" hint. While the popup is open on a matching page, the count
 // re-polls so scrolling behind the popup updates the "(N new)" label live.
@@ -30,17 +30,19 @@ import {
   btnBatchIconBookmarks,
   btnBatchIconProfile,
   btnBatchIconSelection,
+  btnBatchIconLikes,
   btnBatchLabel,
   btnBatchPause,
   btnBatchReset,
   tabBatchBookmarks,
   tabBatchProfile,
   tabBatchSelection,
+  tabBatchLikes,
 } from './dom';
 import { setExportMode } from './mode';
 
 type JobSnapshot = NonNullable<BatchStatusResponse['job']>;
-type BatchTab = 'bookmarks' | 'profile' | 'selection';
+type BatchTab = 'bookmarks' | 'profile' | 'selection' | 'likes';
 
 // The pause button swaps between a pause and a play (resume) glyph.
 const icoPause = btnBatchPause.querySelector('.batch-ico-pause');
@@ -56,14 +58,16 @@ const TAB_BUTTONS: Record<BatchTab, HTMLButtonElement> = {
   bookmarks: tabBatchBookmarks,
   profile: tabBatchProfile,
   selection: tabBatchSelection,
+  likes: tabBatchLikes,
 };
 
-// Per-tab action-button icons (bookmark, user, check-square) — all three
+// Per-tab action-button icons (bookmark, user, check-square, heart) — all
 // live in the HTML; the inactive ones are hidden.
 const TAB_ICONS: Record<BatchTab, SVGElement> = {
   bookmarks: btnBatchIconBookmarks,
   profile: btnBatchIconProfile,
   selection: btnBatchIconSelection,
+  likes: btnBatchIconLikes,
 };
 
 let activeTab: BatchTab = 'bookmarks';
@@ -164,6 +168,15 @@ async function refreshIdleUi(): Promise<void> {
     );
     return;
   }
+  if (activeTab === 'likes' && source !== 'likes') {
+    batchDedupRow.classList.add('hidden');
+    setButton(
+      t('btn_batch_likes', 'Export likes'),
+      false,
+      t('btn_batch_open_likes', 'Open your Likes page on x.com to export the posts you have liked.')
+    );
+    return;
+  }
 
   // On the running job's own source the button appends loaded items to its
   // queue instead of starting a new job — bookmarks always; a profile only
@@ -187,13 +200,17 @@ async function refreshIdleUi(): Promise<void> {
     ? t('btn_batch_add', 'Add to queue')
     : activeTab === 'profile'
       ? `${t('btn_batch_profile', 'Export posts')}${handle ? ` @${handle}` : ''}`
-      : t('btn_batch', 'Export bookmarks');
+      : activeTab === 'likes'
+        ? t('btn_batch_likes', 'Export likes')
+        : t('btn_batch', 'Export bookmarks');
   const suffix = skipped > 0 ? ` (${fresh.length} ${t('batch_new', 'new')})` : ` (${fresh.length})`;
   const tooltip = onSameSourceJob
     ? t('btn_batch_add_hint', 'Add the newly-loaded posts to the running batch queue.')
     : activeTab === 'profile'
       ? t('btn_batch_profile_hint', "Export this profile's own posts loaded on the page as Markdown files into one folder. Reposts are skipped; scroll to load more.")
-      : t('btn_batch_hint', 'Export every bookmark loaded on this page as Markdown files into one folder. Scroll the bookmarks page to load more.');
+      : activeTab === 'likes'
+        ? t('btn_batch_likes_hint', 'Export every liked post loaded on this page as Markdown files into one folder. Scroll your Likes page to load more.')
+        : t('btn_batch_hint', 'Export every bookmark loaded on this page as Markdown files into one folder. Scroll the bookmarks page to load more.');
   setButton(base + suffix, fresh.length > 0, tooltip);
   // The "already exported" note is about past jobs; while appending to a live
   // job the queue-exclusion handles dupes, so hide it there.

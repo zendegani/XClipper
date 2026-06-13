@@ -1796,7 +1796,9 @@ details.option-group[open] .option-group-chevron {
 
 .batch-tab {
   flex: 1;
-  font: 700 13px/1 var(--font);
+  display: flex;
+  align-items: center;
+  justify-content: center;
   padding: 8px 0;
   border: none;
   border-radius: var(--radius-sm);
@@ -1806,8 +1808,13 @@ details.option-group[open] .option-group-chevron {
   transition: background var(--transition), color var(--transition), box-shadow var(--transition);
 }
 
-/* Don't re-color the active tab on hover — its label is white on a blue
- * fill, so tinting it blue would make the text vanish. */
+.batch-tab-icon {
+  width: 17px;
+  height: 17px;
+}
+
+/* Don't re-color the active tab on hover — the icon is white on a blue
+ * fill, so tinting it blue would make it vanish. */
 .batch-tab:hover:not(:disabled):not(.active) {
   color: var(--batch);
 }
@@ -1820,6 +1827,30 @@ details.option-group[open] .option-group-chevron {
 
 .batch-tab:disabled {
   cursor: default;
+}
+
+/* Icon tabs lean on tooltips for their names; the first/last sit at the
+ * popup edges, so anchor those to the logical edge to grow inward instead
+ * of spilling off-screen (same pattern as .action-row / .format-row). */
+.batch-tabs .batch-tab:first-child[data-tooltip]::after {
+  left: auto;
+  right: auto;
+  inset-inline-start: 0;
+  transform: translateY(2px);
+}
+
+.batch-tabs .batch-tab:last-child[data-tooltip]::after {
+  left: auto;
+  right: auto;
+  inset-inline-end: 0;
+  transform: translateY(2px);
+}
+
+.batch-tabs .batch-tab:first-child[data-tooltip]:hover::after,
+.batch-tabs .batch-tab:first-child[data-tooltip]:focus-visible::after,
+.batch-tabs .batch-tab:last-child[data-tooltip]:hover::after,
+.batch-tabs .batch-tab:last-child[data-tooltip]:focus-visible::after {
+  transform: translateY(0);
 }
 
 /* Long profile handles: keep the label on one line and ellipsize. */

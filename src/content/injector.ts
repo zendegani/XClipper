@@ -303,9 +303,11 @@ function scan(): void {
 // so "what's in the DOM" is not "what the user has loaded". Accumulate
 // permalinks as cells pass through, in encounter order (top first); the
 // popup asks for the set when starting a batch export. Sources: the
-// bookmarks page, and profile pages (where reposts are skipped by keeping
-// only the owner's own /<handle>/status/ links). The set resets when the
-// source changes, so a later visit doesn't export items removed meanwhile.
+// bookmarks page, profile pages (where reposts are skipped by keeping only
+// the owner's own /<handle>/status/ links), and the Likes page (which keeps
+// every author, since likes are of other people's posts). The set resets
+// when the source changes, so a later visit doesn't export items removed
+// meanwhile.
 
 // Top-level x.com paths that are app surfaces, not profile handles.
 const NON_PROFILE_PATHS = new Set([
@@ -318,11 +320,18 @@ const NON_PROFILE_PATHS = new Set([
 type HarvestSource =
   | { kind: 'bookmarks'; key: string }
   | { kind: 'profile'; key: string; handle: string }
+  | { kind: 'likes'; key: string; handle: string }
   | null;
 
 function harvestSourceOfPage(): HarvestSource {
   const path = window.location.pathname;
   if (path.startsWith('/i/bookmarks')) return { kind: 'bookmarks', key: 'bookmarks' };
+  // Likes live at /<handle>/likes and show tweets by many authors (the ones
+  // the user liked) — so, unlike a profile, we keep every author's permalink.
+  const liked = path.match(/^\/([A-Za-z0-9_]{1,15})\/likes$/);
+  if (liked && !NON_PROFILE_PATHS.has(liked[1].toLowerCase())) {
+    return { kind: 'likes', key: `likes:${liked[1].toLowerCase()}`, handle: liked[1] };
+  }
   const m = path.match(/^\/([A-Za-z0-9_]{1,15})$/);
   if (m && !NON_PROFILE_PATHS.has(m[1].toLowerCase())) {
     return { kind: 'profile', key: `profile:${m[1].toLowerCase()}`, handle: m[1] };
