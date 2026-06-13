@@ -50,7 +50,18 @@ When you click **Download .pdf**, the extension opens a new tab at an extension-
 | `contextMenus` | Adds the **Save tweet as Markdown** and **Copy tweet as Markdown** items to the browser's right-click menu, scoped to X.com pages. The menu only fires when you click an item; no page content is read otherwise. |
 | `host` (X.com) | A content script is injected on X.com pages to (a) extract the visible post or article content when you trigger an action, and (b) draw the inline download button on tweet action bars. The script reads the DOM locally and never transmits data externally. |
 
-These are the minimum permissions required for the extension to function. No additional permissions are requested.
+These are the minimum permissions required for the extension to function. They are granted at install time. No additional permissions are requested unless you explicitly opt in below.
+
+### Optional permission — Fast Batch (off by default)
+
+XClipper offers an optional **Fast Batch** mode for exporting many posts at once. It is **off by default** and is never used unless you turn it on and confirm a consent prompt. Only then does the browser ask you to grant these **optional** permissions; declining leaves the normal (Standard) batch export fully working.
+
+| Optional permission | Purpose |
+|---------------------|---------|
+| `webRequest` (X.com only) | Lets XClipper read the authentication token your browser **already sends** on your own X.com requests, so it can call X's internal data endpoints directly — the same endpoints x.com's own web page calls — instead of opening and rendering each post in a tab. This is much faster. |
+| `host` (X.com, optional) | Grants the `webRequest` access above, scoped to X.com only. |
+
+What this means in plain terms: with your consent, Fast Batch reuses **your existing logged-in X session** to fetch your bookmarks/likes/posts as data. It does **not** use any paid API, does **not** ask for your password, and sends nothing to any server — the data is fetched from X into your browser and written to your Downloads exactly like Standard batch. You can revoke the permission at any time in your browser's extension settings, which disables Fast Batch and returns you to Standard batch.
 
 ### Entry points and download safety
 
