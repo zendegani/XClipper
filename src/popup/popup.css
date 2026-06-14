@@ -931,9 +931,14 @@ body {
   height: 16px;
 }
 
+/* Anchor BELOW the icon (it sits near the popup's top edge, so the default
+ * above-positioning would clip off the top) and to the start edge so the wide
+ * tooltip grows inward, not off-screen. */
 .fast-info[data-tooltip]::after {
   left: 0;
-  transform: translateX(0) translateY(2px);
+  bottom: auto;
+  top: calc(100% + 4px);
+  transform: translateX(0) translateY(-2px);
   max-width: 280px;
 }
 
