@@ -1878,9 +1878,13 @@ details.option-group[open] .option-group-chevron {
 }
 
 /* Reset buttons stay put and just grey out when not applicable, so the row
- * doesn't change size/layout as a collection grows or a run finishes. */
+ * doesn't change size/layout as a collection grows or a run finishes.
+ * Grey via color/border, NOT opacity — opacity on the button cascades into its
+ * [data-tooltip]::after and renders the hint half-transparent (issue #38). The
+ * tooltip sets its own color, so a color/border change leaves it fully legible. */
 .batch-ctl:disabled {
-  opacity: 0.4;
+  color: color-mix(in srgb, var(--batch) 42%, transparent);
+  border-color: color-mix(in srgb, var(--batch) 28%, transparent);
   cursor: default;
 }
 .batch-ctl:disabled:hover {
