@@ -906,8 +906,8 @@ body {
   align-items: center;
   gap: 10px;
   padding: 6px 12px;
-  background: var(--error-bg);
-  border: 1px solid var(--error-tint);
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
 }
 
@@ -921,7 +921,7 @@ body {
 .fast-info {
   display: flex;
   align-items: center;
-  color: var(--error);
+  color: var(--text-secondary);
   cursor: help;
   flex-shrink: 0;
 }
@@ -1075,19 +1075,29 @@ body {
   opacity: 0.85;
 }
 
-.fast-toggle:has(.toggle-input:checked) .toggle-text {
+/* The Fast Batch label is the bar's red signal in both states. The extra
+ * .fast-batch-bar ancestor (and the :has variant) beats the generic
+ * ".toggle-label:has(:checked) .toggle-text" rule that would otherwise paint
+ * it --text-primary when checked. The BETA badge inherits currentColor, so
+ * pin it back to neutral. */
+.fast-batch-bar .fast-toggle .toggle-text,
+.fast-batch-bar .fast-toggle:has(.toggle-input:checked) .toggle-text {
   color: var(--error);
 }
 
-/* Solid red track + white knob — the red-tinted bar background made a
- * translucent red switch nearly invisible when on. */
+.fast-batch-bar .fast-toggle .beta-badge {
+  color: var(--text-secondary);
+}
+
+/* Plain red switch — translucent red track + solid red knob, matching the
+ * other toggles' style. */
 .fast-toggle .toggle-input:checked + .toggle-switch {
-  background: var(--error);
+  background: var(--error-glow);
   box-shadow: 0 0 8px var(--error-glow);
 }
 
 .fast-toggle .toggle-input:checked + .toggle-switch::after {
-  background: #fff;
+  background: var(--error);
 }
 
 /* When Fast Batch is armed, the only red signals are the Fast bar, the step
