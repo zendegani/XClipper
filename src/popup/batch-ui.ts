@@ -150,15 +150,14 @@ async function refreshIdleUi(): Promise<void> {
   if (getFastMode()) {
     if (activeTab === 'bookmarks') {
       // Fast paginates from the top via cursor (no harvested collection), so
-      // there's no "Reset queue" here — only the dedup history. Fast can't know
-      // up front which are already exported, so show the ledger size + Reset.
+      // "Reset queue" is always greyed here; "Reset history" greys when the
+      // dedup ledger is empty. The row stays visible so layout doesn't jump.
       const ledger = await loadLedgerSet();
-      btnBatchResetQueue.classList.add('hidden');
-      btnBatchReset.classList.toggle('hidden', ledger.size === 0);
-      batchDedupRow.classList.toggle('hidden', ledger.size === 0);
-      if (ledger.size > 0) {
-        batchDedupText.textContent = `${ledger.size} ${t('batch_already_exported', 'already exported')}`;
-      }
+      btnBatchResetQueue.disabled = true;
+      btnBatchReset.disabled = ledger.size === 0;
+      batchDedupText.textContent =
+        ledger.size > 0 ? `${ledger.size} ${t('batch_already_exported', 'already exported')}` : '';
+      batchDedupRow.classList.remove('hidden');
       setButton(
         `⚡ ${t('btn_batch', 'Export bookmarks')}`,
         !isFastActive(),
@@ -268,16 +267,16 @@ async function refreshIdleUi(): Promise<void> {
         ? t('btn_batch_likes_hint', 'Export every liked post loaded on this page as Markdown files into one folder. Scroll your Likes page to load more.')
         : t('btn_batch_hint', 'Export every bookmark loaded on this page as Markdown files into one folder. Scroll the bookmarks page to load more.');
   setButton(base + suffix, fresh.length > 0, tooltip);
-  // The control row carries two independent affordances:
-  //  • Reset queue — when there's a gathered collection to restart.
-  //  • Reset history ("N already exported") — when past runs skipped items.
-  // Both hidden while appending to a live job (its queue-exclusion handles it).
-  const showQueue = urls.length > 0 && !onSameSourceJob;
-  const showHistory = skipped > 0 && !onSameSourceJob;
-  btnBatchResetQueue.classList.toggle('hidden', !showQueue);
-  btnBatchReset.classList.toggle('hidden', !showHistory);
-  batchDedupText.textContent = showHistory ? `${skipped} ${t('batch_already_exported', 'already exported')}` : '';
-  batchDedupRow.classList.toggle('hidden', !showQueue && !showHistory);
+  // The control row is always shown here (stable layout); the two buttons just
+  // GREY OUT when not applicable instead of disappearing:
+  //  • Reset queue — enabled when there's a gathered collection to restart.
+  //  • Reset history ("N already exported") — enabled when past runs skipped items.
+  // Both disabled while appending to a live job (its queue-exclusion handles it).
+  btnBatchResetQueue.disabled = !(urls.length > 0) || onSameSourceJob;
+  const historyEnabled = skipped > 0 && !onSameSourceJob;
+  btnBatchReset.disabled = !historyEnabled;
+  batchDedupText.textContent = historyEnabled ? `${skipped} ${t('batch_already_exported', 'already exported')}` : '';
+  batchDedupRow.classList.remove('hidden');
 }
 
 function setActiveTab(tab: BatchTab): void {
