@@ -58,13 +58,18 @@ function applyGlow(): void {
 }
 
 // Lock the toggle (can't switch modes mid-export) while either session runs.
+// The "why" hint is NOT shown just because something's running — only when the
+// user actually tries to flip the locked toggle (see the click handler).
 function updateToggleLock(): void {
   const locked = standardJobActive || fastActive;
   if (chkFastBatch) chkFastBatch.disabled = locked;
   fastBatchBar?.classList.toggle('locked', locked);
-  // Visible reason so a disabled toggle doesn't look broken. Only while in
-  // Batch mode (the bar is hidden in Single).
-  fastLockedHint?.classList.toggle('hidden', !(locked && inBatchMode));
+  if (!locked) fastLockedHint?.classList.add('hidden'); // clear once unlocked
+}
+
+// Reveal the locked reason only on an actual attempt to toggle while locked.
+function showLockHint(): void {
+  if (inBatchMode) fastLockedHint?.classList.remove('hidden');
 }
 
 // Called by batch-ui as the Standard job starts/stops.
@@ -79,6 +84,7 @@ export function setStandardJobActive(active: boolean): void {
 export function syncFastBatchMode(single: boolean): void {
   inBatchMode = !single;
   fastBatchBar?.classList.toggle('hidden', single);
+  if (single) fastLockedHint?.classList.add('hidden');
   updateToggleLock();
   applyGlow();
 }
@@ -102,6 +108,12 @@ export function initFastBatchUi(): void {
       if (granted) setFastMode(true);
       else setFastMode(false);
     });
+  });
+
+  // Clicking the toggle while it's locked doesn't fire `change` (disabled
+  // input), but the label still gets the click — surface the reason then.
+  chkFastBatch.closest('.fast-toggle')?.addEventListener('click', () => {
+    if (chkFastBatch.disabled) showLockHint();
   });
 
   chkFastBatch.addEventListener('change', () => {
