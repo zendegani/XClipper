@@ -42,7 +42,7 @@ import {
   tabBatchLikes,
 } from './dom';
 import { setExportMode } from './mode';
-import { getFastMode, isFastActive, startFastExport, cancelFast, setStandardJobActive } from './fast-batch-ui';
+import { getFastMode, isFastActive, startFastExport, cancelFast, setStandardJobActive, resumeFastIfActive } from './fast-batch-ui';
 
 type JobSnapshot = NonNullable<BatchStatusResponse['job']>;
 type BatchTab = 'bookmarks' | 'profile' | 'selection' | 'likes';
@@ -542,6 +542,10 @@ export async function initBatchUi(): Promise<void> {
     setExportMode(false, false); // reopening mid-job lands on Batch, not Single
     render(activeJob); // sets jobIsActive, so tab setup below keeps Start disabled
     startJobPolling();
+  } else if (await resumeFastIfActive()) {
+    // A Fast Batch run is still going in the background — land on Batch so its
+    // progress (with whose export) is visible; fast-batch-ui owns the polling.
+    setExportMode(false, false);
   }
 
   // Land on the running job's origin tab (so its progress is visible), else the

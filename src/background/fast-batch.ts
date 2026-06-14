@@ -276,12 +276,15 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
   const maxItems = opts.maxItems ?? BATCH_MAX_ITEMS;
   const expandThreads = opts.expandThreads ?? true;
   const source = opts.source ?? 'bookmarks';
-  const handle = opts.handle?.replace(/^@/, '').toLowerCase();
+  const handleRaw = opts.handle?.replace(/^@/, ''); // original case, for display
+  const handle = handleRaw?.toLowerCase(); // for the repost filter
   const cfg = SOURCE_CONFIG[source];
   cancelRequested = false;
   setProgress({
     status: 'running',
     phase: `Fetching ${cfg.label}…`,
+    source,
+    ...(handleRaw ? { handle: handleRaw } : {}),
     done: 0,
     total: 0,
     exported: 0,
