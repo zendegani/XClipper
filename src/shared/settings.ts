@@ -26,6 +26,8 @@ export interface Settings {
   inlineButtonCopies: boolean;
   showInlineButton: boolean;
   inlineStats: boolean;
+  // Profile batch: include reposts (off = the profile owner's own posts only).
+  includeReposts: boolean;
   obsidianFriendly: boolean;
   obsidianVault: string;
   obsidianFolder: string;
@@ -58,6 +60,7 @@ export const DEFAULT_SETTINGS: Settings = {
   inlineButtonCopies: false, // inline button downloads by default
   showInlineButton: false, // off by default in v2.0.0 — avoids DOM conflicts with other X/Twitter extensions; v1.9.0 migrants keep their stored value
   inlineStats: false, // off — changes visible content, opt-in
+  includeReposts: false, // off — profile exports own posts only, matching prior behavior
   obsidianFriendly: false, // off — changes frontmatter shape, opt-in
   obsidianVault: '', // empty → let Obsidian pick the last-used vault
   obsidianFolder: '', // empty → create note at the vault root

@@ -226,6 +226,14 @@ async function mapLimit<T>(items: T[], limit: number, fn: (item: T) => Promise<v
   await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
 }
 
+// A retweet is a tweet by the profile owner (the retweeter) carrying the
+// original under legacy.retweeted_status_result — so an author===owner check
+// can't catch it. Detect it structurally instead.
+function isRepost(raw: unknown): boolean {
+  const t = (raw as { tweet?: unknown }).tweet ?? raw;
+  return !!(t as { legacy?: { retweeted_status_result?: unknown } }).legacy?.retweeted_status_result;
+}
+
 async function loadLedger(): Promise<string[]> {
   const r = await chrome.storage.local.get(EXPORTED_LEDGER_KEY);
   const raw = r[EXPORTED_LEDGER_KEY];
@@ -329,6 +337,8 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
   const template = templates[cfg.op];
 
   const settings = await loadSettings();
+  // Profile: drop reposts unless the user opted to include them (matches Standard).
+  const skipReposts = source === 'profile' && !settings.includeReposts;
   const format = settings.batchFormat ?? 'md';
   // CSV is metadata-only — always one combined file (mirrors Standard batch).
   const output = format === 'csv' ? 'combined' : settings.batchOutput ?? 'separate';
@@ -371,7 +381,9 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
       for (const raw of tweets) {
         if (selected.length >= maxItems) break;
         const doc = jsonToAst(raw);
-        if (handle && doc.metadata.author.handle.toLowerCase() !== handle) continue; // repost
+        if (skipReposts && (isRepost(raw) || (handle && doc.metadata.author.handle.toLowerCase() !== handle))) {
+          continue; // a retweet, or (rarely) a top-level original author ≠ owner
+        }
         if (dateFiltered) {
           const d = Date.parse(doc.metadata.date);
           if (Number.isNaN(d) || d < fromMs || d > toMs) continue; // outside the range — skip (not expanded)
