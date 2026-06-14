@@ -64,9 +64,11 @@ describe('tweetDetailToDocument', () => {
 const threadPath = ['_local/threaddetail-response.json', '_local/thread-response.json'].find((p) => existsSync(p));
 
 describe.skipIf(!threadPath)('tweetDetailToDocument — real captured thread', () => {
-  const doc = tweetDetailToDocument(JSON.parse(readFileSync(threadPath as string, 'utf8')));
+  // Guarded: skipIf still runs this body, so don't read a missing file in CI.
+  const doc = threadPath ? tweetDetailToDocument(JSON.parse(readFileSync(threadPath, 'utf8'))) : null;
 
   it('expands the captured self-thread into a multi-tweet ThreadNode', () => {
+    if (!doc) return;
     expect(doc.metadata.type).toBe('thread');
     const body = doc.body as ThreadNode;
     expect(body.tweets.length).toBeGreaterThanOrEqual(2);
@@ -82,10 +84,12 @@ describe.skipIf(!threadPath)('tweetDetailToDocument — real captured thread', (
 const articlePath = ['_local/article.json'].find((p) => existsSync(p));
 
 describe.skipIf(!articlePath)('tweetDetailToDocument — real captured article', () => {
-  const doc = tweetDetailToDocument(JSON.parse(readFileSync(articlePath as string, 'utf8')));
-  const body = doc.body as ArticleNode;
+  // Guarded: skipIf still runs this body, so don't read a missing file in CI.
+  const doc = articlePath ? tweetDetailToDocument(JSON.parse(readFileSync(articlePath, 'utf8'))) : null;
+  const body = doc?.body as ArticleNode | undefined;
 
   it('maps the article body from Draft.js content_state', () => {
+    if (!doc || !body) return;
     expect(doc.metadata.type).toBe('article');
     expect(doc.metadata.title.length).toBeGreaterThan(0);
     expect(body.type).toBe('article');
@@ -99,6 +103,7 @@ describe.skipIf(!articlePath)('tweetDetailToDocument — real captured article',
   });
 
   it('resolves atomic blocks to real image URLs and renders', () => {
+    if (!doc || !body) return;
     for (const c of body.children) {
       if (c.type === 'image') expect(c.url).toMatch(/^https:\/\/pbs\.twimg\.com\//);
     }
