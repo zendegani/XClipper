@@ -1803,10 +1803,11 @@ details.option-group[open] .option-group-chevron {
   display: block;
   margin-top: 6px;
   font-size: 12px;
+  line-height: 1.35;
   color: var(--text-secondary, #71767b);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  /* Wrap long status/hint messages instead of truncating them. */
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .batch-controls {

@@ -52,7 +52,12 @@ interface XAuth {
 
 // Last seen auth headers + the most recent timeline request URLs (each carries
 // the rotating query-id + `features`, so replaying the observed request is
-// robust to X changing them). Memory-only in Phase A; production will persist.
+// robust to X changing them). Persisted to chrome.storage.session so they
+// survive the MV3 service worker being torn down between runs (otherwise a
+// re-run minutes later would wrongly ask the user to re-capture). Session
+// storage is in-memory + cleared on browser close, appropriate for the auth.
+const SESSION_AUTH_KEY = 'fastBatchAuth';
+const SESSION_TEMPLATES_KEY = 'fastBatchTemplates';
 let auth: XAuth | null = null;
 const templates: Record<string, string> = {};
 let listening = false;
@@ -81,11 +86,27 @@ function captureHeaders(
     headers.find((h) => h.name.toLowerCase() === name)?.value;
   const authorization = get('authorization');
   const csrf = get('x-csrf-token');
-  if (authorization && csrf) auth = { authorization, csrf };
+  if (authorization && csrf && (auth?.authorization !== authorization || auth?.csrf !== csrf)) {
+    auth = { authorization, csrf };
+    void chrome.storage.session.set({ [SESSION_AUTH_KEY]: auth });
+  }
 
   const op = details.url.match(/\/graphql\/[^/]+\/(Bookmarks|Likes|UserTweets|TweetDetail)\b/)?.[1];
-  if (op) templates[op] = details.url;
+  if (op && templates[op] !== details.url) {
+    templates[op] = details.url;
+    void chrome.storage.session.set({ [SESSION_TEMPLATES_KEY]: { ...templates } });
+  }
   return undefined; // observe-only; never block/modify
+}
+
+// Reload captured auth + request templates from session storage into memory
+// (after a service-worker restart). Awaited before a run so the precondition
+// check sees them, not just fired-and-forgotten at init.
+async function restoreSession(): Promise<void> {
+  const r = await chrome.storage.session.get([SESSION_AUTH_KEY, SESSION_TEMPLATES_KEY]);
+  if (!auth && r[SESSION_AUTH_KEY]) auth = r[SESSION_AUTH_KEY] as XAuth;
+  const saved = r[SESSION_TEMPLATES_KEY] as Record<string, string> | undefined;
+  if (saved) for (const k of Object.keys(saved)) templates[k] ??= saved[k];
 }
 
 function startCapturing(): void {
@@ -259,6 +280,7 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
     setProgress({ status: 'error', error: 'Permission denied — enable Fast Batch first.' });
     return null;
   }
+  await restoreSession(); // reload captured auth/templates if the SW restarted
   // Fast Batch replays two captured requests: the bookmarks feed, and (to
   // expand threads/articles) TweetDetail. After an extension reload neither has
   // been seen yet. Check BOTH up front (before paginating) and give one plain
@@ -459,6 +481,7 @@ async function dumpTweetDetail(id: string): Promise<void> {
 }
 
 export function initFastBatch(): void {
+  void restoreSession();
   // Re-arm capture across service-worker restarts if access was already granted.
   void hasAccess().then((ok) => {
     if (ok) startCapturing();
