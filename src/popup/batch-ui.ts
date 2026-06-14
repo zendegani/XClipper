@@ -100,7 +100,11 @@ async function fetchJob(): Promise<JobSnapshot | undefined> {
   }
 }
 
-async function harvest(): Promise<HarvestResponse> {
+// `unreachable` distinguishes "injector didn't respond" (page needs a reload
+// after an extension update) from "responded but this isn't a batch source".
+type HarvestResult = HarvestResponse & { unreachable?: boolean };
+
+async function harvest(): Promise<HarvestResult> {
   if (pageTabId === undefined) return { source: null, urls: [] };
   try {
     const resp = (await chrome.tabs.sendMessage(pageTabId, {
@@ -109,7 +113,7 @@ async function harvest(): Promise<HarvestResponse> {
     return resp ?? { source: null, urls: [] };
   } catch {
     // Injector not present (page needs a reload after extension update).
-    return { source: null, urls: [] };
+    return { source: null, urls: [], unreachable: true };
   }
 }
 
@@ -167,6 +171,25 @@ async function refreshIdleUi(): Promise<void> {
     return;
   }
 
+  const { source, handle, urls, unreachable } = await harvest();
+
+  // After an extension reload the page still runs the old/no content script
+  // (the same situation Single export reports). Every batch source needs it,
+  // so surface the same "reload the page" hint rather than a misleading state.
+  if (unreachable && pageIsX) {
+    batchDedupRow.classList.add('hidden');
+    const label =
+      activeTab === 'bookmarks' ? t('btn_batch', 'Export bookmarks')
+        : activeTab === 'profile' ? t('btn_batch_profile', 'Export posts')
+          : activeTab === 'likes' ? t('btn_batch_likes', 'Export likes')
+            : t('btn_batch_select', 'Select tweets…');
+    // Keep it ENABLED — a disabled button can't show its tooltip in Chrome, so
+    // the reason would be invisible. Clicking surfaces the reload hint (like
+    // Single export does), which the user found clear.
+    setButton(label, true, t('error_reload', 'Reload the page and try again.'));
+    return;
+  }
+
   if (activeTab === 'selection') {
     batchDedupRow.classList.add('hidden');
     setButton(
@@ -178,8 +201,6 @@ async function refreshIdleUi(): Promise<void> {
     );
     return;
   }
-
-  const { source, handle, urls } = await harvest();
 
   if (activeTab === 'bookmarks' && source !== 'bookmarks') {
     batchDedupRow.classList.add('hidden');
@@ -377,14 +398,27 @@ async function startExport(): Promise<void> {
   if (activeTab === 'selection') {
     if (pageTabId === undefined) return;
     chrome.tabs.sendMessage(pageTabId, { action: 'XCLIPPER_SELECTION', enable: true }, () => {
-      void chrome.runtime.lastError;
+      if (chrome.runtime.lastError) {
+        // Injector gone (page not reloaded after the extension update).
+        batchProgress.classList.remove('hidden');
+        batchProgressText.textContent = t('error_reload', 'Reload the page and try again.');
+        return;
+      }
       window.close(); // hand the page over to selection mode
     });
     return;
   }
 
   btnBatch.disabled = true;
-  const { urls, handle } = await harvest();
+  const { urls, handle, unreachable } = await harvest();
+  // Page wasn't reloaded after the extension update → injector unreachable.
+  // Show the same hint Single export gives, instead of a misleading failure.
+  if (unreachable && pageIsX) {
+    batchProgress.classList.remove('hidden');
+    batchProgressText.textContent = t('error_reload', 'Reload the page and try again.');
+    btnBatch.disabled = false;
+    return;
+  }
   const settings = await loadSettings();
   const resp = (await chrome.runtime.sendMessage({
     action: 'BATCH_START',
@@ -447,9 +481,27 @@ export async function initBatchUi(): Promise<void> {
     startJobPolling();
   }
 
-  // Land on the running job's origin tab (so its progress is visible), else
-  // the tab matching the current page; Selection is the fallback since it
-  // works on any x.com timeline.
+  // Land on the running job's origin tab (so its progress is visible), else the
+  // tab matching the current page. The injector reports the source; if it can't
+  // (page not reloaded after an extension update), fall back to the URL so we
+  // still focus e.g. Bookmarks. Selection is the last resort (any x.com page).
   const { source } = await harvest();
-  setActiveTab(activeJob?.origin ?? source ?? (pageIsX ? 'selection' : 'bookmarks'));
+  setActiveTab(activeJob?.origin ?? source ?? sourceFromUrl(tab?.url) ?? (pageIsX ? 'selection' : 'bookmarks'));
+}
+
+// Best-effort page type from the URL, for initial tab focus when the injector
+// hasn't reported a source yet (e.g. right after an extension reload).
+function sourceFromUrl(url: string | undefined): BatchTab | null {
+  if (!url) return null;
+  let path: string;
+  try {
+    path = new URL(url).pathname.replace(/\/+$/, '');
+  } catch {
+    return null;
+  }
+  if (path === '/i/bookmarks') return 'bookmarks';
+  if (/\/likes$/.test(path)) return 'likes';
+  const reserved = new Set(['/home', '/explore', '/notifications', '/messages', '/search', '/settings', '/i', '/compose']);
+  if (/^\/[A-Za-z0-9_]{1,15}$/.test(path) && !reserved.has(path)) return 'profile';
+  return null;
 }
