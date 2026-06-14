@@ -14,26 +14,18 @@ import type {
   BatchItemResultMessage,
   BatchStartResponse,
   BatchStatusResponse,
-  ExtractedContent,
 } from '../types/messages';
-import type { Document } from '../ast/types';
-import { renderDigest } from '../ast/render-digest';
-import { renderMarkdown } from '../ast/render-markdown';
-import { renderPdfHtmlMany } from '../ast/render-pdf-html';
-import { loadSettings, type BatchFormat, type BatchOutput, type Settings } from '../shared/settings';
-import {
-  buildFormatExport,
-  buildCsvTable,
-  markdownToPlainText,
-  type ExportFormat,
-  type FormatOptions,
-} from '../shared/export-formats';
+import { loadSettings, type BatchFormat, type BatchOutput } from '../shared/settings';
 import { recordExport } from '../shared/review-prompt';
 import {
-  isAllowedImageUrl,
+  writeCombined,
+  writeJsonManifest,
+  writePerItem,
+  type StoredItem,
+} from './batch-sink';
+import {
   isExtensionPageSender,
   isTrustedXContentSender,
-  sanitizeFilePath,
 } from './security';
 import {
   type BatchJob,
@@ -125,70 +117,8 @@ function effectiveOutput(job: BatchJob): BatchOutput {
   return job.output ?? 'separate';
 }
 
-// ─── Format conversion (the AST is the source of truth) ─────────────
-//
-// The worker reports the postProcessed Markdown (written verbatim for the
-// 'md' format) plus the item's AST. Every other format is derived here from
-// that AST, so the background owns format selection — the worker stays format
-// agnostic.
-
-function formatOptionsFrom(s: Settings): FormatOptions {
-  return {
-    includeEngagement: s.inlineStats,
-    obsidianFriendly: s.obsidianFriendly,
-    frontmatterFields: s.obsidianFriendly ? s.frontmatterFieldsObsidian : s.frontmatterFields,
-    obsidianTagsTemplate: s.obsidianTagsTemplate,
-    includeMetadata: s.includeMetadata,
-  };
-}
-
-// Reconstruct the ExtractedContent the format builders expect from a stored
-// AST. renderMarkdown gives the raw body Markdown (no frontmatter) used by the
-// TXT and CSV-description paths — the same string single-export passes.
-function docToExtracted(doc: Document): ExtractedContent {
-  const m = doc.metadata;
-  return {
-    type: m.type,
-    author: { name: m.author.name, handle: m.author.handle },
-    title: m.title,
-    markdown: renderMarkdown(doc),
-    sourceUrl: m.sourceUrl,
-    date: m.date,
-    tweetId: m.tweetId,
-    metadata: m.engagement,
-    body: doc,
-  };
-}
-
-interface BuiltFile {
-  content: string;
-  mime: string;
-  ext: string;
-}
-
-// One combined file for the whole batch in the chosen format.
-function buildCombined(format: BatchFormat, docs: Document[], opts: FormatOptions): BuiltFile {
-  switch (format) {
-    case 'md':
-      return { content: renderDigest(docs), mime: 'text/markdown', ext: 'md' };
-    case 'txt':
-      return {
-        content: docs.map((d) => markdownToPlainText(renderMarkdown(d))).join('\n\n---\n\n') + '\n',
-        mime: 'text/plain',
-        ext: 'txt',
-      };
-    case 'html':
-      return {
-        content: renderPdfHtmlMany(docs, { includeEngagement: opts.includeEngagement }),
-        mime: 'text/html',
-        ext: 'html',
-      };
-    case 'json':
-      return { content: JSON.stringify(docs, null, 2), mime: 'application/json', ext: 'json' };
-    case 'csv':
-      return { content: buildCsvTable(docs.map(docToExtracted), opts), mime: 'text/csv', ext: 'csv' };
-  }
-}
+// Format conversion + all sink writers now live in batch-sink.ts, shared with
+// Fast Batch — only acquisition differs between the two batch paths.
 
 export async function startBatch(
   rawUrls: unknown,
@@ -364,7 +294,15 @@ async function handleItemResult(
   if (outcome.success && filename) {
     // 'combined' writes nothing per item — the one file is built at finalize.
     if (effectiveOutput(job) !== 'combined') {
-      await writePerItem(job, advanced.folder, filename, msg);
+      writePerItem(
+        advanced.folder,
+        job.format ?? 'md',
+        filename,
+        msg.markdown as string,
+        msg.images,
+        msg.doc,
+        await loadSettings()
+      );
     }
     await recordExported(expected);
     if (msg.doc) {
@@ -439,12 +377,6 @@ async function tick(): Promise<void> {
   }
 }
 
-interface StoredItem {
-  url: string;
-  filename: string;
-  doc: Document;
-}
-
 async function takeStoredItems(job: BatchJob): Promise<StoredItem[]> {
   const keys = job.urls.map((_, i) => DOC_KEY_PREFIX + i);
   const stored = await chrome.storage.session.get(keys);
@@ -452,40 +384,6 @@ async function takeStoredItems(job: BatchJob): Promise<StoredItem[]> {
   return keys
     .map((k) => stored[k] as StoredItem | undefined)
     .filter((v): v is StoredItem => v !== undefined);
-}
-
-// JSON sink (ADR 0002 #11): one data.json per job with metadata, failures,
-// and every successful item's AST. Written for cancelled jobs too — the
-// matching .md files are already on disk, partial is honest.
-function writeJsonManifest(job: BatchJob, items: StoredItem[]): void {
-  const manifest = {
-    generator: 'xclipper-batch',
-    jobId: job.id,
-    exportedAt: new Date().toISOString(),
-    status: job.status,
-    completed: job.completed,
-    failures: job.failures,
-    items,
-  };
-  chrome.downloads.download({
-    url:
-      'data:application/json;charset=utf-8,' +
-      encodeURIComponent(JSON.stringify(manifest, null, 2)),
-    filename: sanitizeFilePath(`${job.folder}/data.json`),
-    saveAs: false,
-  });
-}
-
-// Combined sink (ADR 0002, Phase D, generalized): one file for the whole batch
-// in the chosen format — x-compilation-<date>.<ext>. Written when output is
-// 'both' or 'combined' (and always for CSV, which has no per-item form).
-function writeCombined(job: BatchJob, items: StoredItem[], settings: Settings): void {
-  const built = buildCombined(job.format ?? 'md', items.map((i) => i.doc), formatOptionsFrom(settings));
-  const d = new Date();
-  const stamp =
-    `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}` +
-    String(d.getDate()).padStart(2, '0');
-  downloadData(job.folder, `x-compilation-${stamp}.${built.ext}`, built.content, built.mime);
 }
 
 // The finished/cancelled job stays in storage for inspection until the next
@@ -496,10 +394,14 @@ async function finalize(job: BatchJob): Promise<void> {
   try {
     const items = await takeStoredItems(job);
     if (items.length > 0) {
-      writeJsonManifest(job, items);
+      writeJsonManifest(
+        job.folder,
+        { jobId: job.id, status: job.status, completed: job.completed, failures: job.failures },
+        items
+      );
       const out = effectiveOutput(job);
       if (out === 'both' || out === 'combined') {
-        writeCombined(job, items, await loadSettings());
+        writeCombined(job.folder, job.format ?? 'md', items.map((i) => i.doc), await loadSettings());
       }
     }
   } catch (err) {
@@ -525,58 +427,6 @@ async function finalize(job: BatchJob): Promise<void> {
       // already closed
     }
   }
-}
-
-// Folder sink (ADR 0002 #11): every file of the job lands under its downloads
-// subfolder. Markdown filenames are collision-deduped by the job state; image
-// paths already embed the item's own media dir, and Chrome uniquifies any
-// residual conflict.
-function downloadItem(
-  folder: string,
-  filename: string,
-  markdown: string,
-  images?: { url: string; filename: string }[]
-): void {
-  for (const img of images ?? []) {
-    if (!img || typeof img.url !== 'string' || !isAllowedImageUrl(img.url)) continue;
-    chrome.downloads.download({
-      url: img.url,
-      filename: sanitizeFilePath(`${folder}/${img.filename}`),
-      saveAs: false,
-    });
-  }
-  downloadData(folder, filename, markdown, 'text/markdown');
-}
-
-// Generic data-URL download into the job folder. Used for the Markdown items,
-// the alternate per-item formats, and the combined file.
-function downloadData(folder: string, filename: string, content: string, mime: string): void {
-  chrome.downloads.download({
-    url: `data:${mime};charset=utf-8,` + encodeURIComponent(content),
-    filename: sanitizeFilePath(`${folder}/${filename}`),
-    saveAs: false,
-  });
-}
-
-// Write one item's file in the job's format. Markdown is the worker's verbatim
-// postProcessed output (+ local images); the other formats are derived from
-// the AST here. Images only attach to Markdown — the others reference media by
-// URL or omit it. CSV never reaches this (it's always combined).
-async function writePerItem(
-  job: BatchJob,
-  folder: string,
-  filename: string,
-  msg: BatchItemResultMessage
-): Promise<void> {
-  const format = job.format ?? 'md';
-  if (format === 'md' || !msg.doc) {
-    downloadItem(folder, filename, msg.markdown as string, msg.images);
-    return;
-  }
-  const opts = formatOptionsFrom(await loadSettings());
-  const built = buildFormatExport(format as ExportFormat, docToExtracted(msg.doc), opts);
-  const outName = filename.replace(/\.md$/i, '') + '.' + built.ext;
-  downloadData(folder, outName, built.content, built.mime);
 }
 
 export function initBatch(): void {

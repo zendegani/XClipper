@@ -108,7 +108,7 @@ function pad(n: number): string {
   return String(n).padStart(2, '0');
 }
 
-function batchFolderName(now: Date): string {
+export function batchFolderName(now: Date): string {
   return (
     `xclipper-batch-${now.getFullYear()}${pad(now.getMonth() + 1)}${pad(now.getDate())}` +
     `-${pad(now.getHours())}${pad(now.getMinutes())}${pad(now.getSeconds())}`

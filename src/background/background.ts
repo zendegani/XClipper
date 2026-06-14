@@ -12,6 +12,7 @@ import {
   sanitizeFilePath,
 } from './security';
 import { initBatch } from './batch';
+import { initFastBatch } from './fast-batch';
 import { normalizeStatusUrl } from './batch-state';
 
 // ─── Context menu: Save / Copy tweet as Markdown ────────────────────
@@ -148,6 +149,11 @@ void ensureThemeWatcher();
 
 // Batch export orchestrator (ADR 0002) — registers its own listeners.
 initBatch();
+
+// Fast Batch (ADR 0003) — opt-in GraphQL acquisition; arms auth capture only
+// when the user has granted the optional webRequest permission. Phase A:
+// console-triggerable via xclipperFastBatch(), no UI yet.
+initFastBatch();
 
 // One-time migration: project renamed tweet2md → XClipper in v2.0.0. Existing
 // users have preferences stored under the old `tweet2md_settings` key. Copy
