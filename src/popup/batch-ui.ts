@@ -311,8 +311,8 @@ function setActiveTab(tab: BatchTab): void {
     TAB_BUTTONS[k].classList.toggle('active', k === tab);
     TAB_ICONS[k].classList.toggle('hidden', k !== tab);
   });
-  // Progress and reports belong to the tab the job was started from; other
-  // tabs just show their (disabled) start button.
+  // A running job's progress follows the job, not the tab — keep it visible on
+  // every tab while active; only hide it once idle.
   if (jobIsActive && lastJob) {
     render(lastJob);
   } else if (!isFastActive()) {
@@ -323,12 +323,21 @@ function setActiveTab(tab: BatchTab): void {
   startCountPolling();
 }
 
+// Short label for whose/which job is running, so progress stays meaningful even
+// when you've navigated to a different page (e.g. another profile).
+function jobWho(job: JobSnapshot): string {
+  if (job.origin === 'profile' && job.handle) return `@${job.handle}`;
+  if (job.origin === 'bookmarks') return t('group_bookmarks', 'Bookmarks');
+  if (job.origin === 'likes') return t('batch_tab_likes', 'Likes');
+  if (job.origin === 'selection') return t('batch_tab_selection', 'Selection');
+  return '';
+}
+
 function render(job: JobSnapshot): void {
   lastJob = job;
-  // Show progress only on the tab the job came from (no origin = legacy
-  // job from before origins existed — show everywhere).
-  const onOriginTab = !job.origin || job.origin === activeTab;
-  batchProgress.classList.toggle('hidden', !onOriginTab);
+  // Always show the running job's progress — it belongs to the job, not to a
+  // tab/page, so navigating elsewhere (e.g. another profile) must not hide it.
+  batchProgress.classList.remove('hidden');
   const processed = job.completed + job.failed;
   const pct = job.total > 0 ? Math.round((processed / job.total) * 100) : 0;
   batchBarFill.style.width = `${pct}%`;
@@ -352,16 +361,18 @@ function render(job: JobSnapshot): void {
     paused ? t('batch_resume', 'Resume') : t('batch_pause', 'Pause')
   );
 
+  const who = jobWho(job);
+  const prefix = who ? `${who} · ` : '';
   const failedSuffix =
     job.failed > 0 ? ` · ${job.failed} ${t('batch_failed', 'failed')}` : '';
   if (job.status === 'running') {
-    batchProgressText.textContent = `${processed}/${job.total}${failedSuffix}`;
+    batchProgressText.textContent = `${prefix}${processed}/${job.total}${failedSuffix}`;
   } else if (job.status === 'paused') {
     const reason = job.pauseReason ? ` · ${job.pauseReason}` : '';
-    batchProgressText.textContent = `${t('batch_paused', 'Paused')} — ${processed}/${job.total}${failedSuffix}${reason}`;
+    batchProgressText.textContent = `${prefix}${t('batch_paused', 'Paused')} — ${processed}/${job.total}${failedSuffix}${reason}`;
   } else {
     const label = job.status === 'done' ? t('batch_done', 'Done') : t('batch_stopped', 'Stopped');
-    batchProgressText.textContent = `${label} — ${job.completed} ${t('batch_exported', 'exported')}${failedSuffix}`;
+    batchProgressText.textContent = `${prefix}${label} — ${job.completed} ${t('batch_exported', 'exported')}${failedSuffix}`;
   }
 }
 
