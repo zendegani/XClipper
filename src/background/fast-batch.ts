@@ -18,7 +18,12 @@
 // once, and re-run.
 
 import type { Document } from '../ast/types';
-import type { FastBatchProgress, FastBatchStartResponse, FastBatchStatusResponse } from '../types/messages';
+import type {
+  FastBatchProgress,
+  FastBatchReadyResponse,
+  FastBatchStartResponse,
+  FastBatchStatusResponse,
+} from '../types/messages';
 import { isExtensionPageSender } from './security';
 import { jsonToAst } from '../graphql/json-to-ast';
 import { tweetDetailToDocument } from '../graphql/tweet-detail';
@@ -548,7 +553,12 @@ export function initFastBatch(): void {
   chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
     if (!msg || typeof msg !== 'object') return false;
     const action = (msg as { action?: string }).action;
-    if (action !== 'FAST_BATCH_START' && action !== 'FAST_BATCH_STATUS' && action !== 'FAST_BATCH_CANCEL') {
+    if (
+      action !== 'FAST_BATCH_START' &&
+      action !== 'FAST_BATCH_STATUS' &&
+      action !== 'FAST_BATCH_CANCEL' &&
+      action !== 'FAST_BATCH_READY'
+    ) {
       return false;
     }
     if (!isExtensionPageSender(sender, chrome.runtime.id)) {
@@ -558,6 +568,17 @@ export function initFastBatch(): void {
     if (action === 'FAST_BATCH_STATUS') {
       sendResponse({ progress } satisfies FastBatchStatusResponse);
       return false;
+    }
+    if (action === 'FAST_BATCH_READY') {
+      const src = (msg as { source?: FastSource }).source ?? 'bookmarks';
+      void (async () => {
+        await restoreSession(); // templates may live in session storage after a SW restart
+        sendResponse({
+          feed: !!templates[SOURCE_CONFIG[src].op],
+          tweetDetail: !!templates.TweetDetail,
+        } satisfies FastBatchReadyResponse);
+      })();
+      return true; // async sendResponse
     }
     if (action === 'FAST_BATCH_CANCEL') {
       cancelRequested = true;

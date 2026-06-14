@@ -1007,6 +1007,64 @@ body {
   opacity: 0.6;
 }
 
+/* Fast Batch step lights: Page → Tweet → Fetch → Expand. */
+.fast-steps {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  font-size: 11px;
+  color: var(--text-secondary);
+}
+
+.fast-steps.hidden {
+  display: none;
+}
+
+.fast-step {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.fast-step-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--toggle-off-bg);
+  flex-shrink: 0;
+}
+
+/* States set on the .fast-step container. */
+.fast-step[data-state="ready"] .fast-step-dot,
+.fast-step[data-state="done"] .fast-step-dot {
+  background: var(--success);
+}
+.fast-step[data-state="missing"] .fast-step-dot {
+  background: var(--error);
+}
+.fast-step[data-state="active"] .fast-step-dot {
+  background: var(--accent);
+  animation: fast-step-pulse 1s ease-in-out infinite;
+}
+.fast-step[data-state="missing"] .fast-step-label {
+  color: var(--error);
+}
+
+@keyframes fast-step-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+
+/* Anchor step tooltips to the start edge so the leftmost one doesn't clip. */
+.fast-step[data-tooltip]::after {
+  left: 0;
+  transform: translateX(0) translateY(2px);
+}
+.fast-step[data-tooltip]:hover::after,
+.fast-step[data-tooltip]:focus-visible::after {
+  transform: translateX(0) translateY(0);
+}
+
 /* Lightning icon + label stay red in both states. The extra .fast-batch-bar
  * ancestor beats the generic ".toggle-label:has(:checked) .toggle-icon" rule
  * that would otherwise paint it blue (--accent) when checked. */

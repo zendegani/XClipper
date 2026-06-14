@@ -8,7 +8,12 @@
 // Decoupled from batch-ui via DOM events: this module never imports batch-ui
 // (batch-ui imports the small query helpers here), so there's no cycle.
 
-import type { FastBatchProgress, FastBatchStartResponse, FastBatchStatusResponse } from '../types/messages';
+import type {
+  FastBatchProgress,
+  FastBatchReadyResponse,
+  FastBatchStartResponse,
+  FastBatchStatusResponse,
+} from '../types/messages';
 import {
   batchBarFill,
   batchProgress,
@@ -23,8 +28,21 @@ import {
   fastDateFrom,
   fastDateTo,
   fastDateClear,
+  fastSteps,
+  fastStepPage,
+  fastStepTweet,
+  fastStepFetch,
+  fastStepExpand,
   viewMain,
 } from './dom';
+
+type StepState = 'ready' | 'missing' | 'active' | 'done' | 'pending';
+function setStep(el: HTMLElement | undefined, state: StepState, tooltip = ''): void {
+  if (!el) return;
+  el.dataset.state = state;
+  if (tooltip) el.setAttribute('data-tooltip', tooltip);
+  else el.removeAttribute('data-tooltip');
+}
 
 const ACCESS: chrome.permissions.Permissions = { permissions: ['webRequest'], origins: ['*://x.com/*'] };
 const FAST_MODE_KEY = 'fastBatchMode';
@@ -61,8 +79,36 @@ function notifyChanged(): void {
 function applyGlow(): void {
   const red = inBatchMode && (fastActive || (fastMode && !standardJobActive));
   viewMain?.classList.toggle('fast-on', red);
-  // The date-range filter is Fast-only — show it whenever Fast is armed in Batch.
-  fastDateRange?.classList.toggle('hidden', !(fastMode && inBatchMode));
+  // The date-range filter + step lights are Fast-only — show whenever armed.
+  const showExtras = fastMode && inBatchMode;
+  fastDateRange?.classList.toggle('hidden', !showExtras);
+  fastSteps?.classList.toggle('hidden', !showExtras);
+}
+
+// Step lights when idle: Page/Tweet show readiness (what to do before Export);
+// Fetch/Expand are pending. During a run, render() drives them by phase.
+export async function updateFastSteps(source: 'bookmarks' | 'profile' | 'likes'): Promise<void> {
+  if (fastActive) return; // a run owns the steps (see render)
+  let r: FastBatchReadyResponse | undefined;
+  try {
+    r = (await chrome.runtime.sendMessage({ action: 'FAST_BATCH_READY', source })) as
+      | FastBatchReadyResponse
+      | undefined;
+  } catch {
+    return;
+  }
+  setStep(fastStepPage, r?.feed ? 'ready' : 'missing', r?.feed ? '' : 'Reload this page so its feed request is captured');
+  setStep(fastStepTweet, r?.tweetDetail ? 'ready' : 'missing', r?.tweetDetail ? '' : 'Open any one tweet so threads & articles can be expanded');
+  setStep(fastStepFetch, 'pending');
+  setStep(fastStepExpand, 'pending');
+}
+
+function stepsFromProgress(p: FastBatchProgress): void {
+  setStep(fastStepPage, 'done');
+  setStep(fastStepTweet, 'done');
+  const phase = p.phase || '';
+  setStep(fastStepFetch, phase.startsWith('Fetching') ? 'active' : 'done');
+  setStep(fastStepExpand, phase.startsWith('Expanding') ? 'active' : phase.startsWith('Writing') ? 'done' : 'pending');
 }
 
 // Lock the toggle (can't switch modes mid-export) while either session runs.
@@ -257,6 +303,8 @@ function render(p: FastBatchProgress): void {
   // value so it's visibly "working" without implying a fraction.
   const pct = p.total > 0 ? Math.round((p.done / p.total) * 100) : running ? 8 : 100;
   batchBarFill.style.width = `${pct}%`;
+
+  if (running) stepsFromProgress(p);
 
   const who = fastWho(p);
   const prefix = who ? `${who} · ` : '';

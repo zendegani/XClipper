@@ -238,6 +238,15 @@ export interface FastBatchCancelRequest {
 export interface FastBatchStatusRequest {
   action: 'FAST_BATCH_STATUS';
 }
+// Readiness for the step lights: are the needed request templates captured?
+export interface FastBatchReadyRequest {
+  action: 'FAST_BATCH_READY';
+  source?: 'bookmarks' | 'profile' | 'likes';
+}
+export interface FastBatchReadyResponse {
+  feed: boolean; // the source's feed template was observed (page visited)
+  tweetDetail: boolean; // a tweet was opened (expansion possible)
+}
 export interface FastBatchProgress {
   status: 'idle' | 'running' | 'done' | 'cancelled' | 'error';
   // Human-readable phase for the progress label (e.g. "Fetching bookmarks").
@@ -277,4 +286,5 @@ export type MessageRequest =
   | BatchItemResultMessage
   | FastBatchStartRequest
   | FastBatchCancelRequest
-  | FastBatchStatusRequest;
+  | FastBatchStatusRequest
+  | FastBatchReadyRequest;
