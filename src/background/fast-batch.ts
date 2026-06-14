@@ -259,23 +259,24 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
     setProgress({ status: 'error', error: 'Permission denied — enable Fast Batch first.' });
     return null;
   }
-  const template = templates.Bookmarks;
-  if (!template) {
-    log('no Bookmarks request seen yet — open https://x.com/i/bookmarks, scroll once, then re-run');
-    setProgress({ status: 'error', error: 'Open x.com/i/bookmarks and scroll once, then try again.' });
+  // Fast Batch replays two captured requests: the bookmarks feed, and (to
+  // expand threads/articles) TweetDetail. After an extension reload neither has
+  // been seen yet. Check BOTH up front (before paginating) and give one plain
+  // hint covering whatever's missing — the user does it once, then it works.
+  const needBookmarks = !templates.Bookmarks;
+  const needTweetDetail = expandThreads && !templates.TweetDetail;
+  if (needBookmarks || needTweetDetail) {
+    const msg =
+      needBookmarks && needTweetDetail
+        ? 'Reload your bookmarks page and open any one tweet, then click Export again.'
+        : needBookmarks
+          ? 'Reload your bookmarks page, then click Export again.'
+          : 'Open any one tweet, then click Export again.';
+    log(`preconditions missing (bookmarks:${needBookmarks} tweetDetail:${needTweetDetail})`);
+    setProgress({ status: 'error', needTweetDetail, error: msg });
     return null;
   }
-  // Expanding threads/articles needs a captured TweetDetail request. Check it
-  // UP FRONT (not after paginating 200 bookmarks) so we fail fast with a hint.
-  if (expandThreads && !templates.TweetDetail) {
-    log('no TweetDetail request captured — open any single tweet once, then re-run');
-    setProgress({
-      status: 'error',
-      needTweetDetail: true,
-      error: 'Open any single tweet once so threads & articles can be expanded, then try again.',
-    });
-    return null;
-  }
+  const template = templates.Bookmarks as string;
 
   const settings = await loadSettings();
   const format = settings.batchFormat ?? 'md';
@@ -342,13 +343,11 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
   if (toExpand.length > 0 && !templates.TweetDetail) {
     // Abort before writing — otherwise we'd dump a folder of root-only stubs
     // that aren't ledgered and you'd re-export them all next run anyway.
-    log(
-      `no TweetDetail request captured yet, so threads/articles can't be expanded. Open ANY single tweet once (so the request is observed), then re-run — nothing was written. ${selected.length} item(s) are ready to export.`
-    );
+    log('no TweetDetail request captured — open any one tweet, then re-run (nothing written)');
     setProgress({
       status: 'error',
       needTweetDetail: true,
-      error: 'Open any single tweet once so threads/articles can be expanded, then try again.',
+      error: 'Open any one tweet, then click Export again.',
     });
     return null;
   } else if (toExpand.length > 0) {
