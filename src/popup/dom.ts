@@ -45,6 +45,7 @@ export const tabBatchLikes = document.getElementById('tab-batch-likes') as HTMLB
 export const viewMain = document.getElementById('view-main') as HTMLElement;
 export const fastBatchBar = document.getElementById('fast-batch-bar') as HTMLDivElement;
 export const chkFastBatch = document.getElementById('chk-fast-batch') as HTMLInputElement;
+export const fastLockedHint = document.getElementById('fast-locked-hint') as HTMLParagraphElement;
 export const batchSection = document.getElementById('batch-section') as HTMLDivElement;
 
 // ─── Settings checkboxes ─────────────────────────────────────────────

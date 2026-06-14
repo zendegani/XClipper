@@ -18,6 +18,7 @@ import {
   btnBatchPause,
   chkFastBatch,
   fastBatchBar,
+  fastLockedHint,
   viewMain,
 } from './dom';
 
@@ -61,6 +62,9 @@ function updateToggleLock(): void {
   const locked = standardJobActive || fastActive;
   if (chkFastBatch) chkFastBatch.disabled = locked;
   fastBatchBar?.classList.toggle('locked', locked);
+  // Visible reason so a disabled toggle doesn't look broken. Only while in
+  // Batch mode (the bar is hidden in Single).
+  fastLockedHint?.classList.toggle('hidden', !(locked && inBatchMode));
 }
 
 // Called by batch-ui as the Standard job starts/stops.
@@ -75,6 +79,7 @@ export function setStandardJobActive(active: boolean): void {
 export function syncFastBatchMode(single: boolean): void {
   inBatchMode = !single;
   fastBatchBar?.classList.toggle('hidden', single);
+  updateToggleLock();
   applyGlow();
 }
 

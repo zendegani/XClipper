@@ -71,6 +71,9 @@
   "btn_batch_fast_only_bookmarks": {
     "message": "Fast Batch supports bookmarks only for now — switch to the Bookmarks tab, or turn off Fast."
   },
+  "fast_locked": {
+    "message": "An export is running — cancel or let it finish to switch modes."
+  },
   "batch_pause": {
     "message": "Pause"
   },
