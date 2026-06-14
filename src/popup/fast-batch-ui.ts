@@ -207,6 +207,14 @@ async function poll(): Promise<void> {
   }
 }
 
+// Whose/which Fast export — shown so progress stays meaningful after navigating.
+function fastWho(p: FastBatchProgress): string {
+  if (p.source === 'profile' && p.handle) return `@${p.handle}`;
+  if (p.source === 'bookmarks') return 'Bookmarks';
+  if (p.source === 'likes') return 'Likes';
+  return '';
+}
+
 function render(p: FastBatchProgress): void {
   batchProgress.classList.remove('hidden');
   const running = p.status === 'running';
@@ -219,15 +227,38 @@ function render(p: FastBatchProgress): void {
   const pct = p.total > 0 ? Math.round((p.done / p.total) * 100) : running ? 8 : 100;
   batchBarFill.style.width = `${pct}%`;
 
+  const who = fastWho(p);
+  const prefix = who ? `${who} · ` : '';
   if (running) {
     batchProgressText.textContent =
-      p.total > 0 ? `${p.phase} ${p.done}/${p.total}` : `${p.phase} ${p.done}`;
+      p.total > 0 ? `${prefix}${p.phase} ${p.done}/${p.total}` : `${prefix}${p.phase} ${p.done}`;
   } else if (p.status === 'done' || p.status === 'cancelled') {
     const label = p.status === 'cancelled' ? 'Cancelled' : 'Done';
     const skipped = p.skipped ? ` · ${p.skipped} skipped` : '';
     const limited = p.rateLimited ? ' · rate-limited — re-run for the rest' : '';
-    batchProgressText.textContent = `${label} — ${p.exported} exported${skipped}${limited}`;
+    batchProgressText.textContent = `${prefix}${label} — ${p.exported} exported${skipped}${limited}`;
   } else if (p.status === 'error') {
     batchProgressText.textContent = p.error || 'Fast Batch failed';
   }
+}
+
+// On popup (re)open, resume showing a Fast run that's still going in the
+// background — the popup is a fresh page, so its state was lost. Returns true if
+// a run is in progress (caller forces Batch mode so the bar is visible).
+export async function resumeFastIfActive(): Promise<boolean> {
+  let p: FastBatchProgress | undefined;
+  try {
+    const resp = (await chrome.runtime.sendMessage({
+      action: 'FAST_BATCH_STATUS',
+    })) as FastBatchStatusResponse | undefined;
+    p = resp?.progress;
+  } catch {
+    return false;
+  }
+  if (p?.status !== 'running') return false;
+  fastActive = true;
+  updateToggleLock();
+  applyGlow();
+  startPolling();
+  return true;
 }

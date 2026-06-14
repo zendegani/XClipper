@@ -238,6 +238,10 @@ export interface FastBatchProgress {
   status: 'idle' | 'running' | 'done' | 'cancelled' | 'error';
   // Human-readable phase for the progress label (e.g. "Fetching bookmarks").
   phase: string;
+  // Which source + (for profile) whose posts — so the popup can show who's
+  // running even after navigating elsewhere / reopening.
+  source?: 'bookmarks' | 'profile' | 'likes';
+  handle?: string;
   done: number;
   total: number;
   exported: number;
