@@ -10,6 +10,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Reset queue** — empties the posts gathered so far and restarts collecting from wherever you've scrolled to, so you can begin a batch at a specific post instead of always from the top.
+
+### Changed
+
+- Renamed the batch **Reset dedup** button to **Reset history** (clearer: it forgets what past runs already exported).
+
+---
+## [2.3.0] - 2026-06-14
+
+### Added
+
 - **Fast Batch (beta)** — an opt-in second batch mode that exports your **bookmarks** far faster by fetching them directly through your already-logged-in X session instead of opening and rendering each post in a tab. It expands self-threads and full X Articles, and is careful with your account: it spreads requests out and **stops politely if X rate-limits you** (re-run a few minutes later and it picks up only what's left). Standard Batch stays the default and is unchanged — Fast Batch is off until you flip the red toggle, which asks for a one-time, X.com-only permission. Nothing leaves your browser: no API keys, no server, no password. (Bookmarks only for now.)
 
 ### Changed
