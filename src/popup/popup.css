@@ -1078,13 +1078,15 @@ body {
   color: var(--error);
 }
 
+/* Solid red track + white knob — the red-tinted bar background made a
+ * translucent red switch nearly invisible when on. */
 .fast-toggle .toggle-input:checked + .toggle-switch {
-  background: var(--error-tint);
+  background: var(--error);
   box-shadow: 0 0 8px var(--error-glow);
 }
 
 .fast-toggle .toggle-input:checked + .toggle-switch::after {
-  background: var(--error);
+  background: #fff;
 }
 
 /* When Fast Batch is armed, recolor ONLY the source box (tabs + Export button
