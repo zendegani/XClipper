@@ -1877,6 +1877,16 @@ details.option-group[open] .option-group-chevron {
   flex-shrink: 0;
 }
 
+/* Reset buttons stay put and just grey out when not applicable, so the row
+ * doesn't change size/layout as a collection grows or a run finishes. */
+.batch-ctl:disabled {
+  opacity: 0.4;
+  cursor: default;
+}
+.batch-ctl:disabled:hover {
+  background: transparent;
+}
+
 /* Dim only the disabled button's children — NOT the button itself. A
  * parent-level opacity cascades into the [data-tooltip]::after
  * pseudo-element and renders the hint semi-transparent (same rule as the
