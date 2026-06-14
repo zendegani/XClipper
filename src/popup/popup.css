@@ -947,8 +947,11 @@ body {
   padding: 0;
 }
 
-/* Lightning icon + label go red when armed. */
-.fast-toggle .toggle-icon {
+/* Lightning icon + label stay red in both states. The extra .fast-batch-bar
+ * ancestor beats the generic ".toggle-label:has(:checked) .toggle-icon" rule
+ * that would otherwise paint it blue (--accent) when checked. */
+.fast-batch-bar .fast-toggle .toggle-icon,
+.fast-batch-bar .fast-toggle:has(.toggle-input:checked) .toggle-icon {
   stroke: var(--error);
   opacity: 0.85;
 }
