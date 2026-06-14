@@ -108,6 +108,11 @@ describe('jsonToTweetNode — inline text from entities', () => {
     expect(node.text).toEqual([{ type: 'text', value: 'me & you' }]);
   });
 
+  it('decodes &amp; last so &amp;lt; is a literal &lt;, not <', () => {
+    const node = jsonToTweetNode(tweet({ full_text: 'a &amp;lt; b &amp; c' }));
+    expect(node.text).toEqual([{ type: 'text', value: 'a &lt; b & c' }]);
+  });
+
   it('splits newlines into break nodes', () => {
     const node = jsonToTweetNode(tweet({ full_text: 'line one\nline two' }));
     expect(node.text).toEqual([

@@ -623,12 +623,13 @@ function trimEdges(nodes: InlineNode[]): InlineNode[] {
 }
 
 // X HTML-escapes &, <, > in tweet text; the DOM path reads textContent (already
-// decoded), so decode here to match.
+// decoded), so decode here to match. `&amp;` is decoded LAST so a literal
+// like `&amp;lt;` resolves to `&lt;`, not `<` (avoids double-unescaping).
 function unescapeHtml(s: string): string {
   return s
-    .replace(/&amp;/g, '&')
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
     .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'");
+    .replace(/&#39;/g, "'")
+    .replace(/&amp;/g, '&');
 }
