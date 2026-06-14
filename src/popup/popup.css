@@ -1892,6 +1892,10 @@ details.option-group[open] .option-group-chevron {
   gap: 8px;
 }
 
+.batch-progress-row.hidden {
+  display: none;
+}
+
 .batch-progress-text {
   display: block;
   margin-top: 6px;

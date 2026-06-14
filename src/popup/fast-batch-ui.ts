@@ -50,6 +50,7 @@ const FAST_FROM_KEY = 'fastDateFrom';
 const FAST_TO_KEY = 'fastDateTo';
 const FAST_POLL_MS = 800;
 const batchControls = document.querySelector('.batch-controls');
+const batchProgressRow = document.querySelector('.batch-progress-row');
 
 let fastMode = false;
 let fastActive = false;
@@ -295,6 +296,9 @@ function fastWho(p: FastBatchProgress): string {
 function render(p: FastBatchProgress): void {
   batchProgress.classList.remove('hidden');
   const running = p.status === 'running';
+  // On an error (e.g. preconditions not met) show only the message — no bar,
+  // which would otherwise look like a finished run.
+  batchProgressRow?.classList.toggle('hidden', p.status === 'error');
   batchControls?.classList.toggle('hidden', !running);
   btnBatchCancel.classList.toggle('hidden', !running);
   btnBatchPause.classList.add('hidden'); // Fast Batch has no pause
