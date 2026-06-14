@@ -389,6 +389,12 @@
   "opt_inline_stats": {
     "message": "Show engagement stats inline"
   },
+  "opt_include_reposts": {
+    "message": "Include reposts (profiles)"
+  },
+  "opt_include_reposts_title": {
+    "message": "When batch-exporting a profile, include reposts too. Off = the profile owner's own posts only."
+  },
   "opt_close_tab_title": {
     "message": "Close the tab automatically after exporting from a tweet's inline button or right-click menu"
   },

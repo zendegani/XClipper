@@ -34,6 +34,7 @@ import {
   chkInlineCopies,
   chkShowInline,
   chkInlineStats,
+  chkIncludeReposts,
   chkObsidianFriendly,
   txtObsidianVault,
   txtDownloadFolder,
@@ -72,6 +73,7 @@ function persistAll(): void {
     inlineButtonCopies: chkInlineCopies.checked,
     showInlineButton: chkShowInline.checked,
     inlineStats: chkInlineStats.checked,
+    includeReposts: chkIncludeReposts.checked,
     obsidianFriendly: chkObsidianFriendly.checked,
     obsidianVault: txtObsidianVault.value.trim(),
     obsidianFolder: txtObsidianFolder.value.trim(),
@@ -297,6 +299,7 @@ export function initSettingsForm(): void {
     chkInlineCopies.checked = settings.inlineButtonCopies;
     chkShowInline.checked = settings.showInlineButton;
     chkInlineStats.checked = settings.inlineStats;
+    chkIncludeReposts.checked = settings.includeReposts;
     chkObsidianFriendly.checked = settings.obsidianFriendly;
     txtObsidianVault.value = settings.obsidianVault;
     txtObsidianFolder.value = settings.obsidianFolder;
@@ -409,6 +412,7 @@ export function initSettingsForm(): void {
     persistAll();
   });
   chkInlineStats.addEventListener('change', persistAll);
+  chkIncludeReposts.addEventListener('change', persistAll);
   chkObsidianFriendly.addEventListener('change', () => {
     // Obsidian-friendly only reshapes the frontmatter — turning it on while
     // Include metadata is off would leave nothing to reshape. Flip metadata on

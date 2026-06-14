@@ -7,6 +7,7 @@ let decorated = new WeakSet<Element>();
 
 let inlineButtonCopies = false;
 let showInlineButton = false;
+let includeReposts = false; // profile batch: keep reposts too (default off)
 
 function removeAllInjectedButtons(): void {
   document.querySelectorAll(`[${BUTTON_ATTR}]`).forEach((btn) => {
@@ -35,7 +36,9 @@ function loadInlineMode(): void {
       const s = (result['xclipper_settings'] || {}) as {
         inlineButtonCopies?: boolean;
         showInlineButton?: boolean;
+        includeReposts?: boolean;
       };
+      includeReposts = s.includeReposts === true;
       inlineButtonCopies = s.inlineButtonCopies === true;
       const wasShown = showInlineButton;
       showInlineButton = s.showInlineButton === true; // default false in v2.0.0
@@ -358,7 +361,7 @@ function harvestTimeline(): HarvestSource {
   for (const article of document.querySelectorAll('article[role="article"]')) {
     const url = getStatusUrl(article);
     if (!url) continue;
-    if (source.kind === 'profile') {
+    if (source.kind === 'profile' && !includeReposts) {
       // Repost cells link to the original author's permalink — skip them so
       // a profile export contains the profile owner's own posts.
       const author = url.match(/x\.com\/([^/]+)\/status\//)?.[1] || '';

@@ -60,6 +60,7 @@ export const chkCloseTab = document.getElementById('chk-close-tab') as HTMLInput
 export const chkInlineCopies = document.getElementById('chk-inline-copies') as HTMLInputElement;
 export const chkShowInline = document.getElementById('chk-show-inline') as HTMLInputElement;
 export const chkInlineStats = document.getElementById('chk-inline-stats') as HTMLInputElement;
+export const chkIncludeReposts = document.getElementById('chk-include-reposts') as HTMLInputElement;
 export const chkObsidianFriendly = document.getElementById('chk-obsidian-friendly') as HTMLInputElement;
 
 // ─── Settings text inputs ────────────────────────────────────────────
