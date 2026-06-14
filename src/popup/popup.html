@@ -80,6 +80,15 @@
         An export is running — cancel or let it finish to switch modes.
       </p>
 
+      <div id="fast-date-range" class="fast-date-range hidden">
+        <span class="fast-date-label" data-i18n="fast_date_range" data-tooltip="Only export posts whose date is in this range — out-of-range posts are skipped without being expanded, so you reach older posts without hitting X's rate limit."
+          data-i18n-tooltip="fast_date_range_hint">Date range</span>
+        <input type="date" id="fast-date-from" class="fast-date-input" aria-label="From date" data-i18n-aria-label="fast_date_from" />
+        <span class="fast-date-sep">→</span>
+        <input type="date" id="fast-date-to" class="fast-date-input" aria-label="To date" data-i18n-aria-label="fast_date_to" />
+        <button id="fast-date-clear" class="batch-ctl" type="button" data-i18n="fast_date_clear">Clear</button>
+      </div>
+
       <div class="options">
         <details id="export-settings" class="option-group" open>
           <summary class="option-group-summary">

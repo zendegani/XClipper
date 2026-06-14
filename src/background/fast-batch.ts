@@ -252,6 +252,10 @@ export interface FastBatchOptions {
   // Profile owner's handle — reposts (author ≠ handle) are skipped, matching
   // Standard profile export.
   handle?: string;
+  // YYYY-MM-DD bounds on the tweet date; out-of-range items are skipped before
+  // expansion, so a tighter range avoids X's TweetDetail rate limit.
+  fromDate?: string;
+  toDate?: string;
   maxItems?: number;
   // Fetch TweetDetail for non-article tweets to expand self-threads (Articles
   // are always expanded — their body needs the fetch). On by default for
@@ -279,6 +283,10 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
   const handleRaw = opts.handle?.replace(/^@/, ''); // original case, for display
   const handle = handleRaw?.toLowerCase(); // for the repost filter
   const cfg = SOURCE_CONFIG[source];
+  // Date bounds on the tweet date (inclusive). `to` extends to end-of-day.
+  const fromMs = opts.fromDate ? Date.parse(opts.fromDate) : -Infinity;
+  const toMs = opts.toDate ? Date.parse(opts.toDate) + 86399999 : Infinity;
+  const dateFiltered = fromMs !== -Infinity || toMs !== Infinity;
   cancelRequested = false;
   setProgress({
     status: 'running',
@@ -354,13 +362,20 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
     ledger: boolean;
   }
   const selected: Item[] = [];
+  // Dig deeper through the (cheap) feed when a date range is set — bookmarks/
+  // likes are ordered by save date, not tweet date, so the range may be deep.
+  const maxPages = dateFiltered ? 50 : 25;
   try {
-    for await (const tweets of paginateTimeline(initialUrl, authedFetchJson, { maxPages: 25 })) {
+    for await (const tweets of paginateTimeline(initialUrl, authedFetchJson, { maxPages })) {
       if (cancelRequested) break;
       for (const raw of tweets) {
         if (selected.length >= maxItems) break;
         const doc = jsonToAst(raw);
         if (handle && doc.metadata.author.handle.toLowerCase() !== handle) continue; // repost
+        if (dateFiltered) {
+          const d = Date.parse(doc.metadata.date);
+          if (Number.isNaN(d) || d < fromMs || d > toMs) continue; // outside the range — skip (not expanded)
+        }
         const id = doc.metadata.tweetId;
         if (id && ledger.has(id)) {
           skipped++;
@@ -542,10 +557,18 @@ export function initFastBatch(): void {
       sendResponse({ success: false, error: 'A Fast Batch run is already in progress.' } satisfies FastBatchStartResponse);
       return false;
     }
-    const m = msg as { source?: FastSource; handle?: string; expandThreads?: boolean };
+    const m = msg as {
+      source?: FastSource;
+      handle?: string;
+      fromDate?: string;
+      toDate?: string;
+      expandThreads?: boolean;
+    };
     void runFastBatchExport({
       ...(m.source ? { source: m.source } : {}),
       ...(m.handle ? { handle: m.handle } : {}),
+      ...(m.fromDate ? { fromDate: m.fromDate } : {}),
+      ...(m.toDate ? { toDate: m.toDate } : {}),
       ...(m.expandThreads === undefined ? {} : { expandThreads: m.expandThreads }),
     });
     sendResponse({ success: true } satisfies FastBatchStartResponse);

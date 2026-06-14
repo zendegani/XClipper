@@ -222,6 +222,10 @@ export interface FastBatchStartRequest {
   source?: 'bookmarks' | 'profile' | 'likes';
   // Profile owner's handle — used to skip reposts (export only their own posts).
   handle?: string;
+  // Optional YYYY-MM-DD bounds on the tweet's date; out-of-range items are
+  // skipped (and never expanded), so the TweetDetail budget is spared.
+  fromDate?: string;
+  toDate?: string;
   expandThreads?: boolean;
 }
 export interface FastBatchStartResponse {

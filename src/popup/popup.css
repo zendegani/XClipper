@@ -974,6 +974,39 @@ body {
   display: none;
 }
 
+/* Fast Batch date-range filter (shown only while Fast is armed). */
+.fast-date-range {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.fast-date-range.hidden {
+  display: none;
+}
+
+.fast-date-label {
+  margin-right: 2px;
+}
+
+.fast-date-input {
+  font-family: var(--font);
+  font-size: 12px;
+  padding: 3px 6px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  flex: 1;
+  min-width: 0;
+}
+
+.fast-date-sep {
+  opacity: 0.6;
+}
+
 /* Lightning icon + label stay red in both states. The extra .fast-batch-bar
  * ancestor beats the generic ".toggle-label:has(:checked) .toggle-icon" rule
  * that would otherwise paint it blue (--accent) when checked. */

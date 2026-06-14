@@ -19,11 +19,17 @@ import {
   chkFastBatch,
   fastBatchBar,
   fastLockedHint,
+  fastDateRange,
+  fastDateFrom,
+  fastDateTo,
+  fastDateClear,
   viewMain,
 } from './dom';
 
 const ACCESS: chrome.permissions.Permissions = { permissions: ['webRequest'], origins: ['*://x.com/*'] };
 const FAST_MODE_KEY = 'fastBatchMode';
+const FAST_FROM_KEY = 'fastDateFrom';
+const FAST_TO_KEY = 'fastDateTo';
 const FAST_POLL_MS = 800;
 const batchControls = document.querySelector('.batch-controls');
 
@@ -55,6 +61,8 @@ function notifyChanged(): void {
 function applyGlow(): void {
   const red = inBatchMode && (fastActive || (fastMode && !standardJobActive));
   viewMain?.classList.toggle('fast-on', red);
+  // The date-range filter is Fast-only — show it whenever Fast is armed in Batch.
+  fastDateRange?.classList.toggle('hidden', !(fastMode && inBatchMode));
 }
 
 // Lock the toggle (can't switch modes mid-export) while either session runs.
@@ -134,6 +142,23 @@ export function initFastBatchUi(): void {
       });
     });
   });
+
+  // Date-range filter: restore, persist on change, and clear.
+  chrome.storage.local.get([FAST_FROM_KEY, FAST_TO_KEY], (res) => {
+    if (fastDateFrom && typeof res[FAST_FROM_KEY] === 'string') fastDateFrom.value = res[FAST_FROM_KEY];
+    if (fastDateTo && typeof res[FAST_TO_KEY] === 'string') fastDateTo.value = res[FAST_TO_KEY];
+  });
+  fastDateFrom?.addEventListener('change', () =>
+    chrome.storage.local.set({ [FAST_FROM_KEY]: fastDateFrom.value })
+  );
+  fastDateTo?.addEventListener('change', () =>
+    chrome.storage.local.set({ [FAST_TO_KEY]: fastDateTo.value })
+  );
+  fastDateClear?.addEventListener('click', () => {
+    if (fastDateFrom) fastDateFrom.value = '';
+    if (fastDateTo) fastDateTo.value = '';
+    chrome.storage.local.set({ [FAST_FROM_KEY]: '', [FAST_TO_KEY]: '' });
+  });
 }
 
 // ─── Fast export run + progress polling ──────────────────────────────
@@ -143,11 +168,17 @@ export async function startFastExport(
   handle?: string
 ): Promise<void> {
   btnBatch.disabled = true;
+  // Optional date range; swap if the user entered them backwards.
+  let fromDate = fastDateFrom?.value || undefined;
+  let toDate = fastDateTo?.value || undefined;
+  if (fromDate && toDate && fromDate > toDate) [fromDate, toDate] = [toDate, fromDate];
   // Expand threads + articles by default (correctness over raw speed).
   const resp = (await chrome.runtime.sendMessage({
     action: 'FAST_BATCH_START',
     source,
     ...(handle ? { handle } : {}),
+    ...(fromDate ? { fromDate } : {}),
+    ...(toDate ? { toDate } : {}),
     expandThreads: true,
   })) as FastBatchStartResponse | undefined;
   if (!resp?.success) {
