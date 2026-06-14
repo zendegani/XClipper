@@ -29,6 +29,10 @@ const batchControls = document.querySelector('.batch-controls');
 let fastMode = false;
 let fastActive = false;
 let inBatchMode = false;
+// True while a Standard (worker-tab) batch job is running/paused — reported by
+// batch-ui. We lock the toggle whenever EITHER session is active so the two
+// can't overlap and the toggle can never disagree with the running session.
+let standardJobActive = false;
 let pollTimer: ReturnType<typeof setInterval> | undefined;
 
 export function getFastMode(): boolean {
@@ -44,8 +48,26 @@ function notifyChanged(): void {
   window.dispatchEvent(new Event('xclipper-fast-changed'));
 }
 
+// The red recolor follows the ACTIVE session, not the toggle: red while a Fast
+// run is in flight (or idle-and-armed), but blue whenever a Standard job is the
+// active one — so a job started in the other mode never shows the wrong color.
 function applyGlow(): void {
-  viewMain?.classList.toggle('fast-on', fastMode && inBatchMode);
+  const red = inBatchMode && (fastActive || (fastMode && !standardJobActive));
+  viewMain?.classList.toggle('fast-on', red);
+}
+
+// Lock the toggle (can't switch modes mid-export) while either session runs.
+function updateToggleLock(): void {
+  const locked = standardJobActive || fastActive;
+  if (chkFastBatch) chkFastBatch.disabled = locked;
+  fastBatchBar?.classList.toggle('locked', locked);
+}
+
+// Called by batch-ui as the Standard job starts/stops.
+export function setStandardJobActive(active: boolean): void {
+  standardJobActive = active;
+  updateToggleLock();
+  applyGlow();
 }
 
 // Called by mode.ts when the Single/Batch tab flips: the bar + glow only make
@@ -111,6 +133,8 @@ export async function startFastExport(): Promise<void> {
     return;
   }
   fastActive = true;
+  updateToggleLock();
+  applyGlow();
   startPolling();
 }
 
@@ -155,6 +179,8 @@ async function poll(): Promise<void> {
   if (progress.status !== 'running') {
     stopPolling();
     fastActive = false;
+    updateToggleLock(); // unlock the toggle now the run is done
+    applyGlow();
     notifyChanged(); // batch-ui re-enables the export button
   }
 }

@@ -41,7 +41,7 @@ import {
   tabBatchLikes,
 } from './dom';
 import { setExportMode } from './mode';
-import { getFastMode, isFastActive, startFastExport, cancelFast } from './fast-batch-ui';
+import { getFastMode, isFastActive, startFastExport, cancelFast, setStandardJobActive } from './fast-batch-ui';
 
 type JobSnapshot = NonNullable<BatchStatusResponse['job']>;
 type BatchTab = 'bookmarks' | 'profile' | 'selection' | 'likes';
@@ -281,6 +281,7 @@ function render(job: JobSnapshot): void {
 
   const active = job.status === 'running' || job.status === 'paused';
   jobIsActive = active;
+  setStandardJobActive(active); // lock the Fast toggle + keep the box blue while Standard runs
   // The start button's enabled state + tooltip are owned entirely by
   // setButton (via refreshIdleUi) — render must not touch them, or the two
   // pollers fight and the button flickers between disabled and append-enabled.
@@ -350,6 +351,7 @@ function startCountPolling(): void {
 // final report stays visible until the user switches tabs.
 async function backToIdle(): Promise<void> {
   jobIsActive = false;
+  setStandardJobActive(false); // Standard job ended — unlock the Fast toggle
   await refreshIdleUi();
   startCountPolling();
 }
