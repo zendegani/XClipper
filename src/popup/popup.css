@@ -578,6 +578,28 @@ body {
   height: 14px;
 }
 
+/* Mirror of .footer-version on the right edge: a one-tap link to the Web Store
+ * review page (same target as the post-30-export review banner). */
+.footer-review {
+  position: absolute;
+  inset-inline-end: 0;
+  color: var(--text-secondary);
+  opacity: 0.5;
+  transition: opacity var(--transition), color var(--transition);
+  display: flex;
+  align-items: center;
+}
+
+.footer-review:hover {
+  opacity: 1;
+  color: var(--accent);
+}
+
+.footer-review-icon {
+  width: 14px;
+  height: 14px;
+}
+
 .hint {
   font-size: 11px;
   color: var(--text-secondary);
