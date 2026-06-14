@@ -30,8 +30,10 @@ function tweetResults(raw: unknown): unknown[] {
 }
 
 describe.skipIf(!path)('jsonToAst — real captured bookmarks response', () => {
-  const raw = JSON.parse(readFileSync(path as string, 'utf8'));
-  const results = tweetResults(raw);
+  // Guarded: skipIf still runs this body to collect tests, so don't read a
+  // missing file (it'd throw in CI where the capture is absent).
+  const raw = path ? JSON.parse(readFileSync(path, 'utf8')) : undefined;
+  const results = path ? tweetResults(raw) : [];
 
   it('finds tweet entries in the capture', () => {
     expect(results.length).toBeGreaterThan(0);
