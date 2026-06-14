@@ -62,6 +62,9 @@
   "fast_batch_hint": {
     "message": "Fetches bookmarks through your X session — much faster. Bookmarks only for now."
   },
+  "fast_batch_info": {
+    "message": "Fetches your bookmarks directly through your logged-in X session (its private API) — far faster than rendering each page, but bookmarks only for now. Before the first run, open any single tweet once so the request can be captured. Large runs can hit X's rate limit and briefly soft-block your session (\"Something went wrong\"); Fast Batch stops politely and you can re-run a few minutes later for the rest."
+  },
   "btn_batch_fast_hint": {
     "message": "Fetch all your bookmarks through your X session — much faster. Expands threads & articles; stops politely if X rate-limits."
   },
