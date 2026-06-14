@@ -293,7 +293,12 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
   //    are NOT ledgered, so a later re-run fetches their full thread/article.
   const toExpand = selected.filter((s) => s.needsExpand);
   if (toExpand.length > 0 && !templates.TweetDetail) {
-    log('cannot expand threads/articles: no TweetDetail request seen yet — open any tweet once, then re-run');
+    // Abort before writing — otherwise we'd dump a folder of root-only stubs
+    // that aren't ledgered and you'd re-export them all next run anyway.
+    log(
+      `no TweetDetail request captured yet, so threads/articles can't be expanded. Open ANY single tweet once (so the request is observed), then re-run — nothing was written. ${selected.length} item(s) are ready to export.`
+    );
+    return null;
   } else if (toExpand.length > 0) {
     const ordered = [...toExpand].sort(
       (a, b) => Number(b.doc.metadata.type === 'article') - Number(a.doc.metadata.type === 'article')
