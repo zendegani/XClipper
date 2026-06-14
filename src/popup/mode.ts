@@ -3,6 +3,7 @@
 // so reopening the popup mid-job lands on the progress, not on Single.
 
 import { syncBatchControls } from './settings-form';
+import { syncFastBatchMode } from './fast-batch-ui';
 
 const MODE_KEY = 'lastExportMode';
 
@@ -21,6 +22,8 @@ export function setExportMode(single: boolean, persist = true): void {
   panelSingle?.classList.toggle('hidden', !single);
   panelBatch?.classList.toggle('hidden', single);
   batchFormatControls?.classList.toggle('hidden', single);
+  // Fast Batch bar + red glow ride with the mode too (batch-only).
+  syncFastBatchMode(single);
   // The format-gated toggle disabling depends on mode, so re-sync after the
   // batch controls' visibility flips.
   syncBatchControls();

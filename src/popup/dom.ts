@@ -41,6 +41,12 @@ export const tabBatchProfile = document.getElementById('tab-batch-profile') as H
 export const tabBatchSelection = document.getElementById('tab-batch-selection') as HTMLButtonElement;
 export const tabBatchLikes = document.getElementById('tab-batch-likes') as HTMLButtonElement;
 
+// ─── Fast Batch (ADR 0003) ───────────────────────────────────────────
+export const viewMain = document.getElementById('view-main') as HTMLElement;
+export const fastBatchBar = document.getElementById('fast-batch-bar') as HTMLDivElement;
+export const chkFastBatch = document.getElementById('chk-fast-batch') as HTMLInputElement;
+export const batchSection = document.getElementById('batch-section') as HTMLDivElement;
+
 // ─── Settings checkboxes ─────────────────────────────────────────────
 export const chkDownloadImages = document.getElementById('chk-download-images') as HTMLInputElement;
 export const chkMetadata = document.getElementById('chk-include-metadata') as HTMLInputElement;

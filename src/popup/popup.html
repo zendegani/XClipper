@@ -53,6 +53,26 @@
             class="beta-badge" data-i18n="beta">Beta</span></button>
       </div>
 
+      <div id="fast-batch-bar" class="fast-batch-bar hidden">
+        <label class="toggle-label fast-toggle"
+          data-tooltip="Export your bookmarks far faster by fetching them directly through your logged-in X session (its private API) instead of rendering each page. Grants an optional X.com-only permission; nothing leaves your browser. Off by default — bookmarks only for now."
+          data-i18n-tooltip="fast_batch_title">
+          <span class="toggle-text">
+            <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+            </svg>
+            <span data-i18n="fast_batch">Fast Batch</span>
+            <span class="beta-badge" data-i18n="beta">Beta</span>
+          </span>
+          <input type="checkbox" id="chk-fast-batch" class="toggle-input" />
+          <span class="toggle-switch"></span>
+        </label>
+        <p id="fast-batch-hint" class="fast-batch-hint" data-i18n="fast_batch_hint">
+          Fetches bookmarks through your X session — much faster. Bookmarks only for now.
+        </p>
+      </div>
+
       <div class="options">
         <div class="option-group">
           <div class="option-group-label" data-i18n="group_export">Export settings</div>
@@ -114,13 +134,6 @@
                 <input type="radio" name="batch-output" id="out-combined" value="combined" class="seg-input" />
                 <label for="out-combined" class="seg-label" data-i18n="batch_out_combined">Combined</label>
               </div>
-            </div>
-            <div id="fast-batch-consent" class="fast-batch-consent">
-              <button id="btn-fast-batch-enable" class="btn-secondary btn-action" type="button"
-                data-tooltip="Fetch posts directly through your logged-in X session — far faster than rendering each one. Grants an optional X.com-only permission; nothing leaves your browser. Off by default.">
-                ⚡ Enable Fast Batch (beta)
-              </button>
-              <span id="fast-batch-status" class="fast-batch-status"></span>
             </div>
           </div>
         </div>

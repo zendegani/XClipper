@@ -41,6 +41,7 @@ import {
   tabBatchLikes,
 } from './dom';
 import { setExportMode } from './mode';
+import { getFastMode, isFastActive, startFastExport, cancelFast } from './fast-batch-ui';
 
 type JobSnapshot = NonNullable<BatchStatusResponse['job']>;
 type BatchTab = 'bookmarks' | 'profile' | 'selection' | 'likes';
@@ -137,6 +138,28 @@ function setButton(label: string, enabled: boolean, tooltip: string): void {
 // user at the right page.
 async function refreshIdleUi(): Promise<void> {
   appendable = false;
+
+  // Fast Batch (armed via the red toggle) overrides per-page gating: it fetches
+  // bookmarks through the GraphQL session, so it doesn't need the bookmarks page
+  // loaded. Phase 1 is bookmarks-only — other tabs point back to Bookmarks.
+  if (getFastMode()) {
+    batchDedupRow.classList.add('hidden');
+    if (activeTab === 'bookmarks') {
+      setButton(
+        `⚡ ${t('btn_batch', 'Export bookmarks')}`,
+        !isFastActive(),
+        t('btn_batch_fast_hint', 'Fetch all your bookmarks through your X session — much faster. Expands threads & articles; stops politely if X rate-limits.')
+      );
+    } else {
+      setButton(
+        `⚡ ${t('btn_batch', 'Export bookmarks')}`,
+        false,
+        t('btn_batch_fast_only_bookmarks', 'Fast Batch supports bookmarks only for now — switch to the Bookmarks tab, or turn off Fast.')
+      );
+    }
+    return;
+  }
+
   if (activeTab === 'selection') {
     batchDedupRow.classList.add('hidden');
     setButton(
@@ -231,7 +254,8 @@ function setActiveTab(tab: BatchTab): void {
   // tabs just show their (disabled) start button.
   if (jobIsActive && lastJob) {
     render(lastJob);
-  } else {
+  } else if (!isFastActive()) {
+    // A running Fast Batch owns the progress bar (its own poller) — don't hide it.
     batchProgress.classList.add('hidden');
   }
   void refreshIdleUi();
@@ -334,6 +358,13 @@ async function control(controlAction: 'pause' | 'resume' | 'cancel'): Promise<vo
 }
 
 async function startExport(): Promise<void> {
+  // Armed Fast Batch routes bookmarks through the GraphQL path (own progress
+  // poller in fast-batch-ui). Other tabs can't be Fast yet (Phase 1).
+  if (getFastMode() && activeTab === 'bookmarks') {
+    await startFastExport();
+    return;
+  }
+
   if (activeTab === 'selection') {
     if (pageTabId === undefined) return;
     chrome.tabs.sendMessage(pageTabId, { action: 'XCLIPPER_SELECTION', enable: true }, () => {
@@ -379,7 +410,9 @@ async function appendExport(): Promise<void> {
 
 export async function initBatchUi(): Promise<void> {
   btnBatch.addEventListener('click', () => void (appendable ? appendExport() : startExport()));
-  btnBatchCancel.addEventListener('click', () => void control('cancel'));
+  btnBatchCancel.addEventListener('click', () => void (isFastActive() ? cancelFast() : control('cancel')));
+  // Fast toggle armed/disarmed, or a fast run finished → re-evaluate the button.
+  window.addEventListener('xclipper-fast-changed', () => void refreshIdleUi());
   btnBatchPause.addEventListener('click', () => {
     const resuming = lastJob?.status === 'paused';
     void control(resuming ? 'resume' : 'pause');
