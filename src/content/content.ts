@@ -1,5 +1,6 @@
 import type { BatchItemResultMessage, DownloadRequest, ExtractResponse } from '../types/messages';
 import { postProcess, resolveDownloadImages, buildFilename } from '../shared/post-process';
+import { buildFormatExport, type ExportFormat } from '../shared/export-formats';
 import { loadSettings } from '../shared/settings';
 import { buildObsidianUrl } from '../shared/obsidian';
 import { recordExport } from '../shared/review-prompt';
@@ -74,9 +75,38 @@ async function runPdfExport(): Promise<void> {
 // ─── Auto-extract bootstrap (#xclipper=download | #xclipper=copy) ───
 // Triggered when the page is opened from the inline button or context menu.
 
-const AUTO_MARKER_RE = /[#&]xclipper=(download|copy|obsidian|pdf|1)/;
+// `copy-txt` precedes `copy` in the alternations so the longer token isn't
+// captured/stripped as a bare `copy`.
+const AUTO_MARKER_RE = /[#&]xclipper=(copy-txt|download|copy|obsidian|pdf|txt|html|json|csv|1)/;
 const AUTO_SINGLE_MARKER_RE = /[#&]xclipper_single=1/;
-const AUTO_MARKER_STRIP_RE = /[#&]xclipper(?:_single)?=(?:download|copy|obsidian|pdf|1)/g;
+const AUTO_MARKER_STRIP_RE = /[#&]xclipper(?:_single)?=(?:copy-txt|download|copy|obsidian|pdf|txt|html|json|csv|1)/g;
+
+// Strip the marker from the URL so refreshes don't re-trigger the export.
+function stripAutoMarker(): void {
+  try {
+    const cleanHash = window.location.hash.replace(AUTO_MARKER_STRIP_RE, '').replace(/^#$/, '');
+    history.replaceState(null, '', window.location.pathname + window.location.search + (cleanHash || ''));
+  } catch {
+    // history API may be unavailable in some contexts; ignore
+  }
+}
+
+// Clipboard write with a hidden-textarea fallback for when the Clipboard API is
+// blocked (e.g. the tab isn't focused).
+async function copyText(text: string): Promise<void> {
+  try {
+    await navigator.clipboard.writeText(text);
+  } catch {
+    const ta = document.createElement('textarea');
+    ta.value = text;
+    ta.style.position = 'fixed';
+    ta.style.opacity = '0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); } catch { /* ignore */ }
+    ta.remove();
+  }
+}
 
 let autoExtractInFlight = false;
 
@@ -100,15 +130,7 @@ async function runAutoExtract(
   const allowClose = opts.allowClose !== false;
   const singleTweet = opts.singleTweet === true;
 
-  // Strip the marker from the URL so refreshes don't re-trigger.
-  try {
-    const cleanHash = window.location.hash
-      .replace(AUTO_MARKER_STRIP_RE, '')
-      .replace(/^#$/, '');
-    history.replaceState(null, '', window.location.pathname + window.location.search + (cleanHash || ''));
-  } catch {
-    // history API may be unavailable in some contexts; ignore
-  }
+  stripAutoMarker();
 
   const article = await waitForArticle();
   if (!article) return;
@@ -145,20 +167,7 @@ async function runAutoExtract(
   });
 
   if (action === 'copy') {
-    try {
-      await navigator.clipboard.writeText(result.markdown);
-    } catch {
-      // Clipboard access may be denied if the tab isn't focused; fall back to
-      // a hidden textarea + execCommand.
-      const ta = document.createElement('textarea');
-      ta.value = result.markdown;
-      ta.style.position = 'fixed';
-      ta.style.opacity = '0';
-      document.body.appendChild(ta);
-      ta.select();
-      try { document.execCommand('copy'); } catch { /* ignore */ }
-      ta.remove();
-    }
+    await copyText(result.markdown);
   } else if (action === 'obsidian') {
     const vault = settings.obsidianVault.trim();
     const folder = settings.obsidianFolder.trim();
@@ -211,19 +220,110 @@ async function runAutoExtract(
   }
 }
 
+// Alternate single-export formats (TXT/HTML/JSON/CSV) for the context menu,
+// reusing the popup's buildFormatExport so output matches the popup exactly.
+// `copy-txt` puts plain text on the clipboard; the rest download a file.
+function formatActionParams(
+  raw: unknown
+): { format: ExportFormat; mode: 'copy' | 'download' } | null {
+  switch (raw) {
+    case 'copy-txt': return { format: 'txt', mode: 'copy' };
+    case 'txt': return { format: 'txt', mode: 'download' };
+    case 'html': return { format: 'html', mode: 'download' };
+    case 'json': return { format: 'json', mode: 'download' };
+    case 'csv': return { format: 'csv', mode: 'download' };
+    default: return null;
+  }
+}
+
+async function autoExtractFormat(
+  format: ExportFormat,
+  mode: 'copy' | 'download',
+  opts: { allowClose?: boolean; singleTweet?: boolean } = {}
+): Promise<void> {
+  if (autoExtractInFlight) return;
+  autoExtractInFlight = true;
+  try {
+    await runAutoExtractFormat(format, mode, opts);
+  } finally {
+    autoExtractInFlight = false;
+  }
+}
+
+async function runAutoExtractFormat(
+  format: ExportFormat,
+  mode: 'copy' | 'download',
+  opts: { allowClose?: boolean; singleTweet?: boolean }
+): Promise<void> {
+  const allowClose = opts.allowClose !== false;
+  const singleTweet = opts.singleTweet === true;
+
+  stripAutoMarker();
+
+  const article = await waitForArticle();
+  if (!article) return;
+
+  const settings = await loadSettings();
+  // Always request metadata so CSV/JSON/HTML have engagement counts available
+  // regardless of the toggles — mirrors the popup's runFormatExport.
+  const response = await extract({ includeMetadata: true, singleTweet });
+  if (!response.success || !response.data) return;
+
+  const obsidianFriendly = settings.obsidianFriendly;
+  const frontmatterFields = obsidianFriendly
+    ? settings.frontmatterFieldsObsidian
+    : settings.frontmatterFields;
+  const exported = buildFormatExport(format, response.data, {
+    includeEngagement: settings.inlineStats,
+    obsidianFriendly,
+    frontmatterFields,
+    obsidianTagsTemplate: settings.obsidianTagsTemplate.trim(),
+    includeMetadata: settings.includeMetadata,
+  });
+  const filename = buildFilename(response.data, settings.filenameTemplate.trim()).replace(
+    /\.md$/i,
+    `.${exported.ext}`
+  );
+
+  if (mode === 'copy') {
+    await copyText(exported.content);
+  } else {
+    const downloadMsg: DownloadRequest = {
+      action: 'DOWNLOAD_MD',
+      content: exported.content,
+      filename,
+      mime: exported.mime,
+    };
+    await new Promise<void>((resolve) => {
+      chrome.runtime.sendMessage(downloadMsg, () => resolve());
+    });
+  }
+  void recordExport();
+
+  if (!allowClose) {
+    const key = mode === 'copy' ? 'copied' : 'downloaded';
+    const fallback = mode === 'copy' ? 'Copied!' : 'Downloaded!';
+    showInPlaceToast(chrome.i18n.getMessage(key) || fallback);
+  }
+
+  if (allowClose && settings.closeTabAfterExport) {
+    await delay(400);
+    window.close();
+  }
+}
+
 const autoMatch = window.location.hash.match(AUTO_MARKER_RE);
 if (autoMatch) {
   const raw = autoMatch[1];
+  const fmt = formatActionParams(raw);
   if (raw === 'pdf') {
     // PDF runs its own pipeline (AST → HTML → html2pdf) without the
     // markdown/postProcess flow that the other actions share.
-    try {
-      const cleanHash = window.location.hash
-        .replace(AUTO_MARKER_STRIP_RE, '')
-        .replace(/^#$/, '');
-      history.replaceState(null, '', window.location.pathname + window.location.search + (cleanHash || ''));
-    } catch { /* history may be unavailable */ }
+    stripAutoMarker();
     runPdfExport().then(() => void recordExport()).catch((err) => console.error('XClipper PDF export failed:', err));
+  } else if (fmt) {
+    const singleTweet = AUTO_SINGLE_MARKER_RE.test(window.location.hash);
+    autoExtractFormat(fmt.format, fmt.mode, { singleTweet });
   } else {
     const action: AutoAction =
       raw === 'copy' ? 'copy' : raw === 'obsidian' ? 'obsidian' : 'download';
@@ -390,6 +490,7 @@ window.addEventListener('xclipper:autoextract', (e: Event) => {
 
 chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   if (msg && msg.action === 'XCLIPPER_AUTOEXTRACT') {
+    const fmt = formatActionParams(msg.subAction);
     if (msg.subAction === 'pdf') {
       // PDF uses its own AST → HTML → print pipeline, not the markdown flow.
       runPdfExport()
@@ -397,6 +498,11 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
         .catch((err: unknown) =>
           sendResponse({ ok: false, error: err instanceof Error ? err.message : String(err) }),
         );
+    } else if (fmt) {
+      autoExtractFormat(fmt.format, fmt.mode, {
+        allowClose: false,
+        singleTweet: msg.single === true,
+      }).then(() => sendResponse({ ok: true }));
     } else {
       autoExtract(coerceAutoAction(msg.subAction), {
         allowClose: false,

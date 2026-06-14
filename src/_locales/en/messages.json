@@ -438,7 +438,7 @@
     "message": "Close the new tab after export"
   },
   "ctx_save_tweet": {
-    "message": "Save tweet as Markdown"
+    "message": "Download tweet as Markdown"
   },
   "ctx_copy_tweet": {
     "message": "Copy tweet as Markdown"
@@ -448,6 +448,24 @@
   },
   "ctx_obsidian_tweet": {
     "message": "Add tweet to Obsidian"
+  },
+  "ctx_export_pdf": {
+    "message": "Export tweet as PDF"
+  },
+  "ctx_copy_txt": {
+    "message": "Copy tweet as txt"
+  },
+  "ctx_download_txt": {
+    "message": "Download tweet as txt"
+  },
+  "ctx_download_html": {
+    "message": "Download tweet as html"
+  },
+  "ctx_download_json": {
+    "message": "Download tweet as json"
+  },
+  "ctx_download_csv": {
+    "message": "Download tweet as csv"
   },
   "opt_show_inline_title": {
     "message": "Add a download button next to share on each tweet's action bar"

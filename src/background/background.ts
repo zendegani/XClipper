@@ -23,8 +23,24 @@ const MENU_COPY = 'xclipper-copy';
 const MENU_COPY_SINGLE = 'xclipper-copy-single';
 const MENU_OBSIDIAN = 'xclipper-obsidian';
 const MENU_PDF = 'xclipper-pdf';
+const MENU_COPY_TXT = 'xclipper-copy-txt';
+const MENU_TXT = 'xclipper-txt';
+const MENU_HTML = 'xclipper-html';
+const MENU_JSON = 'xclipper-json';
+const MENU_CSV = 'xclipper-csv';
+const MENU_SEP1 = 'xclipper-sep1';
+const MENU_SEP2 = 'xclipper-sep2';
 
-type MenuAction = 'download' | 'copy' | 'obsidian' | 'pdf';
+type MenuAction =
+  | 'download'
+  | 'copy'
+  | 'obsidian'
+  | 'pdf'
+  | 'copy-txt'
+  | 'txt'
+  | 'html'
+  | 'json'
+  | 'csv';
 
 // Last known tweet URL under the user's cursor, set by the injector content
 // script on `contextmenu`. Used when info.linkUrl is missing (right-click on
@@ -42,48 +58,33 @@ function registerContextMenus(): void {
       targetUrlPatterns: ['*://x.com/*/status/*'],
       documentUrlPatterns: ['*://x.com/*'],
     });
-    chrome.contextMenus.create({
-      id: MENU_SAVE,
+    // Every child shares the parent's context + URL scoping; only id/title (and
+    // separators) vary, so build them through small helpers.
+    const common = {
       parentId: MENU_PARENT,
-      title: chrome.i18n.getMessage('ctx_save_tweet') || 'Save tweet as Markdown',
-      contexts: ['link', 'page'],
+      contexts: ['link', 'page'] as ['link', 'page'],
       targetUrlPatterns: ['*://x.com/*/status/*'],
       documentUrlPatterns: ['*://x.com/*'],
-    });
-    chrome.contextMenus.create({
-      id: MENU_COPY,
-      parentId: MENU_PARENT,
-      title: chrome.i18n.getMessage('ctx_copy_tweet') || 'Copy tweet as Markdown',
-      contexts: ['link', 'page'],
-      targetUrlPatterns: ['*://x.com/*/status/*'],
-      documentUrlPatterns: ['*://x.com/*'],
-    });
-    chrome.contextMenus.create({
-      id: MENU_COPY_SINGLE,
-      parentId: MENU_PARENT,
-      title:
-        chrome.i18n.getMessage('ctx_copy_just_this_tweet') ||
-        'Copy just this tweet (no thread)',
-      contexts: ['link', 'page'],
-      targetUrlPatterns: ['*://x.com/*/status/*'],
-      documentUrlPatterns: ['*://x.com/*'],
-    });
-    chrome.contextMenus.create({
-      id: MENU_OBSIDIAN,
-      parentId: MENU_PARENT,
-      title: chrome.i18n.getMessage('ctx_obsidian_tweet') || 'Add tweet to Obsidian',
-      contexts: ['link', 'page'],
-      targetUrlPatterns: ['*://x.com/*/status/*'],
-      documentUrlPatterns: ['*://x.com/*'],
-    });
-    chrome.contextMenus.create({
-      id: MENU_PDF,
-      parentId: MENU_PARENT,
-      title: chrome.i18n.getMessage('ctx_save_tweet_pdf') || 'Save tweet as PDF',
-      contexts: ['link', 'page'],
-      targetUrlPatterns: ['*://x.com/*/status/*'],
-      documentUrlPatterns: ['*://x.com/*'],
-    });
+    };
+    const item = (id: string, msgKey: string, fallback: string): void => {
+      chrome.contextMenus.create({ ...common, id, title: chrome.i18n.getMessage(msgKey) || fallback });
+    };
+    const sep = (id: string): void => {
+      chrome.contextMenus.create({ ...common, id, type: 'separator' });
+    };
+
+    item(MENU_PDF, 'ctx_export_pdf', 'Export tweet as PDF');
+    item(MENU_OBSIDIAN, 'ctx_obsidian_tweet', 'Add tweet to Obsidian');
+    sep(MENU_SEP1);
+    item(MENU_COPY, 'ctx_copy_tweet', 'Copy tweet as Markdown');
+    item(MENU_SAVE, 'ctx_save_tweet', 'Download tweet as Markdown');
+    item(MENU_COPY_SINGLE, 'ctx_copy_just_this_tweet', 'Copy just this tweet (no thread)');
+    sep(MENU_SEP2);
+    item(MENU_COPY_TXT, 'ctx_copy_txt', 'Copy tweet as txt');
+    item(MENU_TXT, 'ctx_download_txt', 'Download tweet as txt');
+    item(MENU_HTML, 'ctx_download_html', 'Download tweet as html');
+    item(MENU_JSON, 'ctx_download_json', 'Download tweet as json');
+    item(MENU_CSV, 'ctx_download_csv', 'Download tweet as csv');
   });
 }
 
@@ -176,7 +177,8 @@ chrome.runtime.onInstalled.addListener(migrateTweet2mdSettings);
 function appendMarker(url: string, action: MenuAction, single: boolean): string {
   // Strip any existing xclipper marker so we don't compound them.
   const cleaned = url
-    .replace(/[#&]xclipper(?:_single)?=(?:download|copy|obsidian|pdf|1)/g, '')
+    // `copy-txt` must precede `copy` so the longer token isn't truncated to `copy`.
+    .replace(/[#&]xclipper(?:_single)?=(?:copy-txt|download|copy|obsidian|pdf|txt|html|json|csv|1)/g, '')
     .replace(/#$/, '');
   const sep = cleaned.includes('#') ? '&' : '#';
   const singleSuffix = single ? '&xclipper_single=1' : '';
@@ -191,6 +193,11 @@ function menuItemAction(
   if (menuItemId === MENU_COPY_SINGLE) return { action: 'copy', single: true };
   if (menuItemId === MENU_OBSIDIAN) return { action: 'obsidian', single: false };
   if (menuItemId === MENU_PDF) return { action: 'pdf', single: false };
+  if (menuItemId === MENU_COPY_TXT) return { action: 'copy-txt', single: false };
+  if (menuItemId === MENU_TXT) return { action: 'txt', single: false };
+  if (menuItemId === MENU_HTML) return { action: 'html', single: false };
+  if (menuItemId === MENU_JSON) return { action: 'json', single: false };
+  if (menuItemId === MENU_CSV) return { action: 'csv', single: false };
   return null;
 }
 

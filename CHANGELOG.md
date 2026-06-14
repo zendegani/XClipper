@@ -16,12 +16,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Fast Batch now works on Profiles and Likes**, not just Bookmarks — export a profile's own posts (reposts skipped) or your liked posts through your X session at the same ~10× speed. Selection stays Standard-only (its tab is disabled while Fast is on).
 - **Reset queue** — empties the posts gathered so far and restarts collecting from wherever you've scrolled to, so you can begin a batch at a specific post instead of always from the top.
 - **Timeline batch source** — a new **Timeline** tab exports the posts loaded in your home feed (`x.com/home`), the same way Bookmarks/Profile/Likes do. Standard only — its tab is disabled while Fast is on (the home feed isn't paginated the way Fast needs).
+- **More right-click export formats** — the X right-click menu can now export a single post directly as **txt**, **HTML**, **JSON**, or **CSV** (download), plus **Copy tweet as txt** to put plain text on the clipboard — the same formats as the popup, without opening it.
 
 ### Changed
 
-- Renamed the batch **Reset dedup** button to **Reset history** (clearer: it forgets what past runs already exported).
+- **Reorganized the right-click menu** into three groups — PDF / Obsidian, the Markdown actions, then the other file formats — and renamed **Save tweet as PDF → Export tweet as PDF** and **Save tweet as Markdown → Download tweet as Markdown**.
 - When you're not on the right page, the **Bookmarks** and **Timeline** tabs now show an **Open Bookmarks / Open Timeline** button that takes you there (instead of a disabled button) — then scroll and export.
-- Moved the batch **Output** selector above **Format**.
 
 ---
 ## [2.3.0] - 2026-06-14

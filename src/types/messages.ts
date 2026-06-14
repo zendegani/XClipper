@@ -80,7 +80,16 @@ export interface ExtractResponse {
 // permalink. `subAction` selects the flow; `pdf` routes to the PDF pipeline.
 export interface AutoExtractRequest {
   action: 'XCLIPPER_AUTOEXTRACT';
-  subAction: 'download' | 'copy' | 'obsidian' | 'pdf';
+  subAction:
+    | 'download'
+    | 'copy'
+    | 'obsidian'
+    | 'pdf'
+    | 'copy-txt'
+    | 'txt'
+    | 'html'
+    | 'json'
+    | 'csv';
   single?: boolean;
 }
 
