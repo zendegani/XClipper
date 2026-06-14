@@ -91,7 +91,7 @@ async function recordExported(url: string): Promise<void> {
   await chrome.storage.local.set({ [EXPORTED_LEDGER_KEY]: appendToLedger(ledger, id) });
 }
 
-const JOB_ORIGINS = ['bookmarks', 'profile', 'selection', 'likes'] as const;
+const JOB_ORIGINS = ['bookmarks', 'profile', 'selection', 'likes', 'timeline'] as const;
 
 function coerceOrigin(raw: unknown): BatchJob['origin'] {
   return JOB_ORIGINS.includes(raw as (typeof JOB_ORIGINS)[number])

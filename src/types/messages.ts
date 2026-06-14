@@ -92,7 +92,7 @@ export interface BatchStartRequest {
   urls: string[];
   // Which surface launched the job — the popup scopes progress display to
   // the matching tab.
-  origin?: 'bookmarks' | 'profile' | 'selection' | 'likes';
+  origin?: 'bookmarks' | 'profile' | 'selection' | 'likes' | 'timeline';
   // Profile owner's handle when origin === 'profile'.
   handle?: string;
   // File format + grouping for the job (defaults: 'md' / 'separate'). PDF
@@ -132,7 +132,7 @@ export interface BatchStatusResponse {
   job?: {
     id: string;
     status: 'running' | 'paused' | 'done' | 'cancelled';
-    origin?: 'bookmarks' | 'profile' | 'selection' | 'likes';
+    origin?: 'bookmarks' | 'profile' | 'selection' | 'likes' | 'timeline';
     // Set when origin === 'profile' — the popup only offers "add to queue"
     // on the same profile.
     handle?: string;
@@ -159,7 +159,7 @@ export interface HarvestRequest {
 }
 
 export interface HarvestResponse {
-  source: 'bookmarks' | 'profile' | 'likes' | null;
+  source: 'bookmarks' | 'profile' | 'likes' | 'timeline' | null;
   // Profile owner's handle when source is 'profile'.
   handle?: string;
   urls: string[];

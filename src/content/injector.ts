@@ -324,11 +324,15 @@ type HarvestSource =
   | { kind: 'bookmarks'; key: string }
   | { kind: 'profile'; key: string; handle: string }
   | { kind: 'likes'; key: string; handle: string }
+  | { kind: 'timeline'; key: string }
   | null;
 
 function harvestSourceOfPage(): HarvestSource {
   const path = window.location.pathname;
   if (path.startsWith('/i/bookmarks')) return { kind: 'bookmarks', key: 'bookmarks' };
+  // Home feed shows tweets by many authors (like Likes) — keep every author's
+  // permalink (no repost filter, which only applies to a profile).
+  if (path === '/home') return { kind: 'timeline', key: 'timeline' };
   // Likes live at /<handle>/likes and show tweets by many authors (the ones
   // the user liked) — so, unlike a profile, we keep every author's permalink.
   const liked = path.match(/^\/([A-Za-z0-9_]{1,15})\/likes$/);
