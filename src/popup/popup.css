@@ -1854,15 +1854,14 @@ details.option-group[open] .option-group-chevron {
   border: 1px solid var(--batch);
 }
 
-/* Export button + a stacked pair of Reset buttons beside it. */
-.batch-action-row {
+/* Fast Batch bar + a stacked pair of Reset buttons beside it. */
+.batch-fast-row {
   display: flex;
   align-items: stretch;
   gap: 8px;
 }
 
-.batch-action-row .btn-batch {
-  width: auto;
+.batch-fast-row .fast-batch-bar {
   flex: 1;
   min-width: 0;
 }

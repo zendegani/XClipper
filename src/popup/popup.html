@@ -52,33 +52,6 @@
           aria-selected="false"><span data-i18n="group_batch">Batch export</span></button>
       </div>
 
-      <div id="fast-batch-bar" class="fast-batch-bar hidden">
-        <span class="fast-info" tabindex="0" role="img" aria-label="About Fast Batch"
-          data-tooltip="Exports your Bookmarks, a profile's posts, or your Likes far faster by fetching them directly through your logged-in X session (its private API) — no API key, no password, nothing leaves your browser. The step lights below show what to do first (reload the page / open one tweet). Big runs can hit X's rate limit — it stops politely so you can re-run, or use the date range to narrow the scope."
-          data-i18n-tooltip="fast_batch_info">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-            <circle cx="12" cy="12" r="10" />
-            <line x1="12" y1="16" x2="12" y2="12" />
-            <line x1="12" y1="8" x2="12.01" y2="8" />
-          </svg>
-        </span>
-        <label class="toggle-label fast-toggle">
-          <span class="toggle-text">
-            <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-            </svg>
-            <span data-i18n="fast_batch">Fast Batch</span>
-            <span class="beta-badge" data-i18n="beta">Beta</span>
-          </span>
-          <input type="checkbox" id="chk-fast-batch" class="toggle-input" />
-          <span class="toggle-switch"></span>
-        </label>
-      </div>
-      <p id="fast-locked-hint" class="fast-locked-hint hidden" data-i18n="fast_locked">
-        An export is running — cancel or let it finish to switch modes.
-      </p>
 
       <div class="options">
         <details id="export-settings" class="option-group" open>
@@ -301,6 +274,43 @@
             </svg>
           </button>
         </div>
+        <div class="batch-fast-row">
+          <div id="fast-batch-bar" class="fast-batch-bar hidden">
+            <span class="fast-info" tabindex="0" role="img" aria-label="About Fast Batch"
+              data-tooltip="Exports your Bookmarks, a profile's posts, or your Likes far faster by fetching them directly through your logged-in X session (its private API) — no API key, no password, nothing leaves your browser. The step lights below show what to do first (reload the page / open one tweet). Big runs can hit X's rate limit — it stops politely so you can re-run, or use the date range to narrow the scope."
+              data-i18n-tooltip="fast_batch_info">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="10" />
+                <line x1="12" y1="16" x2="12" y2="12" />
+                <line x1="12" y1="8" x2="12.01" y2="8" />
+              </svg>
+            </span>
+            <label class="toggle-label fast-toggle">
+              <span class="toggle-text">
+                <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+                </svg>
+                <span data-i18n="fast_batch">Fast Batch</span>
+                <span class="beta-badge" data-i18n="beta">Beta</span>
+              </span>
+              <input type="checkbox" id="chk-fast-batch" class="toggle-input" />
+              <span class="toggle-switch"></span>
+            </label>
+          </div>
+          <div class="batch-reset-stack">
+            <button id="btn-batch-reset-queue" class="batch-ctl" type="button"
+              data-tooltip="Empty the gathered posts and restart collecting from where you've scrolled to — so you can begin at a specific post instead of the top."
+              data-i18n-tooltip="batch_reset_queue_hint" data-i18n="batch_reset_queue">Reset queue</button>
+            <button id="btn-batch-reset" class="batch-ctl" type="button"
+              data-tooltip="Forget which posts were already exported in past runs, so the next batch exports everything loaded again."
+              data-i18n-tooltip="batch_reset_hint" data-i18n="batch_reset">Reset history</button>
+          </div>
+        </div>
+        <p id="fast-locked-hint" class="fast-locked-hint hidden" data-i18n="fast_locked">
+          An export is running — cancel or let it finish to switch modes.
+        </p>
         <div id="fast-date-range" class="fast-date-range hidden">
           <span class="fast-date-label" data-i18n="fast_date_range" data-tooltip="Only export posts whose date is in this range — out-of-range posts are skipped without being expanded, so you reach older posts without hitting X's rate limit."
             data-i18n-tooltip="fast_date_range_hint">Date range</span>
@@ -309,7 +319,6 @@
           <input type="date" id="fast-date-to" class="fast-date-input" aria-label="To date" data-i18n-aria-label="fast_date_to" />
           <button id="fast-date-clear" class="batch-ctl" type="button" data-i18n="fast_date_clear">Clear</button>
         </div>
-        <div class="batch-action-row">
         <button id="btn-batch" class="btn-batch btn-action" type="button"
           data-tooltip="Export every bookmark loaded on this page as Markdown files into one folder. Scroll the bookmarks page to load more."
           data-i18n-tooltip="btn_batch_hint">
@@ -333,15 +342,6 @@
           </svg>
           <span class="btn-label" id="btn-batch-label" data-i18n="btn_batch">Export bookmarks</span>
         </button>
-          <div class="batch-reset-stack">
-            <button id="btn-batch-reset-queue" class="batch-ctl" type="button"
-              data-tooltip="Empty the gathered posts and restart collecting from where you've scrolled to — so you can begin at a specific post instead of the top."
-              data-i18n-tooltip="batch_reset_queue_hint" data-i18n="batch_reset_queue">Reset queue</button>
-            <button id="btn-batch-reset" class="batch-ctl" type="button"
-              data-tooltip="Forget which posts were already exported in past runs, so the next batch exports everything loaded again."
-              data-i18n-tooltip="batch_reset_hint" data-i18n="batch_reset">Reset history</button>
-          </div>
-        </div>
         <div id="fast-steps" class="fast-steps hidden" role="status">
           <span class="fast-step" id="fast-step-page"><span class="fast-step-dot"></span><span class="fast-step-label" data-i18n="fast_step_page">Reload x.com</span></span>
           <span class="fast-step" id="fast-step-tweet"><span class="fast-step-dot"></span><span class="fast-step-label" data-i18n="fast_step_tweet">Open one tweet</span></span>
