@@ -37,10 +37,12 @@ export const btnBatchIconBookmarks = document.getElementById('btn-batch-icon-boo
 export const btnBatchIconProfile = document.getElementById('btn-batch-icon-profile') as unknown as SVGElement;
 export const btnBatchIconSelection = document.getElementById('btn-batch-icon-selection') as unknown as SVGElement;
 export const btnBatchIconLikes = document.getElementById('btn-batch-icon-likes') as unknown as SVGElement;
+export const btnBatchIconTimeline = document.getElementById('btn-batch-icon-timeline') as unknown as SVGElement;
 export const tabBatchBookmarks = document.getElementById('tab-batch-bookmarks') as HTMLButtonElement;
 export const tabBatchProfile = document.getElementById('tab-batch-profile') as HTMLButtonElement;
 export const tabBatchSelection = document.getElementById('tab-batch-selection') as HTMLButtonElement;
 export const tabBatchLikes = document.getElementById('tab-batch-likes') as HTMLButtonElement;
+export const tabBatchTimeline = document.getElementById('tab-batch-timeline') as HTMLButtonElement;
 
 // ─── Fast Batch (ADR 0003) ───────────────────────────────────────────
 export const viewMain = document.getElementById('view-main') as HTMLElement;

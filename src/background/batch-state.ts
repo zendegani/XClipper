@@ -11,7 +11,7 @@ export interface BatchJob {
   id: string;
   status: 'running' | 'paused' | 'done' | 'cancelled';
   // Surface that launched the job; the popup scopes progress display to it.
-  origin?: 'bookmarks' | 'profile' | 'selection' | 'likes';
+  origin?: 'bookmarks' | 'profile' | 'selection' | 'likes' | 'timeline';
   // Profile owner's handle (only when origin === 'profile'); lets the popup
   // offer "add to queue" on the same profile but not a different one.
   handle?: string;

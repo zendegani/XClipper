@@ -80,8 +80,14 @@
   "btn_batch_fast_no_selection": {
     "message": "Selection isn't available in Fast — turn Fast off to pick tweets by hand."
   },
+  "btn_batch_fast_no_timeline": {
+    "message": "Timeline isn't available in Fast — turn Fast off to export your home feed."
+  },
   "batch_tab_selection_fast": {
     "message": "Turn Fast off to pick tweets by hand"
+  },
+  "batch_tab_timeline_fast": {
+    "message": "Turn Fast off to export your home feed"
   },
   "fast_locked": {
     "message": "An export is running — cancel or let it finish to switch modes."
@@ -179,6 +185,15 @@
   "btn_batch_open_likes": {
     "message": "Open your Likes page on x.com to export the posts you have liked."
   },
+  "btn_batch_timeline": {
+    "message": "Export timeline"
+  },
+  "btn_batch_timeline_hint": {
+    "message": "Export every post loaded in your home timeline as Markdown files into one folder. Scroll to load more."
+  },
+  "btn_batch_open_timeline": {
+    "message": "Open x.com/home to export the posts in your timeline."
+  },
   "group_batch": {
     "message": "Batch export"
   },
@@ -193,6 +208,9 @@
   },
   "batch_tab_likes": {
     "message": "Likes"
+  },
+  "batch_tab_timeline": {
+    "message": "Timeline"
   },
   "btn_batch_select": {
     "message": "Select tweets…"

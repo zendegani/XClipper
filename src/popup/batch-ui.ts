@@ -32,6 +32,7 @@ import {
   btnBatchIconProfile,
   btnBatchIconSelection,
   btnBatchIconLikes,
+  btnBatchIconTimeline,
   btnBatchLabel,
   btnBatchPause,
   btnBatchReset,
@@ -40,12 +41,13 @@ import {
   tabBatchProfile,
   tabBatchSelection,
   tabBatchLikes,
+  tabBatchTimeline,
 } from './dom';
 import { setExportMode } from './mode';
 import { getFastMode, isFastActive, startFastExport, cancelFast, setStandardJobActive, resumeFastIfActive, updateFastSteps } from './fast-batch-ui';
 
 type JobSnapshot = NonNullable<BatchStatusResponse['job']>;
-type BatchTab = 'bookmarks' | 'profile' | 'selection' | 'likes';
+type BatchTab = 'bookmarks' | 'profile' | 'selection' | 'likes' | 'timeline';
 
 // The pause button swaps between a pause and a play (resume) glyph.
 const icoPause = btnBatchPause.querySelector('.batch-ico-pause');
@@ -62,15 +64,17 @@ const TAB_BUTTONS: Record<BatchTab, HTMLButtonElement> = {
   profile: tabBatchProfile,
   selection: tabBatchSelection,
   likes: tabBatchLikes,
+  timeline: tabBatchTimeline,
 };
 
-// Per-tab action-button icons (bookmark, user, check-square, heart) — all
+// Per-tab action-button icons (bookmark, user, check-square, heart, home) — all
 // live in the HTML; the inactive ones are hidden.
 const TAB_ICONS: Record<BatchTab, SVGElement> = {
   bookmarks: btnBatchIconBookmarks,
   profile: btnBatchIconProfile,
   selection: btnBatchIconSelection,
   likes: btnBatchIconLikes,
+  timeline: btnBatchIconTimeline,
 };
 
 let activeTab: BatchTab = 'bookmarks';
@@ -156,13 +160,17 @@ async function refreshIdleUi(): Promise<void> {
   // bookmarks through the GraphQL session, so it doesn't need the bookmarks page
   // loaded. Phase 1 is bookmarks-only — other tabs point back to Bookmarks.
   if (getFastMode()) {
-    // Selection isn't Fast-compatible (no feed to paginate).
-    if (activeTab === 'selection') {
+    // Selection and Timeline aren't Fast-compatible (no GET-paginated feed).
+    if (activeTab === 'selection' || activeTab === 'timeline') {
       batchDedupRow.classList.add('hidden');
       setButton(
-        t('btn_batch_select', 'Select tweets…'),
+        activeTab === 'timeline'
+          ? t('btn_batch_timeline', 'Export timeline')
+          : t('btn_batch_select', 'Select tweets…'),
         false,
-        t('btn_batch_fast_no_selection', "Selection isn't available in Fast — turn Fast off to pick tweets by hand.")
+        activeTab === 'timeline'
+          ? t('btn_batch_fast_no_timeline', "Timeline isn't available in Fast — turn Fast off to export your home feed.")
+          : t('btn_batch_fast_no_selection', "Selection isn't available in Fast — turn Fast off to pick tweets by hand.")
       );
       return;
     }
@@ -205,7 +213,8 @@ async function refreshIdleUi(): Promise<void> {
       activeTab === 'bookmarks' ? t('btn_batch', 'Export bookmarks')
         : activeTab === 'profile' ? t('btn_batch_profile', 'Export posts')
           : activeTab === 'likes' ? t('btn_batch_likes', 'Export likes')
-            : t('btn_batch_select', 'Select tweets…');
+            : activeTab === 'timeline' ? t('btn_batch_timeline', 'Export timeline')
+              : t('btn_batch_select', 'Select tweets…');
     // Keep it ENABLED — a disabled button can't show its tooltip in Chrome, so
     // the reason would be invisible. Clicking surfaces the reload hint (like
     // Single export does), which the user found clear.
@@ -252,6 +261,15 @@ async function refreshIdleUi(): Promise<void> {
     );
     return;
   }
+  if (activeTab === 'timeline' && source !== 'timeline') {
+    batchDedupRow.classList.add('hidden');
+    setButton(
+      t('btn_batch_timeline', 'Export timeline'),
+      false,
+      t('btn_batch_open_timeline', 'Open x.com/home to export the posts in your timeline.')
+    );
+    return;
+  }
 
   // On the running job's own source the button appends loaded items to its
   // queue instead of starting a new job — bookmarks always; a profile only
@@ -277,7 +295,9 @@ async function refreshIdleUi(): Promise<void> {
       ? `${t('btn_batch_profile', 'Export posts')}${handle ? ` @${handle}` : ''}`
       : activeTab === 'likes'
         ? t('btn_batch_likes', 'Export likes')
-        : t('btn_batch', 'Export bookmarks');
+        : activeTab === 'timeline'
+          ? t('btn_batch_timeline', 'Export timeline')
+          : t('btn_batch', 'Export bookmarks');
   const suffix = skipped > 0 ? ` (${fresh.length} ${t('batch_new', 'new')})` : ` (${fresh.length})`;
   const tooltip = onSameSourceJob
     ? t('btn_batch_add_hint', 'Add the newly-loaded posts to the running batch queue.')
@@ -285,7 +305,9 @@ async function refreshIdleUi(): Promise<void> {
       ? t('btn_batch_profile_hint', "Export this profile's own posts loaded on the page as Markdown files into one folder. Reposts are skipped; scroll to load more.")
       : activeTab === 'likes'
         ? t('btn_batch_likes_hint', 'Export every liked post loaded on this page as Markdown files into one folder. Scroll your Likes page to load more.')
-        : t('btn_batch_hint', 'Export every bookmark loaded on this page as Markdown files into one folder. Scroll the bookmarks page to load more.');
+        : activeTab === 'timeline'
+          ? t('btn_batch_timeline_hint', 'Export every post loaded in your home timeline as Markdown files into one folder. Scroll to load more.')
+          : t('btn_batch_hint', 'Export every bookmark loaded on this page as Markdown files into one folder. Scroll the bookmarks page to load more.');
   setButton(base + suffix, fresh.length > 0, tooltip);
   // The control row is always shown here (stable layout); the two buttons just
   // GREY OUT when not applicable instead of disappearing:
@@ -299,9 +321,9 @@ async function refreshIdleUi(): Promise<void> {
   batchDedupRow.classList.remove('hidden');
 }
 
-// Fast can't do Selection, so disable that tab while Fast is armed (and bounce
-// off it if it was active). The tab dims via color, not opacity, so its tooltip
-// stays readable (issue #38).
+// Fast can't do Selection or Timeline (no GET-paginated feed), so disable those
+// tabs while Fast is armed (and bounce off them if active). The tabs dim via
+// color, not opacity, so their tooltips stay readable (issue #38).
 function applyFastTabGating(): void {
   const fast = getFastMode();
   const sel = TAB_BUTTONS.selection;
@@ -312,7 +334,15 @@ function applyFastTabGating(): void {
       ? t('batch_tab_selection_fast', 'Turn Fast off to pick tweets by hand')
       : t('batch_tab_selection', 'Selection')
   );
-  if (fast && activeTab === 'selection') setActiveTab('bookmarks');
+  const tl = TAB_BUTTONS.timeline;
+  tl.disabled = fast;
+  tl.setAttribute(
+    'data-tooltip',
+    fast
+      ? t('batch_tab_timeline_fast', 'Turn Fast off to export your home feed')
+      : t('batch_tab_timeline', 'Timeline')
+  );
+  if (fast && (activeTab === 'selection' || activeTab === 'timeline')) setActiveTab('bookmarks');
 }
 
 function setActiveTab(tab: BatchTab): void {
@@ -339,6 +369,7 @@ function jobWho(job: JobSnapshot): string {
   if (job.origin === 'profile' && job.handle) return `@${job.handle}`;
   if (job.origin === 'bookmarks') return t('group_bookmarks', 'Bookmarks');
   if (job.origin === 'likes') return t('batch_tab_likes', 'Likes');
+  if (job.origin === 'timeline') return t('batch_tab_timeline', 'Timeline');
   if (job.origin === 'selection') return t('batch_tab_selection', 'Selection');
   return '';
 }
@@ -445,7 +476,7 @@ async function startExport(): Promise<void> {
   // Armed Fast Batch routes the paginated sources (bookmarks/profile/likes)
   // through the GraphQL path (own progress poller in fast-batch-ui). Selection
   // isn't Fast-compatible (its tab is disabled while Fast is armed).
-  if (getFastMode() && activeTab !== 'selection') {
+  if (getFastMode() && activeTab !== 'selection' && activeTab !== 'timeline') {
     // Fast reads the profile handle from the URL (no injector needed).
     await startFastExport(activeTab, activeTab === 'profile' ? handleFromUrl(pageUrl) : undefined);
     return;
@@ -579,6 +610,7 @@ function sourceFromUrl(url: string | undefined): BatchTab | null {
     return null;
   }
   if (path === '/i/bookmarks') return 'bookmarks';
+  if (path === '/home') return 'timeline';
   if (/\/likes$/.test(path)) return 'likes';
   const reserved = new Set(['/home', '/explore', '/notifications', '/messages', '/search', '/settings', '/i', '/compose']);
   if (/^\/[A-Za-z0-9_]{1,15}$/.test(path) && !reserved.has(path)) return 'profile';

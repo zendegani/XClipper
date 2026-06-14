@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Date-range filter for Fast Batch** — limit an export to posts within a date range (e.g. a single month). Out-of-range posts are skipped without being fetched in full, so you spend X's per-session quota only on the posts you want and can reach older ones without getting rate-limited.
 - **Fast Batch now works on Profiles and Likes**, not just Bookmarks — export a profile's own posts (reposts skipped) or your liked posts through your X session at the same ~10× speed. Selection stays Standard-only (its tab is disabled while Fast is on).
 - **Reset queue** — empties the posts gathered so far and restarts collecting from wherever you've scrolled to, so you can begin a batch at a specific post instead of always from the top.
+- **Timeline batch source** — a new **Timeline** tab exports the posts loaded in your home feed (`x.com/home`), the same way Bookmarks/Profile/Likes do. Standard only — its tab is disabled while Fast is on (the home feed isn't paginated the way Fast needs).
 
 ### Changed
 
