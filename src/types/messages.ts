@@ -165,6 +165,15 @@ export interface HarvestResponse {
   urls: string[];
 }
 
+// Popup → injector: empty the gathered collection so it restarts from the
+// current scroll position ("Reset queue"). Re-seeds from the viewport.
+export interface HarvestResetRequest {
+  action: 'XCLIPPER_HARVEST_RESET';
+}
+export interface HarvestResetResponse {
+  count: number;
+}
+
 // Popup → injector content script: enter/exit tweet selection mode — the
 // injector overlays checkboxes on timeline cells and a floating export bar.
 export interface SelectionRequest {
@@ -251,6 +260,7 @@ export type MessageRequest =
   | BatchControlRequest
   | BatchStatusRequest
   | HarvestRequest
+  | HarvestResetRequest
   | SelectionRequest
   | BatchItemResultMessage
   | FastBatchStartRequest

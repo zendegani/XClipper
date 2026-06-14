@@ -27,6 +27,7 @@ export const btnBatchCancel = document.getElementById('btn-batch-cancel') as HTM
 export const batchDedupRow = document.getElementById('batch-dedup-row') as HTMLDivElement;
 export const batchDedupText = document.getElementById('batch-dedup-text') as HTMLSpanElement;
 export const btnBatchReset = document.getElementById('btn-batch-reset') as HTMLButtonElement;
+export const btnBatchResetQueue = document.getElementById('btn-batch-reset-queue') as HTMLButtonElement;
 export const batchFormatControls = document.getElementById('batch-format-controls') as HTMLDivElement;
 export const batchFormatSelect = document.getElementById('batch-format') as HTMLSelectElement;
 export const outSeparate = document.getElementById('out-separate') as HTMLInputElement;

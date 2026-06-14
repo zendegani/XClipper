@@ -312,9 +312,14 @@
         </button>
         <div id="batch-dedup-row" class="batch-dedup-row hidden">
           <span id="batch-dedup-text"></span>
-          <button id="btn-batch-reset" class="batch-ctl" type="button"
-            data-tooltip="Forget which bookmarks were already exported, so the next batch exports everything loaded."
-            data-i18n-tooltip="batch_reset_hint" data-i18n="batch_reset">Reset dedup</button>
+          <span class="batch-ctl-group">
+            <button id="btn-batch-reset-queue" class="batch-ctl hidden" type="button"
+              data-tooltip="Empty the gathered posts and restart collecting from where you've scrolled to — so you can begin at a specific post instead of the top."
+              data-i18n-tooltip="batch_reset_queue_hint" data-i18n="batch_reset_queue">Reset queue</button>
+            <button id="btn-batch-reset" class="batch-ctl hidden" type="button"
+              data-tooltip="Forget which posts were already exported in past runs, so the next batch exports everything loaded again."
+              data-i18n-tooltip="batch_reset_hint" data-i18n="batch_reset">Reset history</button>
+          </span>
         </div>
         <div id="batch-progress" class="batch-progress hidden">
           <div class="batch-progress-row">

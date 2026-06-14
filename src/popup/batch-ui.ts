@@ -35,6 +35,7 @@ import {
   btnBatchLabel,
   btnBatchPause,
   btnBatchReset,
+  btnBatchResetQueue,
   tabBatchBookmarks,
   tabBatchProfile,
   tabBatchSelection,
@@ -148,9 +149,12 @@ async function refreshIdleUi(): Promise<void> {
   // loaded. Phase 1 is bookmarks-only — other tabs point back to Bookmarks.
   if (getFastMode()) {
     if (activeTab === 'bookmarks') {
-      // Fast can't know up front which bookmarks are already exported (it
-      // discovers that mid-run), so show the ledger size + Reset affordance.
+      // Fast paginates from the top via cursor (no harvested collection), so
+      // there's no "Reset queue" here — only the dedup history. Fast can't know
+      // up front which are already exported, so show the ledger size + Reset.
       const ledger = await loadLedgerSet();
+      btnBatchResetQueue.classList.add('hidden');
+      btnBatchReset.classList.toggle('hidden', ledger.size === 0);
       batchDedupRow.classList.toggle('hidden', ledger.size === 0);
       if (ledger.size > 0) {
         batchDedupText.textContent = `${ledger.size} ${t('batch_already_exported', 'already exported')}`;
@@ -264,12 +268,16 @@ async function refreshIdleUi(): Promise<void> {
         ? t('btn_batch_likes_hint', 'Export every liked post loaded on this page as Markdown files into one folder. Scroll your Likes page to load more.')
         : t('btn_batch_hint', 'Export every bookmark loaded on this page as Markdown files into one folder. Scroll the bookmarks page to load more.');
   setButton(base + suffix, fresh.length > 0, tooltip);
-  // The "already exported" note is about past jobs; while appending to a live
-  // job the queue-exclusion handles dupes, so hide it there.
-  batchDedupRow.classList.toggle('hidden', skipped === 0 || onSameSourceJob);
-  if (skipped > 0 && !onSameSourceJob) {
-    batchDedupText.textContent = `${skipped} ${t('batch_already_exported', 'already exported')}`;
-  }
+  // The control row carries two independent affordances:
+  //  • Reset queue — when there's a gathered collection to restart.
+  //  • Reset history ("N already exported") — when past runs skipped items.
+  // Both hidden while appending to a live job (its queue-exclusion handles it).
+  const showQueue = urls.length > 0 && !onSameSourceJob;
+  const showHistory = skipped > 0 && !onSameSourceJob;
+  btnBatchResetQueue.classList.toggle('hidden', !showQueue);
+  btnBatchReset.classList.toggle('hidden', !showHistory);
+  batchDedupText.textContent = showHistory ? `${skipped} ${t('batch_already_exported', 'already exported')}` : '';
+  batchDedupRow.classList.toggle('hidden', !showQueue && !showHistory);
 }
 
 function setActiveTab(tab: BatchTab): void {
@@ -451,6 +459,18 @@ async function appendExport(): Promise<void> {
   await refreshIdleUi();
 }
 
+// Empty the injector's gathered collection so it restarts from the current
+// scroll position, then refresh the count.
+async function resetQueue(): Promise<void> {
+  if (pageTabId === undefined) return;
+  try {
+    await chrome.tabs.sendMessage(pageTabId, { action: 'XCLIPPER_HARVEST_RESET' });
+  } catch {
+    // injector gone (page needs a reload) — refreshIdleUi will surface that
+  }
+  await refreshIdleUi();
+}
+
 export async function initBatchUi(): Promise<void> {
   btnBatch.addEventListener('click', () => void (appendable ? appendExport() : startExport()));
   btnBatchCancel.addEventListener('click', () => void (isFastActive() ? cancelFast() : control('cancel')));
@@ -464,6 +484,7 @@ export async function initBatchUi(): Promise<void> {
   btnBatchReset.addEventListener('click', () => {
     chrome.storage.local.remove(EXPORTED_LEDGER_KEY, () => void refreshIdleUi());
   });
+  btnBatchResetQueue.addEventListener('click', () => void resetQueue());
   (Object.keys(TAB_BUTTONS) as BatchTab[]).forEach((tab) => {
     TAB_BUTTONS[tab].addEventListener('click', () => setActiveTab(tab));
   });

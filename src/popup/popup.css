@@ -1871,6 +1871,12 @@ details.option-group[open] .option-group-chevron {
   display: none;
 }
 
+.batch-ctl-group {
+  display: inline-flex;
+  gap: 6px;
+  flex-shrink: 0;
+}
+
 /* Dim only the disabled button's children — NOT the button itself. A
  * parent-level opacity cascades into the [data-tooltip]::after
  * pseudo-element and renders the hint semi-transparent (same rule as the
