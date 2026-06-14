@@ -143,14 +143,21 @@ async function refreshIdleUi(): Promise<void> {
   // bookmarks through the GraphQL session, so it doesn't need the bookmarks page
   // loaded. Phase 1 is bookmarks-only — other tabs point back to Bookmarks.
   if (getFastMode()) {
-    batchDedupRow.classList.add('hidden');
     if (activeTab === 'bookmarks') {
+      // Fast can't know up front which bookmarks are already exported (it
+      // discovers that mid-run), so show the ledger size + Reset affordance.
+      const ledger = await loadLedgerSet();
+      batchDedupRow.classList.toggle('hidden', ledger.size === 0);
+      if (ledger.size > 0) {
+        batchDedupText.textContent = `${ledger.size} ${t('batch_already_exported', 'already exported')}`;
+      }
       setButton(
         `⚡ ${t('btn_batch', 'Export bookmarks')}`,
         !isFastActive(),
         t('btn_batch_fast_hint', 'Fetch all your bookmarks through your X session — much faster. Expands threads & articles; stops politely if X rate-limits.')
       );
     } else {
+      batchDedupRow.classList.add('hidden');
       setButton(
         `⚡ ${t('btn_batch', 'Export bookmarks')}`,
         false,
