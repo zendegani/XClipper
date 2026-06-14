@@ -89,6 +89,9 @@ let jobPollTimer: ReturnType<typeof setInterval> | undefined;
 let countPollTimer: ReturnType<typeof setInterval> | undefined;
 let pageTabId: number | undefined;
 let pageIsX = false;
+// Current page URL — lets Fast read the profile handle without the injector
+// (Fast uses captured GraphQL, so it works even when the page wasn't reloaded).
+let pageUrl: string | undefined;
 
 async function fetchJob(): Promise<JobSnapshot | undefined> {
   try {
@@ -170,7 +173,8 @@ async function refreshIdleUi(): Promise<void> {
     let label: string;
     let hint: string;
     if (activeTab === 'profile') {
-      const { handle } = await harvest();
+      // Handle from the URL, not the injector — Fast doesn't need the page.
+      const handle = handleFromUrl(pageUrl);
       label = `⚡ ${t('btn_batch_profile', 'Export posts')}${handle ? ` @${handle}` : ''}`;
       hint = t('btn_batch_fast_profile_hint', "Fetch this profile's own posts through your X session — much faster. Reposts are skipped.");
     } else if (activeTab === 'likes') {
@@ -436,8 +440,8 @@ async function startExport(): Promise<void> {
   // through the GraphQL path (own progress poller in fast-batch-ui). Selection
   // isn't Fast-compatible (its tab is disabled while Fast is armed).
   if (getFastMode() && activeTab !== 'selection') {
-    const { handle } = await harvest();
-    await startFastExport(activeTab, activeTab === 'profile' ? handle : undefined);
+    // Fast reads the profile handle from the URL (no injector needed).
+    await startFastExport(activeTab, activeTab === 'profile' ? handleFromUrl(pageUrl) : undefined);
     return;
   }
 
@@ -534,6 +538,7 @@ export async function initBatchUi(): Promise<void> {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
   pageIsX = !!tab?.id && hostMatches(tab.url || '', 'x.com', 'www.x.com');
   if (pageIsX) pageTabId = tab!.id;
+  pageUrl = tab?.url;
 
   const job = await fetchJob();
   const activeJob =
@@ -572,4 +577,15 @@ function sourceFromUrl(url: string | undefined): BatchTab | null {
   const reserved = new Set(['/home', '/explore', '/notifications', '/messages', '/search', '/settings', '/i', '/compose']);
   if (/^\/[A-Za-z0-9_]{1,15}$/.test(path) && !reserved.has(path)) return 'profile';
   return null;
+}
+
+// Profile handle straight from the URL — Fast doesn't need the injector, so this
+// works even when the page wasn't reloaded after an extension update.
+function handleFromUrl(url: string | undefined): string | undefined {
+  if (sourceFromUrl(url) !== 'profile') return undefined;
+  try {
+    return new URL(url as string).pathname.replace(/^\/+|\/+$/g, '').split('/')[0] || undefined;
+  } catch {
+    return undefined;
+  }
 }
