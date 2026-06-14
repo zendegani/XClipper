@@ -1,7 +1,7 @@
 # ADR 0003 — Fast Batch: acquire tweets via X's internal GraphQL (opt-in)
 
-- Status: **Proposed — decisions locked; Phase 1 scaffolding underway (pure `jsonToAst` mapper). Permission/consent/orchestration await review.**
-- Date: 2026-06-13
+- Status: **Accepted — Phase 1 implemented (bookmarks; threads + Article bodies via per-item TweetDetail) with the popup toggle/consent/progress UI. Likes/Profile sources deferred.**
+- Date: 2026-06-13 (implemented 2026-06-14)
 - Deciders: @zendegani
 - Relates to: ADR 0001 (Content AST), ADR 0002 (Batch export)
 - Supersedes: — (adds an alternate acquisition path; does **not** replace ADR 0002)
