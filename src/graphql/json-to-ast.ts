@@ -317,11 +317,13 @@ function draftInline(b: RawDraftBlock, entities: Map<string, RawEntityValue>): I
   const link = new Array<string | null>(n).fill(null);
 
   for (const s of b.inlineStyleRanges ?? []) {
+    const style = (s.style ?? '').toLowerCase();
+    if (style !== 'bold' && style !== 'italic') continue; // ignore other styles
     const start = s.offset ?? 0;
     const stop = Math.min(start + (s.length ?? 0), n);
     for (let i = start; i < stop; i++) {
-      if (s.style === 'Bold') bold[i] = true;
-      else if (s.style === 'Italic') italic[i] = true;
+      if (style === 'bold') bold[i] = true;
+      else italic[i] = true;
     }
   }
   for (const r of b.entityRanges ?? []) {
