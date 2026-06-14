@@ -126,11 +126,16 @@ export function initFastBatchUi(): void {
 
 // ─── Fast export run + progress polling ──────────────────────────────
 
-export async function startFastExport(): Promise<void> {
+export async function startFastExport(
+  source: 'bookmarks' | 'profile' | 'likes',
+  handle?: string
+): Promise<void> {
   btnBatch.disabled = true;
   // Expand threads + articles by default (correctness over raw speed).
   const resp = (await chrome.runtime.sendMessage({
     action: 'FAST_BATCH_START',
+    source,
+    ...(handle ? { handle } : {}),
     expandThreads: true,
   })) as FastBatchStartResponse | undefined;
   if (!resp?.success) {

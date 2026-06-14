@@ -71,6 +71,18 @@
   "btn_batch_fast_only_bookmarks": {
     "message": "Fast Batch supports bookmarks only for now — switch to the Bookmarks tab, or turn off Fast."
   },
+  "btn_batch_fast_profile_hint": {
+    "message": "Fetch this profile's own posts through your X session — much faster. Reposts are skipped."
+  },
+  "btn_batch_fast_likes_hint": {
+    "message": "Fetch your liked posts through your X session — much faster. Expands threads & articles."
+  },
+  "btn_batch_fast_no_selection": {
+    "message": "Selection isn't available in Fast — turn Fast off to pick tweets by hand."
+  },
+  "batch_tab_selection_fast": {
+    "message": "Turn Fast off to pick tweets by hand"
+  },
   "fast_locked": {
     "message": "An export is running — cancel or let it finish to switch modes."
   },

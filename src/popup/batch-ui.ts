@@ -148,29 +148,39 @@ async function refreshIdleUi(): Promise<void> {
   // bookmarks through the GraphQL session, so it doesn't need the bookmarks page
   // loaded. Phase 1 is bookmarks-only — other tabs point back to Bookmarks.
   if (getFastMode()) {
-    if (activeTab === 'bookmarks') {
-      // Fast paginates from the top via cursor (no harvested collection), so
-      // "Reset queue" is always greyed here; "Reset history" greys when the
-      // dedup ledger is empty. The row stays visible so layout doesn't jump.
-      const ledger = await loadLedgerSet();
-      btnBatchResetQueue.disabled = true;
-      btnBatchReset.disabled = ledger.size === 0;
-      batchDedupText.textContent =
-        ledger.size > 0 ? `${ledger.size} ${t('batch_already_exported', 'already exported')}` : '';
-      batchDedupRow.classList.remove('hidden');
-      setButton(
-        `⚡ ${t('btn_batch', 'Export bookmarks')}`,
-        !isFastActive(),
-        t('btn_batch_fast_hint', 'Fetch all your bookmarks through your X session — much faster. Expands threads & articles; stops politely if X rate-limits.')
-      );
-    } else {
+    // Selection isn't Fast-compatible (no feed to paginate).
+    if (activeTab === 'selection') {
       batchDedupRow.classList.add('hidden');
       setButton(
-        `⚡ ${t('btn_batch', 'Export bookmarks')}`,
+        t('btn_batch_select', 'Select tweets…'),
         false,
-        t('btn_batch_fast_only_bookmarks', 'Fast Batch supports bookmarks only for now — switch to the Bookmarks tab, or turn off Fast.')
+        t('btn_batch_fast_no_selection', "Selection isn't available in Fast — turn Fast off to pick tweets by hand.")
       );
+      return;
     }
+    // bookmarks / profile / likes — Fast paginates from the top via cursor (no
+    // harvested collection), so "Reset queue" is always greyed; "Reset history"
+    // greys when the ledger is empty. The row stays visible so layout is stable.
+    const ledger = await loadLedgerSet();
+    btnBatchResetQueue.disabled = true;
+    btnBatchReset.disabled = ledger.size === 0;
+    batchDedupText.textContent =
+      ledger.size > 0 ? `${ledger.size} ${t('batch_already_exported', 'already exported')}` : '';
+    batchDedupRow.classList.remove('hidden');
+    let label: string;
+    let hint: string;
+    if (activeTab === 'profile') {
+      const { handle } = await harvest();
+      label = `⚡ ${t('btn_batch_profile', 'Export posts')}${handle ? ` @${handle}` : ''}`;
+      hint = t('btn_batch_fast_profile_hint', "Fetch this profile's own posts through your X session — much faster. Reposts are skipped.");
+    } else if (activeTab === 'likes') {
+      label = `⚡ ${t('btn_batch_likes', 'Export likes')}`;
+      hint = t('btn_batch_fast_likes_hint', 'Fetch your liked posts through your X session — much faster. Expands threads & articles.');
+    } else {
+      label = `⚡ ${t('btn_batch', 'Export bookmarks')}`;
+      hint = t('btn_batch_fast_hint', 'Fetch all your bookmarks through your X session — much faster. Expands threads & articles; stops politely if X rate-limits.');
+    }
+    setButton(label, !isFastActive(), hint);
     return;
   }
 
@@ -277,6 +287,22 @@ async function refreshIdleUi(): Promise<void> {
   btnBatchReset.disabled = !historyEnabled;
   batchDedupText.textContent = historyEnabled ? `${skipped} ${t('batch_already_exported', 'already exported')}` : '';
   batchDedupRow.classList.remove('hidden');
+}
+
+// Fast can't do Selection, so disable that tab while Fast is armed (and bounce
+// off it if it was active). The tab dims via color, not opacity, so its tooltip
+// stays readable (issue #38).
+function applyFastTabGating(): void {
+  const fast = getFastMode();
+  const sel = TAB_BUTTONS.selection;
+  sel.disabled = fast;
+  sel.setAttribute(
+    'data-tooltip',
+    fast
+      ? t('batch_tab_selection_fast', 'Turn Fast off to pick tweets by hand')
+      : t('batch_tab_selection', 'Selection')
+  );
+  if (fast && activeTab === 'selection') setActiveTab('bookmarks');
 }
 
 function setActiveTab(tab: BatchTab): void {
@@ -395,10 +421,12 @@ async function control(controlAction: 'pause' | 'resume' | 'cancel'): Promise<vo
 }
 
 async function startExport(): Promise<void> {
-  // Armed Fast Batch routes bookmarks through the GraphQL path (own progress
-  // poller in fast-batch-ui). Other tabs can't be Fast yet (Phase 1).
-  if (getFastMode() && activeTab === 'bookmarks') {
-    await startFastExport();
+  // Armed Fast Batch routes the paginated sources (bookmarks/profile/likes)
+  // through the GraphQL path (own progress poller in fast-batch-ui). Selection
+  // isn't Fast-compatible (its tab is disabled while Fast is armed).
+  if (getFastMode() && activeTab !== 'selection') {
+    const { handle } = await harvest();
+    await startFastExport(activeTab, activeTab === 'profile' ? handle : undefined);
     return;
   }
 
@@ -473,8 +501,12 @@ async function resetQueue(): Promise<void> {
 export async function initBatchUi(): Promise<void> {
   btnBatch.addEventListener('click', () => void (appendable ? appendExport() : startExport()));
   btnBatchCancel.addEventListener('click', () => void (isFastActive() ? cancelFast() : control('cancel')));
-  // Fast toggle armed/disarmed, or a fast run finished → re-evaluate the button.
-  window.addEventListener('xclipper-fast-changed', () => void refreshIdleUi());
+  // Fast toggle armed/disarmed, or a fast run finished → re-evaluate the button
+  // and the Selection tab (which Fast disables).
+  window.addEventListener('xclipper-fast-changed', () => {
+    applyFastTabGating();
+    void refreshIdleUi();
+  });
   btnBatchPause.addEventListener('click', () => {
     const resuming = lastJob?.status === 'paused';
     void control(resuming ? 'resume' : 'pause');
@@ -507,6 +539,7 @@ export async function initBatchUi(): Promise<void> {
   // still focus e.g. Bookmarks. Selection is the last resort (any x.com page).
   const { source } = await harvest();
   setActiveTab(activeJob?.origin ?? source ?? sourceFromUrl(tab?.url) ?? (pageIsX ? 'selection' : 'bookmarks'));
+  applyFastTabGating(); // reflect Fast state if it was restored armed
 }
 
 // Best-effort page type from the URL, for initial tab focus when the injector

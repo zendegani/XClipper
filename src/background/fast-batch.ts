@@ -238,7 +238,20 @@ export interface FastBatchResult {
   folder: string;
 }
 
+export type FastSource = 'bookmarks' | 'profile' | 'likes';
+
+// Which captured GraphQL operation backs each source, + a label for progress.
+const SOURCE_CONFIG: Record<FastSource, { op: string; label: string }> = {
+  bookmarks: { op: 'Bookmarks', label: 'bookmarks' },
+  profile: { op: 'UserTweets', label: 'posts' },
+  likes: { op: 'Likes', label: 'likes' },
+};
+
 export interface FastBatchOptions {
+  source?: FastSource;
+  // Profile owner's handle — reposts (author ≠ handle) are skipped, matching
+  // Standard profile export.
+  handle?: string;
   maxItems?: number;
   // Fetch TweetDetail for non-article tweets to expand self-threads (Articles
   // are always expanded — their body needs the fetch). On by default for
@@ -262,10 +275,13 @@ const TWEET_DETAIL_CONCURRENCY = 3;
 async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatchResult | null> {
   const maxItems = opts.maxItems ?? BATCH_MAX_ITEMS;
   const expandThreads = opts.expandThreads ?? true;
+  const source = opts.source ?? 'bookmarks';
+  const handle = opts.handle?.replace(/^@/, '').toLowerCase();
+  const cfg = SOURCE_CONFIG[source];
   cancelRequested = false;
   setProgress({
     status: 'running',
-    phase: 'Fetching bookmarks…',
+    phase: `Fetching ${cfg.label}…`,
     done: 0,
     total: 0,
     exported: 0,
@@ -281,24 +297,25 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
     return null;
   }
   await restoreSession(); // reload captured auth/templates if the SW restarted
-  // Fast Batch replays two captured requests: the bookmarks feed, and (to
-  // expand threads/articles) TweetDetail. After an extension reload neither has
-  // been seen yet. Check BOTH up front (before paginating) and give one plain
-  // hint covering whatever's missing — the user does it once, then it works.
-  const needBookmarks = !templates.Bookmarks;
+  // Fast Batch replays two captured requests: the source feed (bookmarks /
+  // profile / likes), and (to expand threads/articles) TweetDetail. After an
+  // extension reload neither has been seen yet. Check BOTH up front (before
+  // paginating) and give one plain hint — the user does it once, then it works.
+  const needFeed = !templates[cfg.op];
   const needTweetDetail = expandThreads && !templates.TweetDetail;
-  if (needBookmarks || needTweetDetail) {
+  if (needFeed || needTweetDetail) {
+    const feedHint = `Reload your ${cfg.label} page`;
     const msg =
-      needBookmarks && needTweetDetail
-        ? 'Reload your bookmarks page and open any one tweet, then click Export again.'
-        : needBookmarks
-          ? 'Reload your bookmarks page, then click Export again.'
+      needFeed && needTweetDetail
+        ? `${feedHint} and open any one tweet, then click Export again.`
+        : needFeed
+          ? `${feedHint}, then click Export again.`
           : 'Open any one tweet, then click Export again.';
-    log(`preconditions missing (bookmarks:${needBookmarks} tweetDetail:${needTweetDetail})`);
+    log(`preconditions missing (${cfg.op}:${needFeed} tweetDetail:${needTweetDetail})`);
     setProgress({ status: 'error', needTweetDetail, error: msg });
     return null;
   }
-  const template = templates.Bookmarks as string;
+  const template = templates[cfg.op];
 
   const settings = await loadSettings();
   const format = settings.batchFormat ?? 'md';
@@ -322,10 +339,12 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
   delete vars.cursor;
   const initialUrl = setVariablesParam(template, JSON.stringify(vars));
 
-  // 1) Collect: paginate the bookmarks feed, mapping each root tweet, skipping
+  // 1) Collect: paginate the source feed, mapping each root tweet, skipping
   //    anything already exported. (Cheap — pure mapping, no per-item fetch yet.)
   //    `needsExpand` items get a TweetDetail fetch next; `ledger` decides whether
-  //    to mark the item done (false = re-run should retry it).
+  //    to mark the item done (false = re-run should retry it). For a profile,
+  //    `handle` is set and reposts (author ≠ handle) are skipped — matching
+  //    Standard profile export.
   interface Item {
     doc: Document;
     needsExpand: boolean;
@@ -338,6 +357,7 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
       for (const raw of tweets) {
         if (selected.length >= maxItems) break;
         const doc = jsonToAst(raw);
+        if (handle && doc.metadata.author.handle.toLowerCase() !== handle) continue; // repost
         const id = doc.metadata.tweetId;
         if (id && ledger.has(id)) {
           skipped++;
@@ -519,8 +539,12 @@ export function initFastBatch(): void {
       sendResponse({ success: false, error: 'A Fast Batch run is already in progress.' } satisfies FastBatchStartResponse);
       return false;
     }
-    const expandThreads = (msg as { expandThreads?: boolean }).expandThreads;
-    void runFastBatchExport(expandThreads === undefined ? {} : { expandThreads });
+    const m = msg as { source?: FastSource; handle?: string; expandThreads?: boolean };
+    void runFastBatchExport({
+      ...(m.source ? { source: m.source } : {}),
+      ...(m.handle ? { handle: m.handle } : {}),
+      ...(m.expandThreads === undefined ? {} : { expandThreads: m.expandThreads }),
+    });
     sendResponse({ success: true } satisfies FastBatchStartResponse);
     return false;
   });
