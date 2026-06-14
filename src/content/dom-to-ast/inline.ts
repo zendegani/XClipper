@@ -56,21 +56,20 @@ function walkInline(node: Node, quoteContainer: Element | null, out: InlineNode[
     // Unrecognised link shape — treat as transparent and walk children.
   }
   // Draft.js uses inline styles for bold/italic; tweets occasionally use <b>/<em>.
+  // A single span can be BOTH (X article inline code is font-weight:bold +
+  // font-style:italic) — nest emphasis inside strong so neither is dropped.
   const html = el as HTMLElement;
   const isStrong = tag === 'STRONG' || tag === 'B' || html.style?.fontWeight === 'bold';
   const isEm = tag === 'EM' || tag === 'I' || html.style?.fontStyle === 'italic';
-  if (isStrong) {
+  if (isStrong || isEm) {
     const children: InlineNode[] = [];
     for (const c of el.childNodes) walkInline(c, quoteContainer, children);
-    const merged = mergeAdjacentText(children);
-    if (merged.length > 0) out.push({ type: 'strong', children: merged });
-    return;
-  }
-  if (isEm) {
-    const children: InlineNode[] = [];
-    for (const c of el.childNodes) walkInline(c, quoteContainer, children);
-    const merged = mergeAdjacentText(children);
-    if (merged.length > 0) out.push({ type: 'emphasis', children: merged });
+    let merged = mergeAdjacentText(children);
+    if (merged.length > 0) {
+      if (isEm) merged = [{ type: 'emphasis', children: merged }];
+      if (isStrong) merged = [{ type: 'strong', children: merged }];
+      out.push(...merged);
+    }
     return;
   }
   for (const child of el.childNodes) {
