@@ -218,6 +218,10 @@ export interface ContextUrlRequest {
 // worker-tab batch job model on purpose — Fast Batch has no per-item tab.
 export interface FastBatchStartRequest {
   action: 'FAST_BATCH_START';
+  // Which paginated source to export (Selection isn't Fast-compatible).
+  source?: 'bookmarks' | 'profile' | 'likes';
+  // Profile owner's handle — used to skip reposts (export only their own posts).
+  handle?: string;
   expandThreads?: boolean;
 }
 export interface FastBatchStartResponse {

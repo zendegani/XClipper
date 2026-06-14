@@ -52,6 +52,56 @@ describe('parseTimelinePage', () => {
     expect(p.bottomCursor).toBeNull();
     expect(p.done).toBe(true);
   });
+
+  it('finds a profile/likes user timeline and pulls module (self-thread) tweets', () => {
+    const raw = {
+      data: {
+        user: {
+          result: {
+            timeline_v2: {
+              timeline: {
+                instructions: [
+                  {
+                    type: 'TimelineAddEntries',
+                    entries: [
+                      { entryId: 'tweet-1', content: { itemContent: { tweet_results: { result: { rest_id: '1' } } } } },
+                      {
+                        entryId: 'profile-conversation-9',
+                        content: {
+                          entryType: 'TimelineTimelineModule',
+                          items: [
+                            { item: { itemContent: { tweet_results: { result: { rest_id: '2' } } } } },
+                            { item: { itemContent: { tweet_results: { result: { rest_id: '3' } } } } },
+                          ],
+                        },
+                      },
+                      { entryId: 'cursor-bottom-x', content: { cursorType: 'Bottom', value: 'CUR' } },
+                    ],
+                  },
+                ],
+              },
+            },
+          },
+        },
+      },
+    };
+    const p = parseTimelinePage(raw);
+    expect(ids(p.tweetResults)).toEqual(['1', '2', '3']);
+    expect(p.bottomCursor).toBe('CUR');
+  });
+
+  it('falls back to a generic search when the data key is unknown', () => {
+    const raw = {
+      data: {
+        some_new_timeline: {
+          timeline: { instructions: [{ type: 'TimelineAddEntries', entries: [
+            { entryId: 'tweet-7', content: { itemContent: { tweet_results: { result: { rest_id: '7' } } } } },
+          ] }] },
+        },
+      },
+    };
+    expect(ids(parseTimelinePage(raw).tweetResults)).toEqual(['7']);
+  });
 });
 
 describe('request URL helpers', () => {

@@ -1955,6 +1955,11 @@ details.option-group[open] .option-group-chevron {
 
 .batch-tab:disabled {
   cursor: default;
+  /* Dim via color, not opacity, so the tab's [data-tooltip] stays readable. */
+  color: color-mix(in srgb, var(--text-secondary) 45%, transparent);
+}
+.batch-tab:disabled .batch-tab-icon {
+  opacity: 0.45;
 }
 
 /* Icon tabs lean on tooltips for their names; the first/last sit at the

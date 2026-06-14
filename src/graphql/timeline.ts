@@ -28,20 +28,36 @@ interface RawEntry {
     cursorType?: string;
     value?: string;
     itemContent?: { tweet_results?: { result?: unknown } };
+    // Profile/likes self-thread cells wrap tweets in a module's `items`.
+    items?: { item?: { itemContent?: { tweet_results?: { result?: unknown } } } }[];
   };
 }
 
-// The timeline lives under different data keys per source; check the known ones.
+// The timeline lives under different data keys per source (bookmarks, profile,
+// likes…). Check the known keys, then fall back to a generic search for the
+// `instructions` array so a new source works without a hardcoded path.
 function findTimeline(raw: unknown): RawTimeline | null {
   const d = (raw as { data?: Record<string, unknown> } | null)?.data;
   if (!d) return null;
-  const paths: (RawTimeline | undefined)[] = [
+  const known: (RawTimeline | undefined)[] = [
     (d.bookmark_timeline_v2 as { timeline?: RawTimeline })?.timeline,
     (d.bookmark_timeline as { timeline?: RawTimeline })?.timeline,
     (d.user as { result?: { timeline_v2?: { timeline?: RawTimeline } } })?.result?.timeline_v2?.timeline,
     (d.user as { result?: { timeline?: { timeline?: RawTimeline } } })?.result?.timeline?.timeline,
   ];
-  return paths.find((t): t is RawTimeline => !!t?.instructions) ?? null;
+  return known.find((t): t is RawTimeline => !!t?.instructions) ?? searchTimeline(d);
+}
+
+// Depth-limited search for the first object carrying an `instructions` array.
+function searchTimeline(o: unknown, depth = 0): RawTimeline | null {
+  if (!o || typeof o !== 'object' || depth > 6) return null;
+  const obj = o as Record<string, unknown>;
+  if (Array.isArray(obj.instructions)) return obj as RawTimeline;
+  for (const v of Object.values(obj)) {
+    const found = searchTimeline(v, depth + 1);
+    if (found) return found;
+  }
+  return null;
 }
 
 export function parseTimelinePage(raw: unknown): TimelinePage {
@@ -53,11 +69,20 @@ export function parseTimelinePage(raw: unknown): TimelinePage {
   const tweetResults: unknown[] = [];
   let bottomCursor: string | null = null;
   for (const e of entries) {
-    if (e.entryId?.startsWith('tweet-')) {
-      const result = e.content?.itemContent?.tweet_results?.result;
-      if (result != null) tweetResults.push(result);
-    } else if (e.content?.cursorType === 'Bottom' && typeof e.content.value === 'string') {
-      bottomCursor = e.content.value;
+    const c = e.content;
+    if (c?.cursorType === 'Bottom' && typeof c.value === 'string') {
+      bottomCursor = c.value;
+      continue;
+    }
+    // A plain tweet cell, or a module (self-thread) wrapping several tweets.
+    const top = c?.itemContent?.tweet_results?.result;
+    if (top != null) {
+      tweetResults.push(top);
+      continue;
+    }
+    for (const it of c?.items ?? []) {
+      const r = it.item?.itemContent?.tweet_results?.result;
+      if (r != null) tweetResults.push(r);
     }
   }
   return { tweetResults, bottomCursor, done: tweetResults.length === 0 };
