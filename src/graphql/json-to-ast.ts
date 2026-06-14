@@ -16,10 +16,10 @@ import type {
   ArticleNode,
   AuthorInfo,
   Block,
+  BlockquoteNode,
   Document,
   EngagementCounts,
   HeadingNode,
-  ImageNode,
   InlineNode,
   LinkCardNode,
   ListItemNode,
@@ -239,23 +239,27 @@ function draftToBlocks(cs: RawContentState, mediaEntities: RawMediaEntity[]): Bl
   for (const m of mediaEntities) if (m.media_id) mediaById.set(m.media_id, m);
 
   const out: Block[] = [];
+  // Draft.js represents a multi-line list/quote as consecutive same-type blocks;
+  // accumulate them into one node and flush when the run ends.
   let list: ListNode | null = null;
-  const flushList = (): void => {
-    if (list) {
-      out.push(list);
-      list = null;
-    }
+  let quote: BlockquoteNode | null = null;
+  const flush = (): void => {
+    if (list) out.push(list);
+    if (quote) out.push(quote);
+    list = null;
+    quote = null;
   };
 
   for (const b of cs.blocks ?? []) {
     const type = b.type ?? 'unstyled';
 
     if (type === 'unordered-list-item' || type === 'ordered-list-item') {
+      if (quote) flush();
       const ordered = type === 'ordered-list-item';
       const inline = draftInline(b, entities);
       if (inline.length === 0) continue;
       if (!list || list.ordered !== ordered) {
-        flushList();
+        flush();
         list = { type: 'list', ordered, children: [] };
       }
       const item: ListItemNode = { type: 'listItem', children: [{ type: 'paragraph', children: inline }] };
@@ -263,11 +267,20 @@ function draftToBlocks(cs: RawContentState, mediaEntities: RawMediaEntity[]): Bl
       continue;
     }
 
-    flushList();
+    if (type === 'blockquote') {
+      if (list) flush();
+      const inline = draftInline(b, entities);
+      if (inline.length === 0) continue;
+      if (!quote) quote = { type: 'blockquote', children: [] };
+      quote.children.push({ type: 'paragraph', children: inline });
+      continue;
+    }
+
+    flush();
 
     if (type === 'atomic') {
-      const img = atomicImage(b, entities, mediaById);
-      if (img) out.push(img);
+      const block = atomicBlock(b, entities, mediaById);
+      if (block) out.push(block);
       continue;
     }
 
@@ -283,20 +296,21 @@ function draftToBlocks(cs: RawContentState, mediaEntities: RawMediaEntity[]): Bl
     const inline = draftInline(b, entities);
     if (inline.length) out.push({ type: 'paragraph', children: inline });
   }
-  flushList();
+  flush();
   return out;
 }
 
-// An atomic block holds a single MEDIA entity; resolve it to an image URL via
-// media_entities (keyed by mediaId).
-function atomicImage(
+// An atomic block carries a single entity: a DIVIDER (→ horizontal rule) or
+// MEDIA (→ image, resolved via media_entities by mediaId).
+function atomicBlock(
   b: RawDraftBlock,
   entities: Map<string, RawEntityValue>,
   mediaById: Map<string, RawMediaEntity>
-): ImageNode | undefined {
+): Block | undefined {
   const range = (b.entityRanges ?? [])[0];
   if (!range || range.key == null) return undefined;
   const ent = entities.get(String(range.key));
+  if (ent?.type === 'DIVIDER') return { type: 'thematicBreak' };
   if (ent?.type !== 'MEDIA') return undefined;
   const mediaId = ent.data?.mediaItems?.[0]?.mediaId;
   if (!mediaId) return undefined;
@@ -346,7 +360,9 @@ function draftInline(b: RawDraftBlock, entities: Map<string, RawEntityValue>): I
     out.push(...wrapRun(text.slice(i, j), b0, it0, ln0));
     i = j;
   }
-  return out;
+  // Drop edge breaks/whitespace (Draft blocks often carry a leading "\n", e.g.
+  // headings) — matches the DOM article path's trimAroundBreaks/collapseEdges.
+  return trimEdges(out);
 }
 
 function wrapRun(seg: string, bold: boolean, italic: boolean, url: string | null): InlineNode[] {

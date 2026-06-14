@@ -353,6 +353,45 @@ describe('jsonToAst — X Articles', () => {
       { type: 'image', url: 'https://pbs.twimg.com/media/pic.jpg' },
     ]);
   });
+
+  // Atomic DIVIDER entities → thematic break; `blockquote` blocks (grouped when
+  // consecutive) → blockquote; a leading "\n" (common on Draft headings) is
+  // trimmed, not turned into a stray break.
+  it('maps dividers, blockquotes, and trims a leading newline on headings', () => {
+    const result = {
+      ...articleResult,
+      article: {
+        article_results: {
+          result: {
+            ...articleResult.article.article_results.result,
+            content_state: {
+              blocks: [
+                { type: 'header-two', text: '\nA Heading' },
+                { type: 'atomic', text: ' ', entityRanges: [{ key: 0, offset: 0, length: 1 }] },
+                { type: 'blockquote', text: 'first line' },
+                { type: 'blockquote', text: 'second line' },
+                { type: 'unstyled', text: 'after' },
+              ],
+              entityMap: [{ key: '0', value: { type: 'DIVIDER', data: {} } }],
+            },
+          },
+        },
+      },
+    };
+    const body = jsonToAst(result).body as { children: unknown[] };
+    expect(body.children).toEqual([
+      { type: 'heading', depth: 2, children: [{ type: 'text', value: 'A Heading' }] },
+      { type: 'thematicBreak' },
+      {
+        type: 'blockquote',
+        children: [
+          { type: 'paragraph', children: [{ type: 'text', value: 'first line' }] },
+          { type: 'paragraph', children: [{ type: 'text', value: 'second line' }] },
+        ],
+      },
+      { type: 'paragraph', children: [{ type: 'text', value: 'after' }] },
+    ]);
+  });
 });
 
 describe('jsonToTweetNode — cards', () => {
