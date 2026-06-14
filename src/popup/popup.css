@@ -558,7 +558,6 @@ body {
 .footer-feedback {
   font-size: 11px;
   color: var(--text-secondary);
-  opacity: 0.7;
 }
 
 .footer-github {
@@ -567,6 +566,8 @@ body {
   transition: opacity var(--transition);
   display: flex;
   align-items: center;
+  gap: 6px;
+  text-decoration: none;
 }
 
 .footer-github:hover {
