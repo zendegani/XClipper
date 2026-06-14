@@ -86,6 +86,21 @@
   "fast_locked": {
     "message": "An export is running — cancel or let it finish to switch modes."
   },
+  "fast_date_range": {
+    "message": "Date range"
+  },
+  "fast_date_range_hint": {
+    "message": "Only export posts whose date is in this range — out-of-range posts are skipped without being expanded, so you reach older posts without hitting X's rate limit."
+  },
+  "fast_date_from": {
+    "message": "From date"
+  },
+  "fast_date_to": {
+    "message": "To date"
+  },
+  "fast_date_clear": {
+    "message": "Clear"
+  },
   "batch_pause": {
     "message": "Pause"
   },

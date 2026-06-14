@@ -47,6 +47,10 @@ export const viewMain = document.getElementById('view-main') as HTMLElement;
 export const fastBatchBar = document.getElementById('fast-batch-bar') as HTMLDivElement;
 export const chkFastBatch = document.getElementById('chk-fast-batch') as HTMLInputElement;
 export const fastLockedHint = document.getElementById('fast-locked-hint') as HTMLParagraphElement;
+export const fastDateRange = document.getElementById('fast-date-range') as HTMLDivElement;
+export const fastDateFrom = document.getElementById('fast-date-from') as HTMLInputElement;
+export const fastDateTo = document.getElementById('fast-date-to') as HTMLInputElement;
+export const fastDateClear = document.getElementById('fast-date-clear') as HTMLButtonElement;
 export const batchSection = document.getElementById('batch-section') as HTMLDivElement;
 
 // ─── Settings checkboxes ─────────────────────────────────────────────
