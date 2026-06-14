@@ -49,14 +49,21 @@
         <button id="tab-mode-single" class="export-tab active" type="button" role="tab"
           aria-selected="true" data-i18n="group_single">Single export</button>
         <button id="tab-mode-batch" class="export-tab" type="button" role="tab"
-          aria-selected="false"><span data-i18n="group_batch">Batch export</span><span
-            class="beta-badge" data-i18n="beta">Beta</span></button>
+          aria-selected="false"><span data-i18n="group_batch">Batch export</span></button>
       </div>
 
       <div id="fast-batch-bar" class="fast-batch-bar hidden">
-        <label class="toggle-label fast-toggle"
-          data-tooltip="Export your bookmarks far faster by fetching them directly through your logged-in X session (its private API) instead of rendering each page. Grants an optional X.com-only permission; nothing leaves your browser. Off by default — bookmarks only for now."
-          data-i18n-tooltip="fast_batch_title">
+        <span class="fast-info" tabindex="0" role="img" aria-label="About Fast Batch"
+          data-tooltip="Fetches your bookmarks directly through your logged-in X session (its private API) — far faster than rendering each page, but bookmarks only for now. Before the first run, open any single tweet once so the request can be captured. Large runs can hit X's rate limit and briefly soft-block your session (&quot;Something went wrong&quot;); Fast Batch stops politely and you can re-run a few minutes later for the rest."
+          data-i18n-tooltip="fast_batch_info">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+            stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="10" />
+            <line x1="12" y1="16" x2="12" y2="12" />
+            <line x1="12" y1="8" x2="12.01" y2="8" />
+          </svg>
+        </span>
+        <label class="toggle-label fast-toggle">
           <span class="toggle-text">
             <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
               stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -68,9 +75,6 @@
           <input type="checkbox" id="chk-fast-batch" class="toggle-input" />
           <span class="toggle-switch"></span>
         </label>
-        <p id="fast-batch-hint" class="fast-batch-hint" data-i18n="fast_batch_hint">
-          Fetches bookmarks through your X session — much faster. Bookmarks only for now.
-        </p>
       </div>
 
       <div class="options">
@@ -117,32 +121,32 @@
             <input type="checkbox" id="chk-include-metadata" class="toggle-input" />
             <span class="toggle-switch"></span>
           </label>
-          <div id="batch-format-controls" class="batch-format-controls hidden">
-            <label class="batch-field">
-              <span class="batch-field-label" data-i18n="batch_format">Format</span>
-              <select id="batch-format" class="batch-select">
-                <option value="md">Markdown (.md)</option>
-                <option value="txt">Text (.txt)</option>
-                <option value="html">HTML (.html)</option>
-                <option value="json">JSON (.json)</option>
-                <option value="csv">CSV (.csv)</option>
-              </select>
-            </label>
-            <div class="batch-field">
-              <span class="batch-field-label" data-i18n="batch_output">Output</span>
-              <div class="segmented" role="radiogroup" aria-label="Output"
-                data-tooltip="Separate: one file per post. Both: per-post files plus one combined file. Combined: just one file."
-                data-i18n-tooltip="batch_output_hint">
-                <input type="radio" name="batch-output" id="out-separate" value="separate" class="seg-input" />
-                <label for="out-separate" class="seg-label" data-i18n="batch_out_separate">Separate</label>
-                <input type="radio" name="batch-output" id="out-both" value="both" class="seg-input" />
-                <label for="out-both" class="seg-label" data-i18n="batch_out_both">Both</label>
-                <input type="radio" name="batch-output" id="out-combined" value="combined" class="seg-input" />
-                <label for="out-combined" class="seg-label" data-i18n="batch_out_combined">Combined</label>
-              </div>
+        </details>
+        <div id="batch-format-controls" class="batch-format-controls hidden">
+          <label class="batch-field">
+            <span class="batch-field-label" data-i18n="batch_format">Format</span>
+            <select id="batch-format" class="batch-select">
+              <option value="md">Markdown (.md)</option>
+              <option value="txt">Text (.txt)</option>
+              <option value="html">HTML (.html)</option>
+              <option value="json">JSON (.json)</option>
+              <option value="csv">CSV (.csv)</option>
+            </select>
+          </label>
+          <div class="batch-field">
+            <span class="batch-field-label" data-i18n="batch_output">Output</span>
+            <div class="segmented" role="radiogroup" aria-label="Output"
+              data-tooltip="Separate: one file per post. Both: per-post files plus one combined file. Combined: just one file."
+              data-i18n-tooltip="batch_output_hint">
+              <input type="radio" name="batch-output" id="out-separate" value="separate" class="seg-input" />
+              <label for="out-separate" class="seg-label" data-i18n="batch_out_separate">Separate</label>
+              <input type="radio" name="batch-output" id="out-both" value="both" class="seg-input" />
+              <label for="out-both" class="seg-label" data-i18n="batch_out_both">Both</label>
+              <input type="radio" name="batch-output" id="out-combined" value="combined" class="seg-input" />
+              <label for="out-combined" class="seg-label" data-i18n="batch_out_combined">Combined</label>
             </div>
           </div>
-        </details>
+        </div>
       </div>
 
       <div id="panel-single" class="export-panel">

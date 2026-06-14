@@ -902,8 +902,9 @@ body {
 /* ─── Fast Batch toggle (red, sits above Export settings) ─────── */
 .fast-batch-bar {
   display: flex;
-  flex-direction: column;
-  gap: 4px;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
   padding: 8px 12px;
   background: var(--error-bg);
   border: 1px solid var(--error-tint);
@@ -914,7 +915,35 @@ body {
   display: none;
 }
 
+/* Info (i) carries the full explanation as a tooltip — keeps the bar to one
+ * line. Sits first so it reads "ⓘ ⚡ Fast Batch". Anchored to the start edge
+ * so its tooltip doesn't spill off the popup's left side. */
+.fast-info {
+  display: flex;
+  align-items: center;
+  color: var(--error);
+  cursor: help;
+  flex-shrink: 0;
+}
+
+.fast-info svg {
+  width: 16px;
+  height: 16px;
+}
+
+.fast-info[data-tooltip]::after {
+  left: 0;
+  transform: translateX(0) translateY(2px);
+  max-width: 280px;
+}
+
+.fast-info[data-tooltip]:hover::after,
+.fast-info[data-tooltip]:focus-visible::after {
+  transform: translateX(0) translateY(0);
+}
+
 .fast-toggle {
+  flex: 1;
   padding: 0;
 }
 
@@ -937,24 +966,12 @@ body {
   background: var(--error);
 }
 
-.fast-batch-hint {
-  margin: 0;
-  font-size: 11px;
-  line-height: 1.35;
-  color: var(--text-secondary);
-}
-
-/* When Fast Batch is armed, the export area below the toggle gets a soft red
- * glow so it's unmistakable a non-default path is active. */
-#view-main.fast-on .options,
+/* When Fast Batch is armed, recolor ONLY the source box (tabs + Export button
+ * + progress) from blue to red — a clear, contained signal that the GraphQL
+ * path is active. Done by overriding the box's accent tokens. */
 #view-main.fast-on #batch-section {
-  box-shadow:
-    0 0 0 1px var(--error-tint),
-    0 4px 18px var(--error-glow);
-  border-color: var(--error-tint);
-  transition:
-    box-shadow var(--transition),
-    border-color var(--transition);
+  --batch: var(--error);
+  --batch-glow: var(--error-glow);
 }
 
 /* ─── Options Toggles ───────────────────────────────────────── */
