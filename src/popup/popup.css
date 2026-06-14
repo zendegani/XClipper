@@ -962,6 +962,18 @@ body {
   opacity: 0.45;
 }
 
+.fast-locked-hint {
+  margin: -2px 0 0;
+  padding: 0 2px;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--error);
+}
+
+.fast-locked-hint.hidden {
+  display: none;
+}
+
 /* Lightning icon + label stay red in both states. The extra .fast-batch-bar
  * ancestor beats the generic ".toggle-label:has(:checked) .toggle-icon" rule
  * that would otherwise paint it blue (--accent) when checked. */

@@ -265,6 +265,17 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
     setProgress({ status: 'error', error: 'Open x.com/i/bookmarks and scroll once, then try again.' });
     return null;
   }
+  // Expanding threads/articles needs a captured TweetDetail request. Check it
+  // UP FRONT (not after paginating 200 bookmarks) so we fail fast with a hint.
+  if (expandThreads && !templates.TweetDetail) {
+    log('no TweetDetail request captured — open any single tweet once, then re-run');
+    setProgress({
+      status: 'error',
+      needTweetDetail: true,
+      error: 'Open any single tweet once so threads & articles can be expanded, then try again.',
+    });
+    return null;
+  }
 
   const settings = await loadSettings();
   const format = settings.batchFormat ?? 'md';
@@ -374,14 +385,17 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
     }
   }
 
-  // 3) Write whatever we have, even if cancelled mid-expand — already-collected
-  // items (expanded as far as we got) are still worth keeping; un-expanded ones
-  // stay un-ledgered so a re-run completes them.
-  // postProcess + the shared sinks, in feed order.
-  setProgress({ phase: 'Writing files…', total: selected.length, done: 0 });
+  // 3) Write. Fast collects ALL bookmarks first, then enriches each via
+  // TweetDetail, then writes here — so on a normal/rate-limited run we write
+  // everything collected. But on CANCEL we write only the items actually
+  // processed (ledger=true: enriched, or didn't need it), so "stop at 5" yields
+  // ~5 files like Standard — the rest were fetched into memory but never written
+  // and stay un-ledgered, so a re-run grabs them.
+  const toWrite = cancelRequested ? selected.filter((s) => s.ledger) : selected;
+  setProgress({ phase: 'Writing files…', total: toWrite.length, done: 0 });
   const usedFilenames: string[] = [];
   const items: StoredItem[] = [];
-  for (const { doc, ledger: ledgerIt } of selected) {
+  for (const { doc, ledger: ledgerIt } of toWrite) {
     const result = postProcess(docToExtracted(doc), {
       includeMetadata: settings.includeMetadata,
       downloadImages: resolveDownloadImages('download', settings.downloadImages),
@@ -422,7 +436,7 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
     skipped,
     folder,
     rateLimited,
-    total: selected.length,
+    total: toWrite.length,
     done: items.length,
   });
   return { exported: items.length, skipped, folder };
