@@ -77,6 +77,13 @@ const TAB_ICONS: Record<BatchTab, SVGElement> = {
   timeline: btnBatchIconTimeline,
 };
 
+// Sources with a fixed URL we can open directly (no handle needed). Profile and
+// Likes are per-account, so they can't be opened generically.
+const OPEN_URLS: Partial<Record<BatchTab, string>> = {
+  bookmarks: 'https://x.com/i/bookmarks',
+  timeline: 'https://x.com/home',
+};
+
 let activeTab: BatchTab = 'bookmarks';
 // One job at a time (the background enforces this — one worker window,
 // politeness throttle toward X). Tabs stay browsable mid-job; this flag
@@ -86,6 +93,10 @@ let jobIsActive = false;
 // True when the action button should ADD the loaded items to the running
 // job's queue (same-source job in progress) instead of starting a new one.
 let appendable = false;
+// When the active tab's source has a canonical URL but the user isn't on it,
+// the action button becomes "Open <page>" and navigates there instead of
+// exporting. Only sources that need no handle (bookmarks, timeline) qualify.
+let openTarget: string | undefined;
 // Last polled snapshot, so a tab switch can re-evaluate progress visibility
 // immediately instead of waiting for the next poll.
 let lastJob: JobSnapshot | undefined;
@@ -150,6 +161,7 @@ function setButton(label: string, enabled: boolean, tooltip: string): void {
 // user at the right page.
 async function refreshIdleUi(): Promise<void> {
   appendable = false;
+  openTarget = undefined;
   // Reset buttons are always shown (stacked beside Export); default them to
   // disabled so early-return branches leave them greyed, and the main/fast
   // paths re-enable as appropriate below.
@@ -236,10 +248,11 @@ async function refreshIdleUi(): Promise<void> {
 
   if (activeTab === 'bookmarks' && source !== 'bookmarks') {
     batchDedupRow.classList.add('hidden');
+    openTarget = OPEN_URLS.bookmarks;
     setButton(
-      t('btn_batch', 'Export bookmarks'),
-      false,
-      t('btn_batch_open_bookmarks', 'Open x.com/i/bookmarks to export your bookmarks.')
+      t('btn_batch_go_bookmarks', 'Open Bookmarks'),
+      true,
+      t('btn_batch_open_bookmarks', 'Open your Bookmarks page, then scroll to load posts and export.')
     );
     return;
   }
@@ -263,10 +276,11 @@ async function refreshIdleUi(): Promise<void> {
   }
   if (activeTab === 'timeline' && source !== 'timeline') {
     batchDedupRow.classList.add('hidden');
+    openTarget = OPEN_URLS.timeline;
     setButton(
-      t('btn_batch_timeline', 'Export timeline'),
-      false,
-      t('btn_batch_open_timeline', 'Open x.com/home to export the posts in your timeline.')
+      t('btn_batch_go_timeline', 'Open Timeline'),
+      true,
+      t('btn_batch_open_timeline', 'Open your home timeline, then scroll to load posts and export.')
     );
     return;
   }
@@ -538,6 +552,18 @@ async function appendExport(): Promise<void> {
   await refreshIdleUi();
 }
 
+// Take the user to a source's page (Bookmarks/Timeline) when they aren't on it:
+// navigate the current x.com tab if there is one, else open a new tab. They then
+// scroll to load posts and export (Standard reads the loaded DOM).
+function openSourcePage(url: string): void {
+  if (pageIsX && pageTabId !== undefined) {
+    void chrome.tabs.update(pageTabId, { url });
+  } else {
+    void chrome.tabs.create({ url });
+  }
+  window.close();
+}
+
 // Empty the injector's gathered collection so it restarts from the current
 // scroll position, then refresh the count.
 async function resetQueue(): Promise<void> {
@@ -551,7 +577,10 @@ async function resetQueue(): Promise<void> {
 }
 
 export async function initBatchUi(): Promise<void> {
-  btnBatch.addEventListener('click', () => void (appendable ? appendExport() : startExport()));
+  btnBatch.addEventListener('click', () => {
+    if (openTarget) return void openSourcePage(openTarget);
+    void (appendable ? appendExport() : startExport());
+  });
   btnBatchCancel.addEventListener('click', () => void (isFastActive() ? cancelFast() : control('cancel')));
   // Fast toggle armed/disarmed, or a fast run finished → re-evaluate the button
   // and the Selection tab (which Fast disables).

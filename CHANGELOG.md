@@ -20,6 +20,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - Renamed the batch **Reset dedup** button to **Reset history** (clearer: it forgets what past runs already exported).
+- When you're not on the right page, the **Bookmarks** and **Timeline** tabs now show an **Open Bookmarks / Open Timeline** button that takes you there (instead of a disabled button) — then scroll and export.
+- Moved the batch **Output** selector above **Format**.
 
 ---
 ## [2.3.0] - 2026-06-14

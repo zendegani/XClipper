@@ -165,7 +165,7 @@
     "message": "Open x.com to batch-export bookmarks, a profile, or a selection."
   },
   "btn_batch_open_bookmarks": {
-    "message": "Open x.com/i/bookmarks to export your bookmarks."
+    "message": "Open your Bookmarks page, then scroll to load posts and export."
   },
   "btn_batch_open_profile": {
     "message": "Open a profile page on x.com to export its posts. Reposts are skipped."
@@ -192,7 +192,13 @@
     "message": "Export every post loaded in your home timeline as Markdown files into one folder. Scroll to load more."
   },
   "btn_batch_open_timeline": {
-    "message": "Open x.com/home to export the posts in your timeline."
+    "message": "Open your home timeline, then scroll to load posts and export."
+  },
+  "btn_batch_go_bookmarks": {
+    "message": "Open Bookmarks"
+  },
+  "btn_batch_go_timeline": {
+    "message": "Open Timeline"
   },
   "group_batch": {
     "message": "Batch export"
