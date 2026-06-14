@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { existsSync, readFileSync } from 'node:fs';
-import type { ThreadNode } from '../src/ast/types';
+import type { ArticleNode, ThreadNode } from '../src/ast/types';
 import { flattenTweetDetail, tweetDetailToDocument } from '../src/graphql/tweet-detail';
 import { renderMarkdown } from '../src/ast/render-markdown';
 
@@ -73,6 +73,35 @@ describe.skipIf(!threadPath)('tweetDetailToDocument — real captured thread', (
     // Every thread tweet is by the same author (the reply boundary held).
     const author = body.tweets[0].author.handle.toLowerCase();
     expect(body.tweets.every((t) => t.author.handle.toLowerCase() === author)).toBe(true);
+    expect(() => renderMarkdown(doc)).not.toThrow();
+  });
+});
+
+// Real captured TweetDetail whose focal item is an X Article (full Draft.js
+// content_state body). Git-ignored under _local/, absent in CI → skips.
+const articlePath = ['_local/article.json'].find((p) => existsSync(p));
+
+describe.skipIf(!articlePath)('tweetDetailToDocument — real captured article', () => {
+  const doc = tweetDetailToDocument(JSON.parse(readFileSync(articlePath as string, 'utf8')));
+  const body = doc.body as ArticleNode;
+
+  it('maps the article body from Draft.js content_state', () => {
+    expect(doc.metadata.type).toBe('article');
+    expect(doc.metadata.title.length).toBeGreaterThan(0);
+    expect(body.type).toBe('article');
+    expect(body.banner?.url).toMatch(/^https:\/\//);
+    // The full body, not the 2-block preview stub.
+    expect(body.children.length).toBeGreaterThan(10);
+    const kinds = new Set(body.children.map((c) => c.type));
+    expect(kinds.has('heading')).toBe(true);
+    expect(kinds.has('image')).toBe(true);
+    expect(kinds.has('list')).toBe(true);
+  });
+
+  it('resolves atomic blocks to real image URLs and renders', () => {
+    for (const c of body.children) {
+      if (c.type === 'image') expect(c.url).toMatch(/^https:\/\/pbs\.twimg\.com\//);
+    }
     expect(() => renderMarkdown(doc)).not.toThrow();
   });
 });

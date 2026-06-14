@@ -289,6 +289,70 @@ describe('jsonToAst — X Articles', () => {
       ],
     });
   });
+
+  // When TweetDetail supplies a Draft.js content_state, map the full body
+  // (paragraphs/headings/lists/images + inline bold/italic/links) instead of
+  // the preview stub. entityRanges index entityMap by stringified key; atomic
+  // blocks resolve their MEDIA entity to a URL via media_entities.
+  it('maps the Draft.js content_state to a full article body', () => {
+    const result = {
+      ...articleResult,
+      article: {
+        article_results: {
+          result: {
+            ...articleResult.article.article_results.result,
+            media_entities: [
+              { media_id: '555', media_info: { original_img_url: 'https://pbs.twimg.com/media/pic.jpg' } },
+            ],
+            content_state: {
+              blocks: [
+                { type: 'header-one', text: 'Big Title' },
+                {
+                  type: 'unstyled',
+                  text: 'Plain bold and a link here',
+                  inlineStyleRanges: [{ offset: 6, length: 4, style: 'Bold' }],
+                  entityRanges: [{ key: 0, offset: 17, length: 4 }],
+                },
+                { type: 'unordered-list-item', text: 'first' },
+                { type: 'unordered-list-item', text: 'second' },
+                { type: 'atomic', text: ' ', entityRanges: [{ key: 1, offset: 0, length: 1 }] },
+                { type: 'unstyled', text: '' },
+              ],
+              entityMap: [
+                { key: '0', value: { type: 'LINK', data: { url: 'https://example.com/x' } } },
+                { key: '1', value: { type: 'MEDIA', data: { mediaItems: [{ mediaId: '555' }] } } },
+              ],
+            },
+          },
+        },
+      },
+    };
+    const doc = jsonToAst(result);
+    const body = doc.body as { type: string; banner?: unknown; children: unknown[] };
+    expect(doc.metadata.type).toBe('article');
+    expect(body.children).toEqual([
+      { type: 'heading', depth: 1, children: [{ type: 'text', value: 'Big Title' }] },
+      {
+        type: 'paragraph',
+        children: [
+          { type: 'text', value: 'Plain ' },
+          { type: 'strong', children: [{ type: 'text', value: 'bold' }] },
+          { type: 'text', value: ' and a ' },
+          { type: 'link', url: 'https://example.com/x', children: [{ type: 'text', value: 'link' }] },
+          { type: 'text', value: ' here' },
+        ],
+      },
+      {
+        type: 'list',
+        ordered: false,
+        children: [
+          { type: 'listItem', children: [{ type: 'paragraph', children: [{ type: 'text', value: 'first' }] }] },
+          { type: 'listItem', children: [{ type: 'paragraph', children: [{ type: 'text', value: 'second' }] }] },
+        ],
+      },
+      { type: 'image', url: 'https://pbs.twimg.com/media/pic.jpg' },
+    ]);
+  });
 });
 
 describe('jsonToTweetNode — cards', () => {

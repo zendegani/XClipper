@@ -18,8 +18,12 @@ import type {
   Block,
   Document,
   EngagementCounts,
+  HeadingNode,
+  ImageNode,
   InlineNode,
   LinkCardNode,
+  ListItemNode,
+  ListNode,
   MediaItem,
   PollNode,
   TweetNode,
@@ -107,6 +111,41 @@ interface RawArticle {
   title?: string;
   preview_text?: string;
   cover_media?: { media_info?: { original_img_url?: string } };
+  // TweetDetail carries the full body as a Draft.js content_state; the
+  // bookmarks/timeline response omits it (→ preview stub). media_entities
+  // resolves an atomic block's MEDIA entity to an image URL.
+  content_state?: RawContentState;
+  media_entities?: RawMediaEntity[];
+}
+
+// ─── Draft.js content_state (X Article full body) ───────────────────
+interface RawDraftRange {
+  offset?: number;
+  length?: number;
+}
+interface RawStyleRange extends RawDraftRange {
+  style?: string; // 'Bold' | 'Italic' (others ignored)
+}
+interface RawEntityRange extends RawDraftRange {
+  key?: number | string; // indexes entityMap by stringified key
+}
+interface RawDraftBlock {
+  type?: string; // unstyled | header-one|two | unordered/ordered-list-item | atomic
+  text?: string;
+  inlineStyleRanges?: RawStyleRange[];
+  entityRanges?: RawEntityRange[];
+}
+interface RawEntityValue {
+  type?: string; // 'LINK' | 'MEDIA'
+  data?: { url?: string; mediaItems?: { mediaId?: string }[] };
+}
+interface RawContentState {
+  blocks?: RawDraftBlock[];
+  entityMap?: { key?: number | string; value?: RawEntityValue }[];
+}
+interface RawMediaEntity {
+  media_id?: string;
+  media_info?: { original_img_url?: string };
 }
 
 // A timeline entry's tweet may be wrapped (e.g. TweetWithVisibilityResults).
@@ -137,25 +176,21 @@ export function jsonToAst(raw: unknown, sourceUrl?: string): Document {
   };
 }
 
-// X long-form Article. The bookmarks/timeline response only carries title,
-// preview_text, and cover image — NOT the body — so this is a faithful *stub*:
-// correct type + title + cover + preview + a link to read the rest on X. The
-// full body requires a separate article-content fetch (ADR 0003 Phase 3); until
-// then this is honest and far better than mislabeling it a tweet.
+// X long-form Article. TweetDetail carries the full body as a Draft.js
+// content_state, which we map to article blocks (the same shape the DOM
+// extractor produces). The bookmarks/timeline response omits the body, so there
+// we fall back to a faithful *stub*: title + cover + preview + a "read on X"
+// link — honest, and far better than mislabeling it a tweet.
 function articleDocument(t: RawTweet, article: RawArticle, sourceUrl?: string): Document {
   const tweetId = t.rest_id ?? t.legacy?.id_str ?? '';
   const url =
     t.legacy?.entities?.urls?.[0]?.expanded_url?.replace(/^http:/, 'https:') ??
     `https://x.com/i/article/${article.rest_id ?? tweetId}`;
 
-  const children: Block[] = [];
-  if (article.preview_text) {
-    children.push({ type: 'paragraph', children: [{ type: 'text', value: article.preview_text }] });
-  }
-  children.push({
-    type: 'paragraph',
-    children: [{ type: 'link', url, children: [{ type: 'text', value: 'Read the full article on X' }] }],
-  });
+  const blocks = article.content_state?.blocks ?? [];
+  const children: Block[] = blocks.length
+    ? draftToBlocks(article.content_state ?? {}, article.media_entities ?? [])
+    : stubChildren(article, url);
 
   const body: ArticleNode = { type: 'article', children };
   const cover = article.cover_media?.media_info?.original_img_url;
@@ -170,11 +205,161 @@ function articleDocument(t: RawTweet, article: RawArticle, sourceUrl?: string): 
       tweetId,
       author: author(t),
       date: toIso(t.legacy?.created_at),
-      title: article.title ?? '',
+      title: (article.title ?? '').trim(),
       ...(eng ? { engagement: eng } : {}),
     },
     body,
   };
+}
+
+function stubChildren(article: RawArticle, url: string): Block[] {
+  const children: Block[] = [];
+  if (article.preview_text) {
+    children.push({ type: 'paragraph', children: [{ type: 'text', value: article.preview_text }] });
+  }
+  children.push({
+    type: 'paragraph',
+    children: [{ type: 'link', url, children: [{ type: 'text', value: 'Read the full article on X' }] }],
+  });
+  return children;
+}
+
+// ─── Draft.js content_state → article body blocks ───────────────────
+//
+// X stores the Article body as a Draft.js raw content state: a flat list of
+// blocks (paragraph/header/list-item/atomic), an entityMap (LINK + MEDIA), and
+// per-block style ranges. Offsets are UTF-16 code-unit based (Draft.js native),
+// so plain string slicing is correct here. We emit the SAME block shapes the DOM
+// article extractor produces, so the renderers are unchanged.
+
+function draftToBlocks(cs: RawContentState, mediaEntities: RawMediaEntity[]): Block[] {
+  const entities = new Map<string, RawEntityValue>();
+  for (const e of cs.entityMap ?? []) if (e.key != null && e.value) entities.set(String(e.key), e.value);
+  const mediaById = new Map<string, RawMediaEntity>();
+  for (const m of mediaEntities) if (m.media_id) mediaById.set(m.media_id, m);
+
+  const out: Block[] = [];
+  let list: ListNode | null = null;
+  const flushList = (): void => {
+    if (list) {
+      out.push(list);
+      list = null;
+    }
+  };
+
+  for (const b of cs.blocks ?? []) {
+    const type = b.type ?? 'unstyled';
+
+    if (type === 'unordered-list-item' || type === 'ordered-list-item') {
+      const ordered = type === 'ordered-list-item';
+      const inline = draftInline(b, entities);
+      if (inline.length === 0) continue;
+      if (!list || list.ordered !== ordered) {
+        flushList();
+        list = { type: 'list', ordered, children: [] };
+      }
+      const item: ListItemNode = { type: 'listItem', children: [{ type: 'paragraph', children: inline }] };
+      list.children.push(item);
+      continue;
+    }
+
+    flushList();
+
+    if (type === 'atomic') {
+      const img = atomicImage(b, entities, mediaById);
+      if (img) out.push(img);
+      continue;
+    }
+
+    if (type === 'header-one' || type === 'header-two' || type === 'header-three') {
+      const inline = draftInline(b, entities);
+      if (inline.length === 0) continue;
+      const depth = type === 'header-one' ? 1 : type === 'header-two' ? 2 : 3;
+      out.push({ type: 'heading', depth, children: inline } satisfies HeadingNode);
+      continue;
+    }
+
+    // unstyled (and any unknown block) → paragraph; skip empty spacer blocks.
+    const inline = draftInline(b, entities);
+    if (inline.length) out.push({ type: 'paragraph', children: inline });
+  }
+  flushList();
+  return out;
+}
+
+// An atomic block holds a single MEDIA entity; resolve it to an image URL via
+// media_entities (keyed by mediaId).
+function atomicImage(
+  b: RawDraftBlock,
+  entities: Map<string, RawEntityValue>,
+  mediaById: Map<string, RawMediaEntity>
+): ImageNode | undefined {
+  const range = (b.entityRanges ?? [])[0];
+  if (!range || range.key == null) return undefined;
+  const ent = entities.get(String(range.key));
+  if (ent?.type !== 'MEDIA') return undefined;
+  const mediaId = ent.data?.mediaItems?.[0]?.mediaId;
+  if (!mediaId) return undefined;
+  const url = mediaById.get(mediaId)?.media_info?.original_img_url;
+  return url ? { type: 'image', url } : undefined;
+}
+
+// Build inline nodes for one Draft block: walk character runs that share the
+// same Bold/Italic styling and LINK entity, then wrap each run (emphasis inside
+// strong inside link). Soft newlines within a block become break nodes.
+function draftInline(b: RawDraftBlock, entities: Map<string, RawEntityValue>): InlineNode[] {
+  const text = b.text ?? '';
+  const n = text.length;
+  if (n === 0) return [];
+
+  const bold = new Array<boolean>(n).fill(false);
+  const italic = new Array<boolean>(n).fill(false);
+  const link = new Array<string | null>(n).fill(null);
+
+  for (const s of b.inlineStyleRanges ?? []) {
+    const start = s.offset ?? 0;
+    const stop = Math.min(start + (s.length ?? 0), n);
+    for (let i = start; i < stop; i++) {
+      if (s.style === 'Bold') bold[i] = true;
+      else if (s.style === 'Italic') italic[i] = true;
+    }
+  }
+  for (const r of b.entityRanges ?? []) {
+    if (r.key == null) continue;
+    const ent = entities.get(String(r.key));
+    if (ent?.type !== 'LINK' || !ent.data?.url) continue;
+    const start = r.offset ?? 0;
+    const stop = Math.min(start + (r.length ?? 0), n);
+    for (let i = start; i < stop; i++) link[i] = ent.data.url;
+  }
+
+  const out: InlineNode[] = [];
+  let i = 0;
+  while (i < n) {
+    const b0 = bold[i];
+    const it0 = italic[i];
+    const ln0 = link[i];
+    let j = i + 1;
+    while (j < n && bold[j] === b0 && italic[j] === it0 && link[j] === ln0) j++;
+    out.push(...wrapRun(text.slice(i, j), b0, it0, ln0));
+    i = j;
+  }
+  return out;
+}
+
+function wrapRun(seg: string, bold: boolean, italic: boolean, url: string | null): InlineNode[] {
+  const base: InlineNode[] = [];
+  const parts = seg.split('\n');
+  for (let k = 0; k < parts.length; k++) {
+    if (k > 0) base.push({ type: 'break' });
+    if (parts[k]) base.push({ type: 'text', value: parts[k] });
+  }
+  if (base.length === 0) return [];
+  let nodes = base;
+  if (italic) nodes = [{ type: 'emphasis', children: nodes }];
+  if (bold) nodes = [{ type: 'strong', children: nodes }];
+  if (url) nodes = [{ type: 'link', url, children: nodes }];
+  return nodes;
 }
 
 export function jsonToTweetNode(raw: unknown): TweetNode {
