@@ -105,10 +105,16 @@
     "message": "already exported"
   },
   "batch_reset": {
-    "message": "Reset dedup"
+    "message": "Reset history"
   },
   "batch_reset_hint": {
-    "message": "Forget which bookmarks were already exported, so the next batch exports everything loaded."
+    "message": "Forget which posts were already exported in past runs, so the next batch exports everything loaded again."
+  },
+  "batch_reset_queue": {
+    "message": "Reset queue"
+  },
+  "batch_reset_queue_hint": {
+    "message": "Empty the gathered posts and restart collecting from where you've scrolled to — so you can begin at a specific post instead of the top."
   },
   "btn_batch_open_x": {
     "message": "Open x.com to batch-export bookmarks, a profile, or a selection."

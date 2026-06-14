@@ -565,6 +565,14 @@ try {
       });
       return false;
     }
+    if (msg && msg.action === 'XCLIPPER_HARVEST_RESET') {
+      // Drop everything gathered so far, then re-seed from the current viewport
+      // so the collection restarts at wherever the user has scrolled to.
+      harvested.clear();
+      harvestTimeline();
+      sendResponse({ count: harvested.size });
+      return false;
+    }
     if (msg && msg.action === 'XCLIPPER_SELECTION') {
       if (msg.enable) enterSelection();
       else exitSelection();
