@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ---
 ## [Unreleased]
 
+### Added
+
+- **Fast Batch (beta)** — an opt-in second batch mode that exports your **bookmarks** far faster by fetching them directly through your already-logged-in X session instead of opening and rendering each post in a tab. It expands self-threads and full X Articles, and is careful with your account: it spreads requests out and **stops politely if X rate-limits you** (re-run a few minutes later and it picks up only what's left). Standard Batch stays the default and is unchanged — Fast Batch is off until you flip the red toggle, which asks for a one-time, X.com-only permission. Nothing leaves your browser: no API keys, no server, no password. (Bookmarks only for now.)
+
 ### Changed
 
 - **Faster batch export**: the politeness gap between posts dropped from 2–4 s to ~0.6–1.2 s, and the per-post thread/media hydration now settles adaptively — it proceeds the instant content mounts instead of always waiting a fixed delay, while keeping the same upper bound so slow-loading threads are never truncated. Together these noticeably cut batch wall-clock. To keep the tighter pace safe, a batch now **auto-pauses** when it hits a login or rate-limit wall, or after several failures in a row — the popup shows why, and Resume picks up where it left off.
