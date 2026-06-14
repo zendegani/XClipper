@@ -74,8 +74,14 @@
       </div>
 
       <div class="options">
-        <div class="option-group">
-          <div class="option-group-label" data-i18n="group_export">Export settings</div>
+        <details id="export-settings" class="option-group" open>
+          <summary class="option-group-summary">
+            <span class="option-group-label" data-i18n="group_export">Export settings</span>
+            <svg class="option-group-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </summary>
           <label class="toggle-label" data-tooltip="Download images to a folder next to the markdown file" data-i18n-tooltip="opt_save_images_title">
             <span class="toggle-text">
               <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -136,7 +142,7 @@
               </div>
             </div>
           </div>
-        </div>
+        </details>
       </div>
 
       <div id="panel-single" class="export-panel">

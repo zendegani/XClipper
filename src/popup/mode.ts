@@ -13,6 +13,9 @@ const panelSingle = document.getElementById('panel-single');
 const panelBatch = document.getElementById('batch-section');
 // Format + output controls only apply to batch runs, so they ride with the mode.
 const batchFormatControls = document.getElementById('batch-format-controls');
+// Export settings is collapsible; default expanded in Single, collapsed in Batch
+// (Batch adds the Fast toggle + tabs + progress, so it needs the vertical room).
+const exportSettings = document.getElementById('export-settings') as HTMLDetailsElement | null;
 
 export function setExportMode(single: boolean, persist = true): void {
   tabSingle?.classList.toggle('active', single);
@@ -22,6 +25,7 @@ export function setExportMode(single: boolean, persist = true): void {
   panelSingle?.classList.toggle('hidden', !single);
   panelBatch?.classList.toggle('hidden', single);
   batchFormatControls?.classList.toggle('hidden', single);
+  if (exportSettings) exportSettings.open = single;
   // Fast Batch bar + red glow ride with the mode too (batch-only).
   syncFastBatchMode(single);
   // The format-gated toggle disabling depends on mode, so re-sync after the
