@@ -102,16 +102,16 @@
     "message": "Clear"
   },
   "fast_step_page": {
-    "message": "Page"
+    "message": "Reload x.com"
   },
   "fast_step_tweet": {
-    "message": "Tweet"
+    "message": "Open one tweet"
   },
   "fast_step_fetch": {
-    "message": "Fetch"
+    "message": "Fetching ..."
   },
   "fast_step_expand": {
-    "message": "Expand"
+    "message": "Expanding ..."
   },
   "batch_pause": {
     "message": "Pause"

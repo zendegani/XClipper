@@ -146,6 +146,11 @@ function setButton(label: string, enabled: boolean, tooltip: string): void {
 // user at the right page.
 async function refreshIdleUi(): Promise<void> {
   appendable = false;
+  // Reset buttons are always shown (stacked beside Export); default them to
+  // disabled so early-return branches leave them greyed, and the main/fast
+  // paths re-enable as appropriate below.
+  btnBatchResetQueue.disabled = true;
+  btnBatchReset.disabled = true;
 
   // Fast Batch (armed via the red toggle) overrides per-page gating: it fetches
   // bookmarks through the GraphQL session, so it doesn't need the bookmarks page

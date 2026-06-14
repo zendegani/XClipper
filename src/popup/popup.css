@@ -905,7 +905,7 @@ body {
   flex-direction: row;
   align-items: center;
   gap: 10px;
-  padding: 8px 12px;
+  padding: 6px 12px;
   background: var(--error-bg);
   border: 1px solid var(--error-tint);
   border-radius: var(--radius-sm);
@@ -1011,7 +1011,8 @@ body {
 .fast-steps {
   display: flex;
   align-items: center;
-  gap: 14px;
+  justify-content: space-between;
+  gap: 6px;
   font-size: 11px;
   color: var(--text-secondary);
 }
@@ -1132,7 +1133,7 @@ details.option-group:not([open]) {
   gap: 8px;
   cursor: pointer;
   list-style: none;
-  padding: 2px 0;
+  padding: 0;
   user-select: none;
 }
 
@@ -1852,6 +1853,31 @@ details.option-group[open] .option-group-chevron {
   color: var(--batch);
   border: 1px solid var(--batch);
 }
+
+/* Export button + a stacked pair of Reset buttons beside it. */
+.batch-action-row {
+  display: flex;
+  align-items: stretch;
+  gap: 8px;
+}
+
+.batch-action-row .btn-batch {
+  width: auto;
+  flex: 1;
+  min-width: 0;
+}
+
+.batch-reset-stack {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.batch-reset-stack .batch-ctl {
+  white-space: nowrap;
+}
 .btn-batch .btn-icon {
   color: var(--batch);
 }
@@ -2024,7 +2050,7 @@ details.option-group[open] .option-group-chevron {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 8px 0;
+  padding: 7px 0;
   border: none;
   border-radius: var(--radius-sm);
   background: transparent;

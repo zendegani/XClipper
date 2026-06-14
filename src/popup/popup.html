@@ -309,6 +309,7 @@
           <input type="date" id="fast-date-to" class="fast-date-input" aria-label="To date" data-i18n-aria-label="fast_date_to" />
           <button id="fast-date-clear" class="batch-ctl" type="button" data-i18n="fast_date_clear">Clear</button>
         </div>
+        <div class="batch-action-row">
         <button id="btn-batch" class="btn-batch btn-action" type="button"
           data-tooltip="Export every bookmark loaded on this page as Markdown files into one folder. Scroll the bookmarks page to load more."
           data-i18n-tooltip="btn_batch_hint">
@@ -332,22 +333,23 @@
           </svg>
           <span class="btn-label" id="btn-batch-label" data-i18n="btn_batch">Export bookmarks</span>
         </button>
-        <div id="fast-steps" class="fast-steps hidden" role="status">
-          <span class="fast-step" id="fast-step-page"><span class="fast-step-dot"></span><span class="fast-step-label" data-i18n="fast_step_page">Page</span></span>
-          <span class="fast-step" id="fast-step-tweet"><span class="fast-step-dot"></span><span class="fast-step-label" data-i18n="fast_step_tweet">Tweet</span></span>
-          <span class="fast-step" id="fast-step-fetch"><span class="fast-step-dot"></span><span class="fast-step-label" data-i18n="fast_step_fetch">Fetch</span></span>
-          <span class="fast-step" id="fast-step-expand"><span class="fast-step-dot"></span><span class="fast-step-label" data-i18n="fast_step_expand">Expand</span></span>
-        </div>
-        <div id="batch-dedup-row" class="batch-dedup-row hidden">
-          <span id="batch-dedup-text"></span>
-          <span class="batch-ctl-group">
+          <div class="batch-reset-stack">
             <button id="btn-batch-reset-queue" class="batch-ctl" type="button"
               data-tooltip="Empty the gathered posts and restart collecting from where you've scrolled to — so you can begin at a specific post instead of the top."
               data-i18n-tooltip="batch_reset_queue_hint" data-i18n="batch_reset_queue">Reset queue</button>
             <button id="btn-batch-reset" class="batch-ctl" type="button"
               data-tooltip="Forget which posts were already exported in past runs, so the next batch exports everything loaded again."
               data-i18n-tooltip="batch_reset_hint" data-i18n="batch_reset">Reset history</button>
-          </span>
+          </div>
+        </div>
+        <div id="fast-steps" class="fast-steps hidden" role="status">
+          <span class="fast-step" id="fast-step-page"><span class="fast-step-dot"></span><span class="fast-step-label" data-i18n="fast_step_page">Reload x.com</span></span>
+          <span class="fast-step" id="fast-step-tweet"><span class="fast-step-dot"></span><span class="fast-step-label" data-i18n="fast_step_tweet">Open one tweet</span></span>
+          <span class="fast-step" id="fast-step-fetch"><span class="fast-step-dot"></span><span class="fast-step-label" data-i18n="fast_step_fetch">Fetching ...</span></span>
+          <span class="fast-step" id="fast-step-expand"><span class="fast-step-dot"></span><span class="fast-step-label" data-i18n="fast_step_expand">Expanding ...</span></span>
+        </div>
+        <div id="batch-dedup-row" class="batch-dedup-row hidden">
+          <span id="batch-dedup-text"></span>
         </div>
         <div id="batch-progress" class="batch-progress hidden">
           <div class="batch-progress-row">
