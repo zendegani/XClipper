@@ -180,13 +180,13 @@ async function refreshIdleUi(): Promise<void> {
     if (activeTab === 'profile') {
       // Handle from the URL, not the injector — Fast doesn't need the page.
       const handle = handleFromUrl(pageUrl);
-      label = `⚡ ${t('btn_batch_profile', 'Export posts')}${handle ? ` @${handle}` : ''}`;
+      label = `${t('btn_batch_profile', 'Export posts')}${handle ? ` @${handle}` : ''}`;
       hint = t('btn_batch_fast_profile_hint', "Fetch this profile's own posts through your X session — much faster. Reposts are skipped.");
     } else if (activeTab === 'likes') {
-      label = `⚡ ${t('btn_batch_likes', 'Export likes')}`;
+      label = t('btn_batch_likes', 'Export likes');
       hint = t('btn_batch_fast_likes_hint', 'Fetch your liked posts through your X session — much faster. Expands threads & articles.');
     } else {
-      label = `⚡ ${t('btn_batch', 'Export bookmarks')}`;
+      label = t('btn_batch', 'Export bookmarks');
       hint = t('btn_batch_fast_hint', 'Fetch all your bookmarks through your X session — much faster. Expands threads & articles; stops politely if X rate-limits.');
     }
     setButton(label, !isFastActive(), hint);
