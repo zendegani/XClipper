@@ -365,6 +365,22 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
 }
 
 
+// Debug/fixture capture: download the raw TweetDetail JSON for one status id,
+// reusing the already-granted Fast Batch auth (no Network-tab fiddling). Console:
+//   await xclipperDumpTweetDetail('2046902326657749114')
+async function dumpTweetDetail(id: string): Promise<void> {
+  if (!(await requestFastBatchAccess())) return void log('permission denied');
+  const template = templates.TweetDetail;
+  if (!template) return void log('no TweetDetail request seen yet — open any tweet once, then retry');
+  const vars = JSON.parse(getVariables(template)) as Record<string, unknown>;
+  vars.focalTweetId = id;
+  delete vars.cursor;
+  const json = await authedFetchJson(setVariablesParam(template, JSON.stringify(vars)));
+  const url = `data:application/json;base64,${btoa(unescape(encodeURIComponent(JSON.stringify(json))))}`;
+  await chrome.downloads.download({ url, filename: `xclipper-debug/tweetdetail-${id}.json` });
+  log('dumped TweetDetail', id, '→ Downloads/xclipper-debug/');
+}
+
 export function initFastBatch(): void {
   // Re-arm capture across service-worker restarts if access was already granted.
   void hasAccess().then((ok) => {
@@ -373,6 +389,7 @@ export function initFastBatch(): void {
   chrome.permissions.onAdded.addListener((p) => {
     if (p.permissions?.includes('webRequest')) startCapturing();
   });
-  // Phase-A trigger (see header).
+  // Phase-A triggers (see header).
   (globalThis as Record<string, unknown>).xclipperFastBatch = runFastBatchExport;
+  (globalThis as Record<string, unknown>).xclipperDumpTweetDetail = dumpTweetDetail;
 }
