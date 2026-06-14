@@ -99,6 +99,12 @@ export async function requestFastBatchAccess(): Promise<boolean> {
 // Replay a captured GraphQL request with the observed session auth. Cookies ride
 // along via credentials:'include' + the x.com host permission; the csrf header
 // must match the ct0 cookie, which is why we reuse the captured one.
+class HttpError extends Error {
+  constructor(readonly status: number) {
+    super(`X GraphQL responded ${status}`);
+  }
+}
+
 async function authedFetchJson(url: string): Promise<unknown> {
   if (!auth) {
     throw new Error('No X auth captured yet — open x.com (e.g. /i/bookmarks) once, then retry');
@@ -114,16 +120,42 @@ async function authedFetchJson(url: string): Promise<unknown> {
     },
     credentials: 'include',
   });
-  if (!res.ok) throw new Error(`X GraphQL responded ${res.status}`);
+  if (!res.ok) throw new HttpError(res.status);
   return res.json();
 }
+
+// X returns rate-limit / "Something went wrong" as a GraphQL errors envelope
+// (HTTP 200) just as often as a 429 — both mean "back off".
+class GraphqlError extends Error {
+  constructor(messages: string[]) {
+    super(`X GraphQL error: ${messages.join('; ')}`);
+  }
+}
+
+const sleep = (ms: number): Promise<void> => new Promise((r) => setTimeout(r, ms));
+
+type ErrorKind = 'rate-limit' | 'transient' | 'permanent';
+
+// 429 and GraphQL error envelopes mean the account is being throttled — stop
+// spending the TweetDetail budget. 5xx / network blips are transient (retry). A
+// 4xx (deleted/protected tweet) or a mapping miss is permanent (keep the root).
+function classify(err: unknown): ErrorKind {
+  if (err instanceof HttpError) return err.status === 429 ? 'rate-limit' : err.status >= 500 ? 'transient' : 'permanent';
+  if (err instanceof GraphqlError) return 'rate-limit';
+  if (err instanceof TypeError) return 'transient'; // fetch network failure
+  return 'permanent';
+}
+
+const MAX_RETRIES = 2;
+const RETRY_BASE_MS = 1200;
 
 // Per-item TweetDetail fetch — the bookmarks timeline carries only a tweet's
 // root, so an Article's full body and a self-thread's continuation tweets both
 // come from here (tweetDetailToDocument maps both). Built from the captured
 // TweetDetail request so the query-id + `features` stay current; we only swap in
 // the target id (`focalTweetId` is X's well-known TweetDetail variable). Returns
-// null when no TweetDetail request has been observed yet.
+// null when no TweetDetail request has been observed yet. Retries transient /
+// rate-limit failures with backoff; throws the last error otherwise.
 async function fetchTweetDetailDoc(id: string, sourceUrl: string): Promise<Document | null> {
   const template = templates.TweetDetail;
   if (!template) return null;
@@ -131,7 +163,18 @@ async function fetchTweetDetailDoc(id: string, sourceUrl: string): Promise<Docum
   vars.focalTweetId = id;
   delete vars.cursor;
   const url = setVariablesParam(template, JSON.stringify(vars));
-  return tweetDetailToDocument(await authedFetchJson(url), sourceUrl);
+
+  for (let attempt = 0; ; attempt++) {
+    try {
+      const json = await authedFetchJson(url);
+      const errs = (json as { errors?: { message?: string }[] }).errors;
+      if (Array.isArray(errs) && errs.length) throw new GraphqlError(errs.map((e) => e.message ?? 'error'));
+      return tweetDetailToDocument(json, sourceUrl);
+    } catch (err) {
+      if (classify(err) === 'permanent' || attempt >= MAX_RETRIES) throw err;
+      await sleep(RETRY_BASE_MS * 2 ** attempt + Math.random() * 400);
+    }
+  }
 }
 
 // Run `fn` over `items` with at most `limit` in flight (TweetDetail is one
@@ -164,8 +207,11 @@ export interface FastBatchOptions {
   expandThreads?: boolean;
 }
 
-// At most this many TweetDetail fetches in flight during expansion.
-const TWEET_DETAIL_CONCURRENCY = 6;
+// At most this many TweetDetail fetches in flight during expansion. Kept low on
+// purpose: bursting TweetDetail (we saw ~6-wide bursts trip X's per-account
+// quota at ~150 calls, soft-blocking the user's own browsing with "Something
+// went wrong"). Gentle + stop-on-rate-limit protects the session.
+const TWEET_DETAIL_CONCURRENCY = 3;
 
 // Phase-A trigger (no UI yet, like ADR 0002 batch): fetch the bookmarks
 // timeline via GraphQL, map each tweet to the AST, expand Articles/threads via
@@ -211,7 +257,14 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
 
   // 1) Collect: paginate the bookmarks feed, mapping each root tweet, skipping
   //    anything already exported. (Cheap — pure mapping, no per-item fetch yet.)
-  const selected: { doc: Document }[] = [];
+  //    `needsExpand` items get a TweetDetail fetch next; `ledger` decides whether
+  //    to mark the item done (false = re-run should retry it).
+  interface Item {
+    doc: Document;
+    needsExpand: boolean;
+    ledger: boolean;
+  }
+  const selected: Item[] = [];
   try {
     for await (const tweets of paginateTimeline(initialUrl, authedFetchJson, { maxPages: 25 })) {
       for (const raw of tweets) {
@@ -222,7 +275,8 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
           skipped++;
           continue;
         }
-        selected.push({ doc });
+        const needsExpand = doc.metadata.type === 'article' || expandThreads;
+        selected.push({ doc, needsExpand, ledger: !needsExpand });
       }
       log(`fetched ${selected.length}${skipped ? ` (skipped ${skipped} already-exported)` : ''}`);
       if (selected.length >= maxItems) break;
@@ -232,33 +286,50 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
     log('fetch stopped early:', err);
   }
 
-  // 2) Expand: Articles always (full body), other tweets when expandThreads.
-  //    One concurrency-limited TweetDetail fetch per item; failures keep the
-  //    root tweet / preview stub.
-  const toExpand = selected.filter((s) => s.doc.metadata.type === 'article' || expandThreads);
+  // 2) Expand via per-item TweetDetail: Articles always (full body), other
+  //    tweets when expandThreads. Articles go FIRST so the limited per-account
+  //    budget always covers them. On the first rate-limit signal we STOP (rather
+  //    than hammer X and degrade the user's session); stopped/rate-limited items
+  //    are NOT ledgered, so a later re-run fetches their full thread/article.
+  const toExpand = selected.filter((s) => s.needsExpand);
   if (toExpand.length > 0 && !templates.TweetDetail) {
     log('cannot expand threads/articles: no TweetDetail request seen yet — open any tweet once, then re-run');
   } else if (toExpand.length > 0) {
+    const ordered = [...toExpand].sort(
+      (a, b) => Number(b.doc.metadata.type === 'article') - Number(a.doc.metadata.type === 'article')
+    );
     let expanded = 0;
-    let failed = 0;
-    await mapLimit(toExpand, TWEET_DETAIL_CONCURRENCY, async (s) => {
+    let unavailable = 0;
+    let rateLimited = false;
+    await mapLimit(ordered, TWEET_DETAIL_CONCURRENCY, async (s) => {
+      if (rateLimited) return; // budget spent — leave pending (ledger stays false)
       try {
         const full = await fetchTweetDetailDoc(s.doc.metadata.tweetId, s.doc.metadata.sourceUrl);
-        if (full) {
-          s.doc = full;
-          expanded++;
+        if (full) s.doc = full;
+        s.ledger = true;
+        expanded++;
+      } catch (err) {
+        if (classify(err) === 'rate-limit') {
+          rateLimited = true; // stop opening new fetches; this item stays pending
+        } else {
+          s.ledger = true; // deleted/protected — the root tweet is the final answer
+          unavailable++;
         }
-      } catch {
-        failed++; // keep the root tweet / article stub
       }
     });
-    log(`expanded ${expanded}/${toExpand.length} via TweetDetail${failed ? ` (${failed} failed, kept root)` : ''}`);
+    log(`expanded ${expanded}/${toExpand.length} via TweetDetail${unavailable ? ` (${unavailable} unavailable, kept root)` : ''}`);
+    const pending = toExpand.filter((s) => !s.ledger).length;
+    if (rateLimited && pending > 0) {
+      log(
+        `hit X's TweetDetail rate limit — stopped to protect your session. ${pending} item(s) were exported as root tweet / article stub and were NOT marked done; re-run Fast Batch later (a few minutes) and the dedup ledger will fetch just those.`
+      );
+    }
   }
 
   // 3) Write: postProcess + the shared sinks, in feed order.
   const usedFilenames: string[] = [];
   const items: StoredItem[] = [];
-  for (const { doc } of selected) {
+  for (const { doc, ledger: ledgerIt } of selected) {
     const result = postProcess(docToExtracted(doc), {
       includeMetadata: settings.includeMetadata,
       downloadImages: resolveDownloadImages('download', settings.downloadImages),
@@ -274,7 +345,7 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
     }
     items.push({ url: doc.metadata.sourceUrl, filename, doc });
     const id = doc.metadata.tweetId;
-    if (id) ledgerArr = appendToLedger(ledgerArr, id);
+    if (id && ledgerIt) ledgerArr = appendToLedger(ledgerArr, id);
   }
 
   if (items.length > 0) {
