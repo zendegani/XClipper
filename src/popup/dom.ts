@@ -51,6 +51,11 @@ export const fastDateRange = document.getElementById('fast-date-range') as HTMLD
 export const fastDateFrom = document.getElementById('fast-date-from') as HTMLInputElement;
 export const fastDateTo = document.getElementById('fast-date-to') as HTMLInputElement;
 export const fastDateClear = document.getElementById('fast-date-clear') as HTMLButtonElement;
+export const fastSteps = document.getElementById('fast-steps') as HTMLDivElement;
+export const fastStepPage = document.getElementById('fast-step-page') as HTMLSpanElement;
+export const fastStepTweet = document.getElementById('fast-step-tweet') as HTMLSpanElement;
+export const fastStepFetch = document.getElementById('fast-step-fetch') as HTMLSpanElement;
+export const fastStepExpand = document.getElementById('fast-step-expand') as HTMLSpanElement;
 export const batchSection = document.getElementById('batch-section') as HTMLDivElement;
 
 // ─── Settings checkboxes ─────────────────────────────────────────────

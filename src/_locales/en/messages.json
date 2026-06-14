@@ -101,6 +101,18 @@
   "fast_date_clear": {
     "message": "Clear"
   },
+  "fast_step_page": {
+    "message": "Page"
+  },
+  "fast_step_tweet": {
+    "message": "Tweet"
+  },
+  "fast_step_fetch": {
+    "message": "Fetch"
+  },
+  "fast_step_expand": {
+    "message": "Expand"
+  },
   "batch_pause": {
     "message": "Pause"
   },

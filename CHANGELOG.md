@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Fast Batch step lights** — a small Page → Tweet → Fetch → Expand indicator shows, before you export, whether the page's feed and a tweet have been captured (green/red), then lights up the live phase during a run — so you know what (if anything) to do first.
 - **Include reposts toggle** — by default a profile batch exports only the owner's own posts (both Standard and Fast); turn this on to include their reposts too.
 - **Date-range filter for Fast Batch** — limit an export to posts within a date range (e.g. a single month). Out-of-range posts are skipped without being fetched in full, so you spend X's per-session quota only on the posts you want and can reach older ones without getting rate-limited.
 - **Fast Batch now works on Profiles and Likes**, not just Bookmarks — export a profile's own posts (reposts skipped) or your liked posts through your X session at the same ~10× speed. Selection stays Standard-only (its tab is disabled while Fast is on).

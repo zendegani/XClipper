@@ -42,7 +42,7 @@ import {
   tabBatchLikes,
 } from './dom';
 import { setExportMode } from './mode';
-import { getFastMode, isFastActive, startFastExport, cancelFast, setStandardJobActive, resumeFastIfActive } from './fast-batch-ui';
+import { getFastMode, isFastActive, startFastExport, cancelFast, setStandardJobActive, resumeFastIfActive, updateFastSteps } from './fast-batch-ui';
 
 type JobSnapshot = NonNullable<BatchStatusResponse['job']>;
 type BatchTab = 'bookmarks' | 'profile' | 'selection' | 'likes';
@@ -185,6 +185,7 @@ async function refreshIdleUi(): Promise<void> {
       hint = t('btn_batch_fast_hint', 'Fetch all your bookmarks through your X session — much faster. Expands threads & articles; stops politely if X rate-limits.');
     }
     setButton(label, !isFastActive(), hint);
+    void updateFastSteps(activeTab); // refresh the Page/Tweet readiness lights
     return;
   }
 
