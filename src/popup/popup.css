@@ -13,6 +13,8 @@
   --success-bg: rgba(0, 186, 124, 0.12);
   --error: #f4212e;
   --error-bg: rgba(244, 33, 46, 0.12);
+  --error-glow: rgba(244, 33, 46, 0.28);
+  --error-tint: rgba(244, 33, 46, 0.16);
   --border-subtle: rgba(0, 0, 0, 0.08);
   --toggle-off-bg: rgba(0, 0, 0, 0.1);
   --toggle-off-knob: #8b98a5;
@@ -895,6 +897,64 @@ body {
 .nav-back .nav-arrow {
   margin-inline-start: 0;
   margin-inline-end: 4px;
+}
+
+/* ─── Fast Batch toggle (red, sits above Export settings) ─────── */
+.fast-batch-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 8px 12px;
+  background: var(--error-bg);
+  border: 1px solid var(--error-tint);
+  border-radius: var(--radius-sm);
+}
+
+.fast-batch-bar.hidden {
+  display: none;
+}
+
+.fast-toggle {
+  padding: 0;
+}
+
+/* Lightning icon + label go red when armed. */
+.fast-toggle .toggle-icon {
+  stroke: var(--error);
+  opacity: 0.85;
+}
+
+.fast-toggle:has(.toggle-input:checked) .toggle-text {
+  color: var(--error);
+}
+
+.fast-toggle .toggle-input:checked + .toggle-switch {
+  background: var(--error-tint);
+  box-shadow: 0 0 8px var(--error-glow);
+}
+
+.fast-toggle .toggle-input:checked + .toggle-switch::after {
+  background: var(--error);
+}
+
+.fast-batch-hint {
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--text-secondary);
+}
+
+/* When Fast Batch is armed, the export area below the toggle gets a soft red
+ * glow so it's unmistakable a non-default path is active. */
+#view-main.fast-on .options,
+#view-main.fast-on #batch-section {
+  box-shadow:
+    0 0 0 1px var(--error-tint),
+    0 4px 18px var(--error-glow);
+  border-color: var(--error-tint);
+  transition:
+    box-shadow var(--transition),
+    border-color var(--transition);
 }
 
 /* ─── Options Toggles ───────────────────────────────────────── */

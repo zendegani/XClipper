@@ -203,6 +203,43 @@ export interface ContextUrlRequest {
   url: string | null;
 }
 
+// ─── Fast Batch (ADR 0003) ──────────────────────────────────────────
+// Opt-in GraphQL bookmarks export, driven from the popup. Progress is polled
+// (like BATCH_STATUS) because the popup can close mid-run. Separate from the
+// worker-tab batch job model on purpose — Fast Batch has no per-item tab.
+export interface FastBatchStartRequest {
+  action: 'FAST_BATCH_START';
+  expandThreads?: boolean;
+}
+export interface FastBatchStartResponse {
+  success: boolean;
+  error?: string;
+}
+export interface FastBatchCancelRequest {
+  action: 'FAST_BATCH_CANCEL';
+}
+export interface FastBatchStatusRequest {
+  action: 'FAST_BATCH_STATUS';
+}
+export interface FastBatchProgress {
+  status: 'idle' | 'running' | 'done' | 'cancelled' | 'error';
+  // Human-readable phase for the progress label (e.g. "Fetching bookmarks").
+  phase: string;
+  done: number;
+  total: number;
+  exported: number;
+  skipped: number;
+  folder?: string;
+  // Stopped early because X throttled TweetDetail — some items kept as stubs.
+  rateLimited?: boolean;
+  // Could not start: no TweetDetail request observed yet (open a tweet once).
+  needTweetDetail?: boolean;
+  error?: string;
+}
+export interface FastBatchStatusResponse {
+  progress: FastBatchProgress;
+}
+
 export type MessageRequest =
   | ExtractRequest
   | DownloadRequest
@@ -215,4 +252,7 @@ export type MessageRequest =
   | BatchStatusRequest
   | HarvestRequest
   | SelectionRequest
-  | BatchItemResultMessage;
+  | BatchItemResultMessage
+  | FastBatchStartRequest
+  | FastBatchCancelRequest
+  | FastBatchStatusRequest;

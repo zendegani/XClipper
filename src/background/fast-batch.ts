@@ -18,6 +18,8 @@
 // once, and re-run.
 
 import type { Document } from '../ast/types';
+import type { FastBatchProgress, FastBatchStartResponse, FastBatchStatusResponse } from '../types/messages';
+import { isExtensionPageSender } from './security';
 import { jsonToAst } from '../graphql/json-to-ast';
 import { tweetDetailToDocument } from '../graphql/tweet-detail';
 import { getVariables, paginateTimeline, setVariablesParam } from '../graphql/timeline';
@@ -54,6 +56,22 @@ interface XAuth {
 let auth: XAuth | null = null;
 const templates: Record<string, string> = {};
 let listening = false;
+
+// Polled progress for the popup (Fast Batch has no per-item worker tab, so it
+// can't reuse the Standard batch job model). Cancel is cooperative — the run
+// loops check the flag at phase boundaries.
+let progress: FastBatchProgress = {
+  status: 'idle',
+  phase: '',
+  done: 0,
+  total: 0,
+  exported: 0,
+  skipped: 0,
+};
+let cancelRequested = false;
+const setProgress = (p: Partial<FastBatchProgress>): void => {
+  progress = { ...progress, ...p };
+};
 
 function captureHeaders(
   details: chrome.webRequest.OnBeforeSendHeadersDetails
@@ -223,13 +241,28 @@ const TWEET_DETAIL_CONCURRENCY = 3;
 async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatchResult | null> {
   const maxItems = opts.maxItems ?? BATCH_MAX_ITEMS;
   const expandThreads = opts.expandThreads ?? true;
+  cancelRequested = false;
+  setProgress({
+    status: 'running',
+    phase: 'Fetching bookmarks…',
+    done: 0,
+    total: 0,
+    exported: 0,
+    skipped: 0,
+    folder: undefined,
+    rateLimited: false,
+    needTweetDetail: false,
+    error: undefined,
+  });
   if (!(await requestFastBatchAccess())) {
     log('permission denied — Fast Batch needs the optional webRequest access');
+    setProgress({ status: 'error', error: 'Permission denied — enable Fast Batch first.' });
     return null;
   }
   const template = templates.Bookmarks;
   if (!template) {
     log('no Bookmarks request seen yet — open https://x.com/i/bookmarks, scroll once, then re-run');
+    setProgress({ status: 'error', error: 'Open x.com/i/bookmarks and scroll once, then try again.' });
     return null;
   }
 
@@ -267,6 +300,7 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
   const selected: Item[] = [];
   try {
     for await (const tweets of paginateTimeline(initialUrl, authedFetchJson, { maxPages: 25 })) {
+      if (cancelRequested) break;
       for (const raw of tweets) {
         if (selected.length >= maxItems) break;
         const doc = jsonToAst(raw);
@@ -279,11 +313,17 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
         selected.push({ doc, needsExpand, ledger: !needsExpand });
       }
       log(`fetched ${selected.length}${skipped ? ` (skipped ${skipped} already-exported)` : ''}`);
+      setProgress({ done: selected.length, skipped });
       if (selected.length >= maxItems) break;
     }
   } catch (err) {
     // Partial export is honest — we still write whatever we collected.
     log('fetch stopped early:', err);
+  }
+  if (cancelRequested) {
+    setProgress({ status: 'cancelled', phase: 'Cancelled' });
+    log('cancelled before writing');
+    return null;
   }
 
   // 2) Expand via per-item TweetDetail: Articles always (full body), other
@@ -291,6 +331,7 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
   //    budget always covers them. On the first rate-limit signal we STOP (rather
   //    than hammer X and degrade the user's session); stopped/rate-limited items
   //    are NOT ledgered, so a later re-run fetches their full thread/article.
+  let rateLimited = false;
   const toExpand = selected.filter((s) => s.needsExpand);
   if (toExpand.length > 0 && !templates.TweetDetail) {
     // Abort before writing — otherwise we'd dump a folder of root-only stubs
@@ -298,16 +339,22 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
     log(
       `no TweetDetail request captured yet, so threads/articles can't be expanded. Open ANY single tweet once (so the request is observed), then re-run — nothing was written. ${selected.length} item(s) are ready to export.`
     );
+    setProgress({
+      status: 'error',
+      needTweetDetail: true,
+      error: 'Open any single tweet once so threads/articles can be expanded, then try again.',
+    });
     return null;
   } else if (toExpand.length > 0) {
+    setProgress({ phase: 'Expanding threads & articles…', total: toExpand.length, done: 0 });
     const ordered = [...toExpand].sort(
       (a, b) => Number(b.doc.metadata.type === 'article') - Number(a.doc.metadata.type === 'article')
     );
     let expanded = 0;
     let unavailable = 0;
-    let rateLimited = false;
+    let processed = 0;
     await mapLimit(ordered, TWEET_DETAIL_CONCURRENCY, async (s) => {
-      if (rateLimited) return; // budget spent — leave pending (ledger stays false)
+      if (rateLimited || cancelRequested) return; // budget spent / cancelled — leave pending
       try {
         const full = await fetchTweetDetailDoc(s.doc.metadata.tweetId, s.doc.metadata.sourceUrl);
         if (full) s.doc = full;
@@ -321,6 +368,7 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
           unavailable++;
         }
       }
+      setProgress({ done: ++processed });
     });
     log(`expanded ${expanded}/${toExpand.length} via TweetDetail${unavailable ? ` (${unavailable} unavailable, kept root)` : ''}`);
     const pending = toExpand.filter((s) => !s.ledger).length;
@@ -330,8 +378,14 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
       );
     }
   }
+  if (cancelRequested) {
+    setProgress({ status: 'cancelled', phase: 'Cancelled' });
+    log('cancelled before writing');
+    return null;
+  }
 
   // 3) Write: postProcess + the shared sinks, in feed order.
+  setProgress({ phase: 'Writing files…', total: selected.length, done: 0 });
   const usedFilenames: string[] = [];
   const items: StoredItem[] = [];
   for (const { doc, ledger: ledgerIt } of selected) {
@@ -351,6 +405,7 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
     items.push({ url: doc.metadata.sourceUrl, filename, doc });
     const id = doc.metadata.tweetId;
     if (id && ledgerIt) ledgerArr = appendToLedger(ledgerArr, id);
+    setProgress({ done: items.length });
   }
 
   if (items.length > 0) {
@@ -366,6 +421,16 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
     void recordExport();
   }
   log(`done — exported ${items.length} → ${folder}/ (${skipped} skipped; ${format}/${output})`);
+  setProgress({
+    status: 'done',
+    phase: 'Done',
+    exported: items.length,
+    skipped,
+    folder,
+    rateLimited,
+    total: selected.length,
+    done: items.length,
+  });
   return { exported: items.length, skipped, folder };
 }
 
@@ -397,4 +462,36 @@ export function initFastBatch(): void {
   // Phase-A triggers (see header).
   (globalThis as Record<string, unknown>).xclipperFastBatch = runFastBatchExport;
   (globalThis as Record<string, unknown>).xclipperDumpTweetDetail = dumpTweetDetail;
+
+  // Popup → background controls (FAST_BATCH_*). Only extension pages may drive
+  // these, same as the Standard batch messages.
+  chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
+    if (!msg || typeof msg !== 'object') return false;
+    const action = (msg as { action?: string }).action;
+    if (action !== 'FAST_BATCH_START' && action !== 'FAST_BATCH_STATUS' && action !== 'FAST_BATCH_CANCEL') {
+      return false;
+    }
+    if (!isExtensionPageSender(sender, chrome.runtime.id)) {
+      sendResponse({});
+      return false;
+    }
+    if (action === 'FAST_BATCH_STATUS') {
+      sendResponse({ progress } satisfies FastBatchStatusResponse);
+      return false;
+    }
+    if (action === 'FAST_BATCH_CANCEL') {
+      cancelRequested = true;
+      sendResponse({});
+      return false;
+    }
+    // FAST_BATCH_START
+    if (progress.status === 'running') {
+      sendResponse({ success: false, error: 'A Fast Batch run is already in progress.' } satisfies FastBatchStartResponse);
+      return false;
+    }
+    const expandThreads = (msg as { expandThreads?: boolean }).expandThreads;
+    void runFastBatchExport(expandThreads === undefined ? {} : { expandThreads });
+    sendResponse({ success: true } satisfies FastBatchStartResponse);
+    return false;
+  });
 }
