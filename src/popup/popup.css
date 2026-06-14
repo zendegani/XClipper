@@ -1090,12 +1090,12 @@ body {
   background: #fff;
 }
 
-/* When Fast Batch is armed, recolor ONLY the source box (tabs + Export button
- * + progress) from blue to red — a clear, contained signal that the GraphQL
- * path is active. Done by overriding the box's accent tokens. */
-#view-main.fast-on #batch-section {
-  --batch: var(--error);
-  --batch-glow: var(--error-glow);
+/* When Fast Batch is armed, the only red signals are the Fast bar, the step
+ * lights, and the ACTIVE source tab — everything else (Export button, progress,
+ * reset buttons) stays the normal blue to avoid a wall of red. */
+#view-main.fast-on .batch-tab.active {
+  background: var(--error);
+  box-shadow: 0 2px 8px var(--error-glow);
 }
 
 /* ─── Options Toggles ───────────────────────────────────────── */
@@ -1865,6 +1865,11 @@ details.option-group[open] .option-group-chevron {
   width: auto;
   flex: 1;
   min-width: 0;
+}
+
+/* The Export button is text-only (no leading source icon). */
+.btn-batch .btn-icon {
+  display: none;
 }
 
 .batch-reset-stack {
