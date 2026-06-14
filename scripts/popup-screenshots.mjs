@@ -5,9 +5,11 @@
 //   node scripts/popup-screenshots.mjs           # all locales in src/_locales
 //   node scripts/popup-screenshots.mjs en de fa  # subset
 //
-// Output per locale (five shots):
+// Output per locale (seven shots):
 //   screenshots/popup-<locale>.png            — main view (Single export)
 //   screenshots/batch-<locale>.png            — Batch export view
+//   screenshots/batch-settings-<locale>.png   — Batch view, Export settings expanded
+//   screenshots/batch-fast-<locale>.png       — Batch view, Fast Batch toggle armed
 //   screenshots/settings-dl-<locale>.png      — settings, Downloads + Inline open
 //   screenshots/settings-obs-<locale>.png     — Obsidian + Frontmatter open, toggle OFF
 //   screenshots/settings-obs-on-<locale>.png  — Obsidian + Frontmatter open, toggle ON
@@ -161,6 +163,16 @@ async function screenshotPopup(chromePath, locale) {
     await setExportTab(page, 'batch');
     await captureShot(page, join(SHOTS, `batch-${locale}.png`), locale, 'batch');
 
+    // Batch collapses Export settings by default (mode.ts) — expand it to show
+    // the batch-only Output/Format/Include-reposts controls, then re-collapse.
+    await setExportSettingsOpen(page, true);
+    await captureShot(page, join(SHOTS, `batch-settings-${locale}.png`), locale, 'batch-settings');
+    await setExportSettingsOpen(page, false);
+
+    await setFastBatchArmed(page);
+    await captureShot(page, join(SHOTS, `batch-fast-${locale}.png`), locale, 'batch-fast');
+    await setFastBatchArmed(page, false);
+
     await openSettings(page);
     await setOpenSections(page, ['downloads', 'inline']);
     await captureShot(page, join(SHOTS, `settings-dl-${locale}.png`), locale, 'settings-dl');
@@ -202,6 +214,40 @@ async function setExportTab(page, mode) {
     document.getElementById(id)?.click();
   }, mode);
   await new Promise((r) => setTimeout(r, 100));
+}
+
+// Expand/collapse the "Export settings" group (a plain <details>, no popup
+// listener) so the batch shot can show the Output/Format/reposts controls.
+async function setExportSettingsOpen(page, open) {
+  await page.evaluate((want) => {
+    const el = document.getElementById('export-settings');
+    if (el) el.open = want;
+  }, open);
+  await new Promise((r) => setTimeout(r, 50));
+}
+
+// Arm (or disarm) the Fast Batch toggle for the screenshot. The real toggle
+// path calls chrome.permissions.request('webRequest'), which can't be granted
+// headlessly, so we set the same armed *visual* state the popup's applyGlow() +
+// idle updateFastSteps() produce: checkbox on, red glow, date-range + step
+// lights revealed (Reload/Open-tweet shown ready, Fetch/Expand pending).
+async function setFastBatchArmed(page, armed = true) {
+  await page.evaluate((on) => {
+    const cb = document.getElementById('chk-fast-batch');
+    if (cb) cb.checked = on;
+    document.getElementById('view-main')?.classList.toggle('fast-on', on);
+    document.getElementById('fast-date-range')?.classList.toggle('hidden', !on);
+    document.getElementById('fast-steps')?.classList.toggle('hidden', !on);
+    const setState = (id, state) => {
+      const el = document.getElementById(id);
+      if (el) el.dataset.state = on ? state : '';
+    };
+    setState('fast-step-page', 'ready');
+    setState('fast-step-tweet', 'ready');
+    setState('fast-step-fetch', 'pending');
+    setState('fast-step-expand', 'pending');
+  }, armed);
+  await new Promise((r) => setTimeout(r, 50));
 }
 
 async function openSettings(page) {
