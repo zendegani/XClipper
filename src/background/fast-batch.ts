@@ -320,11 +320,6 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
     // Partial export is honest — we still write whatever we collected.
     log('fetch stopped early:', err);
   }
-  if (cancelRequested) {
-    setProgress({ status: 'cancelled', phase: 'Cancelled' });
-    log('cancelled before writing');
-    return null;
-  }
 
   // 2) Expand via per-item TweetDetail: Articles always (full body), other
   //    tweets when expandThreads. Articles go FIRST so the limited per-account
@@ -378,13 +373,11 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
       );
     }
   }
-  if (cancelRequested) {
-    setProgress({ status: 'cancelled', phase: 'Cancelled' });
-    log('cancelled before writing');
-    return null;
-  }
 
-  // 3) Write: postProcess + the shared sinks, in feed order.
+  // 3) Write whatever we have, even if cancelled mid-expand — already-collected
+  // items (expanded as far as we got) are still worth keeping; un-expanded ones
+  // stay un-ledgered so a re-run completes them.
+  // postProcess + the shared sinks, in feed order.
   setProgress({ phase: 'Writing files…', total: selected.length, done: 0 });
   const usedFilenames: string[] = [];
   const items: StoredItem[] = [];
@@ -420,10 +413,11 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
     await chrome.storage.local.set({ [EXPORTED_LEDGER_KEY]: ledgerArr });
     void recordExport();
   }
-  log(`done — exported ${items.length} → ${folder}/ (${skipped} skipped; ${format}/${output})`);
+  const cancelled = cancelRequested;
+  log(`${cancelled ? 'cancelled' : 'done'} — exported ${items.length} → ${folder}/ (${skipped} skipped; ${format}/${output})`);
   setProgress({
-    status: 'done',
-    phase: 'Done',
+    status: cancelled ? 'cancelled' : 'done',
+    phase: cancelled ? 'Cancelled' : 'Done',
     exported: items.length,
     skipped,
     folder,

@@ -174,12 +174,11 @@ function render(p: FastBatchProgress): void {
   if (running) {
     batchProgressText.textContent =
       p.total > 0 ? `${p.phase} ${p.done}/${p.total}` : `${p.phase} ${p.done}`;
-  } else if (p.status === 'done') {
+  } else if (p.status === 'done' || p.status === 'cancelled') {
+    const label = p.status === 'cancelled' ? 'Cancelled' : 'Done';
     const skipped = p.skipped ? ` · ${p.skipped} skipped` : '';
     const limited = p.rateLimited ? ' · rate-limited — re-run for the rest' : '';
-    batchProgressText.textContent = `Done — ${p.exported} exported${skipped}${limited}`;
-  } else if (p.status === 'cancelled') {
-    batchProgressText.textContent = 'Cancelled';
+    batchProgressText.textContent = `${label} — ${p.exported} exported${skipped}${limited}`;
   } else if (p.status === 'error') {
     batchProgressText.textContent = p.error || 'Fast Batch failed';
   }
