@@ -17,7 +17,9 @@
 // If it says no request was captured, open https://x.com/i/bookmarks, scroll
 // once, and re-run.
 
+import type { Document } from '../ast/types';
 import { jsonToAst } from '../graphql/json-to-ast';
+import { tweetDetailToDocument } from '../graphql/tweet-detail';
 import { getVariables, paginateTimeline, setVariablesParam } from '../graphql/timeline';
 import { loadSettings } from '../shared/settings';
 import { postProcess, resolveDownloadImages } from '../shared/post-process';
@@ -63,7 +65,7 @@ function captureHeaders(
   const csrf = get('x-csrf-token');
   if (authorization && csrf) auth = { authorization, csrf };
 
-  const op = details.url.match(/\/graphql\/[^/]+\/(Bookmarks|Likes|UserTweets)\b/)?.[1];
+  const op = details.url.match(/\/graphql\/[^/]+\/(Bookmarks|Likes|UserTweets|TweetDetail)\b/)?.[1];
   if (op) templates[op] = details.url;
   return undefined; // observe-only; never block/modify
 }
@@ -116,6 +118,32 @@ async function authedFetchJson(url: string): Promise<unknown> {
   return res.json();
 }
 
+// Per-item TweetDetail fetch — the bookmarks timeline carries only a tweet's
+// root, so an Article's full body and a self-thread's continuation tweets both
+// come from here (tweetDetailToDocument maps both). Built from the captured
+// TweetDetail request so the query-id + `features` stay current; we only swap in
+// the target id (`focalTweetId` is X's well-known TweetDetail variable). Returns
+// null when no TweetDetail request has been observed yet.
+async function fetchTweetDetailDoc(id: string, sourceUrl: string): Promise<Document | null> {
+  const template = templates.TweetDetail;
+  if (!template) return null;
+  const vars = JSON.parse(getVariables(template)) as Record<string, unknown>;
+  vars.focalTweetId = id;
+  delete vars.cursor;
+  const url = setVariablesParam(template, JSON.stringify(vars));
+  return tweetDetailToDocument(await authedFetchJson(url), sourceUrl);
+}
+
+// Run `fn` over `items` with at most `limit` in flight (TweetDetail is one
+// request per item; this keeps us well under X's GraphQL rate limits).
+async function mapLimit<T>(items: T[], limit: number, fn: (item: T) => Promise<void>): Promise<void> {
+  let next = 0;
+  const worker = async (): Promise<void> => {
+    while (next < items.length) await fn(items[next++]);
+  };
+  await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker));
+}
+
 async function loadLedger(): Promise<string[]> {
   const r = await chrome.storage.local.get(EXPORTED_LEDGER_KEY);
   const raw = r[EXPORTED_LEDGER_KEY];
@@ -128,12 +156,27 @@ export interface FastBatchResult {
   folder: string;
 }
 
+export interface FastBatchOptions {
+  maxItems?: number;
+  // Fetch TweetDetail for non-article tweets to expand self-threads (Articles
+  // are always expanded — their body needs the fetch). On by default for
+  // completeness; pass false for the fastest root-only run.
+  expandThreads?: boolean;
+}
+
+// At most this many TweetDetail fetches in flight during expansion.
+const TWEET_DETAIL_CONCURRENCY = 6;
+
 // Phase-A trigger (no UI yet, like ADR 0002 batch): fetch the bookmarks
-// timeline via GraphQL, map each tweet to the AST, postProcess + write through
-// the SHARED sinks (per-item files / combined / data.json) using the user's
-// batch settings. Honors the dedup ledger and the hard item cap. Console:
-//   await xclipperFastBatch()
-async function runFastBatchExport(maxItems = BATCH_MAX_ITEMS): Promise<FastBatchResult | null> {
+// timeline via GraphQL, map each tweet to the AST, expand Articles/threads via
+// per-item TweetDetail, then postProcess + write through the SHARED sinks
+// (per-item files / combined / data.json) using the user's batch settings.
+// Honors the dedup ledger and the hard item cap. Console:
+//   await xclipperFastBatch()                       // full (threads + articles)
+//   await xclipperFastBatch({ expandThreads: false }) // fastest, root-only
+async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatchResult | null> {
+  const maxItems = opts.maxItems ?? BATCH_MAX_ITEMS;
+  const expandThreads = opts.expandThreads ?? true;
   if (!(await requestFastBatchAccess())) {
     log('permission denied — Fast Batch needs the optional webRequest access');
     return null;
@@ -158,8 +201,6 @@ async function runFastBatchExport(maxItems = BATCH_MAX_ITEMS): Promise<FastBatch
 
   const ledger = new Set(await loadLedger());
   let ledgerArr = [...ledger];
-  const usedFilenames: string[] = [];
-  const items: StoredItem[] = [];
   let skipped = 0;
 
   // Start from the top of the feed — drop any mid-scroll cursor the captured
@@ -168,41 +209,72 @@ async function runFastBatchExport(maxItems = BATCH_MAX_ITEMS): Promise<FastBatch
   delete vars.cursor;
   const initialUrl = setVariablesParam(template, JSON.stringify(vars));
 
+  // 1) Collect: paginate the bookmarks feed, mapping each root tweet, skipping
+  //    anything already exported. (Cheap — pure mapping, no per-item fetch yet.)
+  const selected: { doc: Document }[] = [];
   try {
     for await (const tweets of paginateTimeline(initialUrl, authedFetchJson, { maxPages: 25 })) {
       for (const raw of tweets) {
-        if (items.length >= maxItems) break;
+        if (selected.length >= maxItems) break;
         const doc = jsonToAst(raw);
         const id = doc.metadata.tweetId;
         if (id && ledger.has(id)) {
           skipped++;
           continue;
         }
-        const result = postProcess(docToExtracted(doc), {
-          includeMetadata: settings.includeMetadata,
-          downloadImages: resolveDownloadImages('download', settings.downloadImages),
-          inlineStats: settings.inlineStats,
-          obsidianFriendly: settings.obsidianFriendly,
-          filenameTemplate: settings.filenameTemplate.trim(),
-          frontmatterFields,
-        });
-        const filename = uniqueFilename(usedFilenames, result.filename);
-        usedFilenames.push(filename.toLowerCase());
-        if (output !== 'combined') {
-          writePerItem(folder, format, filename, result.markdown, result.images, doc, settings);
-        }
-        items.push({ url: doc.metadata.sourceUrl, filename, doc });
-        if (id) {
-          ledger.add(id);
-          ledgerArr = appendToLedger(ledgerArr, id);
-        }
+        selected.push({ doc });
       }
-      log(`fetched ${items.length}${skipped ? ` (skipped ${skipped} already-exported)` : ''}`);
-      if (items.length >= maxItems) break;
+      log(`fetched ${selected.length}${skipped ? ` (skipped ${skipped} already-exported)` : ''}`);
+      if (selected.length >= maxItems) break;
     }
   } catch (err) {
-    // Partial export is honest — files already written stay on disk.
+    // Partial export is honest — we still write whatever we collected.
     log('fetch stopped early:', err);
+  }
+
+  // 2) Expand: Articles always (full body), other tweets when expandThreads.
+  //    One concurrency-limited TweetDetail fetch per item; failures keep the
+  //    root tweet / preview stub.
+  const toExpand = selected.filter((s) => s.doc.metadata.type === 'article' || expandThreads);
+  if (toExpand.length > 0 && !templates.TweetDetail) {
+    log('cannot expand threads/articles: no TweetDetail request seen yet — open any tweet once, then re-run');
+  } else if (toExpand.length > 0) {
+    let expanded = 0;
+    let failed = 0;
+    await mapLimit(toExpand, TWEET_DETAIL_CONCURRENCY, async (s) => {
+      try {
+        const full = await fetchTweetDetailDoc(s.doc.metadata.tweetId, s.doc.metadata.sourceUrl);
+        if (full) {
+          s.doc = full;
+          expanded++;
+        }
+      } catch {
+        failed++; // keep the root tweet / article stub
+      }
+    });
+    log(`expanded ${expanded}/${toExpand.length} via TweetDetail${failed ? ` (${failed} failed, kept root)` : ''}`);
+  }
+
+  // 3) Write: postProcess + the shared sinks, in feed order.
+  const usedFilenames: string[] = [];
+  const items: StoredItem[] = [];
+  for (const { doc } of selected) {
+    const result = postProcess(docToExtracted(doc), {
+      includeMetadata: settings.includeMetadata,
+      downloadImages: resolveDownloadImages('download', settings.downloadImages),
+      inlineStats: settings.inlineStats,
+      obsidianFriendly: settings.obsidianFriendly,
+      filenameTemplate: settings.filenameTemplate.trim(),
+      frontmatterFields,
+    });
+    const filename = uniqueFilename(usedFilenames, result.filename);
+    usedFilenames.push(filename.toLowerCase());
+    if (output !== 'combined') {
+      writePerItem(folder, format, filename, result.markdown, result.images, doc, settings);
+    }
+    items.push({ url: doc.metadata.sourceUrl, filename, doc });
+    const id = doc.metadata.tweetId;
+    if (id) ledgerArr = appendToLedger(ledgerArr, id);
   }
 
   if (items.length > 0) {
