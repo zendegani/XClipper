@@ -952,6 +952,16 @@ body {
   padding: 0;
 }
 
+/* Locked while an export (Standard or Fast) is running — can't switch modes
+ * mid-run. Dim the switch and block the cursor; the text/icon stay legible. */
+.fast-batch-bar.locked .fast-toggle {
+  cursor: not-allowed;
+}
+
+.fast-batch-bar.locked .toggle-switch {
+  opacity: 0.45;
+}
+
 /* Lightning icon + label stay red in both states. The extra .fast-batch-bar
  * ancestor beats the generic ".toggle-label:has(:checked) .toggle-icon" rule
  * that would otherwise paint it blue (--accent) when checked. */
