@@ -50,9 +50,6 @@
   "opt_filename_template": {
     "message": "الگوی نام فایل"
   },
-  "opt_filename_template_title": {
-    "message": "الگوی نام فایل صادرشده. نگه‌دارنده‌ها: {date}, {datetime}, {handle}, {author}, {id}, {slug}, {type}. برای پیش‌فرض خالی بگذارید."
-  },
   "opt_filename_template_placeholder": {
     "message": "{handle}-{id}.md"
   },

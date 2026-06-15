@@ -50,9 +50,6 @@
   "opt_filename_template": {
     "message": "Modello del nome file"
   },
-  "opt_filename_template_title": {
-    "message": "Modello per il nome del file esportato. Segnaposto: {date}, {datetime}, {handle}, {author}, {id}, {slug}, {type}. Lascia vuoto per il predefinito."
-  },
   "opt_filename_template_placeholder": {
     "message": "{handle}-{id}.md"
   },

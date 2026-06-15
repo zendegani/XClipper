@@ -50,9 +50,6 @@
   "opt_filename_template": {
     "message": "Plantilla de nombre de archivo"
   },
-  "opt_filename_template_title": {
-    "message": "Plantilla para el nombre del archivo exportado. Marcadores: {date}, {datetime}, {handle}, {author}, {id}, {slug}, {type}. Déjelo en blanco para el valor predeterminado."
-  },
   "opt_filename_template_placeholder": {
     "message": "{handle}-{id}.md"
   },

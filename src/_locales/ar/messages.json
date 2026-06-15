@@ -50,9 +50,6 @@
   "opt_filename_template": {
     "message": "قالب اسم الملف"
   },
-  "opt_filename_template_title": {
-    "message": "قالب اسم الملف المُصدَّر. العناصر النائبة: {date}, {datetime}, {handle}, {author}, {id}, {slug}, {type}. اتركه فارغًا للقيمة الافتراضية."
-  },
   "opt_filename_template_placeholder": {
     "message": "{handle}-{id}.md"
   },

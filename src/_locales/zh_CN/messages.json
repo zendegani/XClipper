@@ -50,9 +50,6 @@
   "opt_filename_template": {
     "message": "文件名模板"
   },
-  "opt_filename_template_title": {
-    "message": "导出文件名的模板。占位符：{date}, {datetime}, {handle}, {author}, {id}, {slug}, {type}。留空使用默认。"
-  },
   "opt_filename_template_placeholder": {
     "message": "{handle}-{id}.md"
   },

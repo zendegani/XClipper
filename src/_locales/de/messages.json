@@ -50,9 +50,6 @@
   "opt_filename_template": {
     "message": "Dateinamen-Vorlage"
   },
-  "opt_filename_template_title": {
-    "message": "Vorlage für den exportierten Dateinamen. Platzhalter: {date}, {datetime}, {handle}, {author}, {id}, {slug}, {type}. Leer lassen für den Standardwert."
-  },
   "opt_filename_template_placeholder": {
     "message": "{handle}-{id}.md"
   },

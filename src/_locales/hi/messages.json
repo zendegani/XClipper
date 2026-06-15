@@ -50,9 +50,6 @@
   "opt_filename_template": {
     "message": "फ़ाइल नाम टेम्पलेट"
   },
-  "opt_filename_template_title": {
-    "message": "एक्सपोर्ट की गई फ़ाइल के नाम का टेम्पलेट। प्लेसहोल्डर: {date}, {datetime}, {handle}, {author}, {id}, {slug}, {type}। डिफ़ॉल्ट के लिए खाली छोड़ें।"
-  },
   "opt_filename_template_placeholder": {
     "message": "{handle}-{id}.md"
   },

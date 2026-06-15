@@ -50,9 +50,6 @@
   "opt_filename_template": {
     "message": "Шаблон имени файла"
   },
-  "opt_filename_template_title": {
-    "message": "Шаблон имени экспортируемого файла. Плейсхолдеры: {date}, {datetime}, {handle}, {author}, {id}, {slug}, {type}. Оставьте пустым для значения по умолчанию."
-  },
   "opt_filename_template_placeholder": {
     "message": "{handle}-{id}.md"
   },

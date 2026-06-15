@@ -50,9 +50,6 @@
   "opt_filename_template": {
     "message": "Modèle de nom de fichier"
   },
-  "opt_filename_template_title": {
-    "message": "Modèle pour le nom du fichier exporté. Placeholders : {date}, {datetime}, {handle}, {author}, {id}, {slug}, {type}. Laissez vide pour la valeur par défaut."
-  },
   "opt_filename_template_placeholder": {
     "message": "{handle}-{id}.md"
   },

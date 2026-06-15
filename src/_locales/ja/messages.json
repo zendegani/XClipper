@@ -50,9 +50,6 @@
   "opt_filename_template": {
     "message": "ファイル名テンプレート"
   },
-  "opt_filename_template_title": {
-    "message": "エクスポートされるファイル名のテンプレート。プレースホルダー: {date}, {datetime}, {handle}, {author}, {id}, {slug}, {type}。空欄でデフォルト。"
-  },
   "opt_filename_template_placeholder": {
     "message": "{handle}-{id}.md"
   },
