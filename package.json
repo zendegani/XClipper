@@ -13,6 +13,7 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
+    "dead-locales": "node scripts/find-dead-locale-keys.mjs",
     "screenshots": "npm run build && node scripts/popup-screenshots.mjs",
     "promo-screenshots": "node scripts/promo-screenshots.mjs",
     "05-html-to-markdown-output": "node scripts/05-html-to-markdown-output.mjs",
