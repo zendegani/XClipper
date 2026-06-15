@@ -1,6 +1,6 @@
 # Privacy Policy — XClipper
 
-**Last updated:** June 4, 2026
+**Last updated:** June 15, 2026
 
 ## Summary
 
@@ -48,6 +48,8 @@ When you click **Download .pdf**, the extension opens a new tab at an extension-
 | `downloads`    | Allows saving the generated Markdown file and allowed X media images to your Downloads folder |
 | `storage`      | Allows saving your popup configuration locally on your device so settings are remembered between sessions. This covers every choice you make in the popup or Settings view — UI toggle states, any text or template fields you fill in, and per-field selections from the Frontmatter picker. All values stay on your device; nothing is transmitted. |
 | `contextMenus` | Adds the **Save tweet as Markdown** and **Copy tweet as Markdown** items to the browser's right-click menu, scoped to X.com pages. The menu only fires when you click an item; no page content is read otherwise. |
+| `alarms`       | Schedules a short periodic timer that runs only during a batch export, acting as a watchdog so a stalled worker tab is detected and the job recovers or stops cleanly. The timer is cleared when the batch finishes. No data is collected or transmitted. |
+| `offscreen`    | (Chrome only) Creates a hidden, page-less document that watches your operating system's light/dark color-scheme preference so the toolbar icon can match it. It reads no page content and transmits nothing. Firefox does not use this permission — it switches the icon declaratively via the manifest instead. |
 | `host` (X.com) | A content script is injected on X.com pages to (a) extract the visible post or article content when you trigger an action, and (b) draw the inline download button on tweet action bars. The script reads the DOM locally and never transmits data externally. |
 
 These are the minimum permissions required for the extension to function. They are granted at install time. No additional permissions are requested unless you explicitly opt in below.

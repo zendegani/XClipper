@@ -2,7 +2,7 @@
 
 ## Single purpose
 
-XClipper converts X.com posts and articles into clean Markdown or PDF. When the user visits a supported page and triggers an action (via the popup, the inline button, or the right-click context menu), the extension extracts the visible content and lets the user save it as a .md file, export it as a PDF through Chrome's print/save flow, copy it to the clipboard, or hand it off to the Obsidian desktop app via the obsidian:// URI scheme. All processing happens locally in the browser and no data is transmitted to any external server.
+XClipper converts X.com posts, threads, and articles into clean Markdown, PDF, and other text formats. When the user visits a supported page and triggers an action (via the popup, the inline button, or the right-click context menu), the extension extracts the visible content and lets the user save it as a file (.md, .txt, .html, .json, or .csv), export it as a PDF through the browser's native print/save flow, copy it to the clipboard, or hand it off to the Obsidian desktop app via the obsidian:// URI scheme. From the popup the user can also batch-export many posts at once — their bookmarks, a profile's posts, their likes, the home timeline, or a hand-picked selection. All processing happens locally in the browser and no data is transmitted to any external server.
 
 ## Permission justification
 
@@ -12,16 +12,28 @@ The "activeTab" permission allows the extension to access the currently active t
 
 ### contextMenus
 
-The contextMenus permission is used to add "Save tweet as Markdown", "Copy tweet as Markdown", and "Add tweet to Obsidian" entries to the right-click menu on X.com pages. It lets users export a tweet without opening the popup. Selecting an item opens the tweet's permalink and runs the same local extraction as the popup; the Obsidian entry additionally constructs an obsidian:// URL that the operating system hands off to the Obsidian desktop app, if installed. No data is transmitted to any external server.
+The contextMenus permission adds an "XClipper" submenu to the right-click menu on X.com status pages. Its entries let the user export the tweet, thread, or article without opening the popup — downloading or copying it as Markdown (the whole thread or just the one tweet), exporting it as PDF, downloading it as plain text, HTML, JSON, or CSV, or adding it to Obsidian. Each entry runs the same local extraction as the popup; the Obsidian entry additionally constructs an obsidian:// URL that the operating system hands off to the Obsidian desktop app, if installed. No data is transmitted to any external server.
 
 ### downloads
 
-The "downloads" permission is required to save the generated Markdown file to the user's device as a .md file. PDF export uses Chrome's print/save dialog and does not rely on this permission.
+The "downloads" permission is required to save exported files to the user's device — the generated Markdown (.md) file, the alternate text formats (.txt, .html, .json, .csv), any images saved alongside the Markdown when "Save images locally" is enabled, and the files produced by a batch export. PDF export uses the browser's native print/save dialog and does not rely on this permission.
 
 ### storage
 
-The "storage" permission is used exclusively to save the user's configuration preferences locally on their device so they are remembered between sessions. This includes the toggle states (such as enabling image downloads or tweet metadata) and the optional Obsidian vault name string entered in the Settings panel. No user content, browsing history, or personally identifying information is stored.
+The "storage" permission is used exclusively to save the user's configuration preferences locally on their device so they are remembered between sessions. This covers every choice in the popup and Settings view — UI toggle states (such as enabling image downloads or tweet metadata), text and template fields (such as the optional Obsidian vault name and the filename template), and the per-field Frontmatter selections. No user content, browsing history, or personally identifying information is stored.
+
+### alarms
+
+The "alarms" permission is used only during a batch export to schedule a short periodic timer that acts as a watchdog: if the hidden worker tab driving the batch stalls, the alarm fires so the job can recover or stop cleanly rather than hang. The timer is cleared once the batch completes. No data is collected or transmitted.
+
+### offscreen
+
+The "offscreen" permission (Chrome only) creates a hidden, page-less document whose sole job is to observe the operating system's light/dark color-scheme preference so the toolbar icon can be swapped to match it. It reads no page content and transmits nothing. The Firefox build does not request this permission — it switches the icon declaratively through the manifest's "theme_icons" instead.
+
+### webRequest (optional)
+
+The "webRequest" permission is optional and off by default. It is requested only if the user turns on the optional Fast Batch mode and confirms a consent prompt; declining leaves the standard batch export fully functional. When granted, it lets the extension read the authentication token the browser already sends on the user's own X.com requests, so Fast Batch can call X's internal data endpoints directly — the same endpoints x.com's own web page calls — instead of opening and rendering each post in a tab, which is much faster. It uses no paid API and no password, reuses the user's existing logged-in X session, and sends nothing to any external server: the data is fetched from X into the browser and saved locally, exactly like standard batch. The permission can be revoked at any time in the browser's extension settings, which disables Fast Batch.
 
 ### Host permission
 
-The extension injects a content script on X.com status pages in order to extract the visible post or article content. This content is converted into Markdown locally in the browser when the user initiates the action. No data is transmitted externally.
+The extension injects content scripts on X.com pages in order to (a) extract the visible post, thread, or article content when the user triggers an action, (b) draw the inline download button on tweet action bars, and (c) collect status-page permalinks from a bookmarks, profile, likes, or timeline page when the user starts a batch export. The content is converted to Markdown (or another selected format) locally in the browser. No data is transmitted externally.
