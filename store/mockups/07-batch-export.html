@@ -137,11 +137,11 @@
     flex-direction: column;
     gap: 14px;
   }
-  .popup-head { display: flex; align-items: center; justify-content: space-between; }
+  .popup-head { position: relative; display: flex; align-items: center; justify-content: center; }
   .popup-head .brand { display: flex; align-items: center; gap: 9px; }
   .popup-head .brand img { width: 24px; height: 24px; display: block; }
   .popup-head .brand .wm { font-size: 18px; font-weight: 800; color: var(--ink); letter-spacing: -0.02em; }
-  .popup-head .gear { color: var(--ink-3); }
+  .popup-head .gear { position: absolute; right: 0; color: var(--ink-3); }
 
   .seg { display: flex; align-items: center; background: #f1f5f9; border-radius: 11px; padding: 4px; gap: 4px; }
   .seg .opt { flex: 1; text-align: center; font-size: 13px; font-weight: 700; color: var(--ink-3); padding: 8px 0; border-radius: 8px; }

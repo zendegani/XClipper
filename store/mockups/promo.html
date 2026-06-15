@@ -103,12 +103,12 @@
     display: flex; flex-direction: column; gap: 13px;
     flex-shrink: 0;
   }
-  .mqp-head{ display: flex; align-items: center; justify-content: space-between; }
+  .mqp-head{ position: relative; display: flex; align-items: center; justify-content: center; }
   .mqp-head .brand{ display: flex; align-items: center; gap: 9px; }
   .mqp-head .brand img{ width: 24px; height: 24px; display: block; }
   .mqp-head .brand .wm{ font-size: 18px; font-weight: 800; letter-spacing: -.02em; color: #0b1220; }
   .mqp-head .brand .wm span{ color: var(--brand-blue); }
-  .mqp-head .gear{ color: #94a3b8; }
+  .mqp-head .gear{ position: absolute; right: 0; color: #94a3b8; }
 
   .mqp-seg{ display: flex; background: #f1f5f9; border-radius: 11px; padding: 4px; gap: 4px; }
   .mqp-seg .opt{ flex: 1; text-align: center; font-size: 13px; font-weight: 700; color: #94a3b8; padding: 8px 0; border-radius: 8px; }
