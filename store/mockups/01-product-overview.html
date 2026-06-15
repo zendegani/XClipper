@@ -277,62 +277,50 @@
   .doc:nth-child(3){ transform: translateY(17px); }
   .doc svg{ display: block; width: 100%; height: 100%; }
 
-  /* ───────── Card 6 — Tweets, threads & Articles ───────── */
+  /* ───────── Card 4 — Tweets, threads & Articles ───────── */
+  /* Different heights, vertically centred → the trio fans open into a "<" shape */
   .demo-types{
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: 12px;
-    width: 100%; max-width: 340px;
+    display: flex; align-items: center; justify-content: center;
+    gap: 14px; width: 100%;
   }
   .type-card{
+    width: 96px;
     background: white;
     border: 1px solid var(--line);
-    border-radius: 10px;
-    padding: 12px 10px;
-    display: flex; flex-direction: column; gap: 8px;
-    aspect-ratio: 1 / 1.2;
+    border-radius: 11px;
+    padding: 11px 10px;
+    display: flex; flex-direction: column; gap: 7px;
     position: relative;
-    box-shadow: 0 1px 0 rgba(15,23,42,.04);
+    box-shadow: 0 8px 20px -8px rgba(15,23,42,.18);
   }
   .type-card .top-row{ display: flex; align-items: center; gap: 6px; }
   .type-card .av{ width: 18px; height: 18px; border-radius: 50%; background: #cbd5e1; }
-  .type-card .who{ display: flex; flex-direction: column; gap: 1px; }
+  .type-card .who{ display: flex; flex-direction: column; gap: 2px; }
   .type-card .nm{ width: 38px; height: 5px; background: #475569; border-radius: 2px; }
-  .type-card .hd{ width: 24px; height: 4px; background: #cbd5e1; border-radius: 2px; margin-top: 2px; }
+  .type-card .hd{ width: 24px; height: 4px; background: #cbd5e1; border-radius: 2px; }
   .type-card .line{ height: 5px; background: #e2e8f0; border-radius: 2px; }
-  .type-card .line.short{ width: 60%; }
+  .type-card .line.short{ width: 58%; }
   .type-card .badge{
-    position: absolute; bottom: -7px; left: 50%; transform: translateX(-50%);
+    position: absolute; bottom: -8px; left: 50%; transform: translateX(-50%);
     background: var(--ink); color: white;
     font-size: 9px; letter-spacing: .12em; text-transform: uppercase;
-    padding: 4px 8px; border-radius: 999px; font-weight: 700;
-    white-space: nowrap;
+    padding: 4px 9px; border-radius: 999px; font-weight: 800;
+    white-space: nowrap; box-shadow: 0 4px 10px rgba(15,23,42,.22);
   }
-  .type-card.tweet .badge{ background: var(--ink); }
-  .type-card.thread .badge{ background: var(--brand-deep); }
-  .type-card.article .badge{ background: var(--obsidian); }
 
-  /* thread variant — show stacked replies */
-  .type-card.thread{ gap: 5px; padding-top: 10px; }
-  .type-card.thread .reply{
-    display: flex; gap: 5px; align-items: flex-start;
-    padding-left: 6px;
-    border-left: 2px solid #cbd5e1;
-    margin-left: 7px;
-  }
-  .type-card.thread .reply .av{ width: 12px; height: 12px; flex-shrink: 0; }
-  .type-card.thread .reply .lines{ flex: 1; display: flex; flex-direction: column; gap: 3px; }
-  .type-card.thread .reply .lines .line{ height: 3px; }
+  /* thread — stacked self-thread, every avatar same size and left-aligned */
+  .type-card.thread{ gap: 6px; }
+  .type-card.thread .reply{ display: flex; align-items: flex-start; gap: 6px; }
+  .type-card.thread .reply .av{ width: 18px; height: 18px; flex-shrink: 0; }
+  .type-card.thread .reply .lines{ flex: 1; display: flex; flex-direction: column; gap: 4px; padding-top: 3px; }
+  .type-card.thread .reply .lines .line{ height: 4px; }
 
-  /* article variant — show H1 + body */
-  .type-card.article{ padding-top: 10px; }
-  .type-card.article .article-title{
-    width: 80%; height: 8px; background: var(--ink); border-radius: 2px;
-    margin-bottom: 4px;
-  }
-  .type-card.article .article-img{
-    height: 24px; background: #cbd5e1; border-radius: 4px; margin: 2px 0;
-  }
+  /* article — author row, banner, thicker title, 3 paragraphs (3-2-3) */
+  .type-card.article{ gap: 7px; height: 149px; }
+  .type-card.article .article-img{ height: 34px; background: #cbd5e1; border-radius: 5px; }
+  .type-card.article .article-title{ width: 82%; height: 8px; background: var(--ink); border-radius: 2px; }
+  .type-card.article .abody{ flex: 1; display: flex; flex-direction: column; justify-content: space-between; padding-top: 2px; }
+  .type-card.article .para{ display: flex; flex-direction: column; gap: 5px; }
 
 </style>
 </head>
@@ -379,7 +367,7 @@
                 <rect x="22" y="102" width="114" height="7" rx="3" fill="#e2e8f0"/>
                 <text x="84" y="178" text-anchor="middle"
                       font-family="-apple-system, system-ui, sans-serif"
-                      font-size="32" font-weight="900" fill="#dc2626" letter-spacing="-0.02em">.pdf</text>
+                      font-size="30" font-weight="900" fill="#dc2626" letter-spacing="0.01em">PDF</text>
               </svg>
             </div>
           </div>
@@ -441,45 +429,27 @@
           <div class="demo-types">
             <!-- TWEET -->
             <div class="type-card tweet">
-              <div class="top-row">
-                <div class="av"></div>
-                <div class="who">
-                  <div class="nm"></div>
-                  <div class="hd"></div>
-                </div>
-              </div>
-              <div class="line"></div>
-              <div class="line"></div>
-              <div class="line short"></div>
+              <div class="top-row"><div class="av"></div><div class="who"><div class="nm"></div><div class="hd"></div></div></div>
+              <div class="line"></div><div class="line"></div><div class="line short"></div>
               <div class="badge">Tweet</div>
             </div>
             <!-- THREAD -->
             <div class="type-card thread">
-              <div class="top-row">
-                <div class="av"></div>
-                <div class="who">
-                  <div class="nm"></div>
-                  <div class="hd"></div>
-                </div>
-              </div>
+              <div class="top-row"><div class="av"></div><div class="who"><div class="nm"></div><div class="hd"></div></div></div>
               <div class="line"></div>
-              <div class="reply">
-                <div class="av"></div>
-                <div class="lines"><div class="line"></div><div class="line short"></div></div>
-              </div>
-              <div class="reply">
-                <div class="av"></div>
-                <div class="lines"><div class="line"></div></div>
-              </div>
+              <div class="reply"><div class="av"></div><div class="lines"><div class="line"></div><div class="line short"></div></div></div>
+              <div class="reply"><div class="av"></div><div class="lines"><div class="line"></div></div></div>
               <div class="badge">Thread</div>
             </div>
             <!-- ARTICLE -->
             <div class="type-card article">
-              <div class="article-title"></div>
-              <div class="line"></div>
+              <div class="top-row"><div class="av"></div><div class="who"><div class="nm"></div><div class="hd"></div></div></div>
               <div class="article-img"></div>
-              <div class="line"></div>
-              <div class="line short"></div>
+              <div class="article-title"></div>
+              <div class="abody">
+                <div class="para"><div class="line"></div><div class="line"></div><div class="line short"></div></div>
+                <div class="para"><div class="line"></div><div class="line short"></div></div>
+              </div>
               <div class="badge">Article</div>
             </div>
           </div>
