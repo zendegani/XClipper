@@ -38,6 +38,9 @@ _local/
 .puppeteer-cache/
 screenshots/
 
+# High-DPI mockup renders are kept local only; the 1× PNGs are the committed assets.
+*@2x.png
+
 
 .mcp.json
 .codegraph/*
