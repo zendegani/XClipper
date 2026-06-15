@@ -227,31 +227,41 @@
   .orow .doc:last-child{ transform: translateY(9px); }
 
   /* ───────── SMALL TILE 440×280 ───────── */
+  /* Big brand nudged up & left; output formats along the bottom; sources on the right */
   .canvas-small{
     width: 440px; height: 280px;
-    padding: 26px 24px;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    gap: 12px;
+    position: relative;
   }
-  .canvas-small .brand-mark{ position: relative; z-index: 1; }
-  .canvas-small .wordmark{
-    font-size: 34px; font-weight: 800; letter-spacing: -.025em;
-    line-height: 1; color: var(--ink); position: relative; z-index: 1;
+
+  .s-brand{
+    position: absolute; top: 28px; left: 0; width: 372px;
+    display: flex; flex-direction: column; align-items: center; gap: 6px;
+    z-index: 1;
   }
-  .canvas-small .wordmark span{ color: var(--brand-blue); }
-  .s-formats{ display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; position: relative; z-index: 1; }
-  .s-formats span{
-    font-size: 11px; font-weight: 700; letter-spacing: .02em; color: #e2e8f0;
-    background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.18);
-    border-radius: 999px; padding: 3px 9px;
+  .s-brand img{ width: 104px; height: 104px; display: block; }
+  .s-brand .wm{ font-size: 36px; font-weight: 800; letter-spacing: -.025em; line-height: 1; color: #fff; }
+  .s-brand .wm span{ color: var(--brand-blue); }
+  .s-brand .head{ font-size: 12.5px; font-weight: 600; color: #cbd5e1; letter-spacing: .01em; margin-top: 4px; text-align: center; line-height: 1.3; }
+  .s-brand .head .x{ color: var(--brand-blue); font-weight: 700; }
+
+  .s-fmts{
+    position: absolute; bottom: 24px; left: 0; width: 372px;
+    display: flex; flex-wrap: wrap; justify-content: center; gap: 7px;
+    z-index: 1;
   }
-  .s-batch{
-    display: inline-flex; align-items: center; gap: 6px;
-    font-size: 12.5px; font-weight: 700; color: #ffffff;
-    position: relative; z-index: 1; margin-top: 2px;
+  .fmt{ width: 30px; height: 30px; border-radius: 8px; background: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 5px 12px -4px rgba(0,0,0,.45); }
+  .fmt .ic{ width: 16px; height: 16px; fill: none; stroke: #475569; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .fmt .t{ font-size: 10px; font-weight: 900; letter-spacing: -.02em; color: #475569; }
+  .fmt.md .t{ color: #1d9bf0; }
+  .fmt.pdf .t{ color: #dc2626; }
+  .fmt.obs svg{ width: 18px; height: 18px; fill: #7C3AED; }
+
+  .s-right{
+    position: absolute; right: 18px; top: 50%; transform: translateY(-50%);
+    display: flex; flex-direction: column; gap: 8px; z-index: 1;
   }
-  .s-batch svg{ width: 13px; height: 13px; fill: var(--brand-red); }
-  .s-batch .fast{ color: #fca5a5; }
+  .src{ width: 32px; height: 32px; border-radius: 9px; background: rgba(255,255,255,.13); border: 1px solid rgba(255,255,255,.22); display: flex; align-items: center; justify-content: center; color: #fff; }
+  .src svg{ width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 </style>
 </head>
 <body>
@@ -455,15 +465,34 @@
 <div>
   <div class="section-label">Small tile · 440 × 280</div>
   <div class="canvas canvas-small" id="small">
-    <img class="brand-mark" src="../../assets/xclipper-mark-dark.svg" width="92" height="92" alt="">
-    <div class="wordmark">X<span>Clipper</span></div>
-    <div class="s-formats">
-      <span>Markdown</span><span>PDF</span><span>Obsidian</span><span>HTML</span><span>JSON</span><span>TXT</span><span>CSV</span>
+
+    <!-- Brand lockup (big, nudged up & left) + small tagline -->
+    <div class="s-brand">
+      <img src="../../assets/xclipper-mark-dark.svg" width="104" height="104" alt="">
+      <div class="wm">X<span>Clipper</span></div>
+      <div class="head">Batch Export your entire <span class="x">X</span> library</div>
     </div>
-    <div class="s-batch">
-      <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-      Single &amp; Batch export — <span class="fast">&nbsp;up to 10× faster</span>
+
+    <!-- Output formats — bottom row -->
+    <div class="s-fmts">
+        <span class="fmt md"><span class="t">.md</span></span>
+        <span class="fmt"><svg class="ic" viewBox="0 0 24 24"><path d="m18 16 4-4-4-4"/><path d="m6 8-4 4 4 4"/><path d="m14.5 4-5 16"/></svg></span>
+        <span class="fmt"><svg class="ic" viewBox="0 0 24 24"><path d="M8 3H7a2 2 0 0 0-2 2v4a2 2 0 0 1-2 2 2 2 0 0 1 2 2v4a2 2 0 0 0 2 2h1"/><path d="M16 3h1a2 2 0 0 1 2 2v4a2 2 0 0 0 2 2 2 2 0 0 0-2 2v4a2 2 0 0 1-2 2h-1"/></svg></span>
+        <span class="fmt"><svg class="ic" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="8" y1="13" x2="16" y2="13"/><line x1="8" y1="17" x2="16" y2="17"/></svg></span>
+        <span class="fmt"><svg class="ic" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><line x1="3" y1="10" x2="21" y2="10"/><line x1="9" y1="4" x2="9" y2="20"/><line x1="15" y1="4" x2="15" y2="20"/></svg></span>
+        <span class="fmt pdf"><span class="t">PDF</span></span>
+        <span class="fmt obs"><svg viewBox="0 0 24 24"><use href="#obsidian-gem"/></svg></span>
+      </div>
+
+    <!-- Right: batch sources -->
+    <div class="s-right">
+      <span class="src" title="Bookmarks"><svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></span>
+      <span class="src" title="Profile"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></span>
+      <span class="src" title="Likes"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></span>
+      <span class="src" title="Timeline"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></span>
+      <span class="src" title="Selection"><svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></span>
     </div>
+
   </div>
 </div>
 
