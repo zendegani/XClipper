@@ -13,11 +13,9 @@ Also included:
 
 - Seven export formats — Markdown, PDF, HTML, JSON, TXT, CSV, or a one-click handoff to Obsidian. Batch writes separate files, one combined file, or both (every format except PDF).
 - Obsidian integration — obsidian:// handoff with optional vault and subfolder, plus an Obsidian-friendly frontmatter schema: [[@handle]] wikilinks, Dataview-friendly metadata, synthesized title and description, and a custom tags list.
-- Rich YAML frontmatter — author, handle, dates, source URL, content type, and engagement stats, each toggleable per field.
+- Rich YAML frontmatter — author, handle, dates, source URL, content type, and engagement stats, each toggleable per field, and usable as tokens in custom filename templates.
 - Three ways to trigger — an inline button on every tweet, the toolbar popup, and the right-click menu.
-- Custom filename templates — {date}, {datetime}, {handle}, {author}, {id}, {slug}, {type}.
 - Save embedded images locally to prevent link rot, and export a single tweet or a whole thread.
-- 12-language UI (extraction works in any language) and light/dark mode.
 
 Plus: copy to clipboard or download, an optional inline engagement-stats row, and an optional downloads subfolder.
 
