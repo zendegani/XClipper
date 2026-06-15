@@ -20,7 +20,7 @@
 </p>
 
 <p align="center">
-  <img src="store/promo/Marquee promo tile.png" alt="XClipper extension popup — export X posts, threads, and articles to Markdown, PDF, or Obsidian" width="500" />
+  <img src="store/promo/Marquee promo tile.png" alt="XClipper — export X posts, threads & articles to Markdown, PDF, HTML, JSON, CSV & Obsidian, one at a time or in batch" width="100%" />
 </p>
 
 **XClipper** is a source-available Chrome extension that exports x.com content as **Markdown, PDF, HTML, JSON, TXT, CSV, or Obsidian notes** — one post at a time, or in **batch** from your bookmarks, a profile, your likes, your home timeline, or a hand-picked selection. It runs entirely in your browser: no X API key, no account, no server. Free for noncommercial use ([commercial license](#license) required to sell or build a paid product on it).
@@ -75,15 +75,11 @@ The download icon sits next to share on every tweet. One click opens the permali
 
 Right-click anywhere on a tweet — body, image, or timestamp — and pick **Save tweet as Markdown**, **Copy tweet as Markdown**, or **Add tweet to Obsidian**. XClipper figures out which tweet you meant.
 
-### Settings — tune once, forget about it
+### Fast Batch (opt-in)
 
 <p align="center">
-  <img src="assets/06-metadata-customization-settings.png" alt="XClipper popup and settings view side by side" width="700" />
+  <img src="assets/07-batch-export.png" alt="XClipper batch export popup with Fast Batch enabled, exporting bookmarks" width="700" />
 </p>
-
-The popup keeps per-export toggles (**Save images locally**, **Show engagement stats inline**, **Include metadata**) front and centre. The gear icon opens **Settings**, where set-once knobs live in four collapsible sections — **Downloads**, **Obsidian**, **Frontmatter fields**, and **Inline button & context menu** — persisted across sessions via `chrome.storage`.
-
-### Fast Batch (opt-in)
 
 ⚡ Standard batch renders each post in a worker tab — reliable, no extra permissions, and the default. **Fast Batch** is an optional mode for **Bookmarks, Profile, and Likes** that instead replays X's own internal API using your existing logged-in session, turning a multi-minute job into a few seconds (~10×). It maps the same data into the same Content AST, so every format and setting behaves identically. (Timeline and Selection stay on Standard batch.)
 
@@ -92,6 +88,14 @@ What to know before turning it on:
 - **It's opt-in and off by default.** Enabling it grants one optional, X.com-only permission (`webRequest`) used to read your session's auth header. There's no API key and no password — and nothing leaves your browser.
 - **Use it judiciously.** Because it calls X's private API directly, large runs can trip X's rate limit (soft-blocking). Fast Batch paces itself and **stops politely** when X pushes back, so you can resume or re-run later; a **date-range filter** lets you narrow scope to reach older posts without hitting limits.
 - **Two quick setup steps**, shown as step-lights in the popup: reload the page so its feed request is captured, and open any one tweet so threads and articles can be expanded.
+
+### Settings — tune once, forget about it
+
+<p align="center">
+  <img src="assets/06-metadata-customization-settings.png" alt="XClipper popup and settings view side by side" width="700" />
+</p>
+
+The popup keeps per-export toggles (**Save images locally**, **Show engagement stats inline**, **Include metadata**) front and centre. The gear icon opens **Settings**, where set-once knobs live in four collapsible sections — **Downloads**, **Obsidian**, **Frontmatter fields**, and **Inline button & context menu** — persisted across sessions via `chrome.storage`.
 
 ## Great For
 
