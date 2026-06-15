@@ -8,7 +8,11 @@
   <a href="https://github.com/zendegani/xclipper/actions/workflows/ci.yml"><img src="https://github.com/zendegani/xclipper/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/License-PolyForm%20Noncommercial-blue.svg" alt="License: PolyForm Noncommercial 1.0.0" /></a>
   <a href="PRIVACY.md"><img src="https://img.shields.io/badge/Privacy-100%25%20local-brightgreen" alt="Privacy: 100% local" /></a>
+</p>
+
+<p align="center">
   <a href="src/manifest.json"><img src="https://img.shields.io/badge/Chrome-Manifest%20V3-4285F4?logo=googlechrome&logoColor=white" alt="Chrome Manifest V3" /></a>
+  <a href="src/manifest.json"><img src="https://img.shields.io/badge/Firefox-Manifest%20V3-FF7139?logo=firefoxbrowser&logoColor=white" alt="Firefox Manifest V3" /></a>
 </p>
 
 <p align="center">
