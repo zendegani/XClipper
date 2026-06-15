@@ -13,6 +13,8 @@
     --line: #e2e8f0;
     --line-2: #cbd5e1;
     --brand: #1d9bf0;
+    --brand-blue: #1d9bf0;
+    --brand-red: #dc2626;
     --brand-deep: #0e7ec9;
     --obsidian: #6f3df5;
     --obsidian-soft: #efe7ff;
@@ -179,57 +181,70 @@
   .demo-ctx .item .obsidian-word{ color: var(--obsidian); }
   .demo-ctx .item .md-word{ color: var(--brand); }
 
-  /* ───────── Card 3 — Popup & settings ───────── */
-  .demo-popup{
-    width: 264px;
-    background: white;
-    border: 1px solid var(--line);
-    border-radius: 14px;
-    box-shadow: 0 14px 32px -10px rgba(15,23,42,.22);
-    padding: 16px;
+  /* ───────── Card 3 — Batch export & settings (Marquee popup) ───────── */
+  .demo-mqp{ transform: scale(0.62); transform-origin: center center; }
+  .mqp{
+    position: relative;
+    width: 348px;
+    background: #ffffff;
+    border-radius: 18px;
+    box-shadow: 0 30px 60px -16px rgba(0,0,0,.5), 0 1px 3px rgba(0,0,0,.2);
+    padding: 18px;
+    color: #0b1220;
+    display: flex; flex-direction: column; gap: 13px;
   }
-  .demo-popup .ph{ position: relative; display: flex; align-items: center; justify-content: center; }
-  .demo-popup .ph .left{ display: flex; align-items: center; gap: 9px; }
-  .demo-popup .ph .pm{ width: 22px; height: 22px; border-radius: 50%; overflow: hidden; }
-  .demo-popup .ph .pm img{ width: 100%; height: 100%; display: block; }
-  .demo-popup .ph .pn{ font-weight: 800; font-size: 13px; color: var(--ink); letter-spacing: -.01em; }
-  .demo-popup .ph .pn b{ color: var(--brand); font-weight: 800; }
-  .demo-popup .ph .gear{ position: absolute; right: 0; color: var(--ink-3); font-size: 13px; }
-  .demo-popup .pbtns{ margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .demo-popup .pbtn{
-    height: 30px; border-radius: 8px;
-    background: var(--brand); color: white;
-    font-size: 11px; font-weight: 700;
-    display: flex; align-items: center; justify-content: center;
-    letter-spacing: -.01em;
-    border: 1.5px solid transparent;
+  .mqp-head{ display: flex; align-items: center; justify-content: space-between; }
+  .mqp-head .brand{ display: flex; align-items: center; gap: 9px; }
+  .mqp-head .brand img{ width: 24px; height: 24px; display: block; }
+  .mqp-head .brand .wm{ font-size: 18px; font-weight: 800; letter-spacing: -.02em; color: #0b1220; }
+  .mqp-head .brand .wm span{ color: var(--brand-blue); }
+  .mqp-head .gear{ color: #94a3b8; }
+
+  .mqp-seg{ display: flex; background: #f1f5f9; border-radius: 11px; padding: 4px; gap: 4px; }
+  .mqp-seg .opt{ flex: 1; text-align: center; font-size: 13px; font-weight: 700; color: #94a3b8; padding: 8px 0; border-radius: 8px; }
+  .mqp-seg .opt.active{ background: #fff; color: #0b1220; box-shadow: 0 1px 3px rgba(15,23,42,.12); }
+
+  .mqp-tabs{ display: flex; gap: 8px; }
+  .mqp-tab{
+    flex: 1; height: 44px; border: 1px solid var(--line); border-radius: 11px;
+    display: flex; align-items: center; justify-content: center; color: #94a3b8;
   }
-  .demo-popup .pbtns.sec{ margin-top: 11px; }
-  .demo-popup .pbtn.pdf{
-    background: white; border: 1.5px solid #dc2626; color: #dc2626;
+  .mqp-tab svg{ width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .mqp-tab.active{ background: var(--brand-blue); border-color: var(--brand-blue); color: #fff; box-shadow: 0 8px 18px -4px rgba(29,155,240,.45); }
+
+  .mqp-fast{
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    padding: 12px 14px; border: 1px solid #fecaca;
+    background: linear-gradient(180deg, #fff7f7, #fff); border-radius: 12px;
   }
-  .demo-popup .pbtn.obsidian{
-    background: white; border: 1.5px solid var(--obsidian); color: var(--obsidian);
+  .mqp-fast .fl{ display: flex; align-items: center; gap: 9px; }
+  .mqp-fast .fl svg{ width: 18px; height: 18px; fill: var(--brand-red); }
+  .mqp-fast .fl .lbl{ font-size: 15px; font-weight: 700; color: var(--brand-red); }
+  .mqp-toggle{ width: 44px; height: 25px; border-radius: 999px; background: var(--brand-red); position: relative; box-shadow: inset 0 1px 2px rgba(0,0,0,.15); }
+  .mqp-toggle::after{ content: ''; position: absolute; top: 3px; right: 3px; width: 19px; height: 19px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.2); }
+
+  .mqp-prog{ display: flex; flex-direction: column; gap: 9px; }
+  .mqp-prow{ display: flex; align-items: center; gap: 10px; }
+  .mqp-ctl{ width: 28px; height: 28px; border-radius: 8px; border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; color: #475569; flex-shrink: 0; }
+  .mqp-ctl svg{ width: 13px; height: 13px; fill: currentColor; }
+  .mqp-bar{ flex: 1; height: 10px; border-radius: 999px; background: #eef2f7; overflow: hidden; }
+  .mqp-bar > i{ display: block; height: 100%; width: 62%; border-radius: 999px; background: linear-gradient(90deg, var(--brand-blue), #5cc1ff); }
+  .mqp-plabel{ display: flex; align-items: center; gap: 8px; font-size: 13px; color: #475569; font-weight: 600; }
+  .mqp-plabel b{ color: #0b1220; }
+  .mqp-plabel .chip{ display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 800; color: var(--brand-red); background: #fee2e2; border-radius: 999px; padding: 2px 8px; }
+  .mqp-plabel .chip svg{ width: 11px; height: 11px; fill: var(--brand-red); }
+
+  .mqp-badge{
+    position: absolute; top: -18px; right: -22px;
+    background: var(--brand-red); color: #fff;
+    font-size: 14px; font-weight: 800; letter-spacing: -.01em;
+    padding: 8px 14px; border-radius: 999px;
+    box-shadow: 0 12px 26px -6px rgba(220,38,38,.6);
+    display: flex; align-items: center; gap: 6px;
+    transform: rotate(4deg);
+    z-index: 4;
   }
-  .demo-popup .toggles{
-    margin-top: 11px;
-    background: #f3f6fa; border-radius: 8px;
-    padding: 9px 10px;
-    display: flex; flex-direction: column; gap: 7px;
-  }
-  .demo-popup .tg{ display: flex; align-items: center; gap: 6px; font-size: 11.5px; color: var(--ink-2); }
-  .demo-popup .tg svg{ color: var(--ink-3); flex-shrink: 0; }
-  .demo-popup .tg .sw{
-    margin-left: auto;
-    width: 26px; height: 14px; background: #e2e8f0; border-radius: 8px; position: relative;
-  }
-  .demo-popup .tg .sw::after{
-    content: ''; position: absolute; top: 1.5px; left: 1.5px;
-    width: 11px; height: 11px; background: white; border-radius: 50%;
-    box-shadow: 0 1px 1px rgba(0,0,0,.12);
-  }
-  .demo-popup .tg.on .sw{ background: var(--brand); }
-  .demo-popup .tg.on .sw::after{ left: auto; right: 1.5px; }
+  .mqp-badge svg{ width: 14px; height: 14px; fill: #fff; }
 
   /* ───────── Card 4 — YAML + images ───────── */
   .demo-yaml{
@@ -280,7 +295,7 @@
   /* ───────── Card 4 — Tweets, threads & Articles ───────── */
   /* Different heights, vertically centred → the trio fans open into a "<" shape */
   .demo-types{
-    display: flex; align-items: center; justify-content: center;
+    display: flex; align-items: flex-end; justify-content: center;
     gap: 14px; width: 100%;
   }
   .type-card{
@@ -427,20 +442,6 @@
         <div class="meta">04</div>
         <div class="demo">
           <div class="demo-types">
-            <!-- TWEET -->
-            <div class="type-card tweet">
-              <div class="top-row"><div class="av"></div><div class="who"><div class="nm"></div><div class="hd"></div></div></div>
-              <div class="line"></div><div class="line"></div><div class="line short"></div>
-              <div class="badge">Tweet</div>
-            </div>
-            <!-- THREAD -->
-            <div class="type-card thread">
-              <div class="top-row"><div class="av"></div><div class="who"><div class="nm"></div><div class="hd"></div></div></div>
-              <div class="line"></div>
-              <div class="reply"><div class="av"></div><div class="lines"><div class="line"></div><div class="line short"></div></div></div>
-              <div class="reply"><div class="av"></div><div class="lines"><div class="line"></div></div></div>
-              <div class="badge">Thread</div>
-            </div>
             <!-- ARTICLE -->
             <div class="type-card article">
               <div class="top-row"><div class="av"></div><div class="who"><div class="nm"></div><div class="hd"></div></div></div>
@@ -452,67 +453,82 @@
               </div>
               <div class="badge">Article</div>
             </div>
+            <!-- THREAD -->
+            <div class="type-card thread">
+              <div class="top-row"><div class="av"></div><div class="who"><div class="nm"></div><div class="hd"></div></div></div>
+              <div class="line"></div>
+              <div class="reply"><div class="av"></div><div class="lines"><div class="line"></div><div class="line short"></div></div></div>
+              <div class="reply"><div class="av"></div><div class="lines"><div class="line"></div></div></div>
+              <div class="badge">Thread</div>
+            </div>
+            <!-- TWEET -->
+            <div class="type-card tweet">
+              <div class="top-row"><div class="av"></div><div class="who"><div class="nm"></div><div class="hd"></div></div></div>
+              <div class="line"></div><div class="line"></div><div class="line short"></div>
+              <div class="badge">Tweet</div>
+            </div>
           </div>
         </div>
         <h3>Tweets, threads &amp; Articles</h3>
         <p>Single posts, nested replies, and long-form X Articles — all extracted cleanly.</p>
       </div>
 
-      <!-- ───────── Card 3 — Popup & settings ───────── -->
+      <!-- ───────── Card 3 — Batch export & settings (Marquee popup) ───────── -->
       <div class="card">
         <div class="meta">05</div>
         <div class="demo">
-          <div class="demo-popup">
-            <div class="ph">
-              <div class="left">
-                <div class="pm"><img src="../../src/icons/icon-128.png" alt=""></div>
-                <div class="pn">X<b>Clipper</b></div>
+          <div class="demo-mqp">
+            <div class="mqp">
+              <div class="mqp-badge">
+                <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                up to 10× faster
               </div>
-              <div class="gear">⚙</div>
-            </div>
-            <div class="pbtns">
-              <div class="pbtn">
-                <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                Download .md
+
+              <div class="mqp-head">
+                <div class="brand">
+                  <img src="../../assets/xclipper-mark.svg" alt="">
+                  <span class="wm">X<span>Clipper</span></span>
+                </div>
+                <svg class="gear" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
               </div>
-              <div class="pbtn">
-                <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
-                Copy .md
+
+              <div class="mqp-seg">
+                <div class="opt">Single export</div>
+                <div class="opt active">Batch export</div>
               </div>
-            </div>
-            <div class="toggles">
-              <div class="tg">
-                <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-                <span>Save images locally</span>
-                <span class="sw"></span>
+
+              <div class="mqp-tabs">
+                <div class="mqp-tab active" title="Bookmarks"><svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg></div>
+                <div class="mqp-tab" title="Profile"><svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg></div>
+                <div class="mqp-tab" title="Likes"><svg viewBox="0 0 24 24"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/></svg></div>
+                <div class="mqp-tab" title="Timeline"><svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg></div>
+                <div class="mqp-tab" title="Selection"><svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
               </div>
-              <div class="tg">
-                <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
-                <span>Show engagement stats</span>
-                <span class="sw"></span>
+
+              <div class="mqp-fast">
+                <div class="fl">
+                  <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+                  <span class="lbl">Fast Batch</span>
+                </div>
+                <div class="mqp-toggle"></div>
               </div>
-              <div class="tg on">
-                <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
-                <span>Include metadata</span>
-                <span class="sw"></span>
-              </div>
-            </div>
-            <div class="pbtns sec">
-              <div class="pbtn pdf">
-                <svg viewBox="0 0 24 24" width="11" height="11" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
-                Export .pdf
-              </div>
-              <div class="pbtn obsidian">
-                <svg viewBox="0 0 24 24" width="11" height="11" fill="currentColor" stroke="none" style="margin-right: 4px;">
-                  <path d="M19.355 18.538a68.967 68.959 0 0 0 1.858-2.954.81.81 0 0 0-.062-.9c-.516-.685-1.504-2.075-2.042-3.362-.553-1.321-.636-3.375-.64-4.377a1.707 1.707 0 0 0-.358-1.05l-3.198-4.064a3.744 3.744 0 0 1-.076.543c-.106.503-.307 1.004-.536 1.5-.134.29-.29.6-.446.914l-.31.626c-.516 1.068-.997 2.227-1.132 3.59-.124 1.26.046 2.73.815 4.481.128.011.257.025.386.044a6.363 6.363 0 0 1 3.326 1.505c.916.79 1.744 1.922 2.415 3.5zM8.199 22.569c.073.012.146.02.22.02.78.024 2.095.092 3.16.29.87.16 2.593.64 4.01 1.055 1.083.316 2.198-.548 2.355-1.664.114-.814.33-1.735.725-2.58l-.01.005c-.67-1.87-1.522-3.078-2.416-3.849a5.295 5.295 0 0 0-2.778-1.257c-1.54-.216-2.952.19-3.84.45.532 2.218.368 4.829-1.425 7.531zM5.533 9.938c-.023.1-.056.197-.098.29L2.82 16.059a1.602 1.602 0 0 0 .313 1.772l4.116 4.24c2.103-3.101 1.796-6.02.836-8.3-.728-1.73-1.832-3.081-2.55-3.831zM9.32 14.01c.615-.183 1.606-.465 2.745-.534-.683-1.725-.848-3.233-.716-4.577.154-1.552.7-2.847 1.235-3.95.113-.235.223-.454.328-.664.149-.297.288-.577.419-.86.217-.47.379-.885.46-1.27.08-.38.08-.72-.014-1.043-.095-.325-.297-.675-.68-1.06a1.6 1.6 0 0 0-1.475.36l-4.95 4.452a1.602 1.602 0 0 0-.513.952l-.427 2.83c.672.59 2.328 2.316 3.335 4.711.09.21.175.43.253.653z"/>
-                </svg>
-                Add to Obsidian
+
+              <div class="mqp-prog">
+                <div class="mqp-prow">
+                  <div class="mqp-ctl"><svg viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></div>
+                  <div class="mqp-ctl"><svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="1.5"/></svg></div>
+                  <div class="mqp-bar"><i></i></div>
+                </div>
+                <div class="mqp-plabel">
+                  <span class="chip"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Fast</span>
+                  <span>Bookmarks · <b>74</b> / 120 exported</span>
+                </div>
               </div>
             </div>
           </div>
         </div>
-        <h3>Popup &amp; settings</h3>
-        <p>Per-export toggles for images, stats, and YAML — plus a set-once Obsidian vault.</p>
+        <h3>Batch export &amp; settings</h3>
+        <p>Batch from bookmarks, a profile, or a selection — with opt-in Fast Batch up to 10× faster, plus set-once export options.</p>
       </div>
 
       <!-- ───────── Card 4 — YAML + images ───────── -->
