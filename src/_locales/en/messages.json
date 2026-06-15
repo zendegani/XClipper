@@ -56,9 +56,6 @@
   "fast_batch": {
     "message": "Fast Batch"
   },
-  "fast_batch_title": {
-    "message": "Export your bookmarks far faster by fetching them directly through your logged-in X session (its private API) instead of rendering each page. Grants an optional X.com-only permission; nothing leaves your browser. Off by default — bookmarks only for now."
-  },
   "fast_batch_hint": {
     "message": "Fetches bookmarks through your X session — much faster. Bookmarks only for now."
   },
