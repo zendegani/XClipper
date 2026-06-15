@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
+## [2.5.0] - 2026-06-15
+
+### Added
+
+- **Firefox extension build**: added a Firefox MV3 build target and package command (`npm run build:firefox`, `npm run package:firefox`) that emits `dist-firefox/` with a Gecko-compatible manifest, background script fallback, and native toolbar theme icons.
+
+---
 ## [2.4.0] - 2026-06-15
 
 ### Added
