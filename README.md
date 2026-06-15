@@ -178,8 +178,9 @@ xclipper/
 │   ├── types/          # Shared TypeScript interfaces (messages)
 │   ├── icons/          # Extension icons (16, 32, 48, 128px)
 │   ├── _locales/       # i18n translations (en, es, de, fr, it, ja, pt_BR, ru, zh_CN, ar, fa, hi)
-│   └── manifest.json   # Chrome MV3 manifest
-├── dist/               # Build output (load this in Chrome)
+│   └── manifest.json   # Chrome MV3 manifest (Firefox variant is generated at build time)
+├── dist/               # Chrome build output
+├── dist-firefox/       # Firefox build output
 ├── docs/               # architecture.md overview + ADR + Content AST schema
 ├── tests/              # Vitest + JSDOM extractor/AST snapshot tests
 ├── build.mjs           # esbuild build script
@@ -192,9 +193,11 @@ xclipper/
 ```bash
 npm install        # Install dependencies
 npm run build      # Build for production
+npm run build:firefox  # Build the Firefox MV3 variant
 npm run watch      # Build + watch for changes
 npm test           # Run extractor snapshot tests (Vitest + JSDOM)
 npm run package    # Package for Chrome Web Store (.zip)
+npm run package:firefox # Package for Firefox Add-ons (.zip)
 npm run clean      # Clean build output
 ```
 
@@ -211,7 +214,7 @@ npm run clean      # Clean build output
 | `storage`      | Remember your popup toggle preferences and the optional Obsidian vault name |
 | `contextMenus` | Add **Save / Copy tweet as Markdown** to the right-click menu (X.com only) |
 | `alarms`       | Keep batch jobs running reliably while the service worker idles (a watchdog timer) |
-| `offscreen`    | Detect your OS light/dark setting to switch the toolbar icon |
+| `offscreen`    | Chrome only: detect your OS light/dark setting to switch the toolbar icon. Firefox uses native `action.theme_icons` instead |
 | `host` (X.com) | Inject a content script on X.com to extract post / article content and draw the inline download button |
 | `webRequest` *(optional)* | **Fast Batch only** — read your X session's auth header to replay X's internal API. Requested only if you enable Fast Batch; never used otherwise |
 
