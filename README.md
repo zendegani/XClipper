@@ -23,7 +23,7 @@
   <img src="assets/04-popup-clipping-interface.png" alt="XClipper extension popup — export X posts, threads, and articles to Markdown, PDF, or Obsidian" width="500" />
 </p>
 
-**XClipper** is a source-available Chrome extension that exports x.com content as **Markdown, PDF, HTML, JSON, TXT, CSV, or Obsidian notes** — one post at a time, or in **batch** from your bookmarks, a profile, your likes, or a hand-picked selection. It runs entirely in your browser: no X API key, no account, no server. Free for noncommercial use ([commercial license](#license) required to sell or build a paid product on it).
+**XClipper** is a source-available Chrome extension that exports x.com content as **Markdown, PDF, HTML, JSON, TXT, CSV, or Obsidian notes** — one post at a time, or in **batch** from your bookmarks, a profile, your likes, your home timeline, or a hand-picked selection. It runs entirely in your browser: no X API key, no account, no server. Free for noncommercial use ([commercial license](#license) required to sell or build a paid product on it).
 
 ## Why XClipper
 
@@ -31,7 +31,7 @@ Most "tweet to markdown" tools run a post through a generic HTML→Markdown conv
 
 - **Output you won't have to clean up.** The DOM is parsed into a typed **Content AST** before anything is rendered, so structure survives: nested threads, quote tweets, polls, link cards, and full long-form **Articles** (headings, lists, code blocks) all come through faithfully. `t.co` links are resolved to real URLs, emoji and @mentions stay intact, truncated posts are expanded, and engagement bars, follow prompts, and trackers are stripped.
 - **Real PDFs, not screenshots.** PDF export goes through Chrome's native print engine — selectable text, clickable links, embedded images, and full Unicode/emoji — so the result is an actual document, not a flattened image.
-- **Batch, not one-at-a-time.** Export your entire **Bookmarks**, **Likes**, a **Profile**, or a hand-picked **Selection** in a single background job, with progress, pause/resume/stop, and dedup.
+- **Batch, not one-at-a-time.** Export your entire **Bookmarks**, **Likes**, a **Profile**, your home **Timeline**, or a hand-picked **Selection** in a single background job, with progress, pause/resume/stop, and dedup — plus an optional **Fast mode** that pulls items straight from your X session for a roughly **10× speed-up**.
 - **100% local, zero setup.** No API keys, no accounts, nothing leaves your browser. Install and clip.
 
 <p align="center">
@@ -42,7 +42,8 @@ Most "tweet to markdown" tools run a post through a generic HTML→Markdown conv
 
 ### Headline
 
-- **Batch export** — Export many posts at once from four sources via an icon tab strip: **Bookmarks**, **Profile** (own posts; reposts skipped), **Likes**, or **Selection** (tick individual tweets with checkboxes on any timeline). Pick the **format** and whether to write **Separate** per-post files, one **Combined** file (`x-compilation-<date>`), or **Both**. Runs in the background (one job at a time) with a live progress bar and **pause / resume / stop** — close and reopen the popup mid-job. A dedup ledger skips already-exported items, and you can keep adding newly-scrolled posts to a running job.
+- **Batch export** — Export many posts at once from five sources via an icon tab strip: **Bookmarks**, **Profile** (own posts; reposts skipped), **Likes**, **Timeline** (every post loaded in your home feed), or **Selection** (tick individual tweets with checkboxes on any timeline). Pick the **format** and whether to write **Separate** per-post files, one **Combined** file (`x-compilation-<date>`), or **Both**. Runs in the background (one job at a time) with a live progress bar and **pause / resume / stop** — close and reopen the popup mid-job. A dedup ledger skips already-exported items, and you can keep adding newly-scrolled posts to a running job.
+- **Fast Batch ⚡ (opt-in)** — An optional accelerated mode for **Bookmarks, Profile, and Likes** that fetches posts directly through your logged-in X session's internal API instead of rendering each page — roughly **10× faster** (minutes → seconds), mapped into the same output so every format and setting works identically. No API key, no password, nothing leaves your browser. Off by default; see [the caveats below](#fast-batch-opt-in) before enabling it.
 - **Seven export formats** — Save a single post as **Markdown, PDF, HTML, JSON, TXT, or CSV**, or hand it to **Obsidian**. Batch jobs support all of these except PDF. CSV pairs your metadata columns with a `text` column for the post body.
 - **High-fidelity Markdown** — Tweets, nested threads, quote tweets, polls, link cards, and X Articles render cleanly via the AST pipeline (no Turndown), with resolved `t.co` links, inlined emoji, and tidy @mentions.
 - **True PDF export** — Tweets, threads, and articles printed through Chrome's native engine: selectable text, clickable links, embedded images, full Unicode.
@@ -81,6 +82,16 @@ Right-click anywhere on a tweet — body, image, or timestamp — and pick **Sav
 </p>
 
 The popup keeps per-export toggles (**Save images locally**, **Show engagement stats inline**, **Include metadata**) front and centre. The gear icon opens **Settings**, where set-once knobs live in four collapsible sections — **Downloads**, **Obsidian**, **Frontmatter fields**, and **Inline button & context menu** — persisted across sessions via `chrome.storage`.
+
+### Fast Batch (opt-in)
+
+⚡ Standard batch renders each post in a worker tab — reliable, no extra permissions, and the default. **Fast Batch** is an optional mode for **Bookmarks, Profile, and Likes** that instead replays X's own internal API using your existing logged-in session, turning a multi-minute job into a few seconds (~10×). It maps the same data into the same Content AST, so every format and setting behaves identically. (Timeline and Selection stay on Standard batch.)
+
+What to know before turning it on:
+
+- **It's opt-in and off by default.** Enabling it grants one optional, X.com-only permission (`webRequest`) used to read your session's auth header. There's no API key and no password — and nothing leaves your browser.
+- **Use it judiciously.** Because it calls X's private API directly, large runs can trip X's rate limit (soft-blocking). Fast Batch paces itself and **stops politely** when X pushes back, so you can resume or re-run later; a **date-range filter** lets you narrow scope to reach older posts without hitting limits.
+- **Two quick setup steps**, shown as step-lights in the popup: reload the page so its feed request is captured, and open any one tweet so threads and articles can be expanded.
 
 ## Great For
 
@@ -138,6 +149,7 @@ Filenames default to `@handle-tweetId.md` (tweets/threads) or `@handle-article-s
 - **Tweets/threads:** custom AST rendering (t.co resolution, emoji inlining, @mention cleanup).
 - **Articles:** manual Draft.js block parsing for precise heading/list/code-block extraction.
 - **PDF:** the same AST renders to HTML and prints via Chrome's native engine.
+- **Fast Batch (opt-in):** an alternate acquisition path maps X's internal GraphQL JSON to the same Content AST (`src/graphql/`), reusing every renderer and sink unchanged — see [`docs/adr/0003`](docs/adr/0003-fast-batch-graphql.md).
 - DOM is cleaned (engagement bars, follow buttons, navigation) before extraction.
 - Downloads go through the `chrome.downloads` API after the background worker validates the message sender and sanitizes paths. Local image downloads are limited to expected X media hosts; external image URLs stay as remote Markdown links.
 - Nothing leaves your browser.
@@ -194,7 +206,10 @@ npm run clean      # Clean build output
 | `downloads`    | Save the `.md` file and allowed X media images to Downloads |
 | `storage`      | Remember your popup toggle preferences and the optional Obsidian vault name |
 | `contextMenus` | Add **Save / Copy tweet as Markdown** to the right-click menu (X.com only) |
+| `alarms`       | Keep batch jobs running reliably while the service worker idles (a watchdog timer) |
+| `offscreen`    | Detect your OS light/dark setting to switch the toolbar icon |
 | `host` (X.com) | Inject a content script on X.com to extract post / article content and draw the inline download button |
+| `webRequest` *(optional)* | **Fast Batch only** — read your X session's auth header to replay X's internal API. Requested only if you enable Fast Batch; never used otherwise |
 
 **Your data never leaves your device. No data is collected, transmitted, or stored externally.** See [PRIVACY.md](PRIVACY.md).
 
