@@ -19,7 +19,8 @@
     "01-product-overview": "node scripts/01-product-overview.mjs",
     "store-screenshot": "node scripts/store-screenshot.mjs",
     "02-one-click-timeline-export": "node scripts/store-screenshot.mjs store/mockups/02-one-click-timeline-export.html assets/02-one-click-timeline-export.png",
-    "03-context-menu-shortcut": "node scripts/store-screenshot.mjs store/mockups/03-context-menu-shortcut.html assets/03-context-menu-shortcut.png"
+    "03-context-menu-shortcut": "node scripts/store-screenshot.mjs store/mockups/03-context-menu-shortcut.html assets/03-context-menu-shortcut.png",
+    "07-batch-export": "node scripts/store-screenshot.mjs store/mockups/07-batch-export.html assets/07-batch-export.png"
   },
   "devDependencies": {
     "@puppeteer/browsers": "^3.0.4",

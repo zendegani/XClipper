@@ -95,7 +95,7 @@
     position: relative;
     width: 680px;
     height: 520px;
-    margin-top: 262px;
+    margin-top: 170px;
     transform: scale(1.05);
     transform-origin: center right;
   }
@@ -299,7 +299,7 @@
   .context-menu-sub {
     position: absolute;
     left: 395px;
-    top: 170px;
+    top: 150px;
     width: 290px;
     background: #ffffff;
     border: 2px solid var(--brand);
@@ -307,17 +307,22 @@
     box-shadow: 0 10px 30px rgba(29, 155, 240, 0.15);
     padding: 6px 0;
     z-index: 11;
-    font-size: 15.5px;
+    font-size: 15px;
     color: #18181b;
   }
   .context-menu-sub .item {
-    padding: 10px 18px;
+    padding: 7px 18px;
     cursor: default;
     font-weight: 500;
   }
   .context-menu-sub .item:hover {
     background: #f0f9ff;
     color: var(--brand);
+  }
+  .context-menu-sub .separator {
+    height: 1px;
+    background: #e4e4e7;
+    margin: 5px 0;
   }
 
 
@@ -331,8 +336,8 @@
       <img src="../../assets/xclipper-mark.svg" width="64" height="64" alt="">
       <div class="wordmark">X<span style="color: var(--brand);">Clipper</span></div>
     </div>
-    <h1>Right-click any tweet<br>to Markdown, PDF<br>or Obsidian</h1>
-    <p>Save or copy from the timeline, profiles, search — anywhere a tweet renders.</p>
+    <h1>Right-click any tweet<br>to export it<br>your way</h1>
+    <p>PDF, Obsidian, Markdown, txt, HTML, JSON or CSV — save or copy from the timeline, profiles, search, anywhere a tweet renders.</p>
   </div>
 
   <div class="right-panel">
@@ -434,11 +439,18 @@
 
       <!-- Sub-Context Menu -->
       <div class="context-menu-sub">
+        <div class="item">Export tweet as <span style="color: #dc2626;">PDF</span></div>
         <div class="item">Add tweet to <span style="color: var(--obsidian);">Obsidian</span></div>
-        <div class="item">Save tweet as <span style="color: #dc2626;">PDF</span></div>
-        <div class="item">Save tweet as Markdown</div>
+        <div class="separator"></div>
         <div class="item">Copy tweet as Markdown</div>
+        <div class="item">Download tweet as Markdown</div>
         <div class="item">Copy just this tweet (no thread)</div>
+        <div class="separator"></div>
+        <div class="item">Copy tweet as txt</div>
+        <div class="item">Download tweet as txt</div>
+        <div class="item">Download tweet as html</div>
+        <div class="item">Download tweet as json</div>
+        <div class="item">Download tweet as csv</div>
       </div>
 
     </div>
