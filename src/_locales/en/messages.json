@@ -57,7 +57,7 @@
     "message": "Fast Batch"
   },
   "fast_batch_info": {
-    "message": "Exports your Bookmarks, a profile's posts, or your Likes far faster by fetching them directly through your logged-in X session (its private API) — no API key, no password, nothing leaves your browser. The step lights below show what to do first (reload the page / open one tweet). Big runs can hit X's rate limit — it stops politely so you can re-run, or use the date range to narrow the scope."
+    "message": "Fetches items through your logged-in X session for a big speed-up — no API key, nothing leaves your browser. Heads-up: large runs can hit X's rate limit, so it paces itself and stops politely so you can re-run."
   },
   "btn_batch_fast_hint": {
     "message": "Fetch all your bookmarks through your X session — much faster. Expands threads & articles; stops politely if X rate-limits."
