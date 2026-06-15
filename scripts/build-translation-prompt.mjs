@@ -93,9 +93,8 @@ ${refLong}
 
 ENGLISH SOURCES TO TRANSLATE
 
-extensionName: X / Twitter Web Clipper: Save Threads & Articles to Markdown, PDF, Obsidian
-extensionDescription: Export X (Twitter) threads, tweets, and articles to clean Markdown or PDF. Send to Obsidian or save locally. Free, no API.
-tagline: Save threads & articles as Markdown or PDF
+extensionName: X / Twitter Web Clipper: Bookmarks & Threads to Markdown, PDF, Obsidian
+extensionDescription: Export X (Twitter) posts, threads, bookmarks & articles to Markdown, PDF or Obsidian — one at a time or in batch. Free, no API.
 
 longDescription:
 \`\`\`

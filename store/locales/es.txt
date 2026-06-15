@@ -1,38 +1,27 @@
-XClipper es un capturador web gratuito con código fuente disponible para X (Twitter) — una extensión de Chrome que descarga hilos, publicaciones y artículos como PDF o Markdown limpio para Obsidian, investigación, flujos de IA y archivado offline. Funciona completamente en tu navegador: sin claves API, sin cuentas, sin seguimiento.
+XClipper es un capturador web de alta fidelidad, con código fuente disponible, para X (Twitter): una extensión de Chrome que guarda tweets, hilos y artículos largos como Markdown limpio, PDF, HTML, JSON, TXT, CSV o notas de Obsidian. Exporta una publicación a la vez, o en lote desde tus marcadores, likes, un perfil o tu cronología de inicio. Todo funciona en tu navegador: sin clave de API de X, sin cuenta, sin servidor, sin seguimiento, y gratis para uso no comercial.
 
-Exporta contenido con un clic:
+Por qué XClipper:
 
-- Guardar como Markdown
-- Exportar como PDF (texto seleccionable, enlaces clicables, sin rasterización)
-- Copiar Markdown al portapapeles
-- Enviar directamente a Obsidian
-- Descargar imágenes localmente junto a tu archivo .md
+La mayoría de herramientas de "tweet a markdown" pasan una publicación por un conversor genérico de HTML a Markdown y se detienen ahí. XClipper está construido de otra forma:
 
-Todo se ejecuta localmente en tu máquina. Sin servicio backend, sin telemetría, sin solicitudes externas más allá de x.com.
+- Salida que no tendrás que limpiar. La página se analiza en un Content AST tipado antes de renderizar nada, por lo que la estructura se conserva: hilos anidados, tweets citados, encuestas, tarjetas de enlaces y artículos largos completos (encabezados, listas, bloques de código). Los enlaces t.co se resuelven a URL reales, los emojis y @menciones se mantienen intactos, las publicaciones truncadas se expanden, y se eliminan barras de interacción, avisos para seguir y rastreadores.
+- PDFs reales, no capturas de pantalla. La exportación a PDF usa el motor de impresión nativo de Chrome: texto seleccionable, enlaces clicables, imágenes incrustadas y Unicode completo, no una imagen plana.
+- En lote, no uno por uno. Exporta todos tus Marcadores, Likes, un Perfil, tu Cronología o una Selección manual en un trabajo en segundo plano con barra de progreso, pausar / reanudar / detener y un registro de deduplicación, además de un modo Fast opcional que extrae elementos directamente de tu sesión iniciada en X para acelerar el proceso aproximadamente 10 veces.
+- 100% local, sin configuración. Sin claves API, sin cuentas, nada sale de tu navegador. Instala y recorta.
 
-Características principales:
+También incluido:
 
-- Exporta tweets, hilos, tweets citados, hilos anidados y X Articles (antes Notes)
-- PDF con texto seleccionable, enlaces clicables y renderizado correcto de emojis y caracteres no ASCII
-- Markdown limpio compatible con Obsidian, Logseq, Notion, Hugo y otros flujos basados en Markdown
-- Botón "Añadir a Obsidian" con un clic mediante el esquema URI obsidian://
-- frontmatter YAML con autor, handle, fechas, URL de origen, tipo de contenido y métricas de interacción
-- frontmatter opcional optimizado para Obsidian: autores con wikilink [[@handle]], metadatos compatibles con Dataview y títulos y descripciones sintetizados
-- Descarga de imágenes incrustadas localmente para evitar enlaces rotos
-- Captura de tarjetas de enlaces con título, dominio de origen e imagen de vista previa
-- Captura de encuestas con opciones, porcentajes de resultados y línea de total/estado de votos
-- Conserva la estructura y atribución de tweets citados
-- Exporta un solo tweet o un hilo completo
-- Botón de exportación integrado dentro de x.com, además de popup en la barra de herramientas y menú contextual
-- Plantillas de nombre de archivo personalizables con {date}, {handle}, {slug} y {type}
-- Soporte opcional de vault de Obsidian y subcarpetas
-- Subcarpeta opcional para descargas de Markdown y medios
-- Interfaz de usuario en varios idiomas: Español, Alemán, Árabe, Chino (simplificado), Francés, Hindi, Inglés, Italiano, Japonés, Persa, Portugués (Brasil), Ruso
-- Modo claro y oscuro
+- Siete formatos de exportación: Markdown, PDF, HTML, JSON, TXT, CSV o entrega a Obsidian con un clic. Las exportaciones por lote escriben archivos separados, un archivo combinado o ambos (todos los formatos excepto PDF).
+- Integración con Obsidian: entrega mediante obsidian:// con vault y subcarpeta opcionales, además de un esquema de frontmatter compatible con Obsidian: wikilinks [[@handle]], metadatos compatibles con Dataview, título y descripción generados, y una lista de etiquetas personalizada.
+- YAML frontmatter completo: autor, handle, fechas, URL de origen, tipo de contenido y métricas de interacción, cada campo activable por separado y utilizable como token en plantillas personalizadas de nombre de archivo.
+- Tres formas de activar: un botón inline en cada tweet, el popup de la barra de herramientas y el menú de clic derecho.
+- Guarda imágenes incrustadas localmente para evitar enlaces rotos, y exporta un tweet individual o un hilo completo.
+
+Además: copiar al portapapeles o descargar, una fila inline opcional con métricas de interacción y una subcarpeta opcional de descargas.
 
 Ideal para:
 
-- Flujos de trabajo en Obsidian y PKM
+- Flujos de trabajo en Obsidian y PKM (también Notion, Logseq, Hugo y otras herramientas Markdown)
 - Investigación y archivo de referencias
 - Prompts de IA y pipelines RAG
 - Construcción de un segundo cerebro buscable
@@ -41,8 +30,9 @@ Ideal para:
 Limitaciones actuales:
 
 - Los vídeos y GIFs no se exportan como archivos multimedia reproducibles
-- Algunas funciones pueden dejar de funcionar si x.com cambia significativamente la estructura del sitio
-- Si instalas o actualizas la extensión con una pestaña de x.com ya abierta, recarga la pestaña antes de exportar — esto es intencional para evitar fallos silenciosos en una página no inicializada
+- Fast Batch llama directamente a la API interna de X, por lo que ejecuciones grandes pueden alcanzar el límite de frecuencia de X (bloqueo suave); es opcional, regula su ritmo, y puedes reanudar o volver a ejecutar más tarde
+- Algunas funciones pueden dejar de funcionar si x.com cambia significativamente la estructura de sus páginas
+- Si instalas o actualizas la extensión con una pestaña de x.com ya abierta, recarga la pestaña antes de exportar; esto es intencional para evitar fallos silenciosos en una página no inicializada
 
 Registro de cambios:
 https://github.com/zendegani/xclipper/blob/main/CHANGELOG.md
