@@ -1,9 +1,9 @@
 {
   "extensionName": {
-    "message": "X / Twitter Web Clipper: Сохраняйте Threads и статьи в Markdown, PDF"
+    "message": "X / Twitter Web Clipper: закладки и треды в Markdown, PDF, Obsidian"
   },
   "extensionDescription": {
-    "message": "Экспортируйте треды и статьи X (Twitter) в Markdown или PDF. Отправка в Obsidian или локальное сохранение. Бесплатно, без API."
+    "message": "Экспорт постов, тредов, закладок и статей X (Twitter) в Markdown, PDF или Obsidian: по одному или пакетом. Бесплатно, без API."
   },
   "tagline": {
     "message": "Сохраняйте треды и статьи как Markdown или PDF"
@@ -23,6 +23,240 @@
   "btn_obsidian": {
     "message": "Добавить в Obsidian"
   },
+  "btn_html_hint": {
+    "message": "Сохранить как оформленный автономный HTML-файл."
+  },
+  "btn_json_hint": {
+    "message": "Сохранить исходный структурированный документ (AST) как JSON."
+  },
+  "btn_txt_hint": {
+    "message": "Сохранить как обычный текст без разметки."
+  },
+  "btn_csv_hint": {
+    "message": "Сохранить одну строку метаданных с выбранными полями frontmatter."
+  },
+  "review_text": {
+    "message": "Нравится XClipper? Он бесплатный и сделан с большой любовью — короткий отзыв ★★★★★ очень помогает ему найти больше пользователей."
+  },
+  "review_rate": {
+    "message": "Оценить в Chrome Web Store"
+  },
+  "review_later": {
+    "message": "Может быть позже"
+  },
+  "review_dismiss": {
+    "message": "Скрыть"
+  },
+  "btn_batch": {
+    "message": "Экспорт закладок"
+  },
+  "btn_batch_hint": {
+    "message": "Экспортирует все закладки, загруженные на этой странице, как Markdown-файлы в одну папку. Прокрутите страницу закладок, чтобы загрузить больше."
+  },
+  "fast_batch": {
+    "message": "Fast Batch"
+  },
+  "fast_batch_info": {
+    "message": "Получает элементы через вашу залогиненную X-сессию для большого ускорения — без API-ключа, ничего не покидает браузер. Важно: большие запуски могут упереться в rate limit X, поэтому экспорт сам регулирует темп и аккуратно останавливается, чтобы вы могли запустить его снова."
+  },
+  "btn_batch_fast_hint": {
+    "message": "Получить все закладки через вашу X-сессию — намного быстрее. Разворачивает треды и статьи."
+  },
+  "btn_batch_fast_profile_hint": {
+    "message": "Получить собственные посты этого профиля через вашу X-сессию — намного быстрее. Репосты пропускаются."
+  },
+  "btn_batch_fast_likes_hint": {
+    "message": "Получить понравившиеся вам посты через вашу X-сессию — намного быстрее. Разворачивает треды и статьи."
+  },
+  "btn_batch_fast_no_selection": {
+    "message": "Выбор недоступен в Fast — выключите Fast, чтобы выбирать твиты вручную."
+  },
+  "btn_batch_fast_no_timeline": {
+    "message": "Лента недоступна в Fast — выключите Fast, чтобы экспортировать домашнюю ленту."
+  },
+  "batch_tab_selection_fast": {
+    "message": "Выключите Fast, чтобы выбирать твиты вручную"
+  },
+  "batch_tab_timeline_fast": {
+    "message": "Выключите Fast, чтобы экспортировать домашнюю ленту"
+  },
+  "fast_locked": {
+    "message": "Экспорт выполняется — отмените его или дождитесь завершения, чтобы сменить режим."
+  },
+  "fast_date_range": {
+    "message": "Диапазон дат"
+  },
+  "fast_date_range_hint": {
+    "message": "Экспортировать только посты с датой в этом диапазоне — посты вне диапазона пропускаются без разворачивания, чтобы добраться до старых постов без срабатывания rate limit X."
+  },
+  "fast_date_from": {
+    "message": "Дата с"
+  },
+  "fast_date_to": {
+    "message": "Дата по"
+  },
+  "fast_date_clear": {
+    "message": "Очистить"
+  },
+  "fast_step_page": {
+    "message": "Перезагрузить x.com"
+  },
+  "fast_step_tweet": {
+    "message": "Открыть один твит"
+  },
+  "fast_step_fetch": {
+    "message": "Получение ..."
+  },
+  "fast_step_expand": {
+    "message": "Разворачивание ..."
+  },
+  "batch_pause": {
+    "message": "Пауза"
+  },
+  "batch_resume": {
+    "message": "Продолжить"
+  },
+  "batch_stop": {
+    "message": "Остановить"
+  },
+  "batch_paused": {
+    "message": "На паузе"
+  },
+  "batch_done": {
+    "message": "Готово"
+  },
+  "batch_stopped": {
+    "message": "Остановлено"
+  },
+  "batch_exported": {
+    "message": "экспортировано"
+  },
+  "batch_failed": {
+    "message": "ошибок"
+  },
+  "batch_new": {
+    "message": "новых"
+  },
+  "batch_already_exported": {
+    "message": "уже экспортировано"
+  },
+  "batch_reset": {
+    "message": "Сбросить историю"
+  },
+  "batch_reset_hint": {
+    "message": "Забыть, какие посты уже экспортировались раньше, чтобы следующий пакет снова экспортировал всё загруженное."
+  },
+  "batch_reset_queue": {
+    "message": "Сбросить очередь"
+  },
+  "batch_reset_queue_hint": {
+    "message": "Очистить собранные посты и начать сбор заново с места прокрутки, чтобы начать с конкретного поста, а не сверху."
+  },
+  "btn_batch_open_x": {
+    "message": "Откройте x.com, чтобы пакетно экспортировать закладки, профиль или выборку."
+  },
+  "btn_batch_open_bookmarks": {
+    "message": "Откройте страницу закладок, прокрутите для загрузки постов и экспортируйте."
+  },
+  "btn_batch_open_profile": {
+    "message": "Откройте страницу профиля на x.com, чтобы экспортировать его посты. Репосты пропускаются."
+  },
+  "btn_batch_profile": {
+    "message": "Экспорт постов"
+  },
+  "btn_batch_profile_hint": {
+    "message": "Экспортирует собственные посты этого профиля, загруженные на странице, как Markdown-файлы в одну папку. Репосты пропускаются; прокрутите, чтобы загрузить больше."
+  },
+  "btn_batch_likes": {
+    "message": "Экспорт лайков"
+  },
+  "btn_batch_likes_hint": {
+    "message": "Экспортирует все понравившиеся посты, загруженные на этой странице, как Markdown-файлы в одну папку. Прокрутите страницу Likes, чтобы загрузить больше."
+  },
+  "btn_batch_open_likes": {
+    "message": "Откройте страницу Likes на x.com, чтобы экспортировать понравившиеся вам посты."
+  },
+  "btn_batch_timeline": {
+    "message": "Экспорт ленты"
+  },
+  "btn_batch_timeline_hint": {
+    "message": "Экспортирует каждый пост, загруженный в домашней ленте, как Markdown-файлы в одну папку. Прокрутите, чтобы загрузить больше."
+  },
+  "btn_batch_open_timeline": {
+    "message": "Откройте домашнюю ленту, прокрутите для загрузки постов и экспортируйте."
+  },
+  "btn_batch_go_bookmarks": {
+    "message": "Открыть закладки"
+  },
+  "btn_batch_go_timeline": {
+    "message": "Открыть ленту"
+  },
+  "group_batch": {
+    "message": "Пакетный экспорт"
+  },
+  "batch_tab_bookmarks": {
+    "message": "Закладки"
+  },
+  "batch_tab_profile": {
+    "message": "Профиль"
+  },
+  "batch_tab_selection": {
+    "message": "Выбор"
+  },
+  "batch_tab_likes": {
+    "message": "Likes"
+  },
+  "batch_tab_timeline": {
+    "message": "Лента"
+  },
+  "btn_batch_select": {
+    "message": "Выбрать твиты…"
+  },
+  "btn_batch_select_hint": {
+    "message": "Выберите отдельные твиты на текущей странице флажками, затем экспортируйте выборку."
+  },
+  "btn_batch_add": {
+    "message": "Добавить в очередь"
+  },
+  "btn_batch_add_hint": {
+    "message": "Добавить новые загруженные посты в текущую пакетную очередь."
+  },
+  "batch_format": {
+    "message": "Формат"
+  },
+  "batch_output": {
+    "message": "Вывод"
+  },
+  "batch_output_hint": {
+    "message": "Отдельно: один файл на пост. Оба: файлы по постам плюс один объединённый файл. Объединённо: только один файл."
+  },
+  "batch_out_separate": {
+    "message": "Отдельно"
+  },
+  "batch_out_both": {
+    "message": "Оба"
+  },
+  "batch_out_combined": {
+    "message": "Объединённо"
+  },
+  "batch_bar_selected": {
+    "message": "выбрано"
+  },
+  "batch_bar_hint": {
+    "message": "Нажимайте твиты для выбора"
+  },
+  "batch_bar_export": {
+    "message": "Экспорт"
+  },
+  "batch_started": {
+    "message": "Пакет запущен"
+  },
+  "batch_start_failed": {
+    "message": "Не удалось запустить пакет."
+  },
+  "batch_running": {
+    "message": "Пакетное задание уже выполняется."
+  },
   "btn_obsidian_hint": {
     "message": "Настройте vault, подпапку и поля frontmatter в настройках.\nДля длинных тредов или изображений используйте кнопку 'Скачать .md'."
   },
@@ -33,7 +267,16 @@
     "message": "Извлечение…"
   },
   "group_export": {
-    "message": "Экспорт"
+    "message": "Настройки экспорта"
+  },
+  "group_more_formats": {
+    "message": "Другие форматы"
+  },
+  "beta": {
+    "message": "Бета"
+  },
+  "group_single": {
+    "message": "Одиночный экспорт"
   },
   "group_downloads": {
     "message": "Загрузки"
@@ -156,7 +399,7 @@
     "message": "Скачивать изображения в папку рядом с Markdown-файлом"
   },
   "opt_save_images": {
-    "message": "Сохранять изображения локально"
+    "message": "Сохранять изображения локально (только с .md)"
   },
   "opt_metadata_title": {
     "message": "Добавлять лайки, репосты, просмотры как YAML frontmatter"
@@ -170,6 +413,12 @@
   "opt_inline_stats": {
     "message": "Показывать статистику активности в тексте"
   },
+  "opt_include_reposts": {
+    "message": "Включать репосты (профили)"
+  },
+  "opt_include_reposts_title": {
+    "message": "При пакетном экспорте профиля также включать репосты. Выкл. = только собственные посты владельца профиля."
+  },
   "opt_close_tab_title": {
     "message": "Автоматически закрывать вкладку после экспорта через inline-кнопку или контекстное меню"
   },
@@ -177,7 +426,7 @@
     "message": "Закрывать новую вкладку после экспорта"
   },
   "ctx_save_tweet": {
-    "message": "Сохранить твит как Markdown"
+    "message": "Скачать твит как Markdown"
   },
   "ctx_copy_tweet": {
     "message": "Копировать твит как Markdown"
@@ -187,6 +436,24 @@
   },
   "ctx_obsidian_tweet": {
     "message": "Добавить твит в Obsidian"
+  },
+  "ctx_export_pdf": {
+    "message": "Экспортировать твит как PDF"
+  },
+  "ctx_copy_txt": {
+    "message": "Копировать твит как txt"
+  },
+  "ctx_download_txt": {
+    "message": "Скачать твит как txt"
+  },
+  "ctx_download_html": {
+    "message": "Скачать твит как html"
+  },
+  "ctx_download_json": {
+    "message": "Скачать твит как json"
+  },
+  "ctx_download_csv": {
+    "message": "Скачать твит как csv"
   },
   "opt_show_inline_title": {
     "message": "Добавлять кнопку скачивания рядом с кнопкой «Поделиться» на панели действий каждого твита"

@@ -1,9 +1,9 @@
 {
   "extensionName": {
-    "message": "X / Twitter Web Clipper: ذخیره رشته‌ها و مقالات در Markdown، PDF، Obsidian"
+    "message": "X / Twitter Web Clipper: بوکمارک و رشته به Markdown، PDF، Obsidian"
   },
   "extensionDescription": {
-    "message": "خروجی گرفتن از رشته‌ها، توییت‌ها و مقالات X (Twitter) به Markdown یا PDF تمیز. ارسال به Obsidian یا ذخیره محلی. رایگان، بدون API."
+    "message": "پست‌ها، رشته‌ها، بوکمارک‌ها و مقاله‌های X (Twitter) را به Markdown، PDF یا Obsidian، تکی یا batch، خروجی بگیرید. رایگان، بدون API."
   },
   "tagline": {
     "message": "ذخیره رشته‌ها و مقالات به‌صورت Markdown یا PDF"
@@ -23,6 +23,240 @@
   "btn_obsidian": {
     "message": "افزودن به Obsidian"
   },
+  "btn_html_hint": {
+    "message": "ذخیره به‌صورت فایل HTML مستقل و دارای استایل."
+  },
+  "btn_json_hint": {
+    "message": "ذخیره سند ساختاری خام (AST) به‌صورت JSON."
+  },
+  "btn_txt_hint": {
+    "message": "ذخیره به‌صورت متن ساده با حذف markup."
+  },
+  "btn_csv_hint": {
+    "message": "ذخیره یک ردیف metadata با استفاده از فیلدهای frontmatter انتخاب‌شده."
+  },
+  "review_text": {
+    "message": "از XClipper لذت می‌برید؟ رایگان است و با علاقه زیاد ساخته شده — یک review کوتاه ★★★★★ واقعاً کمک می‌کند به افراد بیشتری برسد."
+  },
+  "review_rate": {
+    "message": "امتیاز در Chrome Web Store"
+  },
+  "review_later": {
+    "message": "شاید بعداً"
+  },
+  "review_dismiss": {
+    "message": "بستن"
+  },
+  "btn_batch": {
+    "message": "خروجی بوکمارک‌ها"
+  },
+  "btn_batch_hint": {
+    "message": "همه بوکمارک‌های بارگذاری‌شده در این صفحه را به‌صورت فایل‌های Markdown در یک پوشه خروجی می‌گیرد. برای بارگذاری بیشتر، صفحه بوکمارک‌ها را scroll کنید."
+  },
+  "fast_batch": {
+    "message": "Fast Batch"
+  },
+  "fast_batch_info": {
+    "message": "آیتم‌ها را از طریق جلسه واردشده X شما می‌گیرد تا سرعت خیلی بیشتر شود — بدون کلید API، هیچ چیز از مرورگر خارج نمی‌شود. توجه: اجراهای بزرگ ممکن است به rate limit X برسند، پس سرعت را تنظیم می‌کند و محترمانه متوقف می‌شود تا بتوانید دوباره اجرا کنید."
+  },
+  "btn_batch_fast_hint": {
+    "message": "همه بوکمارک‌ها را از طریق جلسه X شما می‌گیرد — بسیار سریع‌تر. رشته‌ها و مقاله‌ها را expand می‌کند."
+  },
+  "btn_batch_fast_profile_hint": {
+    "message": "پست‌های خود این پروفایل را از طریق جلسه X شما می‌گیرد — بسیار سریع‌تر. Repostها رد می‌شوند."
+  },
+  "btn_batch_fast_likes_hint": {
+    "message": "پست‌های liked شما را از طریق جلسه X می‌گیرد — بسیار سریع‌تر. رشته‌ها و مقاله‌ها را expand می‌کند."
+  },
+  "btn_batch_fast_no_selection": {
+    "message": "Selection در Fast در دسترس نیست — برای انتخاب دستی توییت‌ها Fast را خاموش کنید."
+  },
+  "btn_batch_fast_no_timeline": {
+    "message": "Timeline در Fast در دسترس نیست — برای خروجی گرفتن از home feed، Fast را خاموش کنید."
+  },
+  "batch_tab_selection_fast": {
+    "message": "برای انتخاب دستی توییت‌ها Fast را خاموش کنید"
+  },
+  "batch_tab_timeline_fast": {
+    "message": "برای خروجی گرفتن از home feed، Fast را خاموش کنید"
+  },
+  "fast_locked": {
+    "message": "یک خروجی در حال اجراست — برای تغییر mode آن را cancel کنید یا بگذارید تمام شود."
+  },
+  "fast_date_range": {
+    "message": "بازه تاریخ"
+  },
+  "fast_date_range_hint": {
+    "message": "فقط پست‌هایی را خروجی بگیر که تاریخشان در این بازه است — پست‌های خارج از بازه بدون expand شدن رد می‌شوند، تا بدون رسیدن به rate limit X به پست‌های قدیمی‌تر برسید."
+  },
+  "fast_date_from": {
+    "message": "از تاریخ"
+  },
+  "fast_date_to": {
+    "message": "تا تاریخ"
+  },
+  "fast_date_clear": {
+    "message": "پاک کردن"
+  },
+  "fast_step_page": {
+    "message": "reload کردن x.com"
+  },
+  "fast_step_tweet": {
+    "message": "باز کردن یک توییت"
+  },
+  "fast_step_fetch": {
+    "message": "در حال دریافت ..."
+  },
+  "fast_step_expand": {
+    "message": "در حال expand ..."
+  },
+  "batch_pause": {
+    "message": "Pause"
+  },
+  "batch_resume": {
+    "message": "Resume"
+  },
+  "batch_stop": {
+    "message": "Stop"
+  },
+  "batch_paused": {
+    "message": "Paused"
+  },
+  "batch_done": {
+    "message": "Done"
+  },
+  "batch_stopped": {
+    "message": "Stopped"
+  },
+  "batch_exported": {
+    "message": "خروجی گرفته شد"
+  },
+  "batch_failed": {
+    "message": "ناموفق"
+  },
+  "batch_new": {
+    "message": "جدید"
+  },
+  "batch_already_exported": {
+    "message": "قبلاً خروجی گرفته شده"
+  },
+  "batch_reset": {
+    "message": "Reset history"
+  },
+  "batch_reset_hint": {
+    "message": "پست‌های خروجی‌گرفته‌شده در اجراهای قبلی را فراموش می‌کند، تا batch بعدی همه موارد بارگذاری‌شده را دوباره خروجی بگیرد."
+  },
+  "batch_reset_queue": {
+    "message": "Reset queue"
+  },
+  "batch_reset_queue_hint": {
+    "message": "پست‌های جمع‌آوری‌شده را خالی می‌کند و جمع‌آوری را از جایی که scroll کرده‌اید دوباره شروع می‌کند، تا به‌جای بالای صفحه از یک پست مشخص شروع کنید."
+  },
+  "btn_batch_open_x": {
+    "message": "x.com را باز کنید تا بوکمارک‌ها، یک پروفایل یا یک selection را batch-export کنید."
+  },
+  "btn_batch_open_bookmarks": {
+    "message": "صفحه Bookmarks را باز کنید، برای بارگذاری پست‌ها scroll کنید و خروجی بگیرید."
+  },
+  "btn_batch_open_profile": {
+    "message": "یک صفحه profile روی x.com باز کنید تا پست‌هایش را خروجی بگیرید. Repostها رد می‌شوند."
+  },
+  "btn_batch_profile": {
+    "message": "خروجی پست‌ها"
+  },
+  "btn_batch_profile_hint": {
+    "message": "پست‌های خود این پروفایل را که روی صفحه بارگذاری شده‌اند به‌صورت فایل‌های Markdown در یک پوشه خروجی می‌گیرد. Repostها رد می‌شوند؛ برای بارگذاری بیشتر scroll کنید."
+  },
+  "btn_batch_likes": {
+    "message": "خروجی Likes"
+  },
+  "btn_batch_likes_hint": {
+    "message": "همه پست‌های liked بارگذاری‌شده در این صفحه را به‌صورت فایل‌های Markdown در یک پوشه خروجی می‌گیرد. برای بارگذاری بیشتر صفحه Likes را scroll کنید."
+  },
+  "btn_batch_open_likes": {
+    "message": "صفحه Likes خود را در x.com باز کنید تا پست‌هایی را که liked کرده‌اید خروجی بگیرید."
+  },
+  "btn_batch_timeline": {
+    "message": "خروجی Timeline"
+  },
+  "btn_batch_timeline_hint": {
+    "message": "هر پست بارگذاری‌شده در home timeline را به‌صورت فایل‌های Markdown در یک پوشه خروجی می‌گیرد. برای بارگذاری بیشتر scroll کنید."
+  },
+  "btn_batch_open_timeline": {
+    "message": "home timeline را باز کنید، برای بارگذاری پست‌ها scroll کنید و خروجی بگیرید."
+  },
+  "btn_batch_go_bookmarks": {
+    "message": "باز کردن Bookmarks"
+  },
+  "btn_batch_go_timeline": {
+    "message": "باز کردن Timeline"
+  },
+  "group_batch": {
+    "message": "Batch export"
+  },
+  "batch_tab_bookmarks": {
+    "message": "Bookmarks"
+  },
+  "batch_tab_profile": {
+    "message": "Profile"
+  },
+  "batch_tab_selection": {
+    "message": "Selection"
+  },
+  "batch_tab_likes": {
+    "message": "Likes"
+  },
+  "batch_tab_timeline": {
+    "message": "Timeline"
+  },
+  "btn_batch_select": {
+    "message": "انتخاب توییت‌ها…"
+  },
+  "btn_batch_select_hint": {
+    "message": "توییت‌های جداگانه را در صفحه فعلی با checkbox انتخاب کنید، سپس selection را خروجی بگیرید."
+  },
+  "btn_batch_add": {
+    "message": "Add to queue"
+  },
+  "btn_batch_add_hint": {
+    "message": "پست‌های تازه بارگذاری‌شده را به batch queue در حال اجرا اضافه کنید."
+  },
+  "batch_format": {
+    "message": "Format"
+  },
+  "batch_output": {
+    "message": "Output"
+  },
+  "batch_output_hint": {
+    "message": "Separate: یک فایل برای هر پست. Both: فایل‌های هر پست به‌همراه یک فایل ترکیبی. Combined: فقط یک فایل."
+  },
+  "batch_out_separate": {
+    "message": "Separate"
+  },
+  "batch_out_both": {
+    "message": "Both"
+  },
+  "batch_out_combined": {
+    "message": "Combined"
+  },
+  "batch_bar_selected": {
+    "message": "انتخاب‌شده"
+  },
+  "batch_bar_hint": {
+    "message": "برای انتخاب، روی توییت‌ها بزنید"
+  },
+  "batch_bar_export": {
+    "message": "Export"
+  },
+  "batch_started": {
+    "message": "Batch started"
+  },
+  "batch_start_failed": {
+    "message": "Batch شروع نشد."
+  },
+  "batch_running": {
+    "message": "یک batch job از قبل در حال اجراست."
+  },
   "btn_obsidian_hint": {
     "message": "Vault، زیرپوشه و فیلدهای frontmatter را می‌توانید در تنظیمات پیکربندی کنید.\nبرای رشته‌های طولانی یا تصاویر از دکمه‌ی 'دانلود .md' استفاده کنید."
   },
@@ -33,7 +267,16 @@
     "message": "در حال استخراج…"
   },
   "group_export": {
-    "message": "خروجی گرفتن"
+    "message": "تنظیمات خروجی"
+  },
+  "group_more_formats": {
+    "message": "فرمت‌های بیشتر"
+  },
+  "beta": {
+    "message": "Beta"
+  },
+  "group_single": {
+    "message": "خروجی تکی"
   },
   "group_downloads": {
     "message": "بارگیری‌ها"
@@ -156,7 +399,7 @@
     "message": "دانلود تصاویر در پوشه‌ای در کنار فایل Markdown"
   },
   "opt_save_images": {
-    "message": "ذخیره محلی تصاویر"
+    "message": "ذخیره محلی تصاویر (فقط با .md)"
   },
   "opt_metadata_title": {
     "message": "افزودن لایک‌ها، بازنشرها و بازدیدها به YAML frontmatter"
@@ -170,6 +413,12 @@
   "opt_inline_stats": {
     "message": "نمایش آمار تعامل به‌صورت خطی"
   },
+  "opt_include_reposts": {
+    "message": "شامل Repostها (profiles)"
+  },
+  "opt_include_reposts_title": {
+    "message": "هنگام batch-export یک profile، repostها را هم شامل می‌کند. Off = فقط پست‌های خود صاحب profile."
+  },
   "opt_close_tab_title": {
     "message": "بستن خودکار تب پس از خروجی گرفتن از طریق دکمه درون‌خطی یا منوی راست‌کلیک توییت"
   },
@@ -177,7 +426,7 @@
     "message": "بستن تب جدید پس از خروجی گرفتن"
   },
   "ctx_save_tweet": {
-    "message": "ذخیره توییت به‌صورت Markdown"
+    "message": "دانلود توییت به‌صورت Markdown"
   },
   "ctx_copy_tweet": {
     "message": "کپی توییت به‌صورت Markdown"
@@ -187,6 +436,24 @@
   },
   "ctx_obsidian_tweet": {
     "message": "افزودن توییت به Obsidian"
+  },
+  "ctx_export_pdf": {
+    "message": "خروجی توییت به‌صورت PDF"
+  },
+  "ctx_copy_txt": {
+    "message": "کپی توییت به‌صورت txt"
+  },
+  "ctx_download_txt": {
+    "message": "دانلود توییت به‌صورت txt"
+  },
+  "ctx_download_html": {
+    "message": "دانلود توییت به‌صورت html"
+  },
+  "ctx_download_json": {
+    "message": "دانلود توییت به‌صورت json"
+  },
+  "ctx_download_csv": {
+    "message": "دانلود توییت به‌صورت csv"
   },
   "opt_show_inline_title": {
     "message": "افزودن دکمه دانلود کنار دکمه اشتراک‌گذاری در نوار اقدامات هر توییت"

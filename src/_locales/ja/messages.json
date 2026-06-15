@@ -1,9 +1,9 @@
 {
   "extensionName": {
-    "message": "X / Twitter ウェブクリッパー: スレッドと記事をMarkdown、PDFで保存"
+    "message": "X / Twitter ウェブクリッパー: ブックマークとスレッドをMarkdown、PDF、Obsidianへ"
   },
   "extensionDescription": {
-    "message": "X (Twitter) のスレッド、ツイート、記事をクリーンなMarkdownやPDFにエクスポート。Obsidianへ送信またはローカル保存。無料、API不要。"
+    "message": "X (Twitter)の投稿、スレッド、ブックマーク、記事をMarkdown、PDF、Obsidianへ。単体または一括。無料、API不要。"
   },
   "tagline": {
     "message": "スレッドや記事をMarkdownやPDFで保存"
@@ -23,6 +23,240 @@
   "btn_obsidian": {
     "message": "Obsidianに追加"
   },
+  "btn_html_hint": {
+    "message": "スタイル付きの自己完結HTMLファイルとして保存します。"
+  },
+  "btn_json_hint": {
+    "message": "生の構造化ドキュメント（AST）をJSONとして保存します。"
+  },
+  "btn_txt_hint": {
+    "message": "マークアップを取り除いたプレーンテキストとして保存します。"
+  },
+  "btn_csv_hint": {
+    "message": "選択したfrontmatterフィールドを使ってメタデータ1行を保存します。"
+  },
+  "review_text": {
+    "message": "XClipperを気に入っていますか？無料で情熱を込めて作っています。短い★★★★★レビューが、より多くの人に届く大きな助けになります。"
+  },
+  "review_rate": {
+    "message": "Chrome Web Storeで評価"
+  },
+  "review_later": {
+    "message": "後で"
+  },
+  "review_dismiss": {
+    "message": "閉じる"
+  },
+  "btn_batch": {
+    "message": "ブックマークをエクスポート"
+  },
+  "btn_batch_hint": {
+    "message": "このページに読み込まれたすべてのブックマークをMarkdownファイルとして1つのフォルダにエクスポートします。さらに読み込むにはブックマークページをスクロールしてください。"
+  },
+  "fast_batch": {
+    "message": "Fast Batch"
+  },
+  "fast_batch_info": {
+    "message": "ログイン済みのXセッション経由で項目を取得し、大きく高速化します。APIキー不要で、何もブラウザの外へ出ません。注意: 大量実行ではXのレート制限に達することがあるため、ペースを調整し、再実行できるように丁寧に停止します。"
+  },
+  "btn_batch_fast_hint": {
+    "message": "Xセッション経由ですべてのブックマークを取得します。大幅に高速で、スレッドと記事を展開します。"
+  },
+  "btn_batch_fast_profile_hint": {
+    "message": "Xセッション経由でこのプロフィール自身の投稿を取得します。大幅に高速です。リポストはスキップされます。"
+  },
+  "btn_batch_fast_likes_hint": {
+    "message": "Xセッション経由でいいねした投稿を取得します。大幅に高速で、スレッドと記事を展開します。"
+  },
+  "btn_batch_fast_no_selection": {
+    "message": "Fastでは選択を使えません。手動でツイートを選ぶにはFastをオフにしてください。"
+  },
+  "btn_batch_fast_no_timeline": {
+    "message": "Fastではタイムラインを使えません。ホームフィードをエクスポートするにはFastをオフにしてください。"
+  },
+  "batch_tab_selection_fast": {
+    "message": "手動でツイートを選ぶにはFastをオフにする"
+  },
+  "batch_tab_timeline_fast": {
+    "message": "ホームフィードをエクスポートするにはFastをオフにする"
+  },
+  "fast_locked": {
+    "message": "エクスポートが実行中です。モードを切り替えるにはキャンセルするか完了を待ってください。"
+  },
+  "fast_date_range": {
+    "message": "日付範囲"
+  },
+  "fast_date_range_hint": {
+    "message": "日付がこの範囲内の投稿だけをエクスポートします。範囲外の投稿は展開せずにスキップされるため、Xのレート制限に達しにくく古い投稿へ進めます。"
+  },
+  "fast_date_from": {
+    "message": "開始日"
+  },
+  "fast_date_to": {
+    "message": "終了日"
+  },
+  "fast_date_clear": {
+    "message": "クリア"
+  },
+  "fast_step_page": {
+    "message": "x.comを再読み込み"
+  },
+  "fast_step_tweet": {
+    "message": "ツイートを1件開く"
+  },
+  "fast_step_fetch": {
+    "message": "取得中 ..."
+  },
+  "fast_step_expand": {
+    "message": "展開中 ..."
+  },
+  "batch_pause": {
+    "message": "一時停止"
+  },
+  "batch_resume": {
+    "message": "再開"
+  },
+  "batch_stop": {
+    "message": "停止"
+  },
+  "batch_paused": {
+    "message": "一時停止中"
+  },
+  "batch_done": {
+    "message": "完了"
+  },
+  "batch_stopped": {
+    "message": "停止済み"
+  },
+  "batch_exported": {
+    "message": "エクスポート済み"
+  },
+  "batch_failed": {
+    "message": "失敗"
+  },
+  "batch_new": {
+    "message": "新規"
+  },
+  "batch_already_exported": {
+    "message": "エクスポート済み"
+  },
+  "batch_reset": {
+    "message": "履歴をリセット"
+  },
+  "batch_reset_hint": {
+    "message": "過去の実行でエクスポート済みだった投稿を忘れ、次の一括処理で読み込まれたものをすべて再エクスポートします。"
+  },
+  "batch_reset_queue": {
+    "message": "キューをリセット"
+  },
+  "batch_reset_queue_hint": {
+    "message": "収集済みの投稿を空にし、スクロールした位置から収集をやり直します。先頭ではなく特定の投稿から始められます。"
+  },
+  "btn_batch_open_x": {
+    "message": "x.comを開いて、ブックマーク、プロフィール、選択項目を一括エクスポートします。"
+  },
+  "btn_batch_open_bookmarks": {
+    "message": "ブックマークページを開き、スクロールして投稿を読み込んでからエクスポートします。"
+  },
+  "btn_batch_open_profile": {
+    "message": "x.comのプロフィールページを開いて投稿をエクスポートします。リポストはスキップされます。"
+  },
+  "btn_batch_profile": {
+    "message": "投稿をエクスポート"
+  },
+  "btn_batch_profile_hint": {
+    "message": "このプロフィール自身の読み込み済み投稿をMarkdownファイルとして1つのフォルダにエクスポートします。リポストはスキップされます。さらに読み込むにはスクロールしてください。"
+  },
+  "btn_batch_likes": {
+    "message": "いいねをエクスポート"
+  },
+  "btn_batch_likes_hint": {
+    "message": "このページに読み込まれたいいね済み投稿をすべてMarkdownファイルとして1つのフォルダにエクスポートします。さらに読み込むにはLikesページをスクロールしてください。"
+  },
+  "btn_batch_open_likes": {
+    "message": "x.comのLikesページを開いて、いいねした投稿をエクスポートします。"
+  },
+  "btn_batch_timeline": {
+    "message": "タイムラインをエクスポート"
+  },
+  "btn_batch_timeline_hint": {
+    "message": "ホームタイムラインに読み込まれた各投稿をMarkdownファイルとして1つのフォルダにエクスポートします。さらに読み込むにはスクロールしてください。"
+  },
+  "btn_batch_open_timeline": {
+    "message": "ホームタイムラインを開き、スクロールして投稿を読み込んでからエクスポートします。"
+  },
+  "btn_batch_go_bookmarks": {
+    "message": "ブックマークを開く"
+  },
+  "btn_batch_go_timeline": {
+    "message": "タイムラインを開く"
+  },
+  "group_batch": {
+    "message": "一括エクスポート"
+  },
+  "batch_tab_bookmarks": {
+    "message": "ブックマーク"
+  },
+  "batch_tab_profile": {
+    "message": "プロフィール"
+  },
+  "batch_tab_selection": {
+    "message": "選択"
+  },
+  "batch_tab_likes": {
+    "message": "Likes"
+  },
+  "batch_tab_timeline": {
+    "message": "タイムライン"
+  },
+  "btn_batch_select": {
+    "message": "ツイートを選択…"
+  },
+  "btn_batch_select_hint": {
+    "message": "現在のページでチェックボックスを使って個別のツイートを選び、選択項目をエクスポートします。"
+  },
+  "btn_batch_add": {
+    "message": "キューに追加"
+  },
+  "btn_batch_add_hint": {
+    "message": "新しく読み込まれた投稿を実行中の一括キューに追加します。"
+  },
+  "batch_format": {
+    "message": "形式"
+  },
+  "batch_output": {
+    "message": "出力"
+  },
+  "batch_output_hint": {
+    "message": "個別: 投稿ごとに1ファイル。両方: 投稿ごとのファイルと結合ファイル。結合: 1ファイルのみ。"
+  },
+  "batch_out_separate": {
+    "message": "個別"
+  },
+  "batch_out_both": {
+    "message": "両方"
+  },
+  "batch_out_combined": {
+    "message": "結合"
+  },
+  "batch_bar_selected": {
+    "message": "選択済み"
+  },
+  "batch_bar_hint": {
+    "message": "ツイートをタップして選択"
+  },
+  "batch_bar_export": {
+    "message": "エクスポート"
+  },
+  "batch_started": {
+    "message": "一括処理を開始しました"
+  },
+  "batch_start_failed": {
+    "message": "一括処理を開始できませんでした。"
+  },
+  "batch_running": {
+    "message": "一括ジョブはすでに実行中です。"
+  },
   "btn_obsidian_hint": {
     "message": "Vault・サブフォルダ・frontmatter のフィールドは「設定」で構成できます。\n長いスレッドや画像は「.mdをダウンロード」ボタンをお使いください。"
   },
@@ -33,7 +267,16 @@
     "message": "抽出中…"
   },
   "group_export": {
-    "message": "エクスポート"
+    "message": "エクスポート設定"
+  },
+  "group_more_formats": {
+    "message": "その他の形式"
+  },
+  "beta": {
+    "message": "ベータ"
+  },
+  "group_single": {
+    "message": "単体エクスポート"
   },
   "group_downloads": {
     "message": "ダウンロード"
@@ -156,7 +399,7 @@
     "message": "Markdownファイルと同じフォルダに画像をダウンロードする"
   },
   "opt_save_images": {
-    "message": "画像をローカルに保存"
+    "message": "画像をローカル保存（.md のみ）"
   },
   "opt_metadata_title": {
     "message": "いいね、リポスト、閲覧数をYAMLフロントマターとして追加"
@@ -170,6 +413,12 @@
   "opt_inline_stats": {
     "message": "エンゲージメント数を本文に表示"
   },
+  "opt_include_reposts": {
+    "message": "リポストを含める（プロフィール）"
+  },
+  "opt_include_reposts_title": {
+    "message": "プロフィールを一括エクスポートするとき、リポストも含めます。オフ = プロフィール所有者自身の投稿のみ。"
+  },
   "opt_close_tab_title": {
     "message": "有効にすると、ツイートのダウンロードまたはコピー後にタブが自動的に閉じられます。"
   },
@@ -177,7 +426,7 @@
     "message": "エクスポート後に新しいタブを閉じる"
   },
   "ctx_save_tweet": {
-    "message": "ツイートをMarkdownとして保存"
+    "message": "ツイートをMarkdownでダウンロード"
   },
   "ctx_copy_tweet": {
     "message": "ツイートをMarkdownとしてコピー"
@@ -187,6 +436,24 @@
   },
   "ctx_obsidian_tweet": {
     "message": "ツイートをObsidianに追加"
+  },
+  "ctx_export_pdf": {
+    "message": "ツイートをPDFでエクスポート"
+  },
+  "ctx_copy_txt": {
+    "message": "ツイートをtxtでコピー"
+  },
+  "ctx_download_txt": {
+    "message": "ツイートをtxtでダウンロード"
+  },
+  "ctx_download_html": {
+    "message": "ツイートをhtmlでダウンロード"
+  },
+  "ctx_download_json": {
+    "message": "ツイートをjsonでダウンロード"
+  },
+  "ctx_download_csv": {
+    "message": "ツイートをcsvでダウンロード"
   },
   "opt_show_inline_title": {
     "message": "各ツイートのアクションバーの共有ボタンの横にダウンロードボタンを追加します"

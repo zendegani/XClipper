@@ -1,9 +1,9 @@
 {
   "extensionName": {
-    "message": "X / Twitter Web Clipper: थ्रेड्स और आर्टिकल्स को Markdown, PDF में सेव करें"
+    "message": "X / Twitter Web Clipper: Bookmarks और Threads to Markdown, PDF, Obsidian"
   },
   "extensionDescription": {
-    "message": "X/Twitter के थ्रेड्स और आर्टिकल्स को Markdown या PDF में एक्सपोर्ट करें। Obsidian में भेजें या लोकल सेव करें। मुफ़्त, कोई API नहीं।"
+    "message": "X (Twitter) posts, threads, bookmarks और articles को Markdown, PDF या Obsidian में export करें। एक-एक या batch। Free, no API."
   },
   "tagline": {
     "message": "थ्रेड्स और आर्टिकल्स को Markdown या PDF के रूप में सेव करें"
@@ -23,6 +23,240 @@
   "btn_obsidian": {
     "message": "Obsidian में जोड़ें"
   },
+  "btn_html_hint": {
+    "message": "Styled, self-contained HTML file के रूप में save करें."
+  },
+  "btn_json_hint": {
+    "message": "Raw structured document (AST) को JSON के रूप में save करें."
+  },
+  "btn_txt_hint": {
+    "message": "Markup हटाकर plain text के रूप में save करें."
+  },
+  "btn_csv_hint": {
+    "message": "Selected frontmatter fields से एक metadata row save करें."
+  },
+  "review_text": {
+    "message": "XClipper पसंद आ रहा है? यह free है और बहुत passion से बना है — एक quick ★★★★★ review इसे और लोगों तक पहुँचाने में सच में मदद करता है."
+  },
+  "review_rate": {
+    "message": "Chrome Web Store पर rate करें"
+  },
+  "review_later": {
+    "message": "शायद बाद में"
+  },
+  "review_dismiss": {
+    "message": "हटाएँ"
+  },
+  "btn_batch": {
+    "message": "Bookmarks export करें"
+  },
+  "btn_batch_hint": {
+    "message": "इस page पर loaded हर bookmark को Markdown files के रूप में एक folder में export करें. ज़्यादा load करने के लिए bookmarks page scroll करें."
+  },
+  "fast_batch": {
+    "message": "Fast Batch"
+  },
+  "fast_batch_info": {
+    "message": "आपके logged-in X session से items fetch करता है ताकि speed काफी बढ़े — कोई API key नहीं, कुछ भी browser से बाहर नहीं जाता. ध्यान दें: बड़े runs X के rate limit तक पहुँच सकते हैं, इसलिए यह pace करता है और politely stop होता है ताकि आप फिर run कर सकें."
+  },
+  "btn_batch_fast_hint": {
+    "message": "आपके X session से सभी bookmarks fetch करें — बहुत faster. Threads और articles expand करता है."
+  },
+  "btn_batch_fast_profile_hint": {
+    "message": "आपके X session से इस profile के own posts fetch करें — बहुत faster. Reposts skip होते हैं."
+  },
+  "btn_batch_fast_likes_hint": {
+    "message": "आपके X session से liked posts fetch करें — बहुत faster. Threads और articles expand करता है."
+  },
+  "btn_batch_fast_no_selection": {
+    "message": "Selection Fast में available नहीं है — tweets हाथ से pick करने के लिए Fast off करें."
+  },
+  "btn_batch_fast_no_timeline": {
+    "message": "Timeline Fast में available नहीं है — home feed export करने के लिए Fast off करें."
+  },
+  "batch_tab_selection_fast": {
+    "message": "Tweets हाथ से pick करने के लिए Fast off करें"
+  },
+  "batch_tab_timeline_fast": {
+    "message": "Home feed export करने के लिए Fast off करें"
+  },
+  "fast_locked": {
+    "message": "Export चल रहा है — mode switch करने के लिए cancel करें या finish होने दें."
+  },
+  "fast_date_range": {
+    "message": "Date range"
+  },
+  "fast_date_range_hint": {
+    "message": "केवल वही posts export करें जिनकी date इस range में है — out-of-range posts expand किए बिना skip होते हैं, ताकि X rate limit hit किए बिना पुराने posts तक पहुँचा जा सके."
+  },
+  "fast_date_from": {
+    "message": "From date"
+  },
+  "fast_date_to": {
+    "message": "To date"
+  },
+  "fast_date_clear": {
+    "message": "Clear"
+  },
+  "fast_step_page": {
+    "message": "x.com reload करें"
+  },
+  "fast_step_tweet": {
+    "message": "एक tweet खोलें"
+  },
+  "fast_step_fetch": {
+    "message": "Fetching ..."
+  },
+  "fast_step_expand": {
+    "message": "Expanding ..."
+  },
+  "batch_pause": {
+    "message": "Pause"
+  },
+  "batch_resume": {
+    "message": "Resume"
+  },
+  "batch_stop": {
+    "message": "Stop"
+  },
+  "batch_paused": {
+    "message": "Paused"
+  },
+  "batch_done": {
+    "message": "Done"
+  },
+  "batch_stopped": {
+    "message": "Stopped"
+  },
+  "batch_exported": {
+    "message": "exported"
+  },
+  "batch_failed": {
+    "message": "failed"
+  },
+  "batch_new": {
+    "message": "new"
+  },
+  "batch_already_exported": {
+    "message": "already exported"
+  },
+  "batch_reset": {
+    "message": "History reset करें"
+  },
+  "batch_reset_hint": {
+    "message": "Past runs में कौन से posts already exported थे यह भूल जाएँ, ताकि next batch loaded सब कुछ फिर export करे."
+  },
+  "batch_reset_queue": {
+    "message": "Queue reset करें"
+  },
+  "batch_reset_queue_hint": {
+    "message": "Gathered posts खाली करें और जहाँ तक आपने scroll किया है वहाँ से collecting restart करें — ताकि top की जगह किसी specific post से शुरू कर सकें."
+  },
+  "btn_batch_open_x": {
+    "message": "Bookmarks, profile या selection batch-export करने के लिए x.com खोलें."
+  },
+  "btn_batch_open_bookmarks": {
+    "message": "Bookmarks page खोलें, posts load करने के लिए scroll करें और export करें."
+  },
+  "btn_batch_open_profile": {
+    "message": "Posts export करने के लिए x.com पर profile page खोलें. Reposts skip होते हैं."
+  },
+  "btn_batch_profile": {
+    "message": "Posts export करें"
+  },
+  "btn_batch_profile_hint": {
+    "message": "इस profile के page पर loaded own posts को Markdown files के रूप में एक folder में export करें. Reposts skip होते हैं; अधिक load करने के लिए scroll करें."
+  },
+  "btn_batch_likes": {
+    "message": "Likes export करें"
+  },
+  "btn_batch_likes_hint": {
+    "message": "इस page पर loaded हर liked post को Markdown files के रूप में एक folder में export करें. अधिक load करने के लिए Likes page scroll करें."
+  },
+  "btn_batch_open_likes": {
+    "message": "Liked posts export करने के लिए x.com पर अपना Likes page खोलें."
+  },
+  "btn_batch_timeline": {
+    "message": "Timeline export करें"
+  },
+  "btn_batch_timeline_hint": {
+    "message": "Home timeline में loaded हर post को Markdown files के रूप में एक folder में export करें. अधिक load करने के लिए scroll करें."
+  },
+  "btn_batch_open_timeline": {
+    "message": "Home timeline खोलें, posts load करने के लिए scroll करें और export करें."
+  },
+  "btn_batch_go_bookmarks": {
+    "message": "Bookmarks खोलें"
+  },
+  "btn_batch_go_timeline": {
+    "message": "Timeline खोलें"
+  },
+  "group_batch": {
+    "message": "Batch export"
+  },
+  "batch_tab_bookmarks": {
+    "message": "Bookmarks"
+  },
+  "batch_tab_profile": {
+    "message": "Profile"
+  },
+  "batch_tab_selection": {
+    "message": "Selection"
+  },
+  "batch_tab_likes": {
+    "message": "Likes"
+  },
+  "batch_tab_timeline": {
+    "message": "Timeline"
+  },
+  "btn_batch_select": {
+    "message": "Tweets select करें…"
+  },
+  "btn_batch_select_hint": {
+    "message": "Current page पर checkboxes से individual tweets pick करें, फिर selection export करें."
+  },
+  "btn_batch_add": {
+    "message": "Queue में add करें"
+  },
+  "btn_batch_add_hint": {
+    "message": "Newly-loaded posts को running batch queue में add करें."
+  },
+  "batch_format": {
+    "message": "Format"
+  },
+  "batch_output": {
+    "message": "Output"
+  },
+  "batch_output_hint": {
+    "message": "Separate: हर post की एक file. Both: per-post files plus एक combined file. Combined: सिर्फ एक file."
+  },
+  "batch_out_separate": {
+    "message": "Separate"
+  },
+  "batch_out_both": {
+    "message": "Both"
+  },
+  "batch_out_combined": {
+    "message": "Combined"
+  },
+  "batch_bar_selected": {
+    "message": "selected"
+  },
+  "batch_bar_hint": {
+    "message": "Select करने के लिए tweets tap करें"
+  },
+  "batch_bar_export": {
+    "message": "Export"
+  },
+  "batch_started": {
+    "message": "Batch started"
+  },
+  "batch_start_failed": {
+    "message": "Batch start नहीं हो सका."
+  },
+  "batch_running": {
+    "message": "एक batch job already running है."
+  },
   "btn_obsidian_hint": {
     "message": "Vault, सबफ़ोल्डर और frontmatter फ़ील्ड को सेटिंग्स में कॉन्फ़िगर करें।\nलंबे थ्रेड या इमेज के लिए '.md डाउनलोड' बटन का उपयोग करें।"
   },
@@ -33,7 +267,16 @@
     "message": "सामग्री निकाली जा रही है…"
   },
   "group_export": {
-    "message": "एक्सपोर्ट"
+    "message": "Export settings"
+  },
+  "group_more_formats": {
+    "message": "More formats"
+  },
+  "beta": {
+    "message": "Beta"
+  },
+  "group_single": {
+    "message": "Single export"
   },
   "group_downloads": {
     "message": "डाउनलोड"
@@ -156,7 +399,7 @@
     "message": "Markdown फ़ाइल के बगल वाले फ़ोल्डर में इमेज डाउनलोड करें"
   },
   "opt_save_images": {
-    "message": "इमेज लोकल सेव करें"
+    "message": "Images locally save करें (केवल .md)"
   },
   "opt_metadata_title": {
     "message": "likes, reposts, views को YAML frontmatter में जोड़ें"
@@ -170,6 +413,12 @@
   "opt_inline_stats": {
     "message": "इंगेजमेंट आँकड़े inline दिखाएँ"
   },
+  "opt_include_reposts": {
+    "message": "Reposts include करें (profiles)"
+  },
+  "opt_include_reposts_title": {
+    "message": "Profile batch-export करते समय reposts भी include करें. Off = केवल profile owner के own posts."
+  },
   "opt_close_tab_title": {
     "message": "ट्वीट के inline बटन या राइट-क्लिक मेनू से एक्सपोर्ट के बाद टैब अपने आप बंद करें"
   },
@@ -177,7 +426,7 @@
     "message": "एक्सपोर्ट के बाद नया टैब बंद करें"
   },
   "ctx_save_tweet": {
-    "message": "ट्वीट को Markdown के रूप में सेव करें"
+    "message": "Tweet को Markdown के रूप में download करें"
   },
   "ctx_copy_tweet": {
     "message": "ट्वीट को Markdown के रूप में कॉपी करें"
@@ -187,6 +436,24 @@
   },
   "ctx_obsidian_tweet": {
     "message": "ट्वीट को Obsidian में जोड़ें"
+  },
+  "ctx_export_pdf": {
+    "message": "Tweet को PDF के रूप में export करें"
+  },
+  "ctx_copy_txt": {
+    "message": "Tweet को txt के रूप में copy करें"
+  },
+  "ctx_download_txt": {
+    "message": "Tweet को txt के रूप में download करें"
+  },
+  "ctx_download_html": {
+    "message": "Tweet को html के रूप में download करें"
+  },
+  "ctx_download_json": {
+    "message": "Tweet को json के रूप में download करें"
+  },
+  "ctx_download_csv": {
+    "message": "Tweet को csv के रूप में download करें"
   },
   "opt_show_inline_title": {
     "message": "प्रत्येक ट्वीट के ऐक्शन बार में Share के बगल में डाउनलोड बटन जोड़ें"

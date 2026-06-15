@@ -1,9 +1,9 @@
 {
   "extensionName": {
-    "message": "X / Twitter Web Clipper: حفظ السلاسل والمقالات إلى Markdown وPDF وObsidian"
+    "message": "X / Twitter Web Clipper: الإشارات والسلاسل إلى Markdown وPDF وObsidian"
   },
   "extensionDescription": {
-    "message": "تصدير سلاسل وتغريدات ومقالات X (Twitter) إلى Markdown أو PDF نظيف. إرسال إلى Obsidian أو حفظ محلياً. مجاني، بدون API."
+    "message": "صدّر منشورات وسلاسل وإشارات ومقالات X (Twitter) إلى Markdown أو PDF أو Obsidian، منفردة أو دفعة. مجاني، بلا API."
   },
   "tagline": {
     "message": "حفظ السلاسل والمقالات بصيغة Markdown أو PDF"
@@ -23,6 +23,240 @@
   "btn_obsidian": {
     "message": "إضافة إلى Obsidian"
   },
+  "btn_html_hint": {
+    "message": "حفظ كملف HTML منسق ومستقل."
+  },
+  "btn_json_hint": {
+    "message": "حفظ المستند المنظم الخام (AST) كـ JSON."
+  },
+  "btn_txt_hint": {
+    "message": "حفظ كنص عادي بعد إزالة التنسيق."
+  },
+  "btn_csv_hint": {
+    "message": "حفظ صف بيانات وصفية واحد باستخدام حقول frontmatter المحددة."
+  },
+  "review_text": {
+    "message": "هل تستمتع بـ XClipper؟ إنه مجاني ومبني بشغف كبير — مراجعة سريعة ★★★★★ تساعده كثيراً في الوصول إلى مزيد من الناس."
+  },
+  "review_rate": {
+    "message": "قيّم على Chrome Web Store"
+  },
+  "review_later": {
+    "message": "ربما لاحقاً"
+  },
+  "review_dismiss": {
+    "message": "إخفاء"
+  },
+  "btn_batch": {
+    "message": "تصدير الإشارات"
+  },
+  "btn_batch_hint": {
+    "message": "يصدّر كل إشارة مرجعية محمّلة في هذه الصفحة كملفات Markdown داخل مجلد واحد. مرّر صفحة الإشارات لتحميل المزيد."
+  },
+  "fast_batch": {
+    "message": "Fast Batch"
+  },
+  "fast_batch_info": {
+    "message": "يجلب العناصر عبر جلسة X المسجلة لديك لتسريع كبير — بلا مفتاح API، ولا شيء يغادر متصفحك. تنبيه: التشغيلات الكبيرة قد تصل إلى حد معدل X، لذلك يضبط سرعته ويتوقف بأدب لتتمكن من إعادة التشغيل."
+  },
+  "btn_batch_fast_hint": {
+    "message": "اجلب كل إشاراتك المرجعية عبر جلسة X — أسرع بكثير. يوسّع السلاسل والمقالات."
+  },
+  "btn_batch_fast_profile_hint": {
+    "message": "اجلب منشورات هذا الملف الشخصية عبر جلسة X — أسرع بكثير. يتم تخطي إعادة النشر."
+  },
+  "btn_batch_fast_likes_hint": {
+    "message": "اجلب المنشورات التي أعجبتك عبر جلسة X — أسرع بكثير. يوسّع السلاسل والمقالات."
+  },
+  "btn_batch_fast_no_selection": {
+    "message": "التحديد غير متاح في Fast — أوقف Fast لاختيار التغريدات يدوياً."
+  },
+  "btn_batch_fast_no_timeline": {
+    "message": "الخط الزمني غير متاح في Fast — أوقف Fast لتصدير الخلاصة الرئيسية."
+  },
+  "batch_tab_selection_fast": {
+    "message": "أوقف Fast لاختيار التغريدات يدوياً"
+  },
+  "batch_tab_timeline_fast": {
+    "message": "أوقف Fast لتصدير الخلاصة الرئيسية"
+  },
+  "fast_locked": {
+    "message": "هناك تصدير قيد التشغيل — ألغِه أو اتركه ينتهي لتبديل الوضع."
+  },
+  "fast_date_range": {
+    "message": "نطاق التاريخ"
+  },
+  "fast_date_range_hint": {
+    "message": "صدّر فقط المنشورات التي يقع تاريخها ضمن هذا النطاق — يتم تخطي المنشورات خارجه دون توسيعها، لتصل إلى منشورات أقدم دون بلوغ حد معدل X."
+  },
+  "fast_date_from": {
+    "message": "من تاريخ"
+  },
+  "fast_date_to": {
+    "message": "إلى تاريخ"
+  },
+  "fast_date_clear": {
+    "message": "مسح"
+  },
+  "fast_step_page": {
+    "message": "إعادة تحميل x.com"
+  },
+  "fast_step_tweet": {
+    "message": "فتح تغريدة واحدة"
+  },
+  "fast_step_fetch": {
+    "message": "جارٍ الجلب ..."
+  },
+  "fast_step_expand": {
+    "message": "جارٍ التوسيع ..."
+  },
+  "batch_pause": {
+    "message": "إيقاف مؤقت"
+  },
+  "batch_resume": {
+    "message": "استئناف"
+  },
+  "batch_stop": {
+    "message": "إيقاف"
+  },
+  "batch_paused": {
+    "message": "متوقف مؤقتاً"
+  },
+  "batch_done": {
+    "message": "تم"
+  },
+  "batch_stopped": {
+    "message": "تم الإيقاف"
+  },
+  "batch_exported": {
+    "message": "تم تصديرها"
+  },
+  "batch_failed": {
+    "message": "فشلت"
+  },
+  "batch_new": {
+    "message": "جديدة"
+  },
+  "batch_already_exported": {
+    "message": "مصدّرة سابقاً"
+  },
+  "batch_reset": {
+    "message": "إعادة ضبط السجل"
+  },
+  "batch_reset_hint": {
+    "message": "انسَ المنشورات التي تم تصديرها في تشغيلات سابقة، ليصدّر الدفعة التالية كل ما تم تحميله من جديد."
+  },
+  "batch_reset_queue": {
+    "message": "إعادة ضبط الطابور"
+  },
+  "batch_reset_queue_hint": {
+    "message": "إفراغ المنشورات المجمعة وإعادة بدء الجمع من الموضع الذي وصلت إليه بالتمرير، لتبدأ من منشور محدد بدلاً من الأعلى."
+  },
+  "btn_batch_open_x": {
+    "message": "افتح x.com لتصدير الإشارات أو ملف شخصي أو تحديد كدفعة."
+  },
+  "btn_batch_open_bookmarks": {
+    "message": "افتح صفحة الإشارات، ثم مرّر لتحميل المنشورات وصدّر."
+  },
+  "btn_batch_open_profile": {
+    "message": "افتح صفحة ملف شخصي على x.com لتصدير منشوراته. يتم تخطي إعادة النشر."
+  },
+  "btn_batch_profile": {
+    "message": "تصدير المنشورات"
+  },
+  "btn_batch_profile_hint": {
+    "message": "يصدّر منشورات هذا الملف الشخصية المحملة على الصفحة كملفات Markdown داخل مجلد واحد. يتم تخطي إعادة النشر؛ مرّر لتحميل المزيد."
+  },
+  "btn_batch_likes": {
+    "message": "تصدير الإعجابات"
+  },
+  "btn_batch_likes_hint": {
+    "message": "يصدّر كل منشور معجب به ومحمل في هذه الصفحة كملفات Markdown داخل مجلد واحد. مرّر صفحة Likes لتحميل المزيد."
+  },
+  "btn_batch_open_likes": {
+    "message": "افتح صفحة Likes على x.com لتصدير المنشورات التي أعجبتك."
+  },
+  "btn_batch_timeline": {
+    "message": "تصدير الخط الزمني"
+  },
+  "btn_batch_timeline_hint": {
+    "message": "يصدّر كل منشور محمل في الخط الزمني الرئيسي كملفات Markdown داخل مجلد واحد. مرّر لتحميل المزيد."
+  },
+  "btn_batch_open_timeline": {
+    "message": "افتح الخط الزمني الرئيسي، ثم مرّر لتحميل المنشورات وصدّر."
+  },
+  "btn_batch_go_bookmarks": {
+    "message": "فتح الإشارات"
+  },
+  "btn_batch_go_timeline": {
+    "message": "فتح الخط الزمني"
+  },
+  "group_batch": {
+    "message": "تصدير دفعي"
+  },
+  "batch_tab_bookmarks": {
+    "message": "الإشارات"
+  },
+  "batch_tab_profile": {
+    "message": "الملف الشخصي"
+  },
+  "batch_tab_selection": {
+    "message": "التحديد"
+  },
+  "batch_tab_likes": {
+    "message": "Likes"
+  },
+  "batch_tab_timeline": {
+    "message": "الخط الزمني"
+  },
+  "btn_batch_select": {
+    "message": "تحديد التغريدات…"
+  },
+  "btn_batch_select_hint": {
+    "message": "اختر تغريدات فردية في الصفحة الحالية عبر مربعات الاختيار، ثم صدّر التحديد."
+  },
+  "btn_batch_add": {
+    "message": "إضافة إلى الطابور"
+  },
+  "btn_batch_add_hint": {
+    "message": "إضافة المنشورات المحملة حديثاً إلى طابور الدفعة الجارية."
+  },
+  "batch_format": {
+    "message": "التنسيق"
+  },
+  "batch_output": {
+    "message": "المخرجات"
+  },
+  "batch_output_hint": {
+    "message": "منفصل: ملف لكل منشور. كلاهما: ملفات لكل منشور مع ملف مدمج. مدمج: ملف واحد فقط."
+  },
+  "batch_out_separate": {
+    "message": "منفصل"
+  },
+  "batch_out_both": {
+    "message": "كلاهما"
+  },
+  "batch_out_combined": {
+    "message": "مدمج"
+  },
+  "batch_bar_selected": {
+    "message": "محددة"
+  },
+  "batch_bar_hint": {
+    "message": "اضغط التغريدات للتحديد"
+  },
+  "batch_bar_export": {
+    "message": "تصدير"
+  },
+  "batch_started": {
+    "message": "بدأت الدفعة"
+  },
+  "batch_start_failed": {
+    "message": "تعذر بدء الدفعة."
+  },
+  "batch_running": {
+    "message": "هناك مهمة دفعة قيد التشغيل بالفعل."
+  },
   "btn_obsidian_hint": {
     "message": "يمكنك ضبط Vault والمجلد الفرعي وحقول frontmatter من الإعدادات.\nللسلاسل الطويلة أو الصور استخدم زر 'تنزيل .md'."
   },
@@ -33,7 +267,16 @@
     "message": "جاري الاستخراج…"
   },
   "group_export": {
-    "message": "التصدير"
+    "message": "إعدادات التصدير"
+  },
+  "group_more_formats": {
+    "message": "تنسيقات أخرى"
+  },
+  "beta": {
+    "message": "Beta"
+  },
+  "group_single": {
+    "message": "تصدير فردي"
   },
   "group_downloads": {
     "message": "التنزيلات"
@@ -156,7 +399,7 @@
     "message": "تنزيل الصور إلى مجلد بجانب ملف Markdown"
   },
   "opt_save_images": {
-    "message": "حفظ الصور محليًا"
+    "message": "حفظ الصور محلياً (مع .md فقط)"
   },
   "opt_metadata_title": {
     "message": "إضافة الإعجابات وإعادات النشر والمشاهدات كـ YAML frontmatter"
@@ -170,6 +413,12 @@
   "opt_inline_stats": {
     "message": "عرض إحصائيات التفاعل ضمن النص"
   },
+  "opt_include_reposts": {
+    "message": "تضمين إعادة النشر (الملفات الشخصية)"
+  },
+  "opt_include_reposts_title": {
+    "message": "عند تصدير ملف شخصي كدفعة، قم بتضمين إعادة النشر أيضاً. إيقاف = منشورات صاحب الملف فقط."
+  },
   "opt_close_tab_title": {
     "message": "إغلاق التبويب تلقائيًا بعد التصدير من الزر المدمج أو قائمة النقر بالزر الأيمن"
   },
@@ -177,7 +426,7 @@
     "message": "إغلاق التبويب الجديد بعد التصدير"
   },
   "ctx_save_tweet": {
-    "message": "حفظ التغريدة كـ Markdown"
+    "message": "تنزيل التغريدة كـ Markdown"
   },
   "ctx_copy_tweet": {
     "message": "نسخ التغريدة كـ Markdown"
@@ -187,6 +436,24 @@
   },
   "ctx_obsidian_tweet": {
     "message": "إضافة التغريدة إلى Obsidian"
+  },
+  "ctx_export_pdf": {
+    "message": "تصدير التغريدة كـ PDF"
+  },
+  "ctx_copy_txt": {
+    "message": "نسخ التغريدة كـ txt"
+  },
+  "ctx_download_txt": {
+    "message": "تنزيل التغريدة كـ txt"
+  },
+  "ctx_download_html": {
+    "message": "تنزيل التغريدة كـ html"
+  },
+  "ctx_download_json": {
+    "message": "تنزيل التغريدة كـ json"
+  },
+  "ctx_download_csv": {
+    "message": "تنزيل التغريدة كـ csv"
   },
   "opt_show_inline_title": {
     "message": "يضيف زر تنزيل بجوار زر المشاركة في شريط إجراءات كل تغريدة"

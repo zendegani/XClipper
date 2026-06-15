@@ -1,9 +1,9 @@
 {
   "extensionName": {
-    "message": "X / Twitter Web Clipper: Salve threads e artigos em Markdown, PDF"
+    "message": "X / Twitter Web Clipper: favoritos e threads para Markdown, PDF, Obsidian"
   },
   "extensionDescription": {
-    "message": "Exporte threads, tweets e artigos do X (Twitter) para Markdown ou PDF limpo. Envie ao Obsidian ou salve localmente. Grátis, sem API."
+    "message": "Exporte posts, threads, favoritos e artigos do X (Twitter) para Markdown, PDF ou Obsidian, avulso ou em lote. Grátis, sem API."
   },
   "tagline": {
     "message": "Salve threads e artigos como Markdown ou PDF"
@@ -23,6 +23,240 @@
   "btn_obsidian": {
     "message": "Adicionar ao Obsidian"
   },
+  "btn_html_hint": {
+    "message": "Salvar como um arquivo HTML estilizado e autônomo."
+  },
+  "btn_json_hint": {
+    "message": "Salvar o documento estruturado bruto (AST) como JSON."
+  },
+  "btn_txt_hint": {
+    "message": "Salvar como texto simples sem marcação."
+  },
+  "btn_csv_hint": {
+    "message": "Salvar uma linha de metadados usando os campos de frontmatter selecionados."
+  },
+  "review_text": {
+    "message": "Curtindo o XClipper? Ele é gratuito e feito com muita paixão; uma avaliação rápida ★★★★★ ajuda muito a alcançar mais pessoas."
+  },
+  "review_rate": {
+    "message": "Avaliar na Chrome Web Store"
+  },
+  "review_later": {
+    "message": "Talvez depois"
+  },
+  "review_dismiss": {
+    "message": "Dispensar"
+  },
+  "btn_batch": {
+    "message": "Exportar favoritos"
+  },
+  "btn_batch_hint": {
+    "message": "Exporta todos os favoritos carregados nesta página como arquivos Markdown em uma pasta. Role a página de favoritos para carregar mais."
+  },
+  "fast_batch": {
+    "message": "Fast Batch"
+  },
+  "fast_batch_info": {
+    "message": "Busca itens pela sua sessão conectada no X para acelerar bastante: sem chave de API, nada sai do navegador. Aviso: execuções grandes podem atingir o limite de taxa do X, então ele regula o ritmo e para corretamente para você executar de novo."
+  },
+  "btn_batch_fast_hint": {
+    "message": "Busque todos os seus favoritos pela sua sessão do X, muito mais rápido. Expande threads e artigos."
+  },
+  "btn_batch_fast_profile_hint": {
+    "message": "Busque os posts próprios deste perfil pela sua sessão do X, muito mais rápido. Reposts são ignorados."
+  },
+  "btn_batch_fast_likes_hint": {
+    "message": "Busque seus posts curtidos pela sua sessão do X, muito mais rápido. Expande threads e artigos."
+  },
+  "btn_batch_fast_no_selection": {
+    "message": "Seleção não está disponível no Fast; desative o Fast para escolher tweets manualmente."
+  },
+  "btn_batch_fast_no_timeline": {
+    "message": "Timeline não está disponível no Fast; desative o Fast para exportar seu feed inicial."
+  },
+  "batch_tab_selection_fast": {
+    "message": "Desative o Fast para escolher tweets manualmente"
+  },
+  "batch_tab_timeline_fast": {
+    "message": "Desative o Fast para exportar seu feed inicial"
+  },
+  "fast_locked": {
+    "message": "Há uma exportação em andamento; cancele ou deixe terminar para trocar de modo."
+  },
+  "fast_date_range": {
+    "message": "Intervalo de datas"
+  },
+  "fast_date_range_hint": {
+    "message": "Exporte somente posts cuja data esteja neste intervalo; posts fora do intervalo são ignorados sem expansão, para você alcançar posts antigos sem atingir o limite de taxa do X."
+  },
+  "fast_date_from": {
+    "message": "Data inicial"
+  },
+  "fast_date_to": {
+    "message": "Data final"
+  },
+  "fast_date_clear": {
+    "message": "Limpar"
+  },
+  "fast_step_page": {
+    "message": "Recarregar x.com"
+  },
+  "fast_step_tweet": {
+    "message": "Abrir um tweet"
+  },
+  "fast_step_fetch": {
+    "message": "Buscando ..."
+  },
+  "fast_step_expand": {
+    "message": "Expandindo ..."
+  },
+  "batch_pause": {
+    "message": "Pausar"
+  },
+  "batch_resume": {
+    "message": "Retomar"
+  },
+  "batch_stop": {
+    "message": "Parar"
+  },
+  "batch_paused": {
+    "message": "Pausado"
+  },
+  "batch_done": {
+    "message": "Concluído"
+  },
+  "batch_stopped": {
+    "message": "Parado"
+  },
+  "batch_exported": {
+    "message": "exportados"
+  },
+  "batch_failed": {
+    "message": "falharam"
+  },
+  "batch_new": {
+    "message": "novos"
+  },
+  "batch_already_exported": {
+    "message": "já exportados"
+  },
+  "batch_reset": {
+    "message": "Redefinir histórico"
+  },
+  "batch_reset_hint": {
+    "message": "Esquece quais posts já foram exportados em execuções anteriores, para que o próximo lote exporte tudo carregado novamente."
+  },
+  "batch_reset_queue": {
+    "message": "Redefinir fila"
+  },
+  "batch_reset_queue_hint": {
+    "message": "Esvazia os posts coletados e reinicia a coleta a partir de onde você rolou, para começar em um post específico em vez do topo."
+  },
+  "btn_batch_open_x": {
+    "message": "Abra x.com para exportar em lote favoritos, um perfil ou uma seleção."
+  },
+  "btn_batch_open_bookmarks": {
+    "message": "Abra sua página de Favoritos, role para carregar posts e exporte."
+  },
+  "btn_batch_open_profile": {
+    "message": "Abra uma página de perfil no x.com para exportar seus posts. Reposts são ignorados."
+  },
+  "btn_batch_profile": {
+    "message": "Exportar posts"
+  },
+  "btn_batch_profile_hint": {
+    "message": "Exporta os posts próprios deste perfil carregados na página como arquivos Markdown em uma pasta. Reposts são ignorados; role para carregar mais."
+  },
+  "btn_batch_likes": {
+    "message": "Exportar curtidas"
+  },
+  "btn_batch_likes_hint": {
+    "message": "Exporta todos os posts curtidos carregados nesta página como arquivos Markdown em uma pasta. Role sua página de Likes para carregar mais."
+  },
+  "btn_batch_open_likes": {
+    "message": "Abra sua página de Likes no x.com para exportar os posts que você curtiu."
+  },
+  "btn_batch_timeline": {
+    "message": "Exportar timeline"
+  },
+  "btn_batch_timeline_hint": {
+    "message": "Exporta todos os posts carregados na sua timeline inicial como arquivos Markdown em uma pasta. Role para carregar mais."
+  },
+  "btn_batch_open_timeline": {
+    "message": "Abra sua timeline inicial, role para carregar posts e exporte."
+  },
+  "btn_batch_go_bookmarks": {
+    "message": "Abrir Favoritos"
+  },
+  "btn_batch_go_timeline": {
+    "message": "Abrir Timeline"
+  },
+  "group_batch": {
+    "message": "Exportação em lote"
+  },
+  "batch_tab_bookmarks": {
+    "message": "Favoritos"
+  },
+  "batch_tab_profile": {
+    "message": "Perfil"
+  },
+  "batch_tab_selection": {
+    "message": "Seleção"
+  },
+  "batch_tab_likes": {
+    "message": "Likes"
+  },
+  "batch_tab_timeline": {
+    "message": "Timeline"
+  },
+  "btn_batch_select": {
+    "message": "Selecionar tweets…"
+  },
+  "btn_batch_select_hint": {
+    "message": "Escolha tweets individuais na página atual com caixas de seleção e exporte a seleção."
+  },
+  "btn_batch_add": {
+    "message": "Adicionar à fila"
+  },
+  "btn_batch_add_hint": {
+    "message": "Adiciona os posts recém-carregados à fila do lote em execução."
+  },
+  "batch_format": {
+    "message": "Formato"
+  },
+  "batch_output": {
+    "message": "Saída"
+  },
+  "batch_output_hint": {
+    "message": "Separado: um arquivo por post. Ambos: arquivos por post mais um arquivo combinado. Combinado: apenas um arquivo."
+  },
+  "batch_out_separate": {
+    "message": "Separado"
+  },
+  "batch_out_both": {
+    "message": "Ambos"
+  },
+  "batch_out_combined": {
+    "message": "Combinado"
+  },
+  "batch_bar_selected": {
+    "message": "selecionados"
+  },
+  "batch_bar_hint": {
+    "message": "Toque em tweets para selecionar"
+  },
+  "batch_bar_export": {
+    "message": "Exportar"
+  },
+  "batch_started": {
+    "message": "Lote iniciado"
+  },
+  "batch_start_failed": {
+    "message": "Não foi possível iniciar o lote."
+  },
+  "batch_running": {
+    "message": "Um job em lote já está em execução."
+  },
   "btn_obsidian_hint": {
     "message": "Configure vault, subpasta e campos do frontmatter em Configurações.\nPara threads longas ou imagens, use o botão 'Baixar arquivo .md'."
   },
@@ -33,7 +267,16 @@
     "message": "Extraindo…"
   },
   "group_export": {
-    "message": "Exportação"
+    "message": "Configurações de exportação"
+  },
+  "group_more_formats": {
+    "message": "Mais formatos"
+  },
+  "beta": {
+    "message": "Beta"
+  },
+  "group_single": {
+    "message": "Exportação única"
   },
   "group_downloads": {
     "message": "Downloads"
@@ -156,7 +399,7 @@
     "message": "Baixar imagens para uma pasta ao lado do arquivo Markdown"
   },
   "opt_save_images": {
-    "message": "Salvar imagens localmente"
+    "message": "Salvar imagens localmente (somente com .md)"
   },
   "opt_metadata_title": {
     "message": "Adicionar curtidas, reposts, visualizações como YAML frontmatter"
@@ -170,6 +413,12 @@
   "opt_inline_stats": {
     "message": "Mostrar estatísticas de engajamento no texto"
   },
+  "opt_include_reposts": {
+    "message": "Incluir reposts (perfis)"
+  },
+  "opt_include_reposts_title": {
+    "message": "Ao exportar um perfil em lote, incluir reposts também. Desativado = somente posts próprios do dono do perfil."
+  },
   "opt_close_tab_title": {
     "message": "Fechar automaticamente a aba após exportar pelo botão integrado ou menu de contexto do tweet"
   },
@@ -177,7 +426,7 @@
     "message": "Fechar a nova aba após exportar"
   },
   "ctx_save_tweet": {
-    "message": "Salvar tweet como Markdown"
+    "message": "Baixar tweet como Markdown"
   },
   "ctx_copy_tweet": {
     "message": "Copiar tweet como Markdown"
@@ -187,6 +436,24 @@
   },
   "ctx_obsidian_tweet": {
     "message": "Adicionar tweet ao Obsidian"
+  },
+  "ctx_export_pdf": {
+    "message": "Exportar tweet como PDF"
+  },
+  "ctx_copy_txt": {
+    "message": "Copiar tweet como txt"
+  },
+  "ctx_download_txt": {
+    "message": "Baixar tweet como txt"
+  },
+  "ctx_download_html": {
+    "message": "Baixar tweet como html"
+  },
+  "ctx_download_json": {
+    "message": "Baixar tweet como json"
+  },
+  "ctx_download_csv": {
+    "message": "Baixar tweet como csv"
   },
   "opt_show_inline_title": {
     "message": "Adiciona um botão de download ao lado do botão de compartilhar em cada tweet"

@@ -60,7 +60,7 @@
     "message": "Fetches items through your logged-in X session for a big speed-up — no API key, nothing leaves your browser. Heads-up: large runs can hit X's rate limit, so it paces itself and stops politely so you can re-run."
   },
   "btn_batch_fast_hint": {
-    "message": "Fetch all your bookmarks through your X session — much faster. Expands threads & articles; stops politely if X rate-limits."
+    "message": "Fetch all your bookmarks through your X session — much faster. Expands threads & articles."
   },
   "btn_batch_fast_profile_hint": {
     "message": "Fetch this profile's own posts through your X session — much faster. Reposts are skipped."
