@@ -20,7 +20,7 @@
 </p>
 
 <p align="center">
-  <img src="assets/04-popup-clipping-interface.png" alt="XClipper extension popup — export X posts, threads, and articles to Markdown, PDF, or Obsidian" width="500" />
+  <img src="store/promo/Marquee promo tile.png" alt="XClipper extension popup — export X posts, threads, and articles to Markdown, PDF, or Obsidian" width="500" />
 </p>
 
 **XClipper** is a source-available Chrome extension that exports x.com content as **Markdown, PDF, HTML, JSON, TXT, CSV, or Obsidian notes** — one post at a time, or in **batch** from your bookmarks, a profile, your likes, your home timeline, or a hand-picked selection. It runs entirely in your browser: no X API key, no account, no server. Free for noncommercial use ([commercial license](#license) required to sell or build a paid product on it).
