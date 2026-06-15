@@ -1,41 +1,25 @@
 XClipper is a high-fidelity, source-available web clipper for X (Twitter) — a Chrome extension that saves tweets, threads, and long-form articles as clean Markdown, PDF, HTML, JSON, TXT, CSV, or Obsidian notes. Export one post at a time, or in batch from your bookmarks, likes, a profile, or your home timeline. Everything runs in your browser: no X API key, no account, no server, no tracking — and it's free for noncommercial use.
 
-Export in one click — or in batch:
-
-- Save as Markdown, PDF, HTML, JSON, TXT, or CSV
-- Send directly to Obsidian
-- Copy Markdown to clipboard
-- Batch-export many posts at once (Bookmarks, Likes, Profile, Timeline, or a hand-picked Selection)
-- Download images locally alongside your file
-
-Everything runs locally on your machine. No backend service, no telemetry, no external requests beyond x.com itself.
-
 Why XClipper:
 
-Most "tweet to markdown" tools run a post through a generic HTML-to-Markdown converter and stop there. XClipper parses the page into a typed Content AST before rendering anything, so structure survives — nested threads, quote tweets, polls, link cards, and full long-form Articles (headings, lists, code blocks) all come through faithfully. t.co links are resolved to real URLs, emoji and @mentions stay intact, truncated posts are expanded, and engagement bars, follow prompts, and trackers are stripped. PDF export goes through Chrome's native print engine, so you get a real document — selectable text, clickable links, embedded images, full Unicode — not a screenshot.
+Most "tweet to markdown" tools run a post through a generic HTML-to-Markdown converter and stop there. XClipper is built differently:
 
-Key features:
+- Output you won't have to clean up. The page is parsed into a typed Content AST before anything renders, so structure survives: nested threads, quote tweets, polls, link cards, and full long-form Articles (headings, lists, code blocks). t.co links resolve to real URLs, emoji and @mentions stay intact, truncated posts expand, and engagement bars, follow prompts, and trackers are stripped.
+- Real PDFs, not screenshots. PDF export uses Chrome's native print engine — selectable text, clickable links, embedded images, and full Unicode, not a flattened image.
+- Batch, not one at a time. Export your whole Bookmarks, Likes, a Profile, your Timeline, or a hand-picked Selection in one background job with a progress bar, pause / resume / stop, and a dedup ledger — plus an optional Fast mode that pulls items straight from your logged-in X session for a roughly 10x speed-up.
+- 100% local, zero setup. No API keys, no accounts, nothing leaves your browser. Install and clip.
 
-- Batch export from five sources: your Bookmarks, your Likes, a Profile, your home Timeline, or a hand-picked Selection (tick individual tweets with checkboxes). Runs in the background with a live progress bar and pause / resume / stop, and a dedup ledger skips items you already exported.
-- Choose the batch output: Separate per-post files, one Combined file, or both. Batch supports every format except PDF.
-- Fast Batch (opt-in) — an optional accelerated mode for Bookmarks, Profile, and Likes that fetches posts directly through your logged-in X session instead of rendering each page, roughly 10x faster (minutes to seconds). No API key, no password, nothing leaves your browser. Off by default; it paces itself and stops politely if X rate-limits, with a date-range filter to narrow scope.
-- Seven export formats: Markdown, PDF, HTML, JSON, TXT, CSV, or hand off to Obsidian. CSV pairs your metadata columns with a text column for the post body.
-- High-fidelity Markdown for tweets, threads, quote tweets, nested threads, polls, link cards, and X Articles (formerly Notes) — rendered via the AST pipeline, with resolved t.co links, inlined emoji, and tidy @mentions.
-- True PDF export with selectable text, clickable links, embedded images, and proper rendering of emoji and non-ASCII characters.
-- One-click "Add to Obsidian" via the obsidian:// URI scheme, with optional vault targeting and vault subfolder support.
-- Rich YAML frontmatter with author, handle, dates, source URL, content type, and engagement stats — with per-field toggles.
-- Optional Obsidian-friendly frontmatter: wikilinked [[@handle]] authors, Dataview-friendly metadata, synthesized titles and descriptions, and a customizable tags list.
-- Download embedded images locally to prevent link rot.
-- Capture link cards with title, source domain, and preview image.
-- Capture polls with choices, result percentages, and the vote total/status line.
-- Preserve quote tweet structure and attribution.
-- Export a single tweet or an entire thread.
-- Three ways to trigger: an inline export button inside x.com, the toolbar popup, and the right-click context menu.
-- Custom filename templates using placeholders like {date}, {datetime}, {handle}, {author}, {id}, {slug}, and {type}.
-- Optional downloads subfolder for exported files and media.
-- Optional inline engagement-stats row.
-- Multi-language UI: English, Arabic, Chinese (Simplified), French, German, Hindi, Italian, Japanese, Persian, Portuguese (Brazil), Russian, and Spanish (extraction works in any language).
-- Light and dark mode support.
+Also included:
+
+- Seven export formats — Markdown, PDF, HTML, JSON, TXT, CSV, or a one-click handoff to Obsidian. Batch writes separate files, one combined file, or both (every format except PDF).
+- Obsidian integration — obsidian:// handoff with optional vault and subfolder, plus an Obsidian-friendly frontmatter schema: [[@handle]] wikilinks, Dataview-friendly metadata, synthesized title and description, and a custom tags list.
+- Rich YAML frontmatter — author, handle, dates, source URL, content type, and engagement stats, each toggleable per field.
+- Three ways to trigger — an inline button on every tweet, the toolbar popup, and the right-click menu.
+- Custom filename templates — {date}, {datetime}, {handle}, {author}, {id}, {slug}, {type}.
+- Save embedded images locally to prevent link rot, and export a single tweet or a whole thread.
+- 12-language UI (extraction works in any language) and light/dark mode.
+
+Plus: copy to clipboard or download, an optional inline engagement-stats row, and an optional downloads subfolder.
 
 Great for:
 
