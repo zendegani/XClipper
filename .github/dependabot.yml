@@ -3,18 +3,27 @@
 # Please see the documentation for all configuration options:
 # https://docs.github.com/code-security/dependabot/dependabot-version-updates/configuration-options-for-the-dependabot.yml-file
 
-version: 2                                                                   
-updates:                                                                     
-  - package-ecosystem: "npm"                                                 
-    directory: "/"                                        
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /
     schedule:
-      interval: "weekly"
-    open-pull-requests-limit: 5
-    groups:                                                                  
+      interval: weekly
+    open-pull-requests-limit: 10
+    groups:
+      # All package.json entries here are devDependencies. Collapse minor/patch
+      # bumps into a single PR; majors stay separate so they get reviewed alone.
       dev-dependencies:
-        dependency-type: "development"                                       
-                                                          
-  - package-ecosystem: "github-actions"                                      
-    directory: "/"
-    schedule:                                                                
-      interval: "weekly" 
+        dependency-type: development
+        update-types:
+          - minor
+          - patch
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      github-actions:
+        patterns:
+          - "*"
