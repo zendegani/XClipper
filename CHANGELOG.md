@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Reset buttons no longer flicker after a large export**: the popup refreshed the Reset queue / Reset history buttons by greying them first and re-enabling after an async storage read; right after a big export — while Chrome is still writing hundreds of downloaded files — that read is slow enough for the greyed state to paint every second, so the buttons blinked until the writes drained. Each refresh now assigns the buttons their final state exactly once.
 - **Fast Batch no longer re-exports edited or re-rooted posts every run**: some posts (edited tweets, and thread replies that re-root to the thread's first tweet on expansion) end up with a different canonical id than the one the bookmarks feed lists, so the dedup history — which only stored the canonical id — never matched them again and they re-exported on every run. Fast Batch now remembers both ids, so these posts are correctly skipped once exported.
 
 ---

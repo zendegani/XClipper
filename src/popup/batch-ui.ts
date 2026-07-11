@@ -165,14 +165,21 @@ function setButton(label: string, enabled: boolean, tooltip: string): void {
 // Refresh the action button for the active tab. Counts only apply when the
 // current page matches the tab's source; otherwise the button points the
 // user at the right page.
+// Early-return branches of refreshIdleUi: no dedup info applies — hide the row
+// and grey both reset buttons together. Each branch assigns the buttons' FINAL
+// state exactly once (here, or after the main paths' awaits); a transient
+// "default disabled" at the top would get painted whenever the awaited storage
+// read is slow — e.g. right after a big export, while Chrome is still flushing
+// hundreds of downloads — making the buttons flicker every poll tick (#87).
+function hideDedupAndResets(): void {
+  batchDedupRow.classList.add('hidden');
+  btnBatchResetQueue.disabled = true;
+  btnBatchReset.disabled = true;
+}
+
 async function refreshIdleUi(): Promise<void> {
   appendable = false;
   openTarget = undefined;
-  // Reset buttons are always shown (stacked beside Export); default them to
-  // disabled so early-return branches leave them greyed, and the main/fast
-  // paths re-enable as appropriate below.
-  btnBatchResetQueue.disabled = true;
-  btnBatchReset.disabled = true;
 
   // Fast Batch (armed via the red toggle) overrides per-page gating: it fetches
   // bookmarks through the GraphQL session, so it doesn't need the bookmarks page
@@ -180,7 +187,7 @@ async function refreshIdleUi(): Promise<void> {
   if (getFastMode()) {
     // Selection and Timeline aren't Fast-compatible (no GET-paginated feed).
     if (activeTab === 'selection' || activeTab === 'timeline') {
-      batchDedupRow.classList.add('hidden');
+      hideDedupAndResets();
       setButton(
         activeTab === 'timeline'
           ? t('btn_batch_timeline', 'Export timeline')
@@ -226,7 +233,7 @@ async function refreshIdleUi(): Promise<void> {
   // (the same situation Single export reports). Every batch source needs it,
   // so surface the same "reload the page" hint rather than a misleading state.
   if (unreachable && pageIsX) {
-    batchDedupRow.classList.add('hidden');
+    hideDedupAndResets();
     const label =
       activeTab === 'bookmarks' ? t('btn_batch', 'Export bookmarks')
         : activeTab === 'profile' ? t('btn_batch_profile', 'Export posts')
@@ -241,7 +248,7 @@ async function refreshIdleUi(): Promise<void> {
   }
 
   if (activeTab === 'selection') {
-    batchDedupRow.classList.add('hidden');
+    hideDedupAndResets();
     setButton(
       t('btn_batch_select', 'Select tweets…'),
       pageIsX,
@@ -253,7 +260,7 @@ async function refreshIdleUi(): Promise<void> {
   }
 
   if (activeTab === 'bookmarks' && source !== 'bookmarks') {
-    batchDedupRow.classList.add('hidden');
+    hideDedupAndResets();
     openTarget = OPEN_URLS.bookmarks;
     setButton(
       t('btn_batch_go_bookmarks', 'Open Bookmarks'),
@@ -263,7 +270,7 @@ async function refreshIdleUi(): Promise<void> {
     return;
   }
   if (activeTab === 'profile' && source !== 'profile') {
-    batchDedupRow.classList.add('hidden');
+    hideDedupAndResets();
     setButton(
       t('btn_batch_profile', 'Export posts'),
       false,
@@ -272,7 +279,7 @@ async function refreshIdleUi(): Promise<void> {
     return;
   }
   if (activeTab === 'likes' && source !== 'likes') {
-    batchDedupRow.classList.add('hidden');
+    hideDedupAndResets();
     setButton(
       t('btn_batch_likes', 'Export likes'),
       false,
@@ -281,7 +288,7 @@ async function refreshIdleUi(): Promise<void> {
     return;
   }
   if (activeTab === 'timeline' && source !== 'timeline') {
-    batchDedupRow.classList.add('hidden');
+    hideDedupAndResets();
     openTarget = OPEN_URLS.timeline;
     setButton(
       t('btn_batch_go_timeline', 'Open Timeline'),
