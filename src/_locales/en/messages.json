@@ -110,9 +110,6 @@
   "fast_paginate_resume": {
     "message": "Resume"
   },
-  "fast_paginate_daterange": {
-    "message": "Date range"
-  },
   "fast_step_page": {
     "message": "Reload x.com"
   },
