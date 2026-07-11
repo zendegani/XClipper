@@ -15,6 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Changed
 
 - **Fast Batch completes earlier items by ID**: posts a previous rate-limited run left incomplete are now finished with a direct fetch by their id at the start of the next run — independent of where the feed is paginated — so they complete in either Recent or Resume mode instead of relying on re-encountering them in the feed.
+- **Fast Batch runs sized to the expansion budget**: a Fast Batch run now collects 150 posts (down from 200) to match how many thread/article expansions X allows before rate-limiting — so a run finishes everything it collects instead of leaving ~50 behind each time, which otherwise piled up run after run. Standard Batch is unchanged.
 
 ### Fixed
 
