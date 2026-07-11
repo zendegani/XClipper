@@ -321,6 +321,11 @@ const TWEET_DETAIL_CONCURRENCY = 3;
 // everything it collects — no growing backlog.
 const FAST_BATCH_MAX_ITEMS = 150;
 
+// Super Fast (#85): with thread expansion off there's no TweetDetail budget to
+// honor, so the run is bounded by the feed page budget instead
+// (RESUME_MAX_PAGES pages × ~20 posts/page).
+const SUPER_FAST_MAX_ITEMS = 3000;
+
 // Feed pages a run will walk. Recent scans the top, so a small window is enough.
 // The deep modes need a much larger ceiling: Resume pages PAST everything already
 // exported to reach fresh items; Date range pages down to an old tweet-date
@@ -353,8 +358,8 @@ const INCOMPLETE_CAP = 2000;
 //   await xclipperFastBatch()                       // full (threads + articles)
 //   await xclipperFastBatch({ expandThreads: false }) // fastest, root-only
 async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatchResult | null> {
-  const maxItems = opts.maxItems ?? FAST_BATCH_MAX_ITEMS;
   const expandThreads = opts.expandThreads ?? true;
+  const maxItems = opts.maxItems ?? (expandThreads ? FAST_BATCH_MAX_ITEMS : SUPER_FAST_MAX_ITEMS);
   const source = opts.source ?? 'bookmarks';
   const handleRaw = opts.handle?.replace(/^@/, ''); // original case, for display
   const handle = handleRaw?.toLowerCase(); // for the repost filter

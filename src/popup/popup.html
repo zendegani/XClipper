@@ -357,6 +357,15 @@
             <button type="button" id="fast-paginate-daterange" class="fast-seg-btn" data-mode="dateRange" data-i18n="fast_date_range">Date range</button>
           </div>
         </div>
+        <label id="fast-super" class="toggle-label fast-super hidden"
+          data-tooltip="Skips fetching each post's thread, so one run can export thousands of posts instead of ~150 — a whole bookmarks feed in a go or two. Threads export as their first post only (articles are still fetched in full). Exported posts count as done — use Reset history to re-export them with full threads later."
+          data-i18n-tooltip="fast_super_hint">
+          <span class="toggle-text">
+            <span data-i18n="fast_super">Super Fast — skip threads</span>
+          </span>
+          <input type="checkbox" id="chk-fast-super" class="toggle-input" />
+          <span class="toggle-switch"></span>
+        </label>
         <div id="fast-date-range" class="fast-date-range hidden">
           <input type="date" id="fast-date-from" class="fast-date-input" aria-label="From date" data-i18n-aria-label="fast_date_from" />
           <span class="fast-date-sep">→</span>

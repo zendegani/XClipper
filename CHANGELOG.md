@@ -10,6 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
+- **Super Fast mode exports a whole feed in one or two runs**: an opt-in Fast Batch toggle that skips per-post thread expansion — the step that trips X's rate limit and caps a normal run at ~150 posts — raising the per-run budget to ~3000 posts. Threads export as their first post only; quotes, media, polls and long-post text still come through, and X Articles are still fetched in full. Posts exported this way count as done, so use **Reset history** to re-export them with full threads later.
 - **Fast Batch fetch modes — Recent / Resume / Date range**: a mode switch for Fast Batch. *Recent* starts from the top of your feed (newly-added items). *Resume* continues from where the last Resume run stopped, so a large feed (thousands of bookmarks) is backfilled across sessions instead of re-scanning already-exported items from the top each run — and switching to Resume after several Recent rounds pages straight past everything Recent already exported to reach fresh posts in one run. *Date range* (its inputs appear only when selected) exports only posts tweeted within a chosen window; it scans deep from the top and **continues across runs** on its own cursor (so even a very large feed is covered in a few runs), skipping what you've already exported but deliberately **not** moving the Resume position — so you can grab a specific month mid-backfill without losing your place. All three share one export history; **Reset history** clears it and both cursors.
 
 ### Changed
