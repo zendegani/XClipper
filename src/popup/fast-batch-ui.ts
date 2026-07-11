@@ -31,6 +31,7 @@ import {
   fastPaginate,
   fastPaginateRecent,
   fastPaginateResume,
+  fastPaginateDaterange,
   fastSteps,
   fastStepPage,
   fastStepTweet,
@@ -59,8 +60,10 @@ const batchProgressRow = document.querySelector('.batch-progress-row');
 let fastMode = false;
 let fastActive = false;
 let inBatchMode = false;
-// 'recent' (from the top) or 'resume' (continue from the saved cursor) — #83.
-let paginateMode: 'recent' | 'resume' = 'recent';
+// 'recent' (top), 'resume' (continue from saved cursor), or 'dateRange' (deep
+// scan for a tweet-date window, without moving the resume cursor) — #83.
+type PaginateMode = 'recent' | 'resume' | 'dateRange';
+let paginateMode: PaginateMode = 'recent';
 // True while a Standard (worker-tab) batch job is running/paused — reported by
 // batch-ui. We lock the toggle whenever EITHER session is active so the two
 // can't overlap and the toggle can never disagree with the running session.
@@ -86,19 +89,21 @@ function notifyChanged(): void {
 function applyGlow(): void {
   const red = inBatchMode && (fastActive || (fastMode && !standardJobActive));
   viewMain?.classList.toggle('fast-on', red);
-  // The date-range filter, pagination mode, and step lights are Fast-only —
-  // show whenever armed.
+  // The fetch-mode toggle and step lights are Fast-only — show whenever armed.
+  // The date inputs belong to Date-range mode only.
   const showExtras = fastMode && inBatchMode;
-  fastDateRange?.classList.toggle('hidden', !showExtras);
   fastPaginate?.classList.toggle('hidden', !showExtras);
+  fastDateRange?.classList.toggle('hidden', !(showExtras && paginateMode === 'dateRange'));
   fastSteps?.classList.toggle('hidden', !showExtras);
 }
 
-function setPaginateMode(mode: 'recent' | 'resume'): void {
+function setPaginateMode(mode: PaginateMode): void {
   paginateMode = mode;
   fastPaginateRecent?.classList.toggle('active', mode === 'recent');
   fastPaginateResume?.classList.toggle('active', mode === 'resume');
+  fastPaginateDaterange?.classList.toggle('active', mode === 'dateRange');
   chrome.storage.local.set({ [FAST_PAGINATE_KEY]: mode });
+  applyGlow(); // reveal/hide the date inputs for the new mode
 }
 
 // Step lights when idle: Page/Tweet show readiness (what to do before Export);
@@ -222,12 +227,14 @@ export function initFastBatchUi(): void {
     chrome.storage.local.set({ [FAST_FROM_KEY]: '', [FAST_TO_KEY]: '' });
   });
 
-  // Recent | Resume pagination mode: restore, then toggle on click.
+  // Recent | Resume | Date range fetch mode: restore, then toggle on click.
   chrome.storage.local.get(FAST_PAGINATE_KEY, (res) => {
-    setPaginateMode(res[FAST_PAGINATE_KEY] === 'resume' ? 'resume' : 'recent');
+    const m = res[FAST_PAGINATE_KEY];
+    setPaginateMode(m === 'resume' || m === 'dateRange' ? m : 'recent');
   });
   fastPaginateRecent?.addEventListener('click', () => setPaginateMode('recent'));
   fastPaginateResume?.addEventListener('click', () => setPaginateMode('resume'));
+  fastPaginateDaterange?.addEventListener('click', () => setPaginateMode('dateRange'));
 }
 
 // ─── Fast export run + progress polling ──────────────────────────────
@@ -237,9 +244,10 @@ export async function startFastExport(
   handle?: string
 ): Promise<void> {
   btnBatch.disabled = true;
-  // Optional date range; swap if the user entered them backwards.
-  let fromDate = fastDateFrom?.value || undefined;
-  let toDate = fastDateTo?.value || undefined;
+  // The date window applies only in Date-range mode; swap if entered backwards.
+  const dateMode = paginateMode === 'dateRange';
+  let fromDate = dateMode ? fastDateFrom?.value || undefined : undefined;
+  let toDate = dateMode ? fastDateTo?.value || undefined : undefined;
   if (fromDate && toDate && fromDate > toDate) [fromDate, toDate] = [toDate, fromDate];
   // Expand threads + articles by default (correctness over raw speed).
   const resp = (await chrome.runtime.sendMessage({

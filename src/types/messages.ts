@@ -236,10 +236,12 @@ export interface FastBatchStartRequest {
   fromDate?: string;
   toDate?: string;
   expandThreads?: boolean;
-  // 'recent' (default) starts from the top of the feed — picks up newly-added
-  // items; 'resume' continues from the saved per-source cursor — backfills a
-  // large feed across sessions without re-scanning already-exported items (#83).
-  paginate?: 'recent' | 'resume';
+  // Fast Batch fetch mode (#83): 'recent' starts from the top of the feed
+  // (newly-added items); 'resume' continues from the saved per-source cursor
+  // (backfill a large feed across sessions); 'dateRange' deep-scans from the top
+  // for posts tweeted within fromDate..toDate — it dedups against history but
+  // never touches the resume cursor, so it can't confuse a Resume backfill.
+  paginate?: 'recent' | 'resume' | 'dateRange';
 }
 export interface FastBatchStartResponse {
   success: boolean;

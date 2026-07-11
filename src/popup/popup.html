@@ -348,21 +348,20 @@
         <p id="fast-locked-hint" class="fast-locked-hint hidden" data-i18n="fast_locked">
           An export is running — cancel or let it finish to switch modes.
         </p>
+        <div id="fast-paginate" class="fast-paginate hidden">
+          <div class="fast-seg" role="group" aria-label="Fetch mode" data-i18n-aria-label="fast_paginate"
+            data-tooltip="Recent — from the top of your feed, for newly-added bookmarks. Resume — continue a deep backfill from where the last Resume run stopped. Date range — only posts tweeted in a chosen window: it scans deep from the top and skips what you've already exported, but it doesn't move the Resume position. Reset history clears all of it."
+            data-i18n-tooltip="fast_paginate_hint">
+            <button type="button" id="fast-paginate-recent" class="fast-seg-btn active" data-mode="recent" data-i18n="fast_paginate_recent">Recent</button>
+            <button type="button" id="fast-paginate-resume" class="fast-seg-btn" data-mode="resume" data-i18n="fast_paginate_resume">Resume</button>
+            <button type="button" id="fast-paginate-daterange" class="fast-seg-btn" data-mode="dateRange" data-i18n="fast_paginate_daterange">Date range</button>
+          </div>
+        </div>
         <div id="fast-date-range" class="fast-date-range hidden">
-          <span class="fast-date-label" data-i18n="fast_date_range" data-tooltip="Only export posts whose date is in this range — out-of-range posts are skipped without being expanded, so you reach older posts without hitting X's rate limit."
-            data-i18n-tooltip="fast_date_range_hint">Date range</span>
           <input type="date" id="fast-date-from" class="fast-date-input" aria-label="From date" data-i18n-aria-label="fast_date_from" />
           <span class="fast-date-sep">→</span>
           <input type="date" id="fast-date-to" class="fast-date-input" aria-label="To date" data-i18n-aria-label="fast_date_to" />
           <button id="fast-date-clear" class="batch-ctl" type="button" data-i18n="fast_date_clear">Clear</button>
-        </div>
-        <div id="fast-paginate" class="fast-paginate hidden">
-          <span class="fast-date-label" data-tooltip="Recent starts from the top of your feed — for newly-added bookmarks. Resume continues from where the last Resume run stopped — for backfilling a large feed across sessions without re-scanning what's already exported. Both share the same export history, so switch freely; Reset history also clears the resume point."
-            data-i18n-tooltip="fast_paginate_hint" data-i18n="fast_paginate">Start from</span>
-          <div class="fast-seg" role="group" aria-label="Pagination mode" data-i18n-aria-label="fast_paginate">
-            <button type="button" id="fast-paginate-recent" class="fast-seg-btn active" data-mode="recent" data-i18n="fast_paginate_recent">Recent</button>
-            <button type="button" id="fast-paginate-resume" class="fast-seg-btn" data-mode="resume" data-i18n="fast_paginate_resume">Resume</button>
-          </div>
         </div>
         <div id="fast-steps" class="fast-steps hidden" role="status">
           <span class="fast-step" id="fast-step-page"><span class="fast-step-dot"></span><span class="fast-step-label" data-i18n="fast_step_page">Reload x.com</span></span>

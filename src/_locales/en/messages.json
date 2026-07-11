@@ -99,16 +99,19 @@
     "message": "Clear"
   },
   "fast_paginate": {
-    "message": "Start from"
+    "message": "Fetch mode"
   },
   "fast_paginate_hint": {
-    "message": "Recent starts from the top of your feed — for newly-added bookmarks. Resume continues from where the last Resume run stopped — for backfilling a large feed across sessions without re-scanning what's already exported. Both share the same export history, so switch freely; Reset history also clears the resume point."
+    "message": "Recent — from the top of your feed, for newly-added bookmarks. Resume — continue a deep backfill from where the last Resume run stopped. Date range — only posts tweeted in a chosen window: it scans deep from the top and skips what you've already exported, but it doesn't move the Resume position. Reset history clears all of it."
   },
   "fast_paginate_recent": {
     "message": "Recent"
   },
   "fast_paginate_resume": {
     "message": "Resume"
+  },
+  "fast_paginate_daterange": {
+    "message": "Date range"
   },
   "fast_step_page": {
     "message": "Reload x.com"
