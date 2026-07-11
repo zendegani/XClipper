@@ -110,6 +110,12 @@
   "fast_paginate_resume": {
     "message": "Resume"
   },
+  "fast_super": {
+    "message": "Super Fast — skip threads"
+  },
+  "fast_super_hint": {
+    "message": "Skips fetching each post's thread, so one run can export thousands of posts instead of ~150 — a whole bookmarks feed in a go or two. Threads export as their first post only (articles are still fetched in full). Exported posts count as done — use Reset history to re-export them with full threads later."
+  },
   "fast_step_page": {
     "message": "Reload x.com"
   },

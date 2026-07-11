@@ -32,6 +32,8 @@ import {
   fastPaginateRecent,
   fastPaginateResume,
   fastPaginateDaterange,
+  fastSuper,
+  chkFastSuper,
   fastSteps,
   fastStepPage,
   fastStepTweet,
@@ -53,6 +55,7 @@ const FAST_MODE_KEY = 'fastBatchMode';
 const FAST_FROM_KEY = 'fastDateFrom';
 const FAST_TO_KEY = 'fastDateTo';
 const FAST_PAGINATE_KEY = 'fastPaginateMode';
+const FAST_SUPER_KEY = 'fastSuperMode';
 const FAST_POLL_MS = 800;
 const batchControls = document.querySelector('.batch-controls');
 const batchProgressRow = document.querySelector('.batch-progress-row');
@@ -64,6 +67,9 @@ let inBatchMode = false;
 // scan for a tweet-date window, without moving the resume cursor) — #83.
 type PaginateMode = 'recent' | 'resume' | 'dateRange';
 let paginateMode: PaginateMode = 'recent';
+// Super Fast (#85): skip per-item thread expansion so a run isn't bounded by
+// X's TweetDetail budget — the background raises the item cap accordingly.
+let superFast = false;
 // True while a Standard (worker-tab) batch job is running/paused — reported by
 // batch-ui. We lock the toggle whenever EITHER session is active so the two
 // can't overlap and the toggle can never disagree with the running session.
@@ -93,8 +99,15 @@ function applyGlow(): void {
   // The date inputs belong to Date-range mode only.
   const showExtras = fastMode && inBatchMode;
   fastPaginate?.classList.toggle('hidden', !showExtras);
+  fastSuper?.classList.toggle('hidden', !showExtras);
   fastDateRange?.classList.toggle('hidden', !(showExtras && paginateMode === 'dateRange'));
   fastSteps?.classList.toggle('hidden', !showExtras);
+}
+
+function setSuperFast(on: boolean): void {
+  superFast = on;
+  if (chkFastSuper) chkFastSuper.checked = on;
+  chrome.storage.local.set({ [FAST_SUPER_KEY]: on });
 }
 
 function setPaginateMode(mode: PaginateMode): void {
@@ -235,6 +248,12 @@ export function initFastBatchUi(): void {
   fastPaginateRecent?.addEventListener('click', () => setPaginateMode('recent'));
   fastPaginateResume?.addEventListener('click', () => setPaginateMode('resume'));
   fastPaginateDaterange?.addEventListener('click', () => setPaginateMode('dateRange'));
+
+  // Super Fast: restore, then persist on change.
+  chrome.storage.local.get(FAST_SUPER_KEY, (res) => {
+    setSuperFast(res[FAST_SUPER_KEY] === true);
+  });
+  chkFastSuper?.addEventListener('change', () => setSuperFast(chkFastSuper.checked));
 }
 
 // ─── Fast export run + progress polling ──────────────────────────────
@@ -249,14 +268,15 @@ export async function startFastExport(
   let fromDate = dateMode ? fastDateFrom?.value || undefined : undefined;
   let toDate = dateMode ? fastDateTo?.value || undefined : undefined;
   if (fromDate && toDate && fromDate > toDate) [fromDate, toDate] = [toDate, fromDate];
-  // Expand threads + articles by default (correctness over raw speed).
+  // Expand threads + articles by default (correctness over raw speed); Super
+  // Fast trades thread expansion for a much larger per-run item budget (#85).
   const resp = (await chrome.runtime.sendMessage({
     action: 'FAST_BATCH_START',
     source,
     ...(handle ? { handle } : {}),
     ...(fromDate ? { fromDate } : {}),
     ...(toDate ? { toDate } : {}),
-    expandThreads: true,
+    expandThreads: !superFast,
     paginate: paginateMode,
   })) as FastBatchStartResponse | undefined;
   if (!resp?.success) {

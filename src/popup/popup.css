@@ -1069,6 +1069,16 @@ body {
   color: var(--bg-primary);
 }
 
+/* Super Fast — skip thread expansion (issue #85). Reuses the toggle-label
+ * component, sized down to sit under the fetch-mode segment. */
+.fast-super {
+  padding: 0 2px;
+}
+
+.fast-super .toggle-text {
+  font-size: 12px;
+}
+
 /* Fast Batch step lights: Page → Tweet → Fetch → Expand. */
 .fast-steps {
   display: flex;
