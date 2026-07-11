@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Fast Batch Recent/Resume pagination**: a **Recent | Resume** switch for Fast Batch — *Recent* starts from the top of your feed (newly-added items), *Resume* continues from where the last Resume run stopped, so a large feed (thousands of bookmarks) is backfilled across sessions instead of re-scanning already-exported items from the top each run (which got slower and returned fewer items as your history grew). Both share the same export history, so you can switch freely — do several rounds in Recent, then switch to Resume and it pages straight past everything Recent already exported to reach fresh posts in one run (rather than returning empty runs while it crawled past them). **Reset history** also clears the resume point.
+- **Fast Batch fetch modes — Recent / Resume / Date range**: a mode switch for Fast Batch. *Recent* starts from the top of your feed (newly-added items). *Resume* continues from where the last Resume run stopped, so a large feed (thousands of bookmarks) is backfilled across sessions instead of re-scanning already-exported items from the top each run — and switching to Resume after several Recent rounds pages straight past everything Recent already exported to reach fresh posts in one run. *Date range* (its inputs appear only when selected) exports only posts tweeted within a chosen window, scanning deep from the top; it skips what you've already exported but deliberately does **not** move the Resume position, so you can grab a specific month mid-backfill without losing your place. All three share one export history; **Reset history** clears it and the resume point.
 
 ### Changed
 

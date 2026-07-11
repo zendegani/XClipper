@@ -56,6 +56,7 @@ export const fastDateClear = document.getElementById('fast-date-clear') as HTMLB
 export const fastPaginate = document.getElementById('fast-paginate') as HTMLDivElement;
 export const fastPaginateRecent = document.getElementById('fast-paginate-recent') as HTMLButtonElement;
 export const fastPaginateResume = document.getElementById('fast-paginate-resume') as HTMLButtonElement;
+export const fastPaginateDaterange = document.getElementById('fast-paginate-daterange') as HTMLButtonElement;
 export const fastSteps = document.getElementById('fast-steps') as HTMLDivElement;
 export const fastStepPage = document.getElementById('fast-step-page') as HTMLSpanElement;
 export const fastStepTweet = document.getElementById('fast-step-tweet') as HTMLSpanElement;

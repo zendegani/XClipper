@@ -290,10 +290,11 @@ export interface FastBatchOptions {
   // are always expanded — their body needs the fetch). On by default for
   // completeness; pass false for the fastest root-only run.
   expandThreads?: boolean;
-  // 'recent' (default) paginates from the top; 'resume' continues from the saved
-  // per-source cursor so a large feed is backfilled across runs without
-  // re-scanning already-exported items (issue #83).
-  paginate?: 'recent' | 'resume';
+  // Fetch mode (issue #83): 'recent' paginates from the top; 'resume' continues
+  // from the saved per-source cursor (deep backfill); 'dateRange' deep-scans from
+  // the top for posts within fromDate..toDate — dedups against history but does
+  // NOT read or advance the resume cursor, so it never disturbs a Resume run.
+  paginate?: 'recent' | 'resume' | 'dateRange';
 }
 
 // At most this many TweetDetail fetches in flight during expansion. Kept low on
@@ -310,16 +311,16 @@ const TWEET_DETAIL_CONCURRENCY = 3;
 // everything it collects — no growing backlog.
 const FAST_BATCH_MAX_ITEMS = 150;
 
-// Feed pages a run will walk. Recent starts from the top, so a small window is
-// enough. Resume starts from its saved frontier (or the top on the very first
-// Resume run) and must be able to page PAST everything Recent already exported
-// to reach fresh items — so it gets a much larger ceiling. It only pays that
-// cost once: the frontier it saves means the next Resume run starts deep.
+// Feed pages a run will walk. Recent scans the top, so a small window is enough.
+// The deep modes need a much larger ceiling: Resume pages PAST everything already
+// exported to reach fresh items; Date range pages down to an old tweet-date
+// window. Resume only pays that cost once (its saved frontier starts the next run
+// deep); Date range pays it each run (it never saves a cursor).
 const RECENT_MAX_PAGES = 25;
 const RESUME_MAX_PAGES = 150;
 
-// Politeness gap between feed pages during a Resume crawl — a deep run makes
-// many back-to-back feed requests, and X soft-blocks bursts, so space them out.
+// Politeness gap between feed pages during a deep crawl — a deep run makes many
+// back-to-back feed requests, and X soft-blocks bursts, so space them out.
 // Recent's short window doesn't need it.
 const RESUME_PAGE_DELAY_MS = 250;
 
@@ -414,17 +415,19 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
   const prevIncomplete = new Set(await loadIncomplete());
   let skipped = 0;
 
-  // Recent: start from the top (drop any mid-scroll cursor the captured request
-  // carried). Resume: continue from this source's saved frontier so a large feed
-  // is backfilled across runs without re-scanning already-exported items (#83).
+  // Recent starts from the top. Resume continues from this source's saved
+  // frontier (deep backfill). Date range deep-scans from the top for a tweet-date
+  // window — like Recent's start, but it must reach deep, so it shares Resume's
+  // page budget and pacing without ever touching the resume cursor (#83).
   const paginate = opts.paginate ?? 'recent';
+  const deepCrawl = paginate === 'resume' || paginate === 'dateRange';
   const vars = JSON.parse(getVariables(template)) as Record<string, unknown>;
   delete vars.cursor;
   const resumeCursors = await loadResumeCursors();
   if (paginate === 'resume' && resumeCursors[source]) vars.cursor = resumeCursors[source];
   const initialUrl = setVariablesParam(template, JSON.stringify(vars));
   // Frontier to persist for the next Resume run — advances only past pages we
-  // fully consume (below); starts wherever this run started.
+  // fully consume (below); starts wherever this run started. Only Resume saves it.
   let frontier: string | null = (vars.cursor as string | undefined) ?? null;
 
   // 1) Collect: paginate the source feed, mapping each root tweet, skipping
@@ -444,12 +447,10 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
     feedId: string;
   }
   const selected: Item[] = [];
-  // Resume crawls deep (past everything already exported) to reach fresh items,
-  // so it gets a large page ceiling; Recent only scans the top. A date range
-  // also needs to dig deeper (bookmarks/likes are ordered by save date, not
-  // tweet date), so widen Recent's window when one is set.
-  const maxPages =
-    paginate === 'resume' ? RESUME_MAX_PAGES : dateFiltered ? 50 : RECENT_MAX_PAGES;
+  // Resume and Date range crawl deep (past everything already exported, or down
+  // to an old tweet-date window) so they get a large page ceiling; Recent only
+  // scans the top.
+  const maxPages = deepCrawl ? RESUME_MAX_PAGES : RECENT_MAX_PAGES;
   try {
     for await (const { tweetResults, cursor } of paginateTimeline(initialUrl, authedFetchJson, { maxPages })) {
       if (cancelRequested) break;
@@ -483,9 +484,9 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
       log(`fetched ${selected.length}${skipped ? ` (skipped ${skipped} already-exported)` : ''}`);
       setProgress({ done: selected.length, skipped });
       if (selected.length >= maxItems) break;
-      // Space out a deep Resume crawl so many back-to-back feed pages don't trip
-      // X's rate limit; Recent's short window skips the delay.
-      if (paginate === 'resume') await sleep(RESUME_PAGE_DELAY_MS);
+      // Space out a deep crawl (Resume / Date range) so many back-to-back feed
+      // pages don't trip X's rate limit; Recent's short window skips the delay.
+      if (deepCrawl) await sleep(RESUME_PAGE_DELAY_MS);
     }
   } catch (err) {
     // Partial export is honest — we still write whatever we collected.
@@ -752,7 +753,7 @@ export function initFastBatch(): void {
       fromDate?: string;
       toDate?: string;
       expandThreads?: boolean;
-      paginate?: 'recent' | 'resume';
+      paginate?: 'recent' | 'resume' | 'dateRange';
     };
     void runFastBatchExport({
       ...(m.source ? { source: m.source } : {}),
