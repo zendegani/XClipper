@@ -90,7 +90,8 @@ Right-click anywhere on a tweet — body, image, or timestamp — and pick **Sav
 What to know before turning it on:
 
 - **It's opt-in and off by default.** Enabling it grants one optional, X.com-only permission (`webRequest`) used to read your session's auth header. There's no API key and no password — and nothing leaves your browser.
-- **Use it judiciously.** Because it calls X's private API directly, large runs can trip X's rate limit (soft-blocking). Fast Batch paces itself and **stops politely** when X pushes back, so you can resume or re-run later; a **date-range filter** lets you narrow scope to reach older posts without hitting limits.
+- **Use it judiciously.** Because it calls X's private API directly, large runs can trip X's rate limit (soft-blocking). Fast Batch paces itself and **stops politely** when X pushes back, so you can resume or re-run later.
+- **Three fetch modes** (a `Recent | Resume | Date range` switch) control what each run pulls. **Recent** grabs your newest items from the top. **Resume** continues a large backfill from where it last stopped, so thousands of bookmarks export across several sessions without re-scanning what's done. **Date range** pulls only posts tweeted within a chosen window, crawling deeper each run on its own cursor (so it doesn't disturb a Resume backfill). A shared dedup history skips already-exported posts across all three; **Reset history** clears it.
 - **Two quick setup steps**, shown as step-lights in the popup: reload the page so its feed request is captured, and open any one tweet so threads and articles can be expanded.
 
 ### Settings — tune once, forget about it
