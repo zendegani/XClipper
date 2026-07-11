@@ -294,7 +294,7 @@ async function handleItemResult(
   if (outcome.success && filename) {
     // 'combined' writes nothing per item — the one file is built at finalize.
     if (effectiveOutput(job) !== 'combined') {
-      writePerItem(
+      await writePerItem(
         advanced.folder,
         job.format ?? 'md',
         filename,
@@ -394,14 +394,14 @@ async function finalize(job: BatchJob): Promise<void> {
   try {
     const items = await takeStoredItems(job);
     if (items.length > 0) {
-      writeJsonManifest(
+      await writeJsonManifest(
         job.folder,
         { jobId: job.id, status: job.status, completed: job.completed, failures: job.failures },
         items
       );
       const out = effectiveOutput(job);
       if (out === 'both' || out === 'combined') {
-        writeCombined(job.folder, job.format ?? 'md', items.map((i) => i.doc), await loadSettings());
+        await writeCombined(job.folder, job.format ?? 'md', items.map((i) => i.doc), await loadSettings());
       }
     }
   } catch (err) {
