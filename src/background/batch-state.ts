@@ -68,6 +68,12 @@ export const INCOMPLETE_LEDGER_KEY = 'xclipper_fast_incomplete';
 // from the top (issue #83). Shape { [source]: cursor }. Cleared by Reset history.
 export const RESUME_CURSOR_KEY = 'xclipper_fast_resume';
 
+// Fast Batch only: Date-range mode's OWN continuation cursor, kept separate from
+// RESUME_CURSOR_KEY so a date-range crawl never disturbs a Resume backfill's
+// position (issue #83). Scoped to the window it was scanning ({cursor,from,to});
+// a different window starts over. Shape { [source]: {cursor,from,to} }.
+export const DATE_CURSOR_KEY = 'xclipper_fast_date';
+
 export function appendToLedger(ledger: string[], id: string): string[] {
   if (ledger.includes(id)) return ledger;
   const next = [...ledger, id];
