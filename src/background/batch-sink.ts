@@ -95,10 +95,48 @@ export function buildCombined(format: BatchFormat, docs: Document[], opts: Forma
   }
 }
 
+// Download pacing: a big batch can fire thousands of downloads (a Super Fast
+// run alone writes 1000s of files, plus images). Unthrottled, they all hit
+// Chrome's browser process at once — data-URL decode, downloads-UI updates,
+// history-DB inserts, disk writes — and the whole browser janks until the
+// queue drains. A small in-flight cap lets disk/network set the pace while
+// Chrome stays responsive. Failures resolve rather than reject — a batch never
+// dies on one bad file, matching the old fire-and-forget behavior.
+const MAX_INFLIGHT_DOWNLOADS = 8;
+let inflight = 0;
+const waiting: (() => void)[] = [];
+
+function downloadThrottled(options: chrome.downloads.DownloadOptions): Promise<void> {
+  return new Promise((resolve) => {
+    const finish = (): void => {
+      inflight--;
+      resolve();
+      waiting.shift()?.();
+    };
+    const start = (): void => {
+      inflight++;
+      chrome.downloads.download(options, (id) => {
+        if (chrome.runtime.lastError || id === undefined) return finish();
+        const onChanged = (delta: chrome.downloads.DownloadDelta): void => {
+          const state = delta.state?.current;
+          if (delta.id === id && (state === 'complete' || state === 'interrupted')) {
+            chrome.downloads.onChanged.removeListener(onChanged);
+            finish();
+          }
+        };
+        chrome.downloads.onChanged.addListener(onChanged);
+      });
+    };
+    if (inflight < MAX_INFLIGHT_DOWNLOADS) start();
+    else waiting.push(start);
+  });
+}
+
 // Generic data-URL download into the job folder. Used for the Markdown items,
-// the alternate per-item formats, and the combined file.
-export function downloadData(folder: string, filename: string, content: string, mime: string): void {
-  chrome.downloads.download({
+// the alternate per-item formats, and the combined file. Resolves once the
+// file is written (or failed), so callers get backpressure.
+export async function downloadData(folder: string, filename: string, content: string, mime: string): Promise<void> {
+  await downloadThrottled({
     url: `data:${mime};charset=utf-8,` + encodeURIComponent(content),
     filename: sanitizeFilePath(`${folder}/${filename}`),
     saveAs: false,
@@ -108,27 +146,31 @@ export function downloadData(folder: string, filename: string, content: string, 
 // Folder sink (ADR 0002 #11): the item's Markdown plus any local images, all
 // under the job's downloads subfolder. Image paths already embed the item's own
 // media dir; Chrome uniquifies any residual conflict.
-export function downloadItem(
+export async function downloadItem(
   folder: string,
   filename: string,
   markdown: string,
   images?: { url: string; filename: string }[]
-): void {
+): Promise<void> {
+  const writes: Promise<void>[] = [];
   for (const img of images ?? []) {
     if (!img || typeof img.url !== 'string' || !isAllowedImageUrl(img.url)) continue;
-    chrome.downloads.download({
-      url: img.url,
-      filename: sanitizeFilePath(`${folder}/${img.filename}`),
-      saveAs: false,
-    });
+    writes.push(
+      downloadThrottled({
+        url: img.url,
+        filename: sanitizeFilePath(`${folder}/${img.filename}`),
+        saveAs: false,
+      })
+    );
   }
-  downloadData(folder, filename, markdown, 'text/markdown');
+  writes.push(downloadData(folder, filename, markdown, 'text/markdown'));
+  await Promise.all(writes);
 }
 
 // Write one item's file in the chosen format. Markdown is the postProcessed
 // output (+ local images); other formats are derived from the AST. Images only
 // attach to Markdown. CSV never reaches this (it's always combined).
-export function writePerItem(
+export async function writePerItem(
   folder: string,
   format: BatchFormat,
   filename: string,
@@ -136,20 +178,20 @@ export function writePerItem(
   images: { url: string; filename: string }[] | undefined,
   doc: Document | undefined,
   settings: Settings
-): void {
+): Promise<void> {
   if (format === 'md' || !doc) {
-    downloadItem(folder, filename, markdown, images);
+    await downloadItem(folder, filename, markdown, images);
     return;
   }
   const built = buildFormatExport(format as ExportFormat, docToExtracted(doc), formatOptionsFrom(settings));
   const outName = filename.replace(/\.md$/i, '') + '.' + built.ext;
-  downloadData(folder, outName, built.content, built.mime);
+  await downloadData(folder, outName, built.content, built.mime);
 }
 
 // JSON sink (ADR 0002 #11): one data.json per job with metadata, failures, and
 // every successful item's AST. Written for cancelled jobs too — partial is
 // honest since the matching files are already on disk.
-export function writeJsonManifest(folder: string, meta: JobMeta, items: StoredItem[]): void {
+export async function writeJsonManifest(folder: string, meta: JobMeta, items: StoredItem[]): Promise<void> {
   const manifest = {
     generator: 'xclipper-batch',
     jobId: meta.jobId,
@@ -159,7 +201,7 @@ export function writeJsonManifest(folder: string, meta: JobMeta, items: StoredIt
     failures: meta.failures,
     items,
   };
-  chrome.downloads.download({
+  await downloadThrottled({
     url: 'data:application/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(manifest, null, 2)),
     filename: sanitizeFilePath(`${folder}/data.json`),
     saveAs: false,
@@ -169,15 +211,15 @@ export function writeJsonManifest(folder: string, meta: JobMeta, items: StoredIt
 // Combined sink: one file for the whole batch in the chosen format —
 // x-compilation-<date>.<ext>. Written when output is 'both'/'combined' (and
 // always for CSV, which has no per-item form).
-export function writeCombined(
+export async function writeCombined(
   folder: string,
   format: BatchFormat,
   docs: Document[],
   settings: Settings
-): void {
+): Promise<void> {
   const built = buildCombined(format, docs, formatOptionsFrom(settings));
   const d = new Date();
   const stamp =
     `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}` + String(d.getDate()).padStart(2, '0');
-  downloadData(folder, `x-compilation-${stamp}.${built.ext}`, built.content, built.mime);
+  await downloadData(folder, `x-compilation-${stamp}.${built.ext}`, built.content, built.mime);
 }

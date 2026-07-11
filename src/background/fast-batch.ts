@@ -632,7 +632,7 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
       stubFilenames.push(filename.toLowerCase());
       if (output !== 'combined') {
         const stubFolder = `${folder}/${INCOMPLETE_SUBFOLDER}`;
-        writePerItem(stubFolder, format, filename, result.markdown, result.images, doc, settings);
+        await writePerItem(stubFolder, format, filename, result.markdown, result.images, doc, settings);
       }
       if (feedId) nextIncomplete.add(feedId);
       incomplete++;
@@ -640,7 +640,7 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
       const filename = uniqueFilename(usedFilenames, result.filename);
       usedFilenames.push(filename.toLowerCase());
       if (output !== 'combined') {
-        writePerItem(folder, format, filename, result.markdown, result.images, doc, settings);
+        await writePerItem(folder, format, filename, result.markdown, result.images, doc, settings);
       }
       items.push({ url: doc.metadata.sourceUrl, filename, doc });
       // Ledger BOTH ids the post can appear under, so the next run's feed dedups
@@ -656,13 +656,13 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
   }
 
   if (items.length > 0) {
-    writeJsonManifest(
+    await writeJsonManifest(
       folder,
       { jobId: `fast-${now.getTime()}`, status: 'done', completed: items.length, failures: [] },
       items
     );
     if (output === 'both' || output === 'combined') {
-      writeCombined(folder, format, items.map((i) => i.doc), settings);
+      await writeCombined(folder, format, items.map((i) => i.doc), settings);
     }
     await chrome.storage.local.set({ [EXPORTED_LEDGER_KEY]: ledgerArr });
     void recordExport();
