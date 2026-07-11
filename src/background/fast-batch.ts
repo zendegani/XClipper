@@ -39,7 +39,6 @@ import {
   type StoredItem,
 } from './batch-sink';
 import {
-  BATCH_MAX_ITEMS,
   EXPORTED_LEDGER_KEY,
   INCOMPLETE_LEDGER_KEY,
   RESUME_CURSOR_KEY,
@@ -303,6 +302,14 @@ export interface FastBatchOptions {
 // went wrong"). Gentle + stop-on-rate-limit protects the session.
 const TWEET_DETAIL_CONCURRENCY = 3;
 
+// Items collected per Fast Batch run. Deliberately matched to the ~150-call
+// TweetDetail budget above (not the Standard batch's 200): if collection
+// exceeds the expansion budget, every run leaves the overflow as un-expanded
+// stubs, and since the next run completes that backlog FIRST, the leftover
+// compounds upward each run. Sizing the run to the budget means a run expands
+// everything it collects — no growing backlog.
+const FAST_BATCH_MAX_ITEMS = 150;
+
 // Subfolder for items whose thread/article expansion was cut short by X's rate
 // limit — they're written as root-only stubs, aren't ledgered, and a re-run
 // completes them. Quarantining them here (and out of the combined/manifest)
@@ -322,7 +329,7 @@ const INCOMPLETE_CAP = 2000;
 //   await xclipperFastBatch()                       // full (threads + articles)
 //   await xclipperFastBatch({ expandThreads: false }) // fastest, root-only
 async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatchResult | null> {
-  const maxItems = opts.maxItems ?? BATCH_MAX_ITEMS;
+  const maxItems = opts.maxItems ?? FAST_BATCH_MAX_ITEMS;
   const expandThreads = opts.expandThreads ?? true;
   const source = opts.source ?? 'bookmarks';
   const handleRaw = opts.handle?.replace(/^@/, ''); // original case, for display
