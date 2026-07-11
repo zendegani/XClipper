@@ -16,6 +16,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Fast Batch completes earlier items by ID**: posts a previous rate-limited run left incomplete are now finished with a direct fetch by their id at the start of the next run — independent of where the feed is paginated — so they complete in either Recent or Resume mode instead of relying on re-encountering them in the feed.
 
+### Fixed
+
+- **Fast Batch no longer re-exports edited or re-rooted posts every run**: some posts (edited tweets, and thread replies that re-root to the thread's first tweet on expansion) end up with a different canonical id than the one the bookmarks feed lists, so the dedup history — which only stored the canonical id — never matched them again and they re-exported on every run. Fast Batch now remembers both ids, so these posts are correctly skipped once exported.
+
 ---
 ## [2.5.1] - 2026-07-11
 
