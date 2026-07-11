@@ -417,6 +417,11 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
     doc: Document;
     needsExpand: boolean;
     ledger: boolean;
+    // The id the FEED presented for this item — what next run's dedup check
+    // uses. Expansion can replace doc.metadata.tweetId with a different
+    // canonical id (edited tweets, re-rooted thread replies), so we must ledger
+    // this one too or the post re-exports every run.
+    feedId: string;
   }
   const selected: Item[] = [];
   // Dig deeper through the (cheap) feed when a date range is set — bookmarks/
@@ -446,7 +451,7 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
         }
         if (id && prevIncomplete.has(id)) continue; // retried by id below — don't double-collect
         const needsExpand = doc.metadata.type === 'article' || expandThreads;
-        selected.push({ doc, needsExpand, ledger: !needsExpand });
+        selected.push({ doc, needsExpand, ledger: !needsExpand, feedId: id });
       }
       // Advance the Resume frontier only past pages we fully consumed — a page
       // cut short by maxItems is re-fetched next run (the ledger dedups what we
@@ -479,7 +484,7 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
       if (rateLimited || cancelRequested) return; // budget spent / cancelled — leave pending
       try {
         const full = await fetchTweetDetailDoc(id); // sourceUrl derived from the response
-        if (full) retryItems.push({ doc: full, needsExpand: false, ledger: true });
+        if (full) retryItems.push({ doc: full, needsExpand: false, ledger: true, feedId: id });
       } catch (err) {
         if (classify(err) === 'rate-limit') rateLimited = true;
         else gaveUp.add(id); // deleted/protected — nothing left to complete
@@ -560,8 +565,9 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
   let incomplete = 0;
   let processed = 0;
   for (const s of toWrite) {
-    const { doc } = s;
-    const id = doc.metadata.tweetId;
+    const { doc, feedId } = s;
+    // Expansion can change the canonical id, so track both — see Item.feedId.
+    const expandedId = doc.metadata.tweetId;
     const isStub = s.needsExpand && !s.ledger;
     const result = postProcess(docToExtracted(doc), {
       includeMetadata: settings.includeMetadata,
@@ -578,7 +584,7 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
         const stubFolder = `${folder}/${INCOMPLETE_SUBFOLDER}`;
         writePerItem(stubFolder, format, filename, result.markdown, result.images, doc, settings);
       }
-      if (id) nextIncomplete.add(id);
+      if (feedId) nextIncomplete.add(feedId);
       incomplete++;
     } else {
       const filename = uniqueFilename(usedFilenames, result.filename);
@@ -587,8 +593,14 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
         writePerItem(folder, format, filename, result.markdown, result.images, doc, settings);
       }
       items.push({ url: doc.metadata.sourceUrl, filename, doc });
-      if (id && s.ledger) ledgerArr = appendToLedger(ledgerArr, id);
-      if (id) nextIncomplete.delete(id);
+      // Ledger BOTH ids the post can appear under, so the next run's feed dedups
+      // it whichever id it presents (the feed id, or the canonical id).
+      if (s.ledger) {
+        if (feedId) ledgerArr = appendToLedger(ledgerArr, feedId);
+        if (expandedId && expandedId !== feedId) ledgerArr = appendToLedger(ledgerArr, expandedId);
+      }
+      if (feedId) nextIncomplete.delete(feedId);
+      if (expandedId) nextIncomplete.delete(expandedId);
     }
     setProgress({ done: ++processed });
   }
