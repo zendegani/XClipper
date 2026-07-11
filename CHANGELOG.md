@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **Fast Batch separates incomplete exports**: when X rate-limits a run mid-expansion, posts whose thread or article couldn't be fully fetched are now saved into an `_incomplete_rerun_to_complete/` subfolder — and kept out of the combined file and `data.json` — instead of sitting alongside complete exports where you couldn't tell them apart. They stay un-tracked so re-running Fast Batch a few minutes later completes them.
+- **Fast Batch retries incomplete posts first**: the next run now expands the posts a previous rate-limited run left incomplete before any fresh ones, so the stable bookmark order can't keep postponing the same tail of posts run after run.
 
 ---
 ## [2.5.0] - 2026-06-17

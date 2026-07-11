@@ -19,7 +19,7 @@ import type {
 import { hostMatches } from '../shared/media';
 import { loadSettings } from '../shared/settings';
 // Pure module (no chrome.* at import time) — safe to share with the popup.
-import { EXPORTED_LEDGER_KEY, statusIdOf } from '../background/batch-state';
+import { EXPORTED_LEDGER_KEY, INCOMPLETE_LEDGER_KEY, statusIdOf } from '../background/batch-state';
 import {
   batchBarFill,
   batchDedupRow,
@@ -594,7 +594,7 @@ export async function initBatchUi(): Promise<void> {
     if (resuming) startJobPolling();
   });
   btnBatchReset.addEventListener('click', () => {
-    chrome.storage.local.remove(EXPORTED_LEDGER_KEY, () => void refreshIdleUi());
+    chrome.storage.local.remove([EXPORTED_LEDGER_KEY, INCOMPLETE_LEDGER_KEY], () => void refreshIdleUi());
   });
   btnBatchResetQueue.addEventListener('click', () => void resetQueue());
   (Object.keys(TAB_BUTTONS) as BatchTab[]).forEach((tab) => {
