@@ -42,6 +42,7 @@ import {
   BATCH_MAX_ITEMS,
   EXPORTED_LEDGER_KEY,
   INCOMPLETE_LEDGER_KEY,
+  RESUME_CURSOR_KEY,
   appendToLedger,
   batchFolderName,
   uniqueFilename,
@@ -201,7 +202,7 @@ const RETRY_BASE_MS = 1200;
 // the target id (`focalTweetId` is X's well-known TweetDetail variable). Returns
 // null when no TweetDetail request has been observed yet. Retries transient /
 // rate-limit failures with backoff; throws the last error otherwise.
-async function fetchTweetDetailDoc(id: string, sourceUrl: string): Promise<Document | null> {
+async function fetchTweetDetailDoc(id: string, sourceUrl?: string): Promise<Document | null> {
   const template = templates.TweetDetail;
   if (!template) return null;
   const vars = JSON.parse(getVariables(template)) as Record<string, unknown>;
@@ -267,6 +268,15 @@ const SOURCE_CONFIG: Record<FastSource, { op: string; label: string }> = {
   likes: { op: 'Likes', label: 'likes' },
 };
 
+// Resume-mode frontier per source (issue #83): the cursor where the last Resume
+// run stopped consuming, so the next continues from there.
+type ResumeCursors = Partial<Record<FastSource, string>>;
+async function loadResumeCursors(): Promise<ResumeCursors> {
+  const r = await chrome.storage.local.get(RESUME_CURSOR_KEY);
+  const raw = r[RESUME_CURSOR_KEY];
+  return raw && typeof raw === 'object' ? (raw as ResumeCursors) : {};
+}
+
 export interface FastBatchOptions {
   source?: FastSource;
   // Profile owner's handle — reposts (author ≠ handle) are skipped, matching
@@ -281,6 +291,10 @@ export interface FastBatchOptions {
   // are always expanded — their body needs the fetch). On by default for
   // completeness; pass false for the fastest root-only run.
   expandThreads?: boolean;
+  // 'recent' (default) paginates from the top; 'resume' continues from the saved
+  // per-source cursor so a large feed is backfilled across runs without
+  // re-scanning already-exported items (issue #83).
+  paginate?: 'recent' | 'resume';
 }
 
 // At most this many TweetDetail fetches in flight during expansion. Kept low on
@@ -375,15 +389,23 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
 
   const ledger = new Set(await loadLedger());
   let ledgerArr = [...ledger];
-  // Ids left incomplete by a previous rate-limited run — expanded first below.
+  // Ids a previous rate-limited run left incomplete — retried by direct
+  // TweetDetail fetch below (feed-independent, so Recent/Resume both finish them).
   const prevIncomplete = new Set(await loadIncomplete());
   let skipped = 0;
 
-  // Start from the top of the feed — drop any mid-scroll cursor the captured
-  // request happened to carry.
+  // Recent: start from the top (drop any mid-scroll cursor the captured request
+  // carried). Resume: continue from this source's saved frontier so a large feed
+  // is backfilled across runs without re-scanning already-exported items (#83).
+  const paginate = opts.paginate ?? 'recent';
   const vars = JSON.parse(getVariables(template)) as Record<string, unknown>;
   delete vars.cursor;
+  const resumeCursors = await loadResumeCursors();
+  if (paginate === 'resume' && resumeCursors[source]) vars.cursor = resumeCursors[source];
   const initialUrl = setVariablesParam(template, JSON.stringify(vars));
+  // Frontier to persist for the next Resume run — advances only past pages we
+  // fully consume (below); starts wherever this run started.
+  let frontier: string | null = (vars.cursor as string | undefined) ?? null;
 
   // 1) Collect: paginate the source feed, mapping each root tweet, skipping
   //    anything already exported. (Cheap — pure mapping, no per-item fetch yet.)
@@ -401,10 +423,14 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
   // likes are ordered by save date, not tweet date, so the range may be deep.
   const maxPages = dateFiltered ? 50 : 25;
   try {
-    for await (const tweets of paginateTimeline(initialUrl, authedFetchJson, { maxPages })) {
+    for await (const { tweetResults, cursor } of paginateTimeline(initialUrl, authedFetchJson, { maxPages })) {
       if (cancelRequested) break;
-      for (const raw of tweets) {
-        if (selected.length >= maxItems) break;
+      let cappedMidPage = false;
+      for (const raw of tweetResults) {
+        if (selected.length >= maxItems) {
+          cappedMidPage = true;
+          break;
+        }
         const doc = jsonToAst(raw);
         if (skipReposts && (isRepost(raw) || (handle && doc.metadata.author.handle.toLowerCase() !== handle))) {
           continue; // a retweet, or (rarely) a top-level original author ≠ owner
@@ -418,9 +444,14 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
           skipped++;
           continue;
         }
+        if (id && prevIncomplete.has(id)) continue; // retried by id below — don't double-collect
         const needsExpand = doc.metadata.type === 'article' || expandThreads;
         selected.push({ doc, needsExpand, ledger: !needsExpand });
       }
+      // Advance the Resume frontier only past pages we fully consumed — a page
+      // cut short by maxItems is re-fetched next run (the ledger dedups what we
+      // already took), so no mid-page items are lost.
+      if (!cappedMidPage) frontier = cursor;
       log(`fetched ${selected.length}${skipped ? ` (skipped ${skipped} already-exported)` : ''}`);
       setProgress({ done: selected.length, skipped });
       if (selected.length >= maxItems) break;
@@ -430,15 +461,39 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
     log('fetch stopped early:', err);
   }
 
-  // 2) Expand via per-item TweetDetail: Articles always (full body), other
-  //    tweets when expandThreads. Ordering (highest priority first): items a
-  //    previous rate-limited run left incomplete, then Articles (their body only
-  //    exists via TweetDetail), then the rest — so the limited per-account budget
-  //    always clears the backlog before fresh items, and a stable feed order
-  //    can't starve the same tail forever (issue #81). On the first rate-limit
-  //    signal we STOP (rather than hammer X and degrade the user's session);
-  //    stopped/rate-limited items are NOT ledgered, so a re-run retries them.
+  // 2) Complete the backlog FIRST: items a previous run left incomplete, by a
+  //    DIRECT TweetDetail fetch by id — feed-independent, so they finish no
+  //    matter where Recent/Resume paginated (issue #83). Success → a full
+  //    Document, written to the root and ledgered; a permanent failure
+  //    (deleted/protected) → dropped from the incomplete set; a rate-limit →
+  //    stop and leave the rest pending. Running first means the limited
+  //    TweetDetail budget always clears the backlog before fresh items.
   let rateLimited = false;
+  const retryItems: Item[] = [];
+  const gaveUp = new Set<string>(); // permanently-failed ids to drop from the incomplete set
+  if (prevIncomplete.size > 0 && templates.TweetDetail) {
+    const ids = [...prevIncomplete];
+    setProgress({ phase: 'Expanding earlier items…', total: ids.length, done: 0 });
+    let done = 0;
+    await mapLimit(ids, TWEET_DETAIL_CONCURRENCY, async (id) => {
+      if (rateLimited || cancelRequested) return; // budget spent / cancelled — leave pending
+      try {
+        const full = await fetchTweetDetailDoc(id); // sourceUrl derived from the response
+        if (full) retryItems.push({ doc: full, needsExpand: false, ledger: true });
+      } catch (err) {
+        if (classify(err) === 'rate-limit') rateLimited = true;
+        else gaveUp.add(id); // deleted/protected — nothing left to complete
+      }
+      setProgress({ done: ++done });
+    });
+    log(`completed ${retryItems.length}/${ids.length} earlier incomplete item(s)${gaveUp.size ? ` (${gaveUp.size} gone)` : ''}`);
+  }
+
+  // 3) Expand fresh items via per-item TweetDetail: Articles always (full body),
+  //    other tweets when expandThreads. Articles go FIRST (their body only exists
+  //    via TweetDetail). On the first rate-limit signal we STOP (rather than
+  //    hammer X and degrade the user's session); stopped/rate-limited items are
+  //    NOT ledgered, so a re-run retries them.
   const toExpand = selected.filter((s) => s.needsExpand);
   if (toExpand.length > 0 && !templates.TweetDetail) {
     // Abort before writing — otherwise we'd dump a folder of root-only stubs
@@ -452,13 +507,9 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
     return null;
   } else if (toExpand.length > 0) {
     setProgress({ phase: 'Expanding threads & articles…', total: toExpand.length, done: 0 });
-    // Lower rank = fetched first: previously-incomplete (0) < article (1) < rest (2).
-    const rank = (s: Item): number => {
-      const id = s.doc.metadata.tweetId;
-      if (id && prevIncomplete.has(id)) return 0;
-      return s.doc.metadata.type === 'article' ? 1 : 2;
-    };
-    const ordered = [...toExpand].sort((a, b) => rank(a) - rank(b));
+    const ordered = [...toExpand].sort(
+      (a, b) => Number(b.doc.metadata.type === 'article') - Number(a.doc.metadata.type === 'article')
+    );
     let expanded = 0;
     let unavailable = 0;
     let processed = 0;
@@ -488,13 +539,12 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
     }
   }
 
-  // 3) Write. Fast collects ALL bookmarks first, then enriches each via
-  // TweetDetail, then writes here — so on a normal/rate-limited run we write
-  // everything collected. But on CANCEL we write only the items actually
-  // processed (ledger=true: enriched, or didn't need it), so "stop at 5" yields
-  // ~5 files like Standard — the rest were fetched into memory but never written
-  // and stay un-ledgered, so a re-run grabs them.
-  const toWrite = cancelRequested ? selected.filter((s) => s.ledger) : selected;
+  // 4) Write. Completed backlog items (retryItems) go first, then this run's
+  // fresh collection. On a normal/rate-limited run we write everything; on CANCEL
+  // we write only the items actually processed (ledger=true), so "stop at 5"
+  // yields ~5 files like Standard — the rest stay un-ledgered for a re-run.
+  const allItems = [...retryItems, ...selected];
+  const toWrite = cancelRequested ? allItems.filter((s) => s.ledger) : allItems;
   setProgress({ phase: 'Writing files…', total: toWrite.length, done: 0 });
   // Reliable (fully-expanded) items go in the run folder root and drive the
   // combined digest + data.json. Items whose expansion the rate limit cut short
@@ -555,11 +605,19 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
     await chrome.storage.local.set({ [EXPORTED_LEDGER_KEY]: ledgerArr });
     void recordExport();
   }
+  // Backlog items that came back deleted/protected are gone — stop tracking them.
+  for (const id of gaveUp) nextIncomplete.delete(id);
   // Persisted regardless of items.length (an all-stub run still owes a re-run).
   await chrome.storage.local.set({
     [INCOMPLETE_LEDGER_KEY]: [...nextIncomplete].slice(-INCOMPLETE_CAP),
   });
   const cancelled = cancelRequested;
+  // Resume: remember where to continue next time. Skip on cancel — a cancelled
+  // run may have paginated past items it never wrote, and we must not skip those.
+  if (paginate === 'resume' && !cancelled && frontier) {
+    resumeCursors[source] = frontier;
+    await chrome.storage.local.set({ [RESUME_CURSOR_KEY]: resumeCursors });
+  }
   log(
     `${cancelled ? 'cancelled' : 'done'} — exported ${items.length}` +
       `${incomplete ? `, ${incomplete} incomplete (rate-limited) → ${INCOMPLETE_SUBFOLDER}/` : ''}` +
@@ -656,6 +714,7 @@ export function initFastBatch(): void {
       fromDate?: string;
       toDate?: string;
       expandThreads?: boolean;
+      paginate?: 'recent' | 'resume';
     };
     void runFastBatchExport({
       ...(m.source ? { source: m.source } : {}),
@@ -663,6 +722,7 @@ export function initFastBatch(): void {
       ...(m.fromDate ? { fromDate: m.fromDate } : {}),
       ...(m.toDate ? { toDate: m.toDate } : {}),
       ...(m.expandThreads === undefined ? {} : { expandThreads: m.expandThreads }),
+      ...(m.paginate ? { paginate: m.paginate } : {}),
     });
     sendResponse({ success: true } satisfies FastBatchStartResponse);
     return false;

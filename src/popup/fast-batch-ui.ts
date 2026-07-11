@@ -28,6 +28,9 @@ import {
   fastDateFrom,
   fastDateTo,
   fastDateClear,
+  fastPaginate,
+  fastPaginateRecent,
+  fastPaginateResume,
   fastSteps,
   fastStepPage,
   fastStepTweet,
@@ -48,6 +51,7 @@ const ACCESS: chrome.permissions.Permissions = { permissions: ['webRequest'], or
 const FAST_MODE_KEY = 'fastBatchMode';
 const FAST_FROM_KEY = 'fastDateFrom';
 const FAST_TO_KEY = 'fastDateTo';
+const FAST_PAGINATE_KEY = 'fastPaginateMode';
 const FAST_POLL_MS = 800;
 const batchControls = document.querySelector('.batch-controls');
 const batchProgressRow = document.querySelector('.batch-progress-row');
@@ -55,6 +59,8 @@ const batchProgressRow = document.querySelector('.batch-progress-row');
 let fastMode = false;
 let fastActive = false;
 let inBatchMode = false;
+// 'recent' (from the top) or 'resume' (continue from the saved cursor) — #83.
+let paginateMode: 'recent' | 'resume' = 'recent';
 // True while a Standard (worker-tab) batch job is running/paused — reported by
 // batch-ui. We lock the toggle whenever EITHER session is active so the two
 // can't overlap and the toggle can never disagree with the running session.
@@ -80,10 +86,19 @@ function notifyChanged(): void {
 function applyGlow(): void {
   const red = inBatchMode && (fastActive || (fastMode && !standardJobActive));
   viewMain?.classList.toggle('fast-on', red);
-  // The date-range filter + step lights are Fast-only — show whenever armed.
+  // The date-range filter, pagination mode, and step lights are Fast-only —
+  // show whenever armed.
   const showExtras = fastMode && inBatchMode;
   fastDateRange?.classList.toggle('hidden', !showExtras);
+  fastPaginate?.classList.toggle('hidden', !showExtras);
   fastSteps?.classList.toggle('hidden', !showExtras);
+}
+
+function setPaginateMode(mode: 'recent' | 'resume'): void {
+  paginateMode = mode;
+  fastPaginateRecent?.classList.toggle('active', mode === 'recent');
+  fastPaginateResume?.classList.toggle('active', mode === 'resume');
+  chrome.storage.local.set({ [FAST_PAGINATE_KEY]: mode });
 }
 
 // Step lights when idle: Page/Tweet show readiness (what to do before Export);
@@ -206,6 +221,13 @@ export function initFastBatchUi(): void {
     if (fastDateTo) fastDateTo.value = '';
     chrome.storage.local.set({ [FAST_FROM_KEY]: '', [FAST_TO_KEY]: '' });
   });
+
+  // Recent | Resume pagination mode: restore, then toggle on click.
+  chrome.storage.local.get(FAST_PAGINATE_KEY, (res) => {
+    setPaginateMode(res[FAST_PAGINATE_KEY] === 'resume' ? 'resume' : 'recent');
+  });
+  fastPaginateRecent?.addEventListener('click', () => setPaginateMode('recent'));
+  fastPaginateResume?.addEventListener('click', () => setPaginateMode('resume'));
 }
 
 // ─── Fast export run + progress polling ──────────────────────────────
@@ -227,6 +249,7 @@ export async function startFastExport(
     ...(fromDate ? { fromDate } : {}),
     ...(toDate ? { toDate } : {}),
     expandThreads: true,
+    paginate: paginateMode,
   })) as FastBatchStartResponse | undefined;
   if (!resp?.success) {
     showProgress(resp?.error || 'Could not start Fast Batch.');

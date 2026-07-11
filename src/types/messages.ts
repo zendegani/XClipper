@@ -236,6 +236,10 @@ export interface FastBatchStartRequest {
   fromDate?: string;
   toDate?: string;
   expandThreads?: boolean;
+  // 'recent' (default) starts from the top of the feed — picks up newly-added
+  // items; 'resume' continues from the saved per-source cursor — backfills a
+  // large feed across sessions without re-scanning already-exported items (#83).
+  paginate?: 'recent' | 'resume';
 }
 export interface FastBatchStartResponse {
   success: boolean;

@@ -98,6 +98,18 @@
   "fast_date_clear": {
     "message": "Clear"
   },
+  "fast_paginate": {
+    "message": "Start from"
+  },
+  "fast_paginate_hint": {
+    "message": "Recent starts from the top of your feed — for newly-added bookmarks. Resume continues from where the last Resume run stopped — for backfilling a large feed across sessions without re-scanning what's already exported. Both share the same export history, so switch freely; Reset history also clears the resume point."
+  },
+  "fast_paginate_recent": {
+    "message": "Recent"
+  },
+  "fast_paginate_resume": {
+    "message": "Resume"
+  },
   "fast_step_page": {
     "message": "Reload x.com"
   },

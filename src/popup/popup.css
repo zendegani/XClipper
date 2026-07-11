@@ -1030,6 +1030,45 @@ body {
   opacity: 0.6;
 }
 
+/* Recent | Resume pagination mode (issue #83). */
+.fast-paginate {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+
+.fast-paginate.hidden {
+  display: none;
+}
+
+.fast-seg {
+  display: inline-flex;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.fast-seg-btn {
+  font-family: var(--font);
+  font-size: 12px;
+  padding: 3px 10px;
+  border: none;
+  background: var(--bg-primary);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.fast-seg-btn + .fast-seg-btn {
+  border-left: 1px solid var(--border-subtle);
+}
+
+.fast-seg-btn.active {
+  background: var(--text-primary);
+  color: var(--bg-primary);
+}
+
 /* Fast Batch step lights: Page → Tweet → Fetch → Expand. */
 .fast-steps {
   display: flex;

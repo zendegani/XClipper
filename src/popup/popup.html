@@ -356,6 +356,14 @@
           <input type="date" id="fast-date-to" class="fast-date-input" aria-label="To date" data-i18n-aria-label="fast_date_to" />
           <button id="fast-date-clear" class="batch-ctl" type="button" data-i18n="fast_date_clear">Clear</button>
         </div>
+        <div id="fast-paginate" class="fast-paginate hidden">
+          <span class="fast-date-label" data-tooltip="Recent starts from the top of your feed — for newly-added bookmarks. Resume continues from where the last Resume run stopped — for backfilling a large feed across sessions without re-scanning what's already exported. Both share the same export history, so switch freely; Reset history also clears the resume point."
+            data-i18n-tooltip="fast_paginate_hint" data-i18n="fast_paginate">Start from</span>
+          <div class="fast-seg" role="group" aria-label="Pagination mode" data-i18n-aria-label="fast_paginate">
+            <button type="button" id="fast-paginate-recent" class="fast-seg-btn active" data-mode="recent" data-i18n="fast_paginate_recent">Recent</button>
+            <button type="button" id="fast-paginate-resume" class="fast-seg-btn" data-mode="resume" data-i18n="fast_paginate_resume">Resume</button>
+          </div>
+        </div>
         <div id="fast-steps" class="fast-steps hidden" role="status">
           <span class="fast-step" id="fast-step-page"><span class="fast-step-dot"></span><span class="fast-step-label" data-i18n="fast_step_page">Reload x.com</span></span>
           <span class="fast-step" id="fast-step-tweet"><span class="fast-step-dot"></span><span class="fast-step-label" data-i18n="fast_step_tweet">Open one tweet</span></span>
