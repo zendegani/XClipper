@@ -1,7 +1,7 @@
 # ADR 0003 — Fast Batch: acquire tweets via X's internal GraphQL (opt-in)
 
-- Status: **Accepted — Phase 1 implemented (bookmarks; threads + Article bodies via per-item TweetDetail) with the popup toggle/consent/progress UI. Likes/Profile sources deferred.**
-- Date: 2026-06-13 (implemented 2026-06-14)
+- Status: **Accepted — implemented for Bookmarks, Profile, and Likes (threads + Article bodies via per-item TweetDetail) with the popup toggle/consent/progress UI. Extended 2026-07-11 with Recent/Resume/Date-range fetch modes + per-mode continuation cursors (see "Pagination modes & cursors" below).**
+- Date: 2026-06-13 (implemented 2026-06-14; pagination modes 2026-07-11)
 - Deciders: @zendegani
 - Relates to: ADR 0001 (Content AST), ADR 0002 (Batch export)
 - Supersedes: — (adds an alternate acquisition path; does **not** replace ADR 0002)
@@ -138,6 +138,32 @@ Proceeding on the recommended options so Phase 1 can start:
    the permission decision + PRIVACY.md; deferred to review.**
 3. Consent gate + Standard/Fast toggle UI — **deferred to review.**
 4. Orchestration: reuse the ADR 0002 sinks / dedup / pause machinery.
+
+## Pagination modes & cursors (2026-07-11, issue #83)
+
+Fast Batch originally re-paginated the source feed **from the top every run**
+(dropping any captured cursor), skipping ledger-dedup'd items, capped at a small
+page window. Once a user's exported history grew past that window, each run spent
+its whole page budget re-scanning already-exported items and returned fewer
+(eventually zero) new ones — a large feed (thousands of bookmarks) became
+unreachable, and the run got slower while doing it. Three **fetch modes** (a
+`Recent | Resume | Date range` switch in the popup) replace the single top-scan.
+State lives in `src/background/fast-batch.ts`; the keys in `batch-state.ts`.
+
+| Mode | Start point | Page window | Cursor | Date filter |
+|---|---|---|---|---|
+| **Recent** | top of feed | `RECENT_MAX_PAGES` (~25 pages) | none | — |
+| **Resume** | saved cursor (top on first run) | `RESUME_MAX_PAGES` (~150 pages ≈ ~3000 posts) | reads + advances `RESUME_CURSOR_KEY` | — |
+| **Date range** | top | ~150 pages/run | reads + advances `DATE_CURSOR_KEY` | on (by tweet date) |
+
+| # | Decision | Rationale |
+|---|---|---|
+| 9 | **Two independent cursors, never crossed.** `RESUME_CURSOR_KEY` (`{[source]: cursor}`) is a positional backfill frontier only Resume reads/writes. `DATE_CURSOR_KEY` (`{[source]: {cursor, from, to}}`) is Date-range's own continuation, **tagged with the window** so a changed range restarts from the top. Recent touches neither. **Reset history** clears both, alongside the export + incomplete ledgers. | Date range must never move the resume position, so a user can grab a specific month mid-backfill without confusing where Resume continues. Giving Date range its own cursor lets it still crawl a whole large feed across runs (~3000 posts/run). |
+| 10 | **The frontier advances only past *fully consumed* pages.** A page cut short by the per-run item cap is re-fetched next run (the ledger dedups what was already taken); the frontier is **not** saved on cancel. | No mid-page items are lost, and a cancelled run — which may have paginated past items it never wrote — doesn't skip them next time. |
+| 11 | **Deep modes are paced.** Resume and Date range page far more than Recent, so they insert a politeness gap (`RESUME_PAGE_DELAY_MS`) between feed pages; Recent's short window skips it. | A burst of many back-to-back feed requests is exactly what trips X's soft block (#7 carried into the feed, not just TweetDetail). |
+| 12 | **Run size matches the expansion budget, not the page cap.** A run collects **150 posts** (`FAST_BATCH_MAX_ITEMS`) to match the ~150 per-account `TweetDetail` calls X allows before rate-limiting. | Collecting more (the old 200) left the overflow as un-expanded stubs, and since the next run completes that backlog first, the leftover **compounded** upward each run. (The 150 here is unrelated to the coincidental ~150-page feed window.) |
+| 13 | **Incomplete backlog is retried by id, feed-independent.** Posts a prior rate-limited run left as stubs are completed by a direct `TweetDetail` fetch **by id** at the start of the next run (any mode), not by re-encountering them in the feed. Stubs live in an `_incomplete_rerun_to_complete/` subfolder, un-ledgered and out of the combined/manifest until completed. | Resume and Date range move *past* the stubs' feed positions, and Recent never reaches deep ones — so re-collection can't be relied on to finish them (issue #81 refined). |
+| 14 | **Dedup stores both ids a post can appear under.** Edited tweets, and thread-replies that re-root to the thread's first tweet on expansion, get a different canonical id than the bookmarks feed lists; the ledger records **both** the feed id and the expanded/canonical id. | Storing only the canonical id meant the next run's feed (which lists the other id) never matched, and the post re-exported every run. |
 
 ## References
 
