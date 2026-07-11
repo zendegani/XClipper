@@ -42,6 +42,7 @@ import {
   EXPORTED_LEDGER_KEY,
   INCOMPLETE_LEDGER_KEY,
   RESUME_CURSOR_KEY,
+  DATE_CURSOR_KEY,
   appendToLedger,
   batchFolderName,
   uniqueFilename,
@@ -276,6 +277,15 @@ async function loadResumeCursors(): Promise<ResumeCursors> {
   return raw && typeof raw === 'object' ? (raw as ResumeCursors) : {};
 }
 
+// Date-range mode's own continuation cursor, tagged with the window it scanned
+// so a changed window starts over (issue #83). Separate from ResumeCursors.
+type DateCursors = Partial<Record<FastSource, { cursor: string; from: string; to: string }>>;
+async function loadDateCursors(): Promise<DateCursors> {
+  const r = await chrome.storage.local.get(DATE_CURSOR_KEY);
+  const raw = r[DATE_CURSOR_KEY];
+  return raw && typeof raw === 'object' ? (raw as DateCursors) : {};
+}
+
 export interface FastBatchOptions {
   source?: FastSource;
   // Profile owner's handle — reposts (author ≠ handle) are skipped, matching
@@ -424,7 +434,15 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
   const vars = JSON.parse(getVariables(template)) as Record<string, unknown>;
   delete vars.cursor;
   const resumeCursors = await loadResumeCursors();
-  if (paginate === 'resume' && resumeCursors[source]) vars.cursor = resumeCursors[source];
+  const dateCursors = paginate === 'dateRange' ? await loadDateCursors() : {};
+  // Date range keys its window so a changed range restarts from the top.
+  const dateWindow = { from: opts.fromDate ?? '', to: opts.toDate ?? '' };
+  if (paginate === 'resume' && resumeCursors[source]) {
+    vars.cursor = resumeCursors[source];
+  } else if (paginate === 'dateRange') {
+    const d = dateCursors[source];
+    if (d && d.from === dateWindow.from && d.to === dateWindow.to) vars.cursor = d.cursor;
+  }
   const initialUrl = setVariablesParam(template, JSON.stringify(vars));
   // Frontier to persist for the next Resume run — advances only past pages we
   // fully consume (below); starts wherever this run started. Only Resume saves it.
@@ -651,11 +669,17 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
     [INCOMPLETE_LEDGER_KEY]: [...nextIncomplete].slice(-INCOMPLETE_CAP),
   });
   const cancelled = cancelRequested;
-  // Resume: remember where to continue next time. Skip on cancel — a cancelled
-  // run may have paginated past items it never wrote, and we must not skip those.
-  if (paginate === 'resume' && !cancelled && frontier) {
-    resumeCursors[source] = frontier;
-    await chrome.storage.local.set({ [RESUME_CURSOR_KEY]: resumeCursors });
+  // Remember where to continue next time (Resume and Date range keep separate
+  // cursors). Skip on cancel — a cancelled run may have paginated past items it
+  // never wrote, and we must not skip those.
+  if (!cancelled && frontier) {
+    if (paginate === 'resume') {
+      resumeCursors[source] = frontier;
+      await chrome.storage.local.set({ [RESUME_CURSOR_KEY]: resumeCursors });
+    } else if (paginate === 'dateRange') {
+      dateCursors[source] = { cursor: frontier, from: dateWindow.from, to: dateWindow.to };
+      await chrome.storage.local.set({ [DATE_CURSOR_KEY]: dateCursors });
+    }
   }
   log(
     `${cancelled ? 'cancelled' : 'done'} — exported ${items.length}` +

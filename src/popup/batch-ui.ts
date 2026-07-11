@@ -23,6 +23,7 @@ import {
   EXPORTED_LEDGER_KEY,
   INCOMPLETE_LEDGER_KEY,
   RESUME_CURSOR_KEY,
+  DATE_CURSOR_KEY,
   statusIdOf,
 } from '../background/batch-state';
 import {
@@ -600,7 +601,7 @@ export async function initBatchUi(): Promise<void> {
   });
   btnBatchReset.addEventListener('click', () => {
     chrome.storage.local.remove(
-      [EXPORTED_LEDGER_KEY, INCOMPLETE_LEDGER_KEY, RESUME_CURSOR_KEY],
+      [EXPORTED_LEDGER_KEY, INCOMPLETE_LEDGER_KEY, RESUME_CURSOR_KEY, DATE_CURSOR_KEY],
       () => void refreshIdleUi()
     );
   });
