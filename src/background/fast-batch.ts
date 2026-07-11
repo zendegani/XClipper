@@ -282,6 +282,13 @@ export interface FastBatchOptions {
 // went wrong"). Gentle + stop-on-rate-limit protects the session.
 const TWEET_DETAIL_CONCURRENCY = 3;
 
+// Subfolder for items whose thread/article expansion was cut short by X's rate
+// limit — they're written as root-only stubs, aren't ledgered, and a re-run
+// completes them. Quarantining them here (and out of the combined/manifest)
+// keeps them from masquerading as complete exports (issue #81). Named to signal
+// both the state and the fix.
+const INCOMPLETE_SUBFOLDER = '_incomplete_rerun_to_complete';
+
 // Phase-A trigger (no UI yet, like ADR 0002 batch): fetch the bookmarks
 // timeline via GraphQL, map each tweet to the AST, expand Articles/threads via
 // per-item TweetDetail, then postProcess + write through the SHARED sinks
@@ -469,9 +476,19 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
   // and stay un-ledgered, so a re-run grabs them.
   const toWrite = cancelRequested ? selected.filter((s) => s.ledger) : selected;
   setProgress({ phase: 'Writing files…', total: toWrite.length, done: 0 });
+  // Reliable (fully-expanded) items go in the run folder root and drive the
+  // combined digest + data.json. Items whose expansion the rate limit cut short
+  // (needsExpand && !ledger) are quarantined as loose files under
+  // INCOMPLETE_SUBFOLDER — separate filename namespace, kept out of the ledger
+  // and out of the combined/manifest — so a re-run completes them (issue #81).
   const usedFilenames: string[] = [];
+  const stubFilenames: string[] = [];
   const items: StoredItem[] = [];
-  for (const { doc, ledger: ledgerIt } of toWrite) {
+  let incomplete = 0;
+  let processed = 0;
+  for (const s of toWrite) {
+    const { doc } = s;
+    const isStub = s.needsExpand && !s.ledger;
     const result = postProcess(docToExtracted(doc), {
       includeMetadata: settings.includeMetadata,
       downloadImages: resolveDownloadImages('download', settings.downloadImages),
@@ -480,15 +497,25 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
       filenameTemplate: settings.filenameTemplate.trim(),
       frontmatterFields,
     });
-    const filename = uniqueFilename(usedFilenames, result.filename);
-    usedFilenames.push(filename.toLowerCase());
-    if (output !== 'combined') {
-      writePerItem(folder, format, filename, result.markdown, result.images, doc, settings);
+    if (isStub) {
+      const filename = uniqueFilename(stubFilenames, result.filename);
+      stubFilenames.push(filename.toLowerCase());
+      if (output !== 'combined') {
+        const stubFolder = `${folder}/${INCOMPLETE_SUBFOLDER}`;
+        writePerItem(stubFolder, format, filename, result.markdown, result.images, doc, settings);
+      }
+      incomplete++;
+    } else {
+      const filename = uniqueFilename(usedFilenames, result.filename);
+      usedFilenames.push(filename.toLowerCase());
+      if (output !== 'combined') {
+        writePerItem(folder, format, filename, result.markdown, result.images, doc, settings);
+      }
+      items.push({ url: doc.metadata.sourceUrl, filename, doc });
+      const id = doc.metadata.tweetId;
+      if (id && s.ledger) ledgerArr = appendToLedger(ledgerArr, id);
     }
-    items.push({ url: doc.metadata.sourceUrl, filename, doc });
-    const id = doc.metadata.tweetId;
-    if (id && ledgerIt) ledgerArr = appendToLedger(ledgerArr, id);
-    setProgress({ done: items.length });
+    setProgress({ done: ++processed });
   }
 
   if (items.length > 0) {
@@ -504,7 +531,11 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
     void recordExport();
   }
   const cancelled = cancelRequested;
-  log(`${cancelled ? 'cancelled' : 'done'} — exported ${items.length} → ${folder}/ (${skipped} skipped; ${format}/${output})`);
+  log(
+    `${cancelled ? 'cancelled' : 'done'} — exported ${items.length}` +
+      `${incomplete ? `, ${incomplete} incomplete (rate-limited) → ${INCOMPLETE_SUBFOLDER}/` : ''}` +
+      ` → ${folder}/ (${skipped} skipped; ${format}/${output})`
+  );
   setProgress({
     status: cancelled ? 'cancelled' : 'done',
     phase: cancelled ? 'Cancelled' : 'Done',
@@ -513,7 +544,7 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
     folder,
     rateLimited,
     total: toWrite.length,
-    done: items.length,
+    done: processed,
   });
   return { exported: items.length, skipped, folder };
 }

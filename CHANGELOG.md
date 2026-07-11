@@ -6,7 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
-## [2.5.0] - 2026-06-15
+## [Unreleased]
+
+### Fixed
+
+- **Fast Batch separates incomplete exports**: when X rate-limits a run mid-expansion, posts whose thread or article couldn't be fully fetched are now saved into an `_incomplete_rerun_to_complete/` subfolder — and kept out of the combined file and `data.json` — instead of sitting alongside complete exports where you couldn't tell them apart. They stay un-tracked so re-running Fast Batch a few minutes later completes them.
+
+---
+## [2.5.0] - 2026-06-17
 
 ### Added
 
