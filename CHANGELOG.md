@@ -10,7 +10,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Added
 
-- **Fast Batch Recent/Resume pagination**: a **Recent | Resume** switch for Fast Batch — *Recent* starts from the top of your feed (newly-added items), *Resume* continues from where the last Resume run stopped, so a large feed (thousands of bookmarks) is backfilled across sessions instead of re-scanning already-exported items from the top each run (which got slower and returned fewer items as your history grew). Both share the same export history, so you can switch freely — backfill in Resume, occasionally grab the week's new items in Recent. **Reset history** also clears the resume point.
+- **Fast Batch Recent/Resume pagination**: a **Recent | Resume** switch for Fast Batch — *Recent* starts from the top of your feed (newly-added items), *Resume* continues from where the last Resume run stopped, so a large feed (thousands of bookmarks) is backfilled across sessions instead of re-scanning already-exported items from the top each run (which got slower and returned fewer items as your history grew). Both share the same export history, so you can switch freely — do several rounds in Recent, then switch to Resume and it pages straight past everything Recent already exported to reach fresh posts in one run (rather than returning empty runs while it crawled past them). **Reset history** also clears the resume point.
 
 ### Changed
 

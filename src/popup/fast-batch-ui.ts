@@ -336,8 +336,11 @@ function render(p: FastBatchProgress): void {
   const who = fastWho(p);
   const prefix = who ? `${who} · ` : '';
   if (running) {
-    batchProgressText.textContent =
-      p.total > 0 ? `${prefix}${p.phase} ${p.done}/${p.total}` : `${prefix}${p.phase} ${p.done}`;
+    // While collecting (total unknown) a deep Resume crawl pages past already-
+    // exported items with done stuck at 0 — show the skipped count so it reads
+    // as working, not stuck.
+    const tail = p.total > 0 ? ` ${p.done}/${p.total}` : ` ${p.done}${p.skipped ? ` · ${p.skipped} skipped` : ''}`;
+    batchProgressText.textContent = `${prefix}${p.phase}${tail}`;
   } else if (p.status === 'done' || p.status === 'cancelled') {
     const label = p.status === 'cancelled' ? 'Cancelled' : 'Done';
     const skipped = p.skipped ? ` · ${p.skipped} skipped` : '';
