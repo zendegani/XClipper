@@ -141,7 +141,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Rebrand to XClipper**: The extension is renamed from *tweet2md* to *XClipper* across the toolbar icon, popup wordmark, context-menu label, and Chrome Web Store listing. The new icon — a paperclip with a stylized X — replaces the markdown-arrow logo. Chrome Web Store titles across all 12 locales now lead with "X / Twitter Web Clipper" plus each locale's natural save verb, the PDF format, and a "Free, no API" trust signal.
 - **Inline button defaults to off for new installs**: New installs no longer inject the per-tweet action-bar download button by default, reducing the chance of layout conflicts with other X extensions. Existing v1.9.0 users keep their stored choice; flip it in Settings → *Show inline button on tweets*.
 
-### Migration
+### Changed
 
 - **Settings carry over automatically from v1.9.0**: Preferences saved under the previous `tweet2md_settings` storage key are copied to the new `xclipper_settings` key on first run after the update. Subfolder, filename template, Obsidian vault, frontmatter selections, and every toggle state come across transparently — no reconfiguration needed.
 
@@ -266,7 +266,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Duplicate Video Poster**: Deduplicated cases where X hydrated both a poster `<img>` and a `<video>` for the same clip. (thanks @BigCactusLabs, #7)
 
-### Internal
+### Changed
 
 - **Contributing Guide**: Added `CONTRIBUTING.md` covering snapshot-test discipline and fixture capture.
 - **CI Pipeline**: GitHub Actions CI for tests and build. (thanks @BigCactusLabs, #8)
@@ -355,7 +355,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Tweet Metadata**: Added a toggle to include engagement metrics (likes, reposts, replies, bookmarks, views) as YAML frontmatter at the top of the generated markdown file.
 - **Settings Persistence**: Popup toggles now remember your preferences between sessions.
 
-### Improved
+### Changed
 
 - **Quote Tweet Extraction**: Refined extraction logic to accurately differentiate between main tweet text and quoted tweet text, preventing messy or duplicated text in the output.
 - **Popup toggle switches**: Replaced basic checkboxes with modern, animated toggle switches with SVGs.
@@ -363,7 +363,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [1.0.0] - 2026-02-15
 
-### Initial Features
+### Added
 
 - **Core Extraction**: Tweets, threads, and X Articles/Notes.
 - **DOM Cleaning**: Strips follow buttons, engagement bars, and unwanted navigation automatically.
