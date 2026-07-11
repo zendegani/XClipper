@@ -310,6 +310,19 @@ const TWEET_DETAIL_CONCURRENCY = 3;
 // everything it collects — no growing backlog.
 const FAST_BATCH_MAX_ITEMS = 150;
 
+// Feed pages a run will walk. Recent starts from the top, so a small window is
+// enough. Resume starts from its saved frontier (or the top on the very first
+// Resume run) and must be able to page PAST everything Recent already exported
+// to reach fresh items — so it gets a much larger ceiling. It only pays that
+// cost once: the frontier it saves means the next Resume run starts deep.
+const RECENT_MAX_PAGES = 25;
+const RESUME_MAX_PAGES = 150;
+
+// Politeness gap between feed pages during a Resume crawl — a deep run makes
+// many back-to-back feed requests, and X soft-blocks bursts, so space them out.
+// Recent's short window doesn't need it.
+const RESUME_PAGE_DELAY_MS = 250;
+
 // Subfolder for items whose thread/article expansion was cut short by X's rate
 // limit — they're written as root-only stubs, aren't ledgered, and a re-run
 // completes them. Quarantining them here (and out of the combined/manifest)
@@ -431,9 +444,12 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
     feedId: string;
   }
   const selected: Item[] = [];
-  // Dig deeper through the (cheap) feed when a date range is set — bookmarks/
-  // likes are ordered by save date, not tweet date, so the range may be deep.
-  const maxPages = dateFiltered ? 50 : 25;
+  // Resume crawls deep (past everything already exported) to reach fresh items,
+  // so it gets a large page ceiling; Recent only scans the top. A date range
+  // also needs to dig deeper (bookmarks/likes are ordered by save date, not
+  // tweet date), so widen Recent's window when one is set.
+  const maxPages =
+    paginate === 'resume' ? RESUME_MAX_PAGES : dateFiltered ? 50 : RECENT_MAX_PAGES;
   try {
     for await (const { tweetResults, cursor } of paginateTimeline(initialUrl, authedFetchJson, { maxPages })) {
       if (cancelRequested) break;
@@ -467,6 +483,9 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
       log(`fetched ${selected.length}${skipped ? ` (skipped ${skipped} already-exported)` : ''}`);
       setProgress({ done: selected.length, skipped });
       if (selected.length >= maxItems) break;
+      // Space out a deep Resume crawl so many back-to-back feed pages don't trip
+      // X's rate limit; Recent's short window skips the delay.
+      if (paginate === 'resume') await sleep(RESUME_PAGE_DELAY_MS);
     }
   } catch (err) {
     // Partial export is honest — we still write whatever we collected.
