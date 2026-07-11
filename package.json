@@ -34,7 +34,7 @@
     "esbuild": "^0.28.1",
     "jsdom": "^29.1.1",
     "puppeteer-core": "^25.3.0",
-    "typescript": "^6.0.3",
+    "typescript": "^7.0.2",
     "vitest": "^4.1.9"
   }
 }
