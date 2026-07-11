@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
+## [Unreleased]
+
+### Added
+
+- **Fast Batch Recent/Resume pagination**: a **Recent | Resume** switch for Fast Batch — *Recent* starts from the top of your feed (newly-added items), *Resume* continues from where the last Resume run stopped, so a large feed (thousands of bookmarks) is backfilled across sessions instead of re-scanning already-exported items from the top each run (which got slower and returned fewer items as your history grew). Both share the same export history, so you can switch freely — backfill in Resume, occasionally grab the week's new items in Recent. **Reset history** also clears the resume point.
+
+### Changed
+
+- **Fast Batch completes earlier items by ID**: posts a previous rate-limited run left incomplete are now finished with a direct fetch by their id at the start of the next run — independent of where the feed is paginated — so they complete in either Recent or Resume mode instead of relying on re-encountering them in the feed.
+
+---
 ## [2.5.1] - 2026-07-11
 
 ### Fixed

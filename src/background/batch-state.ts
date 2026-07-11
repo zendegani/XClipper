@@ -63,6 +63,11 @@ export const LEDGER_CAP = 5000;
 // can't starve the same tail forever (issue #81). Cleared by the same Reset.
 export const INCOMPLETE_LEDGER_KEY = 'xclipper_fast_incomplete';
 
+// Fast Batch only: per-source cursor for Resume pagination — where the last
+// Resume run left off, so the next continues instead of re-scanning the feed
+// from the top (issue #83). Shape { [source]: cursor }. Cleared by Reset history.
+export const RESUME_CURSOR_KEY = 'xclipper_fast_resume';
+
 export function appendToLedger(ledger: string[], id: string): string[] {
   if (ledger.includes(id)) return ledger;
   const next = [...ledger, id];

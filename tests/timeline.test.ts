@@ -138,10 +138,15 @@ describe('paginateTimeline', () => {
 
     const initial = setVariablesParam(base, JSON.stringify({ count: 20 }));
     const got: string[] = [];
-    for await (const tweets of paginateTimeline(initial, fetchJson)) got.push(...ids(tweets));
+    const cursors: (string | null)[] = [];
+    for await (const { tweetResults, cursor } of paginateTimeline(initial, fetchJson)) {
+      got.push(...ids(tweetResults));
+      cursors.push(cursor);
+    }
 
     expect(got).toEqual(['1', '2', '3']);
     expect(calls).toHaveLength(3); // first + C1 + C2(end)
+    expect(cursors).toEqual(['C1', 'C2']); // each page yields the cursor to resume after it
   });
 
   it('honors the maxPages safety cap on an endless feed', async () => {
@@ -150,7 +155,7 @@ describe('paginateTimeline', () => {
     const initial = setVariablesParam('https://x.com/i/api/graphql/QID/Bookmarks', JSON.stringify({ count: 20 }));
 
     const got: string[] = [];
-    for await (const tweets of paginateTimeline(initial, fetchJson, { maxPages: 3 })) got.push(...ids(tweets));
+    for await (const { tweetResults } of paginateTimeline(initial, fetchJson, { maxPages: 3 })) got.push(...ids(tweetResults));
 
     expect(got).toEqual(['1', '2', '3']);
   });

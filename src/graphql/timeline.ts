@@ -118,12 +118,14 @@ export async function* paginateTimeline(
   initialUrl: string,
   fetchJson: (url: string) => Promise<unknown>,
   opts: { maxPages?: number } = {}
-): AsyncGenerator<unknown[]> {
+): AsyncGenerator<{ tweetResults: unknown[]; cursor: string | null }> {
   const maxPages = opts.maxPages ?? 50;
   let url = initialUrl;
   for (let page = 0; page < maxPages; page++) {
     const { tweetResults, bottomCursor, done } = parseTimelinePage(await fetchJson(url));
-    if (tweetResults.length > 0) yield tweetResults;
+    // `cursor` is the cursor to fetch the page AFTER this one — the resume
+    // frontier once this page has been fully consumed (issue #83).
+    if (tweetResults.length > 0) yield { tweetResults, cursor: bottomCursor };
     if (done || !bottomCursor) return;
     url = setVariablesParam(url, withCursor(getVariables(url), bottomCursor));
   }
