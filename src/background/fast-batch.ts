@@ -41,6 +41,7 @@ import {
 import {
   BATCH_MAX_ITEMS,
   EXPORTED_LEDGER_KEY,
+  INCOMPLETE_LEDGER_KEY,
   appendToLedger,
   batchFolderName,
   uniqueFilename,
@@ -245,6 +246,12 @@ async function loadLedger(): Promise<string[]> {
   return Array.isArray(raw) ? raw.filter((v): v is string => typeof v === 'string') : [];
 }
 
+async function loadIncomplete(): Promise<string[]> {
+  const r = await chrome.storage.local.get(INCOMPLETE_LEDGER_KEY);
+  const raw = r[INCOMPLETE_LEDGER_KEY];
+  return Array.isArray(raw) ? raw.filter((v): v is string => typeof v === 'string') : [];
+}
+
 export interface FastBatchResult {
   exported: number;
   skipped: number;
@@ -288,6 +295,10 @@ const TWEET_DETAIL_CONCURRENCY = 3;
 // keeps them from masquerading as complete exports (issue #81). Named to signal
 // both the state and the fix.
 const INCOMPLETE_SUBFOLDER = '_incomplete_rerun_to_complete';
+
+// Cap on the persisted incomplete-id list; it drains as items complete, so this
+// only guards against a pathological run of rate limits growing it unbounded.
+const INCOMPLETE_CAP = 2000;
 
 // Phase-A trigger (no UI yet, like ADR 0002 batch): fetch the bookmarks
 // timeline via GraphQL, map each tweet to the AST, expand Articles/threads via
@@ -364,6 +375,8 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
 
   const ledger = new Set(await loadLedger());
   let ledgerArr = [...ledger];
+  // Ids left incomplete by a previous rate-limited run — expanded first below.
+  const prevIncomplete = new Set(await loadIncomplete());
   let skipped = 0;
 
   // Start from the top of the feed — drop any mid-scroll cursor the captured
@@ -418,10 +431,13 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
   }
 
   // 2) Expand via per-item TweetDetail: Articles always (full body), other
-  //    tweets when expandThreads. Articles go FIRST so the limited per-account
-  //    budget always covers them. On the first rate-limit signal we STOP (rather
-  //    than hammer X and degrade the user's session); stopped/rate-limited items
-  //    are NOT ledgered, so a later re-run fetches their full thread/article.
+  //    tweets when expandThreads. Ordering (highest priority first): items a
+  //    previous rate-limited run left incomplete, then Articles (their body only
+  //    exists via TweetDetail), then the rest — so the limited per-account budget
+  //    always clears the backlog before fresh items, and a stable feed order
+  //    can't starve the same tail forever (issue #81). On the first rate-limit
+  //    signal we STOP (rather than hammer X and degrade the user's session);
+  //    stopped/rate-limited items are NOT ledgered, so a re-run retries them.
   let rateLimited = false;
   const toExpand = selected.filter((s) => s.needsExpand);
   if (toExpand.length > 0 && !templates.TweetDetail) {
@@ -436,9 +452,13 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
     return null;
   } else if (toExpand.length > 0) {
     setProgress({ phase: 'Expanding threads & articles…', total: toExpand.length, done: 0 });
-    const ordered = [...toExpand].sort(
-      (a, b) => Number(b.doc.metadata.type === 'article') - Number(a.doc.metadata.type === 'article')
-    );
+    // Lower rank = fetched first: previously-incomplete (0) < article (1) < rest (2).
+    const rank = (s: Item): number => {
+      const id = s.doc.metadata.tweetId;
+      if (id && prevIncomplete.has(id)) return 0;
+      return s.doc.metadata.type === 'article' ? 1 : 2;
+    };
+    const ordered = [...toExpand].sort((a, b) => rank(a) - rank(b));
     let expanded = 0;
     let unavailable = 0;
     let processed = 0;
@@ -484,10 +504,14 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
   const usedFilenames: string[] = [];
   const stubFilenames: string[] = [];
   const items: StoredItem[] = [];
+  // Carry the incomplete-id memory forward: drop ids that completed this run,
+  // add ids still written as stubs — so next run expands the leftovers first.
+  const nextIncomplete = new Set(prevIncomplete);
   let incomplete = 0;
   let processed = 0;
   for (const s of toWrite) {
     const { doc } = s;
+    const id = doc.metadata.tweetId;
     const isStub = s.needsExpand && !s.ledger;
     const result = postProcess(docToExtracted(doc), {
       includeMetadata: settings.includeMetadata,
@@ -504,6 +528,7 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
         const stubFolder = `${folder}/${INCOMPLETE_SUBFOLDER}`;
         writePerItem(stubFolder, format, filename, result.markdown, result.images, doc, settings);
       }
+      if (id) nextIncomplete.add(id);
       incomplete++;
     } else {
       const filename = uniqueFilename(usedFilenames, result.filename);
@@ -512,8 +537,8 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
         writePerItem(folder, format, filename, result.markdown, result.images, doc, settings);
       }
       items.push({ url: doc.metadata.sourceUrl, filename, doc });
-      const id = doc.metadata.tweetId;
       if (id && s.ledger) ledgerArr = appendToLedger(ledgerArr, id);
+      if (id) nextIncomplete.delete(id);
     }
     setProgress({ done: ++processed });
   }
@@ -530,6 +555,10 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
     await chrome.storage.local.set({ [EXPORTED_LEDGER_KEY]: ledgerArr });
     void recordExport();
   }
+  // Persisted regardless of items.length (an all-stub run still owes a re-run).
+  await chrome.storage.local.set({
+    [INCOMPLETE_LEDGER_KEY]: [...nextIncomplete].slice(-INCOMPLETE_CAP),
+  });
   const cancelled = cancelRequested;
   log(
     `${cancelled ? 'cancelled' : 'done'} — exported ${items.length}` +

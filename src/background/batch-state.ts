@@ -58,6 +58,11 @@ export const BATCH_MAX_ITEMS = 200;
 export const EXPORTED_LEDGER_KEY = 'xclipper_batch_exported';
 export const LEDGER_CAP = 5000;
 
+// Fast Batch only: ids written as partial (rate-limited) stubs — un-ledgered so
+// a re-run retries them, and expanded FIRST next run so a stable feed order
+// can't starve the same tail forever (issue #81). Cleared by the same Reset.
+export const INCOMPLETE_LEDGER_KEY = 'xclipper_fast_incomplete';
+
 export function appendToLedger(ledger: string[], id: string): string[] {
   if (ledger.includes(id)) return ledger;
   const next = [...ledger, id];
