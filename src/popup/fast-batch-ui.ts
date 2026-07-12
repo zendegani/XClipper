@@ -21,6 +21,7 @@ import {
   btnBatch,
   btnBatchCancel,
   btnBatchPause,
+  batchModeField,
   batchMode,
   batchModeCaption,
   modeManual,
@@ -35,6 +36,7 @@ import {
   fastPaginateRecent,
   fastPaginateResume,
   fastPaginateDaterange,
+  fastPaginateCaption,
   fastSteps,
   fastStepPage,
   fastStepTweet,
@@ -71,6 +73,14 @@ const MODE_CAPTION: Record<BatchMode, { key: string; text: string }> = {
   manual: { key: 'mode_caption_manual', text: 'You scroll the page; every post you load is saved. Full threads & articles.' },
   auto: { key: 'mode_caption_auto', text: 'Fetches through your X session automatically — no scrolling. Full threads & articles.' },
   super: { key: 'mode_caption_super', text: "Fetches thousands at once, but saves each post's first tweet only — threads skipped." },
+};
+
+// Caption under the fetch-mode segment, explaining the picked option
+// (PaginateMode is declared with the run state below).
+const PAGINATE_CAPTION: Record<PaginateMode, { key: string; text: string }> = {
+  recent: { key: 'fast_caption_recent', text: 'Scans the top of your feed — newly-added bookmarks since your last run.' },
+  resume: { key: 'fast_caption_resume', text: 'Continues a deep backfill from where the last Resume run stopped.' },
+  dateRange: { key: 'fast_caption_daterange', text: "Only posts tweeted in the window below; scans deep without moving Resume's position." },
 };
 const t = (key: string, fallback: string): string => chrome.i18n.getMessage(key) || fallback;
 
@@ -156,6 +166,7 @@ function setPaginateMode(mode: PaginateMode): void {
   fastPaginateRecent?.classList.toggle('active', mode === 'recent');
   fastPaginateResume?.classList.toggle('active', mode === 'resume');
   fastPaginateDaterange?.classList.toggle('active', mode === 'dateRange');
+  if (fastPaginateCaption) fastPaginateCaption.textContent = t(PAGINATE_CAPTION[mode].key, PAGINATE_CAPTION[mode].text);
   chrome.storage.local.set({ [FAST_PAGINATE_KEY]: mode });
   applyGlow(); // reveal/hide the date inputs for the new mode
 }
@@ -214,8 +225,7 @@ export function setStandardJobActive(active: boolean): void {
 // make sense in Batch mode.
 export function syncFastBatchMode(single: boolean): void {
   inBatchMode = !single;
-  batchMode?.classList.toggle('hidden', single);
-  batchModeCaption?.classList.toggle('hidden', single);
+  batchModeField?.classList.toggle('hidden', single);
   if (single) fastLockedHint?.classList.add('hidden');
   updateToggleLock();
   applyGlow();

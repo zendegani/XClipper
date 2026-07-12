@@ -283,36 +283,37 @@
             </svg>
           </button>
         </div>
-        <div id="batch-mode" class="batch-mode hidden" role="group" aria-label="Batch engine"
-          data-i18n-aria-label="batch_mode"
-          data-tooltip="Auto and Super fetch through your logged-in X session (its private API) — no API key, no password, nothing leaves your browser. Manual scrolls the page like a normal export."
-          data-i18n-tooltip="batch_mode_hint">
-          <button type="button" id="mode-manual" class="mode-seg-btn active" data-mode="manual" data-i18n="mode_manual">Manual</button>
-          <button type="button" id="mode-auto" class="mode-seg-btn" data-mode="auto">
-            <span data-i18n="mode_auto">Auto</span><span class="beta-badge" data-i18n="beta">Beta</span>
-          </button>
-          <button type="button" id="mode-super" class="mode-seg-btn" data-mode="super">
-            <span data-i18n="mode_super">Super</span><span class="beta-badge" data-i18n="beta">Beta</span>
-          </button>
+        <div id="batch-mode-field" class="mode-field hidden">
+          <div id="batch-mode" class="batch-mode" role="group" aria-label="Batch engine"
+            data-i18n-aria-label="batch_mode"
+            data-tooltip="Auto and Super fetch through your logged-in X session (its private API) — no API key, no password, nothing leaves your browser. Manual scrolls the page like a normal export."
+            data-i18n-tooltip="batch_mode_hint">
+            <button type="button" id="mode-manual" class="mode-seg-btn active" data-mode="manual" data-i18n="mode_manual">Manual</button>
+            <button type="button" id="mode-auto" class="mode-seg-btn" data-mode="auto">
+              <span data-i18n="mode_auto">Auto</span><span class="beta-badge" data-i18n="beta">Beta</span>
+            </button>
+            <button type="button" id="mode-super" class="mode-seg-btn" data-mode="super">
+              <span data-i18n="mode_super">Super</span><span class="beta-badge" data-i18n="beta">Beta</span>
+            </button>
+          </div>
+          <p id="batch-mode-caption" class="mode-field-caption"></p>
         </div>
-        <p id="batch-mode-caption" class="batch-mode-caption hidden"></p>
         <p id="fast-locked-hint" class="fast-locked-hint hidden" data-i18n="fast_locked">
           An export is running — cancel or let it finish to switch modes.
         </p>
-        <div id="fast-paginate" class="fast-paginate hidden">
-          <div class="fast-seg" role="group" aria-label="Fetch mode" data-i18n-aria-label="fast_paginate"
-            data-tooltip="Recent — from the top of your feed, for newly-added bookmarks. Resume — continue a deep backfill from where the last Resume run stopped. Date range — only posts tweeted in a chosen window: it scans deep from the top and skips what you've already exported, but it doesn't move the Resume position. Reset history clears all of it."
-            data-i18n-tooltip="fast_paginate_hint">
+        <div id="fast-paginate" class="mode-field hidden">
+          <div class="fast-seg" role="group" aria-label="Fetch mode" data-i18n-aria-label="fast_paginate">
             <button type="button" id="fast-paginate-recent" class="fast-seg-btn active" data-mode="recent" data-i18n="fast_paginate_recent">Recent</button>
             <button type="button" id="fast-paginate-resume" class="fast-seg-btn" data-mode="resume" data-i18n="fast_paginate_resume">Resume</button>
             <button type="button" id="fast-paginate-daterange" class="fast-seg-btn" data-mode="dateRange" data-i18n="fast_date_range">Date range</button>
           </div>
-        </div>
-        <div id="fast-date-range" class="fast-date-range hidden">
-          <input type="date" id="fast-date-from" class="fast-date-input" aria-label="From date" data-i18n-aria-label="fast_date_from" />
-          <span class="fast-date-sep">→</span>
-          <input type="date" id="fast-date-to" class="fast-date-input" aria-label="To date" data-i18n-aria-label="fast_date_to" />
-          <button id="fast-date-clear" class="batch-ctl" type="button" data-i18n="fast_date_clear">Clear</button>
+          <p id="fast-paginate-caption" class="mode-field-caption"></p>
+          <div id="fast-date-range" class="fast-date-range hidden">
+            <input type="date" id="fast-date-from" class="fast-date-input" aria-label="From date" data-i18n-aria-label="fast_date_from" />
+            <span class="fast-date-sep">→</span>
+            <input type="date" id="fast-date-to" class="fast-date-input" aria-label="To date" data-i18n-aria-label="fast_date_to" />
+            <button id="fast-date-clear" class="batch-ctl" type="button" data-i18n="fast_date_clear">Clear</button>
+          </div>
         </div>
         <button id="btn-batch" class="btn-batch btn-action" type="button"
           data-tooltip="Export every bookmark loaded on this page as Markdown files into one folder. Scroll the bookmarks page to load more."
