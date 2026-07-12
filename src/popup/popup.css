@@ -1085,9 +1085,12 @@ body {
   border-left: 1px solid var(--border-subtle);
 }
 
+/* Selected fetch mode uses the batch accent (same blue as the Export button) —
+ * a neutral "selected" that sits under the red engine toggle without adding a
+ * third heavy colour. */
 .fast-seg-btn.active {
-  background: var(--text-primary);
-  color: var(--bg-primary);
+  background: var(--batch);
+  color: #fff;
 }
 
 /* Fast Batch step lights: Page → Tweet → Fetch → Expand. */

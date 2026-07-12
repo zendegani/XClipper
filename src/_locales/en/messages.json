@@ -126,7 +126,7 @@
     "message": "Resume"
   },
   "fast_caption_recent": {
-    "message": "Scans the top of your feed — newly-added bookmarks since your last run."
+    "message": "Scans the top of the feed — newly-added posts since your last run."
   },
   "fast_caption_resume": {
     "message": "Continues a deep backfill from where the last Resume run stopped."
