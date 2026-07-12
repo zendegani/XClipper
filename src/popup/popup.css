@@ -2239,6 +2239,9 @@ details.option-group[open] .option-group-chevron {
   font-size: 12px;
   font-weight: 600;
   color: var(--text-secondary);
+  /* White segments (like the fetch-mode control) so the control reads as its own
+   * pill instead of showing the grey settings panel through the gaps. */
+  background: var(--bg-primary);
   cursor: pointer;
   user-select: none;
   border-inline-start: 1px solid var(--border-subtle);
