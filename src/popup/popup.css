@@ -1158,10 +1158,11 @@ body {
   gap: 5px;
 }
 
-/* Super skips thread expansion, so its run has no "Expanding" phase — the step
- * is hidden in that mode (see setBatchMode). */
-.fast-step.hidden {
-  display: none;
+/* Super skips thread expansion, so its run has no "Expanding" phase — dim that
+ * step (rather than hide it, which would respread the others and shift the row)
+ * to show it's not applicable. See setBatchMode. */
+.fast-step.disabled {
+  opacity: 0.4;
 }
 
 .fast-step-dot {
