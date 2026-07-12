@@ -1016,6 +1016,50 @@ body {
   color: var(--text-secondary);
 }
 
+/* Engine caption + an (i) at its end (Auto/Super only) that carries the deeper
+ * "how it works / soft rate limit / re-run after ~15 min" note, keeping the
+ * always-on caption short. Bottom-aligned so the (i) sits by the last line. */
+.mode-caption-row {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+}
+
+.mode-caption-row .mode-field-caption {
+  flex: 1;
+}
+
+.mode-info {
+  display: inline-flex;
+  align-items: center;
+  flex-shrink: 0;
+  margin-bottom: 1px;
+  color: var(--text-secondary);
+  cursor: help;
+}
+
+.mode-info.hidden {
+  display: none;
+}
+
+.mode-info svg {
+  width: 15px;
+  height: 15px;
+}
+
+/* The (i) sits at the popup's right edge — anchor its tooltip to the end edge so
+ * it grows inward instead of clipping off-screen. */
+.mode-info[data-tooltip]::after {
+  left: auto;
+  inset-inline-end: 0;
+  transform: translateX(0) translateY(2px);
+}
+
+.mode-info[data-tooltip]:hover::after,
+.mode-info[data-tooltip]:focus-visible::after {
+  transform: translateX(0) translateY(0);
+}
+
 .fast-locked-hint {
   margin: -2px 0 0;
   padding: 0 2px;

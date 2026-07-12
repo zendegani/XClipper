@@ -24,6 +24,7 @@ import {
   batchModeField,
   batchMode,
   batchModeCaption,
+  batchModeInfo,
   modeManual,
   modeAuto,
   modeSuper,
@@ -131,6 +132,9 @@ function setBatchMode(mode: BatchMode): void {
   modeAuto?.classList.toggle('active', mode === 'auto');
   modeSuper?.classList.toggle('active', mode === 'super');
   if (batchModeCaption) batchModeCaption.textContent = t(MODE_CAPTION[mode].key, MODE_CAPTION[mode].text);
+  // The (i) with the rate-limit / re-run note is Auto/Super-only — Manual never
+  // touches the X session, so it has no such caveat.
+  batchModeInfo?.classList.toggle('hidden', mode === 'manual');
   chrome.storage.local.set({ [BATCH_MODE_KEY]: mode });
   applyGlow();
   notifyChanged();
