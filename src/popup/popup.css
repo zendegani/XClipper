@@ -1180,6 +1180,15 @@ body {
   box-shadow: 0 2px 8px var(--error-glow);
 }
 
+/* Fast Batch has no honest determinate total — collection is open-ended and
+ * Super Fast streams its writes in parallel — so the fill bar can only fake a
+ * fraction. Hide it during any Fast run; the live count text, step lights, and
+ * Stop button carry the real feedback. Standard batch (no .fast-on) keeps its
+ * bar, where the total is known and writes are sequential. */
+#view-main.fast-on .batch-bar {
+  display: none;
+}
+
 /* ─── Options Toggles ───────────────────────────────────────── */
 .options {
   display: flex;
