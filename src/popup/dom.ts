@@ -49,6 +49,7 @@ export const viewMain = document.getElementById('view-main') as HTMLElement;
 export const batchModeField = document.getElementById('batch-mode-field') as HTMLDivElement;
 export const batchMode = document.getElementById('batch-mode') as HTMLDivElement;
 export const batchModeCaption = document.getElementById('batch-mode-caption') as HTMLParagraphElement;
+export const batchModeInfo = document.getElementById('batch-mode-info') as HTMLSpanElement;
 export const modeManual = document.getElementById('mode-manual') as HTMLButtonElement;
 export const modeAuto = document.getElementById('mode-auto') as HTMLButtonElement;
 export const modeSuper = document.getElementById('mode-super') as HTMLButtonElement;
