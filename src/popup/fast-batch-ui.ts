@@ -78,7 +78,7 @@ const MODE_CAPTION: Record<BatchMode, { key: string; text: string }> = {
 // Caption under the fetch-mode segment, explaining the picked option
 // (PaginateMode is declared with the run state below).
 const PAGINATE_CAPTION: Record<PaginateMode, { key: string; text: string }> = {
-  recent: { key: 'fast_caption_recent', text: 'Scans the top of your feed — newly-added bookmarks since your last run.' },
+  recent: { key: 'fast_caption_recent', text: 'Scans the top of the feed — newly-added posts since your last run.' },
   resume: { key: 'fast_caption_resume', text: 'Continues a deep backfill from where the last Resume run stopped.' },
   dateRange: { key: 'fast_caption_daterange', text: "Only posts tweeted in the window below; scans deep without moving Resume's position." },
 };
