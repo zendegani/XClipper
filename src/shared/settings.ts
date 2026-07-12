@@ -34,6 +34,9 @@ export interface Settings {
   obsidianTagsTemplate: string;
   downloadFolder: string;
   filenameTemplate: string;
+  // Single export: the format the Download/Copy buttons act on. Same set as
+  // the batch format (PDF is a separate button, not part of this selector).
+  singleFormat: BatchFormat;
   // Batch export: file format for the whole job (PDF isn't batchable).
   batchFormat: BatchFormat;
   // Batch export: per-item files, one combined file, or both. CSV is always
@@ -67,6 +70,7 @@ export const DEFAULT_SETTINGS: Settings = {
   obsidianTagsTemplate: '', // empty → use DEFAULT_TAGS_TEMPLATE in post-process
   downloadFolder: '', // empty → save directly in Downloads
   filenameTemplate: '', // empty → legacy {handle}-{id}.md / {handle}-{slug}.md
+  singleFormat: 'md', // Markdown — the default single-export target
   batchFormat: 'md', // Markdown — matches the single-export default
   batchOutput: 'separate', // per-item files only; 'both' adds a combined file
   frontmatterFields: allEnabled(FRONTMATTER_FIELDS_DEFAULT),

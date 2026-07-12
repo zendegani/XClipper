@@ -9,10 +9,10 @@
     "message": "Enregistrer les fils et articles en Markdown ou PDF"
   },
   "btn_download": {
-    "message": "Télécharger .md"
+    "message": "Télécharger"
   },
   "btn_copy": {
-    "message": "Copier .md"
+    "message": "Copier"
   },
   "btn_pdf": {
     "message": "Exporter .pdf"

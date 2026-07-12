@@ -9,10 +9,10 @@
     "message": "Сохраняйте треды и статьи как Markdown или PDF"
   },
   "btn_download": {
-    "message": "Скачать .md"
+    "message": "Скачать"
   },
   "btn_copy": {
-    "message": "Копировать .md"
+    "message": "Копировать"
   },
   "btn_pdf": {
     "message": "Экспорт .pdf"

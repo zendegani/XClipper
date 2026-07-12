@@ -23,6 +23,7 @@ import {
 } from '../shared/post-process';
 import { attachPlaceholderAutocomplete } from './placeholder-autocomplete';
 import {
+  fmtButtons,
   batchFormatControls,
   batchFormatSelect,
   outSeparate,
@@ -65,7 +66,21 @@ export function currentFrontmatterFields(obsidianFriendly: boolean): FieldMap {
   return obsidianFriendly ? frontmatterFieldsObsidian : frontmatterFields;
 }
 
-function persistAll(): void {
+// ─── Single-export format selector (md + html / json / txt / csv) ──
+// The active button (aria-checked) is the source of truth read back into the
+// persisted settings; the action flows read it the same way at click time.
+export function readSingleFormat(): BatchFormat {
+  const active = fmtButtons.find((b) => b.getAttribute('aria-checked') === 'true');
+  return (active?.dataset.format as BatchFormat) || 'md';
+}
+
+export function applySingleFormat(fmt: BatchFormat): void {
+  for (const b of fmtButtons) {
+    b.setAttribute('aria-checked', String(b.dataset.format === fmt));
+  }
+}
+
+export function persistAll(): void {
   saveSettings({
     downloadImages: chkDownloadImages.checked,
     includeMetadata: chkMetadata.checked,
@@ -80,6 +95,7 @@ function persistAll(): void {
     obsidianTagsTemplate: txtObsidianTags.value.trim(),
     downloadFolder: txtDownloadFolder.value.trim(),
     filenameTemplate: txtFilenameTemplate.value.trim(),
+    singleFormat: readSingleFormat(),
     batchFormat: batchFormatSelect.value as BatchFormat,
     batchOutput: readBatchOutput(),
     frontmatterFields,
@@ -306,6 +322,7 @@ export function initSettingsForm(): void {
     txtObsidianTags.value = settings.obsidianTagsTemplate;
     txtDownloadFolder.value = settings.downloadFolder;
     txtFilenameTemplate.value = settings.filenameTemplate;
+    applySingleFormat(settings.singleFormat);
     batchFormatSelect.value = settings.batchFormat;
     setBatchOutput(settings.batchOutput);
     syncBatchControls();

@@ -9,10 +9,10 @@
     "message": "थ्रेड्स और आर्टिकल्स को Markdown या PDF के रूप में सेव करें"
   },
   "btn_download": {
-    "message": ".md डाउनलोड"
+    "message": "डाउनलोड"
   },
   "btn_copy": {
-    "message": ".md कॉपी"
+    "message": "कॉपी"
   },
   "btn_pdf": {
     "message": ".pdf एक्सपोर्ट करें"

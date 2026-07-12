@@ -9,10 +9,10 @@
     "message": "ذخیره رشته‌ها و مقالات به‌صورت Markdown یا PDF"
   },
   "btn_download": {
-    "message": "دانلود .md"
+    "message": "دانلود"
   },
   "btn_copy": {
-    "message": "کپی .md"
+    "message": "کپی"
   },
   "btn_pdf": {
     "message": "خروجی .pdf"
