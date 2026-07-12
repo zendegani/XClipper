@@ -923,66 +923,83 @@ body {
 }
 
 /* ─── Fast Batch toggle (red, sits above Export settings) ─────── */
-.fast-batch-bar {
+/* Batch engine selector: Manual | Auto | Super — one segmented control that
+ * replaces the old Fast on/off + Super on/off toggles. Full-width so it reads as
+ * a primary choice; the fetch-mode segment (.fast-seg) below twins its shape. */
+.batch-mode {
   display: flex;
-  flex-direction: row;
-  align-items: center;
-  gap: 10px;
-  padding: 6px 12px;
-  background: var(--bg-elevated);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
+  overflow: hidden;
 }
 
-.fast-batch-bar.hidden {
+.batch-mode.hidden {
   display: none;
 }
 
-/* Info (i) carries the full explanation as a tooltip — keeps the bar to one
- * line. Sits first so it reads "ⓘ ⚡ Fast Batch". Anchored to the start edge
- * so its tooltip doesn't spill off the popup's left side. */
-.fast-info {
-  display: flex;
-  align-items: center;
-  color: var(--text-secondary);
-  cursor: help;
-  flex-shrink: 0;
-}
-
-.fast-info svg {
-  width: 16px;
-  height: 16px;
-}
-
-/* Anchor BELOW the icon (it sits near the popup's top edge, so the default
- * above-positioning would clip off the top) and to the start edge so the wide
- * tooltip grows inward, not off-screen. */
-.fast-info[data-tooltip]::after {
-  left: 0;
-  bottom: auto;
-  top: calc(100% + 4px);
-  transform: translateX(0) translateY(-2px);
-  max-width: 280px;
-}
-
-.fast-info[data-tooltip]:hover::after,
-.fast-info[data-tooltip]:focus-visible::after {
-  transform: translateX(0) translateY(0);
-}
-
-.fast-toggle {
+.mode-seg-btn {
   flex: 1;
-  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  font-family: var(--font);
+  font-size: 13px;
+  font-weight: 600;
+  padding: 7px 6px;
+  border: none;
+  background: var(--bg-primary);
+  color: var(--text-secondary);
+  cursor: pointer;
 }
 
-/* Locked while an export (Standard or Fast) is running — can't switch modes
- * mid-run. Dim the switch and block the cursor; the text/icon stay legible. */
-.fast-batch-bar.locked .fast-toggle {
+.mode-seg-btn + .mode-seg-btn {
+  border-left: 1px solid var(--border-subtle);
+}
+
+/* Manual selected — neutral (the plain, no-permission engine). */
+.mode-seg-btn.active {
+  background: var(--text-primary);
+  color: var(--bg-primary);
+}
+
+/* Auto / Super carry the "uses your X session" signal in red when active, so the
+ * consent-bearing engines stay visually distinct from plain Manual. */
+#mode-auto.active,
+#mode-super.active {
+  background: var(--error);
+  color: #fff;
+  box-shadow: 0 2px 8px var(--error-glow);
+}
+
+.mode-seg-btn .beta-badge {
+  opacity: 0.7;
+}
+
+/* Locked (an export is running) — can't switch engines mid-run. */
+.batch-mode.locked .mode-seg-btn {
   cursor: not-allowed;
+  opacity: 0.55;
 }
 
-.fast-batch-bar.locked .toggle-switch {
-  opacity: 0.45;
+.batch-mode.locked .mode-seg-btn.active {
+  opacity: 1;
+}
+
+/* Always-on caption under the selector — explains scroll mode + quality for the
+ * chosen engine (replaces the old info-ⓘ and the hover hints). Fixed two-line
+ * height so switching engines never shifts the layout below; snugged up under
+ * the toggle against the panel's row gap. */
+.batch-mode-caption {
+  margin: -3px 2px 0;
+  min-height: 2.7em;
+  font-size: 11.5px;
+  line-height: 1.35;
+  color: var(--text-secondary);
+}
+
+.batch-mode-caption.hidden {
+  display: none;
 }
 
 .fast-locked-hint {
@@ -1043,17 +1060,21 @@ body {
   display: none;
 }
 
+/* Fetch-mode segment (Recent | Resume | Date range) — twins the engine selector
+ * above it: full-width, same border/radius, one step smaller (it's a sub-setting
+ * of Auto/Super, not a primary choice). */
 .fast-seg {
-  display: inline-flex;
+  display: flex;
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
   overflow: hidden;
 }
 
 .fast-seg-btn {
+  flex: 1;
   font-family: var(--font);
   font-size: 12px;
-  padding: 3px 10px;
+  padding: 5px 6px;
   border: none;
   background: var(--bg-primary);
   color: var(--text-secondary);
@@ -1067,16 +1088,6 @@ body {
 .fast-seg-btn.active {
   background: var(--text-primary);
   color: var(--bg-primary);
-}
-
-/* Super Fast — skip thread expansion (issue #85). Reuses the toggle-label
- * component, sized down to sit under the fetch-mode segment. */
-.fast-super {
-  padding: 0 2px;
-}
-
-.fast-super .toggle-text {
-  font-size: 12px;
 }
 
 /* Fast Batch step lights: Page → Tweet → Fetch → Expand. */
@@ -1138,41 +1149,7 @@ body {
   transform: translateX(0) translateY(0);
 }
 
-/* Lightning icon + label stay red in both states. The extra .fast-batch-bar
- * ancestor beats the generic ".toggle-label:has(:checked) .toggle-icon" rule
- * that would otherwise paint it blue (--accent) when checked. */
-.fast-batch-bar .fast-toggle .toggle-icon,
-.fast-batch-bar .fast-toggle:has(.toggle-input:checked) .toggle-icon {
-  stroke: var(--error);
-  opacity: 0.85;
-}
-
-/* The Fast Batch label is the bar's red signal in both states. The extra
- * .fast-batch-bar ancestor (and the :has variant) beats the generic
- * ".toggle-label:has(:checked) .toggle-text" rule that would otherwise paint
- * it --text-primary when checked. The BETA badge inherits currentColor, so
- * pin it back to neutral. */
-.fast-batch-bar .fast-toggle .toggle-text,
-.fast-batch-bar .fast-toggle:has(.toggle-input:checked) .toggle-text {
-  color: var(--error);
-}
-
-.fast-batch-bar .fast-toggle .beta-badge {
-  color: var(--text-secondary);
-}
-
-/* Plain red switch — translucent red track + solid red knob, matching the
- * other toggles' style. */
-.fast-toggle .toggle-input:checked + .toggle-switch {
-  background: var(--error-glow);
-  box-shadow: 0 0 8px var(--error-glow);
-}
-
-.fast-toggle .toggle-input:checked + .toggle-switch::after {
-  background: var(--error);
-}
-
-/* When Fast Batch is armed, the only red signals are the Fast bar, the step
+/* When Auto/Super is selected the red signals are the engine selector, the step
  * lights, and the ACTIVE source tab — everything else (Export button, progress,
  * reset buttons) stays the normal blue to avoid a wall of red. */
 #view-main.fast-on .batch-tab.active {
@@ -1945,32 +1922,13 @@ details.option-group[open] .option-group-chevron {
   border: 1px solid var(--batch);
 }
 
-/* Fast Batch bar + a stacked pair of Reset buttons beside it. */
-.batch-fast-row {
-  display: flex;
-  align-items: stretch;
-  gap: 8px;
-}
-
-.batch-fast-row .fast-batch-bar {
-  flex: 1;
-  min-width: 0;
-}
-
 /* The Export button is text-only (no leading source icon). */
 .btn-batch .btn-icon {
   display: none;
 }
 
-.batch-reset-stack {
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 4px;
-  flex-shrink: 0;
-}
-
-.batch-reset-stack .batch-ctl {
+/* Reset queue / history sit on the status row; keep their labels one line. */
+.batch-dedup-row .batch-ctl {
   white-space: nowrap;
 }
 .btn-batch .btn-icon {
