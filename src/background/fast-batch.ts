@@ -430,6 +430,69 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
   const prevIncomplete = new Set(await loadIncomplete());
   let skipped = 0;
 
+  // Write bookkeeping, hoisted so writeOne can run both here (streamed, in the
+  // collect loop) and in the final write phase. Reliable items land in the run
+  // folder root and drive the combined digest + data.json; rate-limit stubs are
+  // quarantined under INCOMPLETE_SUBFOLDER (issue #81).
+  const usedFilenames: string[] = [];
+  const stubFilenames: string[] = [];
+  const items: StoredItem[] = [];
+  // Carry incomplete-id memory forward: drop ids that completed this run, add
+  // ids still written as stubs — so next run expands the leftovers first.
+  const nextIncomplete = new Set(prevIncomplete);
+  let incomplete = 0;
+
+  // Write one collected item. All shared-state mutation (filename dedup, items,
+  // ledger, nextIncomplete) happens SYNCHRONOUSLY before the returned download
+  // promise, so streamed writes fired back-to-back in the collect loop can't
+  // race each other on that state — only the download itself is async.
+  const writeOne = (s: Item): Promise<void> => {
+    const { doc, feedId } = s;
+    // Expansion can change the canonical id, so track both — see Item.feedId.
+    const expandedId = doc.metadata.tweetId;
+    const isStub = s.needsExpand && !s.ledger;
+    const result = postProcess(docToExtracted(doc), {
+      includeMetadata: settings.includeMetadata,
+      downloadImages: resolveDownloadImages('download', settings.downloadImages),
+      inlineStats: settings.inlineStats,
+      obsidianFriendly: settings.obsidianFriendly,
+      filenameTemplate: settings.filenameTemplate.trim(),
+      frontmatterFields,
+    });
+    if (isStub) {
+      const filename = uniqueFilename(stubFilenames, result.filename);
+      stubFilenames.push(filename.toLowerCase());
+      if (feedId) nextIncomplete.add(feedId);
+      incomplete++;
+      return output === 'combined'
+        ? Promise.resolve()
+        : writePerItem(`${folder}/${INCOMPLETE_SUBFOLDER}`, format, filename, result.markdown, result.images, doc, settings);
+    }
+    const filename = uniqueFilename(usedFilenames, result.filename);
+    usedFilenames.push(filename.toLowerCase());
+    items.push({ url: doc.metadata.sourceUrl, filename, doc });
+    // Ledger BOTH ids the post can appear under, so the next run's feed dedups
+    // it whichever id it presents (the feed id, or the canonical id).
+    if (s.ledger) {
+      if (feedId) ledgerArr = appendToLedger(ledgerArr, feedId);
+      if (expandedId && expandedId !== feedId) ledgerArr = appendToLedger(ledgerArr, expandedId);
+    }
+    if (feedId) nextIncomplete.delete(feedId);
+    if (expandedId) nextIncomplete.delete(expandedId);
+    return output === 'combined'
+      ? Promise.resolve()
+      : writePerItem(folder, format, filename, result.markdown, result.images, doc, settings);
+  };
+
+  // Super Fast pipeline: with expansion off, a non-article root is
+  // complete the moment the feed maps it — so write it straight away, overlapping
+  // the next page's fetch instead of bursting every download at the end. Scoped
+  // to separate-files output (the thousands-of-loose-files case this targets):
+  // articles still need TweetDetail (expanded below), and the combined/both
+  // digest is order-sensitive, so those keep the end-of-run write.
+  const superFastStream = !expandThreads && output === 'separate';
+  const streamedWrites: Promise<void>[] = [];
+
   // Recent starts from the top. Resume continues from this source's saved
   // frontier (deep backfill). Date range deep-scans from the top for a tweet-date
   // window — like Recent's start, but it must reach deep, so it shares Resume's
@@ -468,6 +531,9 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
     // canonical id (edited tweets, re-rooted thread replies), so we must ledger
     // this one too or the post re-exports every run.
     feedId: string;
+    // Set once the Super Fast pipeline already streamed this item to disk during
+    // collection, so the final write phase skips it.
+    written?: boolean;
   }
   const selected: Item[] = [];
   // Resume and Date range crawl deep (past everything already exported, or down
@@ -498,7 +564,14 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
         }
         if (id && prevIncomplete.has(id)) continue; // retried by id below — don't double-collect
         const needsExpand = doc.metadata.type === 'article' || expandThreads;
-        selected.push({ doc, needsExpand, ledger: !needsExpand, feedId: id });
+        const item: Item = { doc, needsExpand, ledger: !needsExpand, feedId: id };
+        selected.push(item);
+        // Stream complete (non-article) roots to disk as they arrive, so their
+        // downloads overlap the rest of the crawl instead of piling up at the end.
+        if (superFastStream && !item.needsExpand) {
+          streamedWrites.push(writeOne(item));
+          item.written = true;
+        }
       }
       // Advance the Resume frontier only past pages we fully consumed — a page
       // cut short by maxItems is re-fetched next run (the ledger dedups what we
@@ -594,66 +667,26 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
     }
   }
 
-  // 4) Write. Completed backlog items (retryItems) go first, then this run's
-  // fresh collection. On a normal/rate-limited run we write everything; on CANCEL
-  // we write only the items actually processed (ledger=true), so "stop at 5"
-  // yields ~5 files like Standard — the rest stay un-ledgered for a re-run.
+  // 4) Write the rest. Completed backlog items (retryItems) go first, then this
+  // run's fresh collection minus whatever the Super Fast pipeline already
+  // streamed during collection. On a normal/rate-limited run we write
+  // everything; on CANCEL we write only the items actually processed
+  // (ledger=true), so "stop at 5" yields ~5 files like Standard — the rest stay
+  // un-ledgered for a re-run.
   const allItems = [...retryItems, ...selected];
   const toWrite = cancelRequested ? allItems.filter((s) => s.ledger) : allItems;
-  setProgress({ phase: 'Writing files…', total: toWrite.length, done: 0 });
-  // Reliable (fully-expanded) items go in the run folder root and drive the
-  // combined digest + data.json. Items whose expansion the rate limit cut short
-  // (needsExpand && !ledger) are quarantined as loose files under
-  // INCOMPLETE_SUBFOLDER — separate filename namespace, kept out of the ledger
-  // and out of the combined/manifest — so a re-run completes them (issue #81).
-  const usedFilenames: string[] = [];
-  const stubFilenames: string[] = [];
-  const items: StoredItem[] = [];
-  // Carry the incomplete-id memory forward: drop ids that completed this run,
-  // add ids still written as stubs — so next run expands the leftovers first.
-  const nextIncomplete = new Set(prevIncomplete);
-  let incomplete = 0;
-  let processed = 0;
-  for (const s of toWrite) {
-    const { doc, feedId } = s;
-    // Expansion can change the canonical id, so track both — see Item.feedId.
-    const expandedId = doc.metadata.tweetId;
-    const isStub = s.needsExpand && !s.ledger;
-    const result = postProcess(docToExtracted(doc), {
-      includeMetadata: settings.includeMetadata,
-      downloadImages: resolveDownloadImages('download', settings.downloadImages),
-      inlineStats: settings.inlineStats,
-      obsidianFriendly: settings.obsidianFriendly,
-      filenameTemplate: settings.filenameTemplate.trim(),
-      frontmatterFields,
-    });
-    if (isStub) {
-      const filename = uniqueFilename(stubFilenames, result.filename);
-      stubFilenames.push(filename.toLowerCase());
-      if (output !== 'combined') {
-        const stubFolder = `${folder}/${INCOMPLETE_SUBFOLDER}`;
-        await writePerItem(stubFolder, format, filename, result.markdown, result.images, doc, settings);
-      }
-      if (feedId) nextIncomplete.add(feedId);
-      incomplete++;
-    } else {
-      const filename = uniqueFilename(usedFilenames, result.filename);
-      usedFilenames.push(filename.toLowerCase());
-      if (output !== 'combined') {
-        await writePerItem(folder, format, filename, result.markdown, result.images, doc, settings);
-      }
-      items.push({ url: doc.metadata.sourceUrl, filename, doc });
-      // Ledger BOTH ids the post can appear under, so the next run's feed dedups
-      // it whichever id it presents (the feed id, or the canonical id).
-      if (s.ledger) {
-        if (feedId) ledgerArr = appendToLedger(ledgerArr, feedId);
-        if (expandedId && expandedId !== feedId) ledgerArr = appendToLedger(ledgerArr, expandedId);
-      }
-      if (feedId) nextIncomplete.delete(feedId);
-      if (expandedId) nextIncomplete.delete(expandedId);
-    }
+  const remaining = toWrite.filter((s) => !s.written);
+  // Streamed items are already written; count them so the bar doesn't reset from
+  // "2000" back to "0" for a pure Super Fast run whose remainder is near-empty.
+  let processed = toWrite.length - remaining.length;
+  setProgress({ phase: 'Writing files…', total: toWrite.length, done: processed });
+  for (const s of remaining) {
+    await writeOne(s);
     setProgress({ done: ++processed });
   }
+  // Drain any downloads the Super Fast pipeline streamed during collection, so
+  // every file is on disk before we write the manifest and finalize.
+  await Promise.all(streamedWrites);
 
   if (items.length > 0) {
     await writeJsonManifest(
@@ -699,7 +732,7 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
     folder,
     rateLimited,
     total: toWrite.length,
-    done: processed,
+    done: toWrite.length,
   });
   return { exported: items.length, skipped, folder };
 }
