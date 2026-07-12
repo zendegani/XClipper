@@ -169,9 +169,9 @@ async function screenshotPopup(chromePath, locale) {
     await captureShot(page, join(SHOTS, `batch-settings-${locale}.png`), locale, 'batch-settings');
     await setExportSettingsOpen(page, false);
 
-    await setFastBatchArmed(page);
+    await setFastBatchArmed(page, 'auto');
     await captureShot(page, join(SHOTS, `batch-fast-${locale}.png`), locale, 'batch-fast');
-    await setFastBatchArmed(page, false);
+    await setFastBatchArmed(page, 'manual');
 
     await openSettings(page);
     await setOpenSections(page, ['downloads', 'inline']);
@@ -226,18 +226,35 @@ async function setExportSettingsOpen(page, open) {
   await new Promise((r) => setTimeout(r, 50));
 }
 
-// Arm (or disarm) the Fast Batch toggle for the screenshot. The real toggle
-// path calls chrome.permissions.request('webRequest'), which can't be granted
-// headlessly, so we set the same armed *visual* state the popup's applyGlow() +
-// idle updateFastSteps() produce: checkbox on, red glow, date-range + step
-// lights revealed (Reload/Open-tweet shown ready, Fetch/Expand pending).
-async function setFastBatchArmed(page, armed = true) {
-  await page.evaluate((on) => {
-    const cb = document.getElementById('chk-fast-batch');
-    if (cb) cb.checked = on;
+// Select a batch engine ('manual' | 'auto' | 'super') for the screenshot. The
+// real selectMode() path calls chrome.permissions.request('webRequest'), which
+// can't be granted headlessly, so we reproduce the exact DOM state that
+// setBatchMode() + applyGlow() + idle updateFastSteps() leave: the active engine
+// segment, its caption + the (i) note, and — for Auto/Super — the red glow, the
+// fetch-mode segment and step lights (Reload/Open-tweet ready, Fetch/Expand
+// pending; Super dims the Expanding step). Manual clears all of that.
+async function setFastBatchArmed(page, mode = 'auto') {
+  await page.evaluate((m) => {
+    const on = m !== 'manual';
+    const t = (key, fallback) => chrome.i18n.getMessage(key) || fallback;
+    const CAPTIONS = {
+      manual: ['mode_caption_manual', 'You scroll the page; every post you load is saved. Full threads & articles.'],
+      auto: ['mode_caption_auto', 'Fetches through your X session automatically — no scrolling. Full threads & articles.'],
+      super: ['mode_caption_super', "Fetches thousands at once, but saves each post's first tweet only — threads skipped."],
+    };
+    for (const id of ['manual', 'auto', 'super']) {
+      document.getElementById(`mode-${id}`)?.classList.toggle('active', id === m);
+    }
+    const cap = document.getElementById('batch-mode-caption');
+    if (cap) cap.textContent = t(CAPTIONS[m][0], CAPTIONS[m][1]);
+    document.getElementById('batch-mode-info')?.classList.toggle('hidden', !on);
     document.getElementById('view-main')?.classList.toggle('fast-on', on);
-    document.getElementById('fast-date-range')?.classList.toggle('hidden', !on);
+    document.getElementById('fast-paginate')?.classList.toggle('hidden', !on);
     document.getElementById('fast-steps')?.classList.toggle('hidden', !on);
+    // Date-range inputs belong to the Date-range fetch mode only (default Recent).
+    document.getElementById('fast-date-range')?.classList.add('hidden');
+    // Super skips thread expansion — dim its Expanding step (kept in place).
+    document.getElementById('fast-step-expand')?.classList.toggle('disabled', m === 'super');
     const setState = (id, state) => {
       const el = document.getElementById(id);
       if (el) el.dataset.state = on ? state : '';
@@ -246,7 +263,7 @@ async function setFastBatchArmed(page, armed = true) {
     setState('fast-step-tweet', 'ready');
     setState('fast-step-fetch', 'pending');
     setState('fast-step-expand', 'pending');
-  }, armed);
+  }, mode);
   await new Promise((r) => setTimeout(r, 50));
 }
 
