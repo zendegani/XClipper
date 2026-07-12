@@ -119,14 +119,20 @@
   "fast_paginate": {
     "message": "Fetch mode"
   },
-  "fast_paginate_hint": {
-    "message": "Recent — from the top of your feed, for newly-added bookmarks. Resume — continue a deep backfill from where the last Resume run stopped. Date range — only posts tweeted in a chosen window: it scans deep from the top and skips what you've already exported, but it doesn't move the Resume position. Reset history clears all of it."
-  },
   "fast_paginate_recent": {
     "message": "Recent"
   },
   "fast_paginate_resume": {
     "message": "Resume"
+  },
+  "fast_caption_recent": {
+    "message": "Scans the top of your feed — newly-added bookmarks since your last run."
+  },
+  "fast_caption_resume": {
+    "message": "Continues a deep backfill from where the last Resume run stopped."
+  },
+  "fast_caption_daterange": {
+    "message": "Only posts tweeted in the window below; scans deep without moving Resume's position."
   },
   "fast_step_page": {
     "message": "Reload x.com"

@@ -986,20 +986,33 @@ body {
   opacity: 1;
 }
 
-/* Always-on caption under the selector — explains scroll mode + quality for the
- * chosen engine (replaces the old info-ⓘ and the hover hints). Fixed two-line
- * height so switching engines never shifts the layout below; snugged up under
- * the toggle against the panel's row gap. */
-.batch-mode-caption {
-  margin: -3px 2px 0;
+/* Field box: groups a segmented control with its always-on caption behind one
+ * subtle border, so it's unambiguous which explanation belongs to which toggle.
+ * The elevated background sets the box off from the segments inside it (which
+ * keep their own outline on --bg-primary). */
+.mode-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 8px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-sm);
+}
+
+.mode-field.hidden {
+  display: none;
+}
+
+/* The caption explains scroll mode + quality (engine field) or the fetch mode
+ * (Recent/Resume/Date range field), replacing the old info-ⓘ and hover hints.
+ * Fixed two-line height so switching options never shifts the layout below. */
+.mode-field-caption {
+  margin: 0;
   min-height: 2.7em;
   font-size: 11.5px;
   line-height: 1.35;
   color: var(--text-secondary);
-}
-
-.batch-mode-caption.hidden {
-  display: none;
 }
 
 .fast-locked-hint {
@@ -1045,19 +1058,6 @@ body {
 
 .fast-date-sep {
   opacity: 0.6;
-}
-
-/* Recent | Resume pagination mode (issue #83). */
-.fast-paginate {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  font-size: 12px;
-  color: var(--text-secondary);
-}
-
-.fast-paginate.hidden {
-  display: none;
 }
 
 /* Fetch-mode segment (Recent | Resume | Date range) — twins the engine selector

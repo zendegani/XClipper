@@ -46,6 +46,7 @@ export const tabBatchTimeline = document.getElementById('tab-batch-timeline') as
 
 // ─── Fast Batch (ADR 0003) ───────────────────────────────────────────
 export const viewMain = document.getElementById('view-main') as HTMLElement;
+export const batchModeField = document.getElementById('batch-mode-field') as HTMLDivElement;
 export const batchMode = document.getElementById('batch-mode') as HTMLDivElement;
 export const batchModeCaption = document.getElementById('batch-mode-caption') as HTMLParagraphElement;
 export const modeManual = document.getElementById('mode-manual') as HTMLButtonElement;
@@ -60,6 +61,7 @@ export const fastPaginate = document.getElementById('fast-paginate') as HTMLDivE
 export const fastPaginateRecent = document.getElementById('fast-paginate-recent') as HTMLButtonElement;
 export const fastPaginateResume = document.getElementById('fast-paginate-resume') as HTMLButtonElement;
 export const fastPaginateDaterange = document.getElementById('fast-paginate-daterange') as HTMLButtonElement;
+export const fastPaginateCaption = document.getElementById('fast-paginate-caption') as HTMLParagraphElement;
 export const fastSteps = document.getElementById('fast-steps') as HTMLDivElement;
 export const fastStepPage = document.getElementById('fast-step-page') as HTMLSpanElement;
 export const fastStepTweet = document.getElementById('fast-step-tweet') as HTMLSpanElement;
