@@ -9,10 +9,10 @@
     "message": "Save threads & articles as Markdown or PDF"
   },
   "btn_download": {
-    "message": "Download .md"
+    "message": "Download"
   },
   "btn_copy": {
-    "message": "Copy .md"
+    "message": "Copy"
   },
   "btn_pdf": {
     "message": "Export .pdf"
@@ -22,6 +22,9 @@
   },
   "btn_obsidian": {
     "message": "Add to Obsidian"
+  },
+  "btn_md_hint": {
+    "message": "Markdown — the full formatted export."
   },
   "btn_html_hint": {
     "message": "Save as a styled, self-contained HTML file."

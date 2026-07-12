@@ -9,16 +9,14 @@ import { buildFormatExport, type ExportFormat } from '../shared/export-formats';
 import { recordExport } from '../shared/review-prompt';
 import { buildObsidianUrl } from '../shared/obsidian';
 import { hostMatches } from '../shared/media';
-import { currentFrontmatterFields } from './settings-form';
+import { currentFrontmatterFields, readSingleFormat, applySingleFormat, persistAll } from './settings-form';
+import type { BatchFormat } from '../shared/settings';
 import {
   btnDownload,
   btnCopy,
   btnPdf,
   btnObsidian,
-  btnHtml,
-  btnJson,
-  btnTxt,
-  btnCsv,
+  fmtButtons,
   statusEl,
   chkMetadata,
   chkInlineStats,
@@ -31,9 +29,9 @@ import {
 } from './dom';
 
 // Every button the export flows disable while one of them is running, so a
-// second click can't race an in-flight extraction.
-const formatButtons = [btnHtml, btnJson, btnTxt, btnCsv];
-const allExportButtons = [btnDownload, btnCopy, btnPdf, btnObsidian, ...formatButtons];
+// second click can't race an in-flight extraction (the format selectors too,
+// so the target format can't change mid-flight).
+const allExportButtons = [btnDownload, btnCopy, btnPdf, btnObsidian, ...fmtButtons];
 
 function showStatus(
   message: string,
@@ -57,12 +55,12 @@ function setLoading(loading: boolean, target?: 'download' | 'copy' | 'obsidian' 
   if (target === 'download' || !target) {
     btnDownload.classList.toggle('loading', loading);
     const dlLabel = btnDownload.querySelector('.btn-label');
-    if (dlLabel) dlLabel.textContent = loading ? (chrome.i18n.getMessage('extracting') || 'Extracting…') : (chrome.i18n.getMessage('btn_download') || 'Download .md');
+    if (dlLabel) dlLabel.textContent = loading ? (chrome.i18n.getMessage('extracting') || 'Extracting…') : (chrome.i18n.getMessage('btn_download') || 'Download');
   }
   if (target === 'copy' || !target) {
     btnCopy.classList.toggle('loading', loading);
     const cpLabel = btnCopy.querySelector('.btn-label');
-    if (cpLabel) cpLabel.textContent = loading ? (chrome.i18n.getMessage('extracting') || 'Extracting…') : (chrome.i18n.getMessage('btn_copy') || 'Copy .md');
+    if (cpLabel) cpLabel.textContent = loading ? (chrome.i18n.getMessage('extracting') || 'Extracting…') : (chrome.i18n.getMessage('btn_copy') || 'Copy');
   }
   if (target === 'obsidian' || !target) {
     btnObsidian.classList.toggle('loading', loading);
@@ -85,8 +83,8 @@ function setLoading(loading: boolean, target?: 'download' | 'copy' | 'obsidian' 
     const cpLabel = btnCopy.querySelector('.btn-label');
     const obLabel = btnObsidian.querySelector('.btn-label');
     const pdfLabel = btnPdf.querySelector('.btn-label');
-    if (dlLabel) dlLabel.textContent = chrome.i18n.getMessage('btn_download') || 'Download .md';
-    if (cpLabel) cpLabel.textContent = chrome.i18n.getMessage('btn_copy') || 'Copy .md';
+    if (dlLabel) dlLabel.textContent = chrome.i18n.getMessage('btn_download') || 'Download';
+    if (cpLabel) cpLabel.textContent = chrome.i18n.getMessage('btn_copy') || 'Copy';
     if (obLabel) obLabel.textContent = chrome.i18n.getMessage('btn_obsidian') || 'Add to Obsidian';
     if (pdfLabel) pdfLabel.textContent = chrome.i18n.getMessage('btn_pdf') || 'Export .pdf';
   }
@@ -179,40 +177,27 @@ function handleExtractionError(err: unknown): void {
 
 // Wires the four export buttons. Call once on popup open.
 export function initActions(): void {
-  // ─── Download Flow ───
-  btnDownload.addEventListener('click', async () => {
-    setLoading(true, 'download');
-    statusEl.className = 'status hidden';
-
-    try {
-      const result = await extractMarkdown();
-
-      const downloadMsg: DownloadRequest = {
-        action: 'DOWNLOAD_MD',
-        content: result.markdown,
-        filename: result.filename,
-        images: result.images.length > 0 ? result.images : undefined,
-      };
-
-      chrome.runtime.sendMessage(downloadMsg, (downloadResponse) => {
-        if (chrome.runtime.lastError || !downloadResponse?.success) {
-          showStatus(downloadResponse?.error || chrome.i18n.getMessage('download_failed') || 'Download failed.', 'error');
-        } else {
-          const typeLabels: Record<string, string> = {
-            article: chrome.i18n.getMessage('article_downloaded') || 'Article downloaded!',
-            thread: chrome.i18n.getMessage('thread_downloaded') || 'Thread downloaded!',
-            tweet: chrome.i18n.getMessage('tweet_downloaded') || 'Tweet downloaded!',
-          };
-          const label = typeLabels[result.type] || chrome.i18n.getMessage('downloaded') || 'Downloaded!';
-          showStatus(`✓ ${label}`, 'success');
-          void recordExport();
-        }
-        setLoading(false);
-      });
-    } catch (err) {
-      handleExtractionError(err);
-    }
+  // ─── Download / Copy: dispatch on the selected format ───
+  // '.md' runs the full Markdown pipeline (frontmatter, local images, filename
+  // template); the other four go through buildFormatExport.
+  btnDownload.addEventListener('click', () => {
+    const fmt = readSingleFormat();
+    if (fmt === 'md') void runMarkdownDownload();
+    else void runFormatExport(fmt, 'download');
   });
+  btnCopy.addEventListener('click', () => {
+    const fmt = readSingleFormat();
+    if (fmt === 'md') void runMarkdownCopy();
+    else void runFormatExport(fmt, 'copy');
+  });
+
+  // ─── Format selector: activate + persist the clicked format ───
+  for (const btn of fmtButtons) {
+    btn.addEventListener('click', () => {
+      applySingleFormat(btn.dataset.format as BatchFormat);
+      persistAll();
+    });
+  }
 
   // ─── PDF Export Flow ───
   btnPdf.addEventListener('click', async () => {
@@ -294,47 +279,72 @@ export function initActions(): void {
     }
   });
 
-  // ─── Copy Flow ───
-  btnCopy.addEventListener('click', async () => {
-    setLoading(true, 'copy');
-    statusEl.className = 'status hidden';
+}
 
-    try {
-      const result = await extractMarkdown('copy');
+// ─── Markdown Download (.md) ───
+async function runMarkdownDownload(): Promise<void> {
+  setLoading(true, 'download');
+  statusEl.className = 'status hidden';
 
-      await navigator.clipboard.writeText(result.markdown);
+  try {
+    const result = await extractMarkdown();
 
-      const typeLabels: Record<string, string> = {
-        article: chrome.i18n.getMessage('article_copied') || 'Article copied!',
-        thread: chrome.i18n.getMessage('thread_copied') || 'Thread copied!',
-        tweet: chrome.i18n.getMessage('tweet_copied') || 'Tweet copied!',
-      };
-      const label = typeLabels[result.type] || chrome.i18n.getMessage('copied') || 'Copied!';
-      showStatus(`✓ ${label}`, 'success');
+    const downloadMsg: DownloadRequest = {
+      action: 'DOWNLOAD_MD',
+      content: result.markdown,
+      filename: result.filename,
+      images: result.images.length > 0 ? result.images : undefined,
+    };
+
+    chrome.runtime.sendMessage(downloadMsg, (downloadResponse) => {
+      if (chrome.runtime.lastError || !downloadResponse?.success) {
+        showStatus(downloadResponse?.error || chrome.i18n.getMessage('download_failed') || 'Download failed.', 'error');
+      } else {
+        const typeLabels: Record<string, string> = {
+          article: chrome.i18n.getMessage('article_downloaded') || 'Article downloaded!',
+          thread: chrome.i18n.getMessage('thread_downloaded') || 'Thread downloaded!',
+          tweet: chrome.i18n.getMessage('tweet_downloaded') || 'Tweet downloaded!',
+        };
+        const label = typeLabels[result.type] || chrome.i18n.getMessage('downloaded') || 'Downloaded!';
+        showStatus(`✓ ${label}`, 'success');
+        void recordExport();
+      }
       setLoading(false);
-    } catch (err) {
-      handleExtractionError(err);
-    }
-  });
-
-  // ─── Alternate-format exports (HTML / JSON / TXT / CSV) ───
-  const formatTargets: { btn: HTMLButtonElement; format: ExportFormat }[] = [
-    { btn: btnHtml, format: 'html' },
-    { btn: btnJson, format: 'json' },
-    { btn: btnTxt, format: 'txt' },
-    { btn: btnCsv, format: 'csv' },
-  ];
-  for (const { btn, format } of formatTargets) {
-    btn.addEventListener('click', () => runFormatExport(format, btn));
+    });
+  } catch (err) {
+    handleExtractionError(err);
   }
 }
 
-// Build one of the alternate formats from the current page and hand it to the
-// background download handler. Metadata is always requested so CSV/JSON/HTML
-// have engagement counts available regardless of the popup toggles.
-async function runFormatExport(format: ExportFormat, btn: HTMLButtonElement): Promise<void> {
-  for (const b of allExportButtons) b.disabled = true;
-  btn.classList.add('loading');
+// ─── Markdown Copy (.md) ───
+async function runMarkdownCopy(): Promise<void> {
+  setLoading(true, 'copy');
+  statusEl.className = 'status hidden';
+
+  try {
+    const result = await extractMarkdown('copy');
+
+    await navigator.clipboard.writeText(result.markdown);
+
+    const typeLabels: Record<string, string> = {
+      article: chrome.i18n.getMessage('article_copied') || 'Article copied!',
+      thread: chrome.i18n.getMessage('thread_copied') || 'Thread copied!',
+      tweet: chrome.i18n.getMessage('tweet_copied') || 'Tweet copied!',
+    };
+    const label = typeLabels[result.type] || chrome.i18n.getMessage('copied') || 'Copied!';
+    showStatus(`✓ ${label}`, 'success');
+    setLoading(false);
+  } catch (err) {
+    handleExtractionError(err);
+  }
+}
+
+// Build one of the alternate formats (HTML / JSON / TXT / CSV) from the current
+// page and either download it or copy it to the clipboard. Metadata is always
+// requested so CSV/JSON/HTML have engagement counts available regardless of the
+// popup toggles.
+async function runFormatExport(format: ExportFormat, action: 'download' | 'copy'): Promise<void> {
+  setLoading(true, action);
   statusEl.className = 'status hidden';
 
   try {
@@ -347,6 +357,14 @@ async function runFormatExport(format: ExportFormat, btn: HTMLButtonElement): Pr
       obsidianTagsTemplate: txtObsidianTags.value.trim(),
       includeMetadata: chkMetadata.checked,
     });
+
+    if (action === 'copy') {
+      await navigator.clipboard.writeText(exported.content);
+      showStatus(`✓ .${exported.ext} ${chrome.i18n.getMessage('copied') || 'Copied!'}`, 'success');
+      void recordExport();
+      setLoading(false);
+      return;
+    }
 
     const filename = buildFilename(data, txtFilenameTemplate.value.trim()).replace(/\.md$/i, `.${exported.ext}`);
 
@@ -364,13 +382,9 @@ async function runFormatExport(format: ExportFormat, btn: HTMLButtonElement): Pr
         showStatus(`✓ .${exported.ext} ${chrome.i18n.getMessage('downloaded') || 'Downloaded!'}`, 'success');
         void recordExport();
       }
-      btn.classList.remove('loading');
-      for (const b of allExportButtons) b.disabled = false;
+      setLoading(false);
     });
   } catch (err) {
-    // handleExtractionError → setLoading(false) re-enables the buttons; it only
-    // clears the loading class on the Markdown/PDF buttons, so drop ours here.
-    btn.classList.remove('loading');
     handleExtractionError(err);
   }
 }

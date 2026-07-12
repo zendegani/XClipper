@@ -10,11 +10,12 @@ export const btnPdf = document.getElementById('btn-pdf') as HTMLButtonElement;
 export const btnObsidian = document.getElementById('btn-obsidian') as HTMLButtonElement;
 export const statusEl = document.getElementById('status') as HTMLDivElement;
 
-// ─── Alternate single-export formats (HTML / JSON / TXT / CSV) ────────
-export const btnHtml = document.getElementById('btn-html') as HTMLButtonElement;
-export const btnJson = document.getElementById('btn-json') as HTMLButtonElement;
-export const btnTxt = document.getElementById('btn-txt') as HTMLButtonElement;
-export const btnCsv = document.getElementById('btn-csv') as HTMLButtonElement;
+// ─── Single-export format selector (md + html / json / txt / csv) ─────
+// Radio-style buttons; the active one (aria-checked="true") is the target the
+// Download/Copy actions act on.
+export const fmtButtons = Array.from(
+  document.querySelectorAll<HTMLButtonElement>('.btn-fmt')
+);
 
 // ─── Batch export (bookmarks) ────────────────────────────────────────
 export const btnBatch = document.getElementById('btn-batch') as HTMLButtonElement;

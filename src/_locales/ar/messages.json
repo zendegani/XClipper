@@ -9,10 +9,10 @@
     "message": "حفظ السلاسل والمقالات بصيغة Markdown أو PDF"
   },
   "btn_download": {
-    "message": "تنزيل .md"
+    "message": "تنزيل"
   },
   "btn_copy": {
-    "message": "نسخ .md"
+    "message": "نسخ"
   },
   "btn_pdf": {
     "message": "تصدير .pdf"

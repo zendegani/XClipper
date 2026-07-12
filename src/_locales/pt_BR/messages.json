@@ -9,10 +9,10 @@
     "message": "Salve threads e artigos como Markdown ou PDF"
   },
   "btn_download": {
-    "message": "Baixar arquivo .md"
+    "message": "Baixar"
   },
   "btn_copy": {
-    "message": "Copiar .md"
+    "message": "Copiar"
   },
   "btn_pdf": {
     "message": "Exportar .pdf"

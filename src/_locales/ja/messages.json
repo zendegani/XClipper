@@ -9,10 +9,10 @@
     "message": "スレッドや記事をMarkdownやPDFで保存"
   },
   "btn_download": {
-    "message": ".mdをダウンロード"
+    "message": "ダウンロード"
   },
   "btn_copy": {
-    "message": ".mdをコピー"
+    "message": "コピー"
   },
   "btn_pdf": {
     "message": ".pdf にエクスポート"

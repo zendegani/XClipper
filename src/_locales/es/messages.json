@@ -9,10 +9,10 @@
     "message": "Guardar hilos y artículos como Markdown o PDF"
   },
   "btn_download": {
-    "message": "Descargar .md"
+    "message": "Descargar"
   },
   "btn_copy": {
-    "message": "Copiar .md"
+    "message": "Copiar"
   },
   "btn_pdf": {
     "message": "Exportar .pdf"

@@ -9,10 +9,10 @@
     "message": "将线程和文章保存为 Markdown 或 PDF"
   },
   "btn_download": {
-    "message": "下载 .md"
+    "message": "下载"
   },
   "btn_copy": {
-    "message": "复制 .md"
+    "message": "复制"
   },
   "btn_pdf": {
     "message": "导出 .pdf"
