@@ -15,7 +15,6 @@ import type {
   FastBatchStatusResponse,
 } from '../types/messages';
 import {
-  batchBarFill,
   batchProgress,
   batchProgressText,
   btnBatch,
@@ -354,11 +353,9 @@ function render(p: FastBatchProgress): void {
   btnBatchCancel.classList.toggle('hidden', !running);
   btnBatchPause.classList.add('hidden'); // Fast Batch has no pause
 
-  // Total is unknown while collecting (indeterminate) — peg the bar to a low
-  // value so it's visibly "working" without implying a fraction.
-  const pct = p.total > 0 ? Math.round((p.done / p.total) * 100) : running ? 8 : 100;
-  batchBarFill.style.width = `${pct}%`;
-
+  // No determinate bar for Fast Batch (hidden via #view-main.fast-on .batch-bar):
+  // collection is open-ended and Super Fast streams writes in parallel, so a
+  // fraction would be fake. The count text + step lights carry progress instead.
   if (running) stepsFromProgress(p);
 
   const who = fastWho(p);
