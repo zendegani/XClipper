@@ -180,53 +180,62 @@ function hideDedupAndResets(): void {
 async function refreshIdleUi(): Promise<void> {
   appendable = false;
   openTarget = undefined;
-
   // Fast Batch (armed via the red toggle) overrides per-page gating: it fetches
-  // bookmarks through the GraphQL session, so it doesn't need the bookmarks page
-  // loaded. Phase 1 is bookmarks-only — other tabs point back to Bookmarks.
+  // through the GraphQL session, so it doesn't need the source page loaded.
   if (getFastMode()) {
-    // Selection and Timeline aren't Fast-compatible (no GET-paginated feed).
-    if (activeTab === 'selection' || activeTab === 'timeline') {
-      hideDedupAndResets();
-      setButton(
-        activeTab === 'timeline'
-          ? t('btn_batch_timeline', 'Export timeline')
-          : t('btn_batch_select', 'Select tweets…'),
-        false,
-        activeTab === 'timeline'
-          ? t('btn_batch_fast_no_timeline', "Timeline isn't available in Fast — turn Fast off to export your home feed.")
-          : t('btn_batch_fast_no_selection', "Selection isn't available in Fast — turn Fast off to pick tweets by hand.")
-      );
-      return;
-    }
-    // bookmarks / profile / likes — Fast paginates from the top via cursor (no
-    // harvested collection), so "Reset queue" is always greyed; "Reset history"
-    // greys when the ledger is empty. The row stays visible so layout is stable.
-    const ledger = await loadLedgerSet();
-    btnBatchResetQueue.disabled = true;
-    btnBatchReset.disabled = ledger.size === 0;
-    batchDedupText.textContent =
-      ledger.size > 0 ? `${ledger.size} ${t('batch_already_exported', 'already exported')}` : '';
-    batchDedupRow.classList.remove('hidden');
-    let label: string;
-    let hint: string;
-    if (activeTab === 'profile') {
-      // Handle from the URL, not the injector — Fast doesn't need the page.
-      const handle = handleFromUrl(pageUrl);
-      label = `${t('btn_batch_profile', 'Export posts')}${handle ? ` @${handle}` : ''}`;
-      hint = t('btn_batch_fast_profile_hint', "Fetch this profile's own posts through your X session — much faster. Reposts are skipped.");
-    } else if (activeTab === 'likes') {
-      label = t('btn_batch_likes', 'Export likes');
-      hint = t('btn_batch_fast_likes_hint', 'Fetch your liked posts through your X session — much faster. Expands threads & articles.');
-    } else {
-      label = t('btn_batch', 'Export bookmarks');
-      hint = t('btn_batch_fast_hint', 'Fetch all your bookmarks through your X session — much faster. Expands threads & articles; stops politely if X rate-limits.');
-    }
-    setButton(label, !isFastActive(), hint);
-    void updateFastSteps(activeTab); // refresh the Page/Tweet readiness lights
+    await refreshFastIdle();
     return;
   }
+  await refreshStandardIdle();
+}
 
+// Fast-mode idle state. Phase 1 is bookmarks / profile / likes only — Selection
+// and Timeline have no GET-paginated feed, so they point back with a "turn Fast
+// off" hint. The dedup row stays visible so layout is stable.
+async function refreshFastIdle(): Promise<void> {
+  if (activeTab === 'selection' || activeTab === 'timeline') {
+    hideDedupAndResets();
+    setButton(
+      activeTab === 'timeline'
+        ? t('btn_batch_timeline', 'Export timeline')
+        : t('btn_batch_select', 'Select tweets…'),
+      false,
+      activeTab === 'timeline'
+        ? t('btn_batch_fast_no_timeline', "Timeline isn't available in Fast — turn Fast off to export your home feed.")
+        : t('btn_batch_fast_no_selection', "Selection isn't available in Fast — turn Fast off to pick tweets by hand.")
+    );
+    return;
+  }
+  // bookmarks / profile / likes — Fast paginates from the top via cursor (no
+  // harvested collection), so "Reset queue" is always greyed; "Reset history"
+  // greys when the ledger is empty.
+  const ledger = await loadLedgerSet();
+  btnBatchResetQueue.disabled = true;
+  btnBatchReset.disabled = ledger.size === 0;
+  batchDedupText.textContent =
+    ledger.size > 0 ? `${ledger.size} ${t('batch_already_exported', 'already exported')}` : '';
+  batchDedupRow.classList.remove('hidden');
+  let label: string;
+  let hint: string;
+  if (activeTab === 'profile') {
+    // Handle from the URL, not the injector — Fast doesn't need the page.
+    const handle = handleFromUrl(pageUrl);
+    label = `${t('btn_batch_profile', 'Export posts')}${handle ? ` @${handle}` : ''}`;
+    hint = t('btn_batch_fast_profile_hint', "Fetch this profile's own posts through your X session — much faster. Reposts are skipped.");
+  } else if (activeTab === 'likes') {
+    label = t('btn_batch_likes', 'Export likes');
+    hint = t('btn_batch_fast_likes_hint', 'Fetch your liked posts through your X session — much faster. Expands threads & articles.');
+  } else {
+    label = t('btn_batch', 'Export bookmarks');
+    hint = t('btn_batch_fast_hint', 'Fetch all your bookmarks through your X session — much faster. Expands threads & articles; stops politely if X rate-limits.');
+  }
+  setButton(label, !isFastActive(), hint);
+  void updateFastSteps(activeTab); // refresh the Page/Tweet readiness lights
+}
+
+// Standard (worker-tab) idle state: harvest the current page, then either gate
+// with a "where to go" hint or render the export/append button.
+async function refreshStandardIdle(): Promise<void> {
   const { source, handle, urls, unreachable } = await harvest();
 
   // After an extension reload the page still runs the old/no content script
@@ -259,6 +268,15 @@ async function refreshIdleUi(): Promise<void> {
     return;
   }
 
+  if (gateWrongSource(source)) return;
+
+  await renderOnSourceButton(urls, handle);
+}
+
+// When the active tab's source doesn't match the current page, show a greyed
+// button — or an "Open <page>" for the sources with a canonical URL. Returns
+// true when it rendered such a gate, so the caller stops.
+function gateWrongSource(source: HarvestResult['source']): boolean {
   if (activeTab === 'bookmarks' && source !== 'bookmarks') {
     hideDedupAndResets();
     openTarget = OPEN_URLS.bookmarks;
@@ -267,7 +285,7 @@ async function refreshIdleUi(): Promise<void> {
       true,
       t('btn_batch_open_bookmarks', 'Open your Bookmarks page, then scroll to load posts and export.')
     );
-    return;
+    return true;
   }
   if (activeTab === 'profile' && source !== 'profile') {
     hideDedupAndResets();
@@ -276,7 +294,7 @@ async function refreshIdleUi(): Promise<void> {
       false,
       t('btn_batch_open_profile', 'Open a profile page on x.com to export its posts. Reposts are skipped.')
     );
-    return;
+    return true;
   }
   if (activeTab === 'likes' && source !== 'likes') {
     hideDedupAndResets();
@@ -285,7 +303,7 @@ async function refreshIdleUi(): Promise<void> {
       false,
       t('btn_batch_open_likes', 'Open your Likes page on x.com to export the posts you have liked.')
     );
-    return;
+    return true;
   }
   if (activeTab === 'timeline' && source !== 'timeline') {
     hideDedupAndResets();
@@ -295,20 +313,22 @@ async function refreshIdleUi(): Promise<void> {
       true,
       t('btn_batch_open_timeline', 'Open your home timeline, then scroll to load posts and export.')
     );
-    return;
+    return true;
   }
+  return false;
+}
 
-  // On the running job's own source the button appends loaded items to its
-  // queue instead of starting a new job — bookmarks always; a profile only
-  // when it's the same handle (a different profile stays disabled).
+// On the active tab's own source: the button exports the loaded items, or APPENDS
+// them to a running same-source job (bookmarks always; a profile only when it's
+// the same handle). "N new" excludes the exported ledger and, while appending,
+// whatever the queue already holds.
+async function renderOnSourceButton(urls: string[], handle: string | undefined): Promise<void> {
   const onSameSourceJob =
     jobIsActive &&
     lastJob?.origin === activeTab &&
     (activeTab !== 'profile' || (lastJob?.handle ?? '') === (handle ?? ''));
   appendable = onSameSourceJob;
 
-  // While appending, also exclude what's already in the queue (not just the
-  // exported ledger), so the count reflects only items the queue lacks.
   const queued = onSameSourceJob ? new Set(lastJob?.queuedIds ?? []) : undefined;
   const ledger = await loadLedgerSet();
   const fresh = urls.filter((u) => {
