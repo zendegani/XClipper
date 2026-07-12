@@ -8,6 +8,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ---
 ## [Unreleased]
 
+---
+## [2.6.0] - 2026-07-12
+
 ### Added
 
 - **Super Fast mode exports a whole feed in one or two runs**: an opt-in Fast Batch toggle that skips per-post thread expansion — the step that trips X's rate limit and caps a normal run at ~150 posts — raising the per-run budget to ~3000 posts. Threads export as their first post only; quotes, media, polls and long-post text still come through, and X Articles are still fetched in full. Posts exported this way count as done, so use **Reset history** to re-export them with full threads later.
