@@ -957,10 +957,11 @@ body {
   border-left: 1px solid var(--border-subtle);
 }
 
-/* Manual selected — neutral (the plain, no-permission engine). */
+/* Manual selected — the batch accent (same blue as the Export button + the
+ * fetch-mode segment), the neutral "selected" for the no-permission engine. */
 .mode-seg-btn.active {
-  background: var(--text-primary);
-  color: var(--bg-primary);
+  background: var(--batch);
+  color: #fff;
 }
 
 /* Auto / Super carry the "uses your X session" signal in red when active, so the
