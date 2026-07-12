@@ -1158,6 +1158,12 @@ body {
   gap: 5px;
 }
 
+/* Super skips thread expansion, so its run has no "Expanding" phase — the step
+ * is hidden in that mode (see setBatchMode). */
+.fast-step.hidden {
+  display: none;
+}
+
 .fast-step-dot {
   width: 8px;
   height: 8px;
@@ -1212,6 +1218,20 @@ body {
  * bar, where the total is known and writes are sequential. */
 #view-main.fast-on .batch-bar {
   display: none;
+}
+
+/* With the bar gone, the Stop button would otherwise sit alone on its own row
+ * above the status text. Lay the control row and the status text on one line so
+ * a Fast run reads "[■] Bookmarks · Fetching… 1300" and reclaims that row.
+ * (:not(.hidden) so the idle display:none still wins.) */
+#view-main.fast-on #batch-progress:not(.hidden) {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+#view-main.fast-on #batch-progress-text {
+  margin-top: 0;
 }
 
 /* ─── Options Toggles ───────────────────────────────────────── */
