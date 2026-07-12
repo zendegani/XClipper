@@ -135,6 +135,9 @@ function setBatchMode(mode: BatchMode): void {
   // The (i) with the rate-limit / re-run note is Auto/Super-only — Manual never
   // touches the X session, so it has no such caveat.
   batchModeInfo?.classList.toggle('hidden', mode === 'manual');
+  // Super skips thread expansion, so drop the "Expanding" step light — its run
+  // goes straight from Fetching to Writing (articles aside).
+  fastStepExpand?.classList.toggle('hidden', mode === 'super');
   chrome.storage.local.set({ [BATCH_MODE_KEY]: mode });
   applyGlow();
   notifyChanged();
