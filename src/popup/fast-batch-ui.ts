@@ -1,9 +1,10 @@
-// Fast Batch (ADR 0003) popup control. The red toggle above Export settings
-// both grants consent (the optional webRequest permission, which can only be
-// requested from a user gesture) and arms Fast mode. While armed, the export
-// area glows red and the Bookmarks tab's Export button routes to the GraphQL
-// path (batch-ui calls startFastExport). Progress is polled from the background
-// (FAST_BATCH_STATUS) and rendered into the shared batch progress bar.
+// Fast Batch (ADR 0003) popup control. The Batch engine selector (Manual | Auto |
+// Super) chooses the acquisition path: Auto and Super run through the GraphQL
+// session (this module); Manual routes to the Standard worker-tab batch. Picking
+// Auto/Super grants consent (the optional webRequest permission, requestable only
+// from a click gesture) and turns the export area red; the Bookmarks/Profile/Likes
+// Export button then routes to startFastExport. Progress is polled from the
+// background (FAST_BATCH_STATUS) and rendered into the shared batch status line.
 //
 // Decoupled from batch-ui via DOM events: this module never imports batch-ui
 // (batch-ui imports the small query helpers here), so there's no cycle.
@@ -20,8 +21,11 @@ import {
   btnBatch,
   btnBatchCancel,
   btnBatchPause,
-  chkFastBatch,
-  fastBatchBar,
+  batchMode,
+  batchModeCaption,
+  modeManual,
+  modeAuto,
+  modeSuper,
   fastLockedHint,
   fastDateRange,
   fastDateFrom,
@@ -31,8 +35,6 @@ import {
   fastPaginateRecent,
   fastPaginateResume,
   fastPaginateDaterange,
-  fastSuper,
-  chkFastSuper,
   fastSteps,
   fastStepPage,
   fastStepTweet,
@@ -50,33 +52,43 @@ function setStep(el: HTMLElement | undefined, state: StepState, tooltip = ''): v
 }
 
 const ACCESS: chrome.permissions.Permissions = { permissions: ['webRequest'], origins: ['*://x.com/*'] };
-const FAST_MODE_KEY = 'fastBatchMode';
+// The chosen engine, persisted. Manual = Standard worker-tab batch; Auto = Fast
+// Batch (GraphQL); Super = Fast Batch without thread expansion (#85). Replaces
+// the old fastBatchMode + fastSuperMode on/off flags (migrated on restore).
+type BatchMode = 'manual' | 'auto' | 'super';
+const BATCH_MODE_KEY = 'batchMode';
+const FAST_MODE_KEY = 'fastBatchMode'; // legacy — read once to migrate
+const FAST_SUPER_KEY = 'fastSuperMode'; // legacy — read once to migrate
 const FAST_FROM_KEY = 'fastDateFrom';
 const FAST_TO_KEY = 'fastDateTo';
 const FAST_PAGINATE_KEY = 'fastPaginateMode';
-const FAST_SUPER_KEY = 'fastSuperMode';
 const FAST_POLL_MS = 800;
 const batchControls = document.querySelector('.batch-controls');
 const batchProgressRow = document.querySelector('.batch-progress-row');
 
-let fastMode = false;
+// Always-on caption under the selector: scroll mode + quality for each engine.
+const MODE_CAPTION: Record<BatchMode, { key: string; text: string }> = {
+  manual: { key: 'mode_caption_manual', text: 'You scroll the page; every post you load is saved. Full threads & articles.' },
+  auto: { key: 'mode_caption_auto', text: 'Fetches through your X session automatically — no scrolling. Full threads & articles.' },
+  super: { key: 'mode_caption_super', text: "Fetches thousands at once, but saves each post's first tweet only — threads skipped." },
+};
+const t = (key: string, fallback: string): string => chrome.i18n.getMessage(key) || fallback;
+
+let engineMode: BatchMode = 'manual';
 let fastActive = false;
 let inBatchMode = false;
 // 'recent' (top), 'resume' (continue from saved cursor), or 'dateRange' (deep
 // scan for a tweet-date window, without moving the resume cursor) — #83.
 type PaginateMode = 'recent' | 'resume' | 'dateRange';
 let paginateMode: PaginateMode = 'recent';
-// Super Fast (#85): skip per-item thread expansion so a run isn't bounded by
-// X's TweetDetail budget — the background raises the item cap accordingly.
-let superFast = false;
 // True while a Standard (worker-tab) batch job is running/paused — reported by
-// batch-ui. We lock the toggle whenever EITHER session is active so the two
-// can't overlap and the toggle can never disagree with the running session.
+// batch-ui. We lock the selector whenever EITHER session is active so the two
+// can't overlap and the selector can never disagree with the running session.
 let standardJobActive = false;
 let pollTimer: ReturnType<typeof setInterval> | undefined;
 
 export function getFastMode(): boolean {
-  return fastMode;
+  return engineMode !== 'manual';
 }
 export function isFastActive(): boolean {
   return fastActive;
@@ -92,21 +104,51 @@ function notifyChanged(): void {
 // run is in flight (or idle-and-armed), but blue whenever a Standard job is the
 // active one — so a job started in the other mode never shows the wrong color.
 function applyGlow(): void {
-  const red = inBatchMode && (fastActive || (fastMode && !standardJobActive));
+  const red = inBatchMode && (fastActive || (getFastMode() && !standardJobActive));
   viewMain?.classList.toggle('fast-on', red);
-  // The fetch-mode toggle and step lights are Fast-only — show whenever armed.
-  // The date inputs belong to Date-range mode only.
-  const showExtras = fastMode && inBatchMode;
+  // The fetch-mode segment + step lights are Auto/Super-only — show when armed.
+  // The date inputs belong to Date-range fetch mode only.
+  const showExtras = getFastMode() && inBatchMode;
   fastPaginate?.classList.toggle('hidden', !showExtras);
-  fastSuper?.classList.toggle('hidden', !showExtras);
   fastDateRange?.classList.toggle('hidden', !(showExtras && paginateMode === 'dateRange'));
   fastSteps?.classList.toggle('hidden', !showExtras);
 }
 
-function setSuperFast(on: boolean): void {
-  superFast = on;
-  if (chkFastSuper) chkFastSuper.checked = on;
-  chrome.storage.local.set({ [FAST_SUPER_KEY]: on });
+// Apply + persist the chosen engine (no permission handling — see selectMode).
+function setBatchMode(mode: BatchMode): void {
+  engineMode = mode;
+  modeManual?.classList.toggle('active', mode === 'manual');
+  modeAuto?.classList.toggle('active', mode === 'auto');
+  modeSuper?.classList.toggle('active', mode === 'super');
+  if (batchModeCaption) batchModeCaption.textContent = t(MODE_CAPTION[mode].key, MODE_CAPTION[mode].text);
+  chrome.storage.local.set({ [BATCH_MODE_KEY]: mode });
+  applyGlow();
+  notifyChanged();
+}
+
+// A user click on an engine segment. Locked mid-run → just show the reason.
+// Manual needs nothing; Auto/Super need the opt-in webRequest permission —
+// contains() first to avoid a needless prompt, request() inside this gesture,
+// and a denial falls back to Manual.
+function selectMode(mode: BatchMode): void {
+  if (standardJobActive || fastActive) {
+    showLockHint();
+    return;
+  }
+  if (mode === 'manual') {
+    setBatchMode('manual');
+    return;
+  }
+  chrome.permissions.contains(ACCESS, (has) => {
+    if (has) {
+      setBatchMode(mode);
+      return;
+    }
+    chrome.permissions.request(ACCESS, (granted) => {
+      void chrome.runtime.lastError; // swallow benign gesture/denial errors
+      setBatchMode(granted ? mode : 'manual');
+    });
+  });
 }
 
 function setPaginateMode(mode: PaginateMode): void {
@@ -149,8 +191,10 @@ function stepsFromProgress(p: FastBatchProgress): void {
 // user actually tries to flip the locked toggle (see the click handler).
 function updateToggleLock(): void {
   const locked = standardJobActive || fastActive;
-  if (chkFastBatch) chkFastBatch.disabled = locked;
-  fastBatchBar?.classList.toggle('locked', locked);
+  batchMode?.classList.toggle('locked', locked);
+  // aria-disabled (not the `disabled` attribute) so a locked click still fires
+  // and can surface the "why" hint via selectMode.
+  for (const b of [modeManual, modeAuto, modeSuper]) b?.setAttribute('aria-disabled', String(locked));
   if (!locked) fastLockedHint?.classList.add('hidden'); // clear once unlocked
 }
 
@@ -166,61 +210,39 @@ export function setStandardJobActive(active: boolean): void {
   applyGlow();
 }
 
-// Called by mode.ts when the Single/Batch tab flips: the bar + glow only make
-// sense in Batch mode.
+// Called by mode.ts when the Single/Batch tab flips: the selector + glow only
+// make sense in Batch mode.
 export function syncFastBatchMode(single: boolean): void {
   inBatchMode = !single;
-  fastBatchBar?.classList.toggle('hidden', single);
+  batchMode?.classList.toggle('hidden', single);
+  batchModeCaption?.classList.toggle('hidden', single);
   if (single) fastLockedHint?.classList.add('hidden');
   updateToggleLock();
   applyGlow();
 }
 
-function setFastMode(on: boolean): void {
-  fastMode = on;
-  if (chkFastBatch) chkFastBatch.checked = on;
-  chrome.storage.local.set({ [FAST_MODE_KEY]: on });
-  applyGlow();
-  notifyChanged();
-}
-
 export function initFastBatchUi(): void {
-  if (!chkFastBatch) return;
+  if (!batchMode) return;
 
-  // Restore the armed state, but only if the permission is still granted
-  // (the user could have revoked it in chrome://extensions).
-  chrome.storage.local.get(FAST_MODE_KEY, (res) => {
-    if (res[FAST_MODE_KEY] !== true) return;
-    chrome.permissions.contains(ACCESS, (granted) => {
-      if (granted) setFastMode(true);
-      else setFastMode(false);
-    });
-  });
-
-  // Clicking the toggle while it's locked doesn't fire `change` (disabled
-  // input), but the label still gets the click — surface the reason then.
-  chkFastBatch.closest('.fast-toggle')?.addEventListener('click', () => {
-    if (chkFastBatch.disabled) showLockHint();
-  });
-
-  chkFastBatch.addEventListener('change', () => {
-    if (!chkFastBatch.checked) {
-      setFastMode(false);
+  // Restore the saved engine, migrating the old two-flag Fast/Super state.
+  // Auto/Super only stick if the webRequest permission is still granted (the
+  // user could have revoked it in chrome://extensions).
+  chrome.storage.local.get([BATCH_MODE_KEY, FAST_MODE_KEY, FAST_SUPER_KEY], (res) => {
+    let mode: BatchMode = 'manual';
+    const saved = res[BATCH_MODE_KEY];
+    if (saved === 'manual' || saved === 'auto' || saved === 'super') mode = saved;
+    else if (res[FAST_MODE_KEY] === true) mode = res[FAST_SUPER_KEY] === true ? 'super' : 'auto';
+    if (mode === 'manual') {
+      setBatchMode('manual');
       return;
     }
-    // Arming: ensure consent. contains() avoids a needless prompt; request()
-    // must run in this gesture. A denial reverts the checkbox.
-    chrome.permissions.contains(ACCESS, (has) => {
-      if (has) {
-        setFastMode(true);
-        return;
-      }
-      chrome.permissions.request(ACCESS, (granted) => {
-        void chrome.runtime.lastError; // swallow benign gesture/denial errors
-        setFastMode(!!granted);
-      });
-    });
+    chrome.permissions.contains(ACCESS, (granted) => setBatchMode(granted ? mode : 'manual'));
   });
+
+  // Engine segments. selectMode handles the lock hint + Auto/Super consent.
+  modeManual?.addEventListener('click', () => selectMode('manual'));
+  modeAuto?.addEventListener('click', () => selectMode('auto'));
+  modeSuper?.addEventListener('click', () => selectMode('super'));
 
   // Date-range filter: restore, persist on change, and clear.
   chrome.storage.local.get([FAST_FROM_KEY, FAST_TO_KEY], (res) => {
@@ -247,12 +269,6 @@ export function initFastBatchUi(): void {
   fastPaginateRecent?.addEventListener('click', () => setPaginateMode('recent'));
   fastPaginateResume?.addEventListener('click', () => setPaginateMode('resume'));
   fastPaginateDaterange?.addEventListener('click', () => setPaginateMode('dateRange'));
-
-  // Super Fast: restore, then persist on change.
-  chrome.storage.local.get(FAST_SUPER_KEY, (res) => {
-    setSuperFast(res[FAST_SUPER_KEY] === true);
-  });
-  chkFastSuper?.addEventListener('change', () => setSuperFast(chkFastSuper.checked));
 }
 
 // ─── Fast export run + progress polling ──────────────────────────────
@@ -267,15 +283,15 @@ export async function startFastExport(
   let fromDate = dateMode ? fastDateFrom?.value || undefined : undefined;
   let toDate = dateMode ? fastDateTo?.value || undefined : undefined;
   if (fromDate && toDate && fromDate > toDate) [fromDate, toDate] = [toDate, fromDate];
-  // Expand threads + articles by default (correctness over raw speed); Super
-  // Fast trades thread expansion for a much larger per-run item budget (#85).
+  // Auto expands threads + articles (correctness over raw speed); Super trades
+  // thread expansion for a much larger per-run item budget (#85).
   const resp = (await chrome.runtime.sendMessage({
     action: 'FAST_BATCH_START',
     source,
     ...(handle ? { handle } : {}),
     ...(fromDate ? { fromDate } : {}),
     ...(toDate ? { toDate } : {}),
-    expandThreads: !superFast,
+    expandThreads: engineMode !== 'super',
     paginate: paginateMode,
   })) as FastBatchStartResponse | undefined;
   if (!resp?.success) {

@@ -283,6 +283,37 @@
             </svg>
           </button>
         </div>
+        <div id="batch-mode" class="batch-mode hidden" role="group" aria-label="Batch engine"
+          data-i18n-aria-label="batch_mode"
+          data-tooltip="Auto and Super fetch through your logged-in X session (its private API) — no API key, no password, nothing leaves your browser. Manual scrolls the page like a normal export."
+          data-i18n-tooltip="batch_mode_hint">
+          <button type="button" id="mode-manual" class="mode-seg-btn active" data-mode="manual" data-i18n="mode_manual">Manual</button>
+          <button type="button" id="mode-auto" class="mode-seg-btn" data-mode="auto">
+            <span data-i18n="mode_auto">Auto</span><span class="beta-badge" data-i18n="beta">Beta</span>
+          </button>
+          <button type="button" id="mode-super" class="mode-seg-btn" data-mode="super">
+            <span data-i18n="mode_super">Super</span><span class="beta-badge" data-i18n="beta">Beta</span>
+          </button>
+        </div>
+        <p id="batch-mode-caption" class="batch-mode-caption hidden"></p>
+        <p id="fast-locked-hint" class="fast-locked-hint hidden" data-i18n="fast_locked">
+          An export is running — cancel or let it finish to switch modes.
+        </p>
+        <div id="fast-paginate" class="fast-paginate hidden">
+          <div class="fast-seg" role="group" aria-label="Fetch mode" data-i18n-aria-label="fast_paginate"
+            data-tooltip="Recent — from the top of your feed, for newly-added bookmarks. Resume — continue a deep backfill from where the last Resume run stopped. Date range — only posts tweeted in a chosen window: it scans deep from the top and skips what you've already exported, but it doesn't move the Resume position. Reset history clears all of it."
+            data-i18n-tooltip="fast_paginate_hint">
+            <button type="button" id="fast-paginate-recent" class="fast-seg-btn active" data-mode="recent" data-i18n="fast_paginate_recent">Recent</button>
+            <button type="button" id="fast-paginate-resume" class="fast-seg-btn" data-mode="resume" data-i18n="fast_paginate_resume">Resume</button>
+            <button type="button" id="fast-paginate-daterange" class="fast-seg-btn" data-mode="dateRange" data-i18n="fast_date_range">Date range</button>
+          </div>
+        </div>
+        <div id="fast-date-range" class="fast-date-range hidden">
+          <input type="date" id="fast-date-from" class="fast-date-input" aria-label="From date" data-i18n-aria-label="fast_date_from" />
+          <span class="fast-date-sep">→</span>
+          <input type="date" id="fast-date-to" class="fast-date-input" aria-label="To date" data-i18n-aria-label="fast_date_to" />
+          <button id="fast-date-clear" class="batch-ctl" type="button" data-i18n="fast_date_clear">Clear</button>
+        </div>
         <button id="btn-batch" class="btn-batch btn-action" type="button"
           data-tooltip="Export every bookmark loaded on this page as Markdown files into one folder. Scroll the bookmarks page to load more."
           data-i18n-tooltip="btn_batch_hint">
@@ -311,67 +342,6 @@
           </svg>
           <span class="btn-label" id="btn-batch-label" data-i18n="btn_batch">Export bookmarks</span>
         </button>
-        <div class="batch-fast-row">
-          <div id="fast-batch-bar" class="fast-batch-bar hidden">
-            <span class="fast-info" tabindex="0" role="img" aria-label="About Fast Batch"
-              data-tooltip="Exports your Bookmarks, a profile's posts, or your Likes far faster by fetching them directly through your logged-in X session (its private API) — no API key, no password, nothing leaves your browser. The step lights below show what to do first (reload the page / open one tweet). Big runs can hit X's rate limit — it stops politely so you can re-run, or use the date range to narrow the scope."
-              data-i18n-tooltip="fast_batch_info">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="16" x2="12" y2="12" />
-                <line x1="12" y1="8" x2="12.01" y2="8" />
-              </svg>
-            </span>
-            <label class="toggle-label fast-toggle">
-              <span class="toggle-text">
-                <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
-                </svg>
-                <span data-i18n="fast_batch">Fast Batch</span>
-                <span class="beta-badge" data-i18n="beta">Beta</span>
-              </span>
-              <input type="checkbox" id="chk-fast-batch" class="toggle-input" />
-              <span class="toggle-switch"></span>
-            </label>
-          </div>
-          <div class="batch-reset-stack">
-            <button id="btn-batch-reset-queue" class="batch-ctl" type="button"
-              data-tooltip="Empty the gathered posts and restart collecting from where you've scrolled to — so you can begin at a specific post instead of the top."
-              data-i18n-tooltip="batch_reset_queue_hint" data-i18n="batch_reset_queue">Reset queue</button>
-            <button id="btn-batch-reset" class="batch-ctl" type="button"
-              data-tooltip="Forget which posts were already exported in past runs, so the next batch exports everything loaded again."
-              data-i18n-tooltip="batch_reset_hint" data-i18n="batch_reset">Reset history</button>
-          </div>
-        </div>
-        <p id="fast-locked-hint" class="fast-locked-hint hidden" data-i18n="fast_locked">
-          An export is running — cancel or let it finish to switch modes.
-        </p>
-        <div id="fast-paginate" class="fast-paginate hidden">
-          <div class="fast-seg" role="group" aria-label="Fetch mode" data-i18n-aria-label="fast_paginate"
-            data-tooltip="Recent — from the top of your feed, for newly-added bookmarks. Resume — continue a deep backfill from where the last Resume run stopped. Date range — only posts tweeted in a chosen window: it scans deep from the top and skips what you've already exported, but it doesn't move the Resume position. Reset history clears all of it."
-            data-i18n-tooltip="fast_paginate_hint">
-            <button type="button" id="fast-paginate-recent" class="fast-seg-btn active" data-mode="recent" data-i18n="fast_paginate_recent">Recent</button>
-            <button type="button" id="fast-paginate-resume" class="fast-seg-btn" data-mode="resume" data-i18n="fast_paginate_resume">Resume</button>
-            <button type="button" id="fast-paginate-daterange" class="fast-seg-btn" data-mode="dateRange" data-i18n="fast_date_range">Date range</button>
-          </div>
-        </div>
-        <label id="fast-super" class="toggle-label fast-super hidden"
-          data-tooltip="Skips fetching each post's thread, so one run can export thousands of posts instead of ~150 — a whole bookmarks feed in a go or two. Threads export as their first post only (articles are still fetched in full). Exported posts count as done — use Reset history to re-export them with full threads later."
-          data-i18n-tooltip="fast_super_hint">
-          <span class="toggle-text">
-            <span data-i18n="fast_super">Super Fast — skip threads</span>
-          </span>
-          <input type="checkbox" id="chk-fast-super" class="toggle-input" />
-          <span class="toggle-switch"></span>
-        </label>
-        <div id="fast-date-range" class="fast-date-range hidden">
-          <input type="date" id="fast-date-from" class="fast-date-input" aria-label="From date" data-i18n-aria-label="fast_date_from" />
-          <span class="fast-date-sep">→</span>
-          <input type="date" id="fast-date-to" class="fast-date-input" aria-label="To date" data-i18n-aria-label="fast_date_to" />
-          <button id="fast-date-clear" class="batch-ctl" type="button" data-i18n="fast_date_clear">Clear</button>
-        </div>
         <div id="fast-steps" class="fast-steps hidden" role="status">
           <span class="fast-step" id="fast-step-page"><span class="fast-step-dot"></span><span class="fast-step-label" data-i18n="fast_step_page">Reload x.com</span></span>
           <span class="fast-step" id="fast-step-tweet"><span class="fast-step-dot"></span><span class="fast-step-label" data-i18n="fast_step_tweet">Open one tweet</span></span>
@@ -380,6 +350,14 @@
         </div>
         <div id="batch-dedup-row" class="batch-dedup-row hidden">
           <span id="batch-dedup-text"></span>
+          <span class="batch-ctl-group">
+            <button id="btn-batch-reset-queue" class="batch-ctl" type="button"
+              data-tooltip="Empty the gathered posts and restart collecting from where you've scrolled to — so you can begin at a specific post instead of the top."
+              data-i18n-tooltip="batch_reset_queue_hint" data-i18n="batch_reset_queue">Reset queue</button>
+            <button id="btn-batch-reset" class="batch-ctl" type="button"
+              data-tooltip="Forget which posts were already exported in past runs, so the next batch exports everything loaded again."
+              data-i18n-tooltip="batch_reset_hint" data-i18n="batch_reset">Reset history</button>
+          </span>
         </div>
         <div id="batch-progress" class="batch-progress hidden">
           <div class="batch-progress-row">

@@ -53,11 +53,29 @@
   "btn_batch_hint": {
     "message": "Export every bookmark loaded on this page as Markdown files into one folder. Scroll the bookmarks page to load more."
   },
-  "fast_batch": {
-    "message": "Fast Batch"
+  "batch_mode": {
+    "message": "Batch engine"
   },
-  "fast_batch_info": {
-    "message": "Fetches items through your logged-in X session for a big speed-up — no API key, nothing leaves your browser. Heads-up: large runs can hit X's rate limit, so it paces itself and stops politely so you can re-run."
+  "batch_mode_hint": {
+    "message": "Auto and Super fetch through your logged-in X session (its private API) — no API key, no password, nothing leaves your browser. Manual scrolls the page like a normal export."
+  },
+  "mode_manual": {
+    "message": "Manual"
+  },
+  "mode_auto": {
+    "message": "Auto"
+  },
+  "mode_super": {
+    "message": "Super"
+  },
+  "mode_caption_manual": {
+    "message": "You scroll the page; every post you load is saved. Full threads & articles."
+  },
+  "mode_caption_auto": {
+    "message": "Fetches through your X session automatically — no scrolling. Full threads & articles."
+  },
+  "mode_caption_super": {
+    "message": "Fetches thousands at once, but saves each post's first tweet only — threads skipped."
   },
   "btn_batch_fast_hint": {
     "message": "Fetch all your bookmarks through your X session — much faster. Expands threads & articles."
@@ -109,12 +127,6 @@
   },
   "fast_paginate_resume": {
     "message": "Resume"
-  },
-  "fast_super": {
-    "message": "Super Fast — skip threads"
-  },
-  "fast_super_hint": {
-    "message": "Skips fetching each post's thread, so one run can export thousands of posts instead of ~150 — a whole bookmarks feed in a go or two. Threads export as their first post only (articles are still fetched in full). Exported posts count as done — use Reset history to re-export them with full threads later."
   },
   "fast_step_page": {
     "message": "Reload x.com"

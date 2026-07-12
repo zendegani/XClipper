@@ -46,8 +46,11 @@ export const tabBatchTimeline = document.getElementById('tab-batch-timeline') as
 
 // ─── Fast Batch (ADR 0003) ───────────────────────────────────────────
 export const viewMain = document.getElementById('view-main') as HTMLElement;
-export const fastBatchBar = document.getElementById('fast-batch-bar') as HTMLDivElement;
-export const chkFastBatch = document.getElementById('chk-fast-batch') as HTMLInputElement;
+export const batchMode = document.getElementById('batch-mode') as HTMLDivElement;
+export const batchModeCaption = document.getElementById('batch-mode-caption') as HTMLParagraphElement;
+export const modeManual = document.getElementById('mode-manual') as HTMLButtonElement;
+export const modeAuto = document.getElementById('mode-auto') as HTMLButtonElement;
+export const modeSuper = document.getElementById('mode-super') as HTMLButtonElement;
 export const fastLockedHint = document.getElementById('fast-locked-hint') as HTMLParagraphElement;
 export const fastDateRange = document.getElementById('fast-date-range') as HTMLDivElement;
 export const fastDateFrom = document.getElementById('fast-date-from') as HTMLInputElement;
@@ -57,8 +60,6 @@ export const fastPaginate = document.getElementById('fast-paginate') as HTMLDivE
 export const fastPaginateRecent = document.getElementById('fast-paginate-recent') as HTMLButtonElement;
 export const fastPaginateResume = document.getElementById('fast-paginate-resume') as HTMLButtonElement;
 export const fastPaginateDaterange = document.getElementById('fast-paginate-daterange') as HTMLButtonElement;
-export const fastSuper = document.getElementById('fast-super') as HTMLLabelElement;
-export const chkFastSuper = document.getElementById('chk-fast-super') as HTMLInputElement;
 export const fastSteps = document.getElementById('fast-steps') as HTMLDivElement;
 export const fastStepPage = document.getElementById('fast-step-page') as HTMLSpanElement;
 export const fastStepTweet = document.getElementById('fast-step-tweet') as HTMLSpanElement;
