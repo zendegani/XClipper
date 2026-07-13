@@ -9,6 +9,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [Unreleased]
 
 ---
+## [2.6.1] - 2026-07-13
+
+### Changed
+
+- **Store listing reworded to satisfy Chrome Web Store metadata policy**: the one-line extension summary no longer repeats the formats already named in the title and now leads with likes, profiles, and long-form articles; no functional changes.
+
+---
 ## [2.6.0] - 2026-07-12
 
 ### Added
