@@ -3,7 +3,7 @@
     "message": "X / Twitter Web Clipper : signets et fils vers Markdown, PDF, Obsidian"
   },
   "extensionDescription": {
-    "message": "Exportez posts, fils, signets et articles X (Twitter) vers Markdown, PDF ou Obsidian, seuls ou en lot. Gratuit, sans API."
+    "message": "Exportez posts et articles longs depuis vos likes ou tout profil, un par un ou par milliers. Gratuit, local, sans clé API."
   },
   "tagline": {
     "message": "Enregistrer les fils et articles en Markdown ou PDF"

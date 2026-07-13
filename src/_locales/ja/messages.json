@@ -3,7 +3,7 @@
     "message": "X / Twitter ウェブクリッパー: ブックマークとスレッドをMarkdown、PDF、Obsidianへ"
   },
   "extensionDescription": {
-    "message": "X (Twitter)の投稿、スレッド、ブックマーク、記事をMarkdown、PDF、Obsidianへ。単体または一括。無料、API不要。"
+    "message": "自分の「いいね」や任意のプロフィールから投稿と長文記事を、1件ずつまたは数千件単位でエクスポート。無料、ローカル処理、APIキー不要。"
   },
   "tagline": {
     "message": "スレッドや記事をMarkdownやPDFで保存"

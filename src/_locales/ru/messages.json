@@ -3,7 +3,7 @@
     "message": "X / Twitter Web Clipper: закладки и треды в Markdown, PDF, Obsidian"
   },
   "extensionDescription": {
-    "message": "Экспорт постов, тредов, закладок и статей X (Twitter) в Markdown, PDF или Obsidian: по одному или пакетом. Бесплатно, без API."
+    "message": "Экспорт постов и длинных статей из лайков или любого профиля: по одному или тысячами. Бесплатно, локально, без API-ключа."
   },
   "tagline": {
     "message": "Сохраняйте треды и статьи как Markdown или PDF"

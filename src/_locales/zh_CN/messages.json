@@ -3,7 +3,7 @@
     "message": "X / Twitter 网页剪藏：书签和线程转 Markdown、PDF、Obsidian"
   },
   "extensionDescription": {
-    "message": "将 X (Twitter) 帖子、线程、书签和文章导出为 Markdown、PDF 或 Obsidian，可单条或批量。免费，无 API。"
+    "message": "从你的点赞或任何个人资料页导出帖子和长文文章，可逐条导出，也可每批导出数千条。免费、本地运行，无需 API 密钥。"
   },
   "tagline": {
     "message": "将线程和文章保存为 Markdown 或 PDF"

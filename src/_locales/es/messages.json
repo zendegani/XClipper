@@ -3,7 +3,7 @@
     "message": "X / Twitter Web Clipper: Marcadores e hilos a Markdown, PDF, Obsidian"
   },
   "extensionDescription": {
-    "message": "Exporta posts, hilos, marcadores y artículos de X (Twitter) a Markdown, PDF u Obsidian. Uno a uno o en lote. Gratis, sin API."
+    "message": "Exporta posts y artículos largos desde tus Me gusta o cualquier perfil, uno a uno o miles por lote. Gratis, local, sin clave API."
   },
   "tagline": {
     "message": "Guardar hilos y artículos como Markdown o PDF"

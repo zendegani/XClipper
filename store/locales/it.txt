@@ -1,18 +1,18 @@
-XClipper è un web clipper ad alta fedeltà, con codice sorgente disponibile, per X (Twitter): un'estensione Chrome che salva tweet, thread e articoli lunghi come Markdown pulito, PDF, HTML, JSON, TXT, CSV o note Obsidian. Esporta un post alla volta oppure in batch dai segnalibri, dai like, da un profilo o dalla timeline Home. Tutto funziona nel browser: nessuna chiave API di X, nessun account, nessun server, nessun tracciamento, ed è gratuito per uso non commerciale.
+XClipper è un web clipper ad alta fedeltà, con codice sorgente disponibile, per X (Twitter): un'estensione Chrome che salva tweet, thread e articoli lunghi come Markdown pulito, PDF pronto per la stampa o note Obsidian. Esporta un post alla volta oppure in batch dai segnalibri, dai like, da un profilo o dalla timeline Home. Tutto funziona nel browser: nessuna chiave API di X, nessun account, nessun server, nessun tracciamento, ed è gratuito per uso non commerciale.
 
 Perché XClipper:
 
-La maggior parte degli strumenti "tweet to markdown" passa un post in un convertitore generico da HTML a Markdown e si ferma lì. XClipper è costruito diversamente:
+La maggior parte degli strumenti di clipping passa un post in un convertitore generico da HTML a Markdown e si ferma lì. XClipper è costruito diversamente:
 
 - Output che non dovrai ripulire. La pagina viene analizzata in un Content AST tipizzato prima di qualsiasi rendering, così la struttura rimane intatta: thread annidati, tweet citati, sondaggi, link card e articoli lunghi completi (titoli, liste, blocchi di codice). I link t.co vengono risolti in URL reali, emoji e @mention restano intatti, i post troncati vengono espansi, e barre di engagement, prompt di follow e tracker vengono rimossi.
-- PDF veri, non screenshot. L'export PDF usa il motore di stampa nativo di Chrome: testo selezionabile, link cliccabili, immagini incorporate e Unicode completo, non un'immagine appiattita.
+- PDF veri, non screenshot. L'export passa dal motore di stampa nativo di Chrome: testo selezionabile, link cliccabili, immagini incorporate e Unicode completo, non un'immagine appiattita.
 - Batch, non uno alla volta. Esporta tutti i segnalibri, i like, un profilo, la timeline o una selezione manuale in un job in background con barra di avanzamento, pausa / riprendi / stop e registro di deduplicazione, più una modalità Fast opzionale che recupera gli elementi direttamente dalla tua sessione X autenticata per una velocità circa 10x.
 - 100% locale, zero configurazione. Nessuna chiave API, nessun account, niente lascia il browser. Installa e ritaglia.
 
 Incluso anche:
 
-- Sette formati di export: Markdown, PDF, HTML, JSON, TXT, CSV o passaggio a Obsidian con un clic. Gli export batch scrivono file separati, un file combinato o entrambi (ogni formato tranne PDF).
-- Integrazione Obsidian: passaggio tramite obsidian:// con vault e sottocartella opzionali, più uno schema frontmatter adatto a Obsidian: wikilink [[@handle]], metadati compatibili con Dataview, titolo e descrizione generati e una lista di tag personalizzata.
+- Altri formati quando servono: salva una pagina HTML formattata e autonoma, il documento strutturato come JSON, testo semplice o una riga CSV di metadati. Gli export batch scrivono file separati, un file combinato o entrambi.
+- Integrazione Obsidian: passaggio tramite obsidian:// con vault e sottocartella opzionali, più uno schema frontmatter su misura: wikilink [[@handle]], metadati compatibili con Dataview, titolo e descrizione generati e una lista di tag personalizzata.
 - YAML frontmatter ricco: autore, handle, date, URL sorgente, tipo di contenuto e statistiche di engagement, ciascuno attivabile per campo e utilizzabile come token nei template personalizzati dei nomi file.
 - Tre modi per avviare l'export: un pulsante inline su ogni tweet, il popup della toolbar e il menu del tasto destro.
 - Salva localmente le immagini incorporate per evitare link rotti, ed esporta un singolo tweet o un intero thread.
@@ -21,7 +21,7 @@ In più: copia negli appunti o download, una riga inline opzionale con statistic
 
 Ideale per:
 
-- Workflow Obsidian e PKM (anche Notion, Logseq, Hugo e altri strumenti Markdown)
+- Workflow PKM e per appunti basati su Markdown
 - Ricerca e archiviazione di riferimenti
 - Prompt AI e pipeline RAG
 - Costruzione di un secondo cervello ricercabile

@@ -1,18 +1,18 @@
-XClipper, X (Twitter) के लिए एक high-fidelity, source-available web clipper है: एक Chrome extension जो tweets, threads और long-form articles को clean Markdown, PDF, HTML, JSON, TXT, CSV या Obsidian notes के रूप में सेव करता है। एक बार में एक post export करें, या अपने bookmarks, likes, किसी profile या home timeline से batch में export करें। सब कुछ आपके browser में चलता है: कोई X API key नहीं, कोई account नहीं, कोई server नहीं, कोई tracking नहीं, और noncommercial use के लिए free।
+XClipper, X (Twitter) के लिए एक high-fidelity, source-available web clipper है: एक Chrome extension जो tweets, threads और long-form articles को clean Markdown, print-ready PDF या Obsidian notes के रूप में सेव करता है। एक बार में एक post export करें, या अपने bookmarks, likes, किसी profile या home timeline से batch में export करें। सब कुछ आपके browser में चलता है: कोई X API key नहीं, कोई account नहीं, कोई server नहीं, कोई tracking नहीं, और noncommercial use के लिए free।
 
 XClipper क्यों:
 
-अधिकतर "tweet to markdown" tools किसी post को generic HTML-to-Markdown converter से गुजारकर वहीं रुक जाते हैं। XClipper अलग तरह से बनाया गया है:
+अधिकतर clipping tools किसी post को generic HTML-to-Markdown converter से गुजारकर वहीं रुक जाते हैं। XClipper अलग तरह से बनाया गया है:
 
 - ऐसा output जिसे आपको साफ नहीं करना पड़ेगा। कुछ भी render होने से पहले page को typed Content AST में parse किया जाता है, इसलिए structure बचा रहता है: nested threads, quote tweets, polls, link cards और पूरे long-form Articles (headings, lists, code blocks)। t.co links real URLs में resolve होते हैं, emoji और @mentions intact रहते हैं, truncated posts expand होते हैं, और engagement bars, follow prompts तथा trackers हटाए जाते हैं।
-- असली PDFs, screenshots नहीं। PDF export Chrome के native print engine का उपयोग करता है: selectable text, clickable links, embedded images और full Unicode, कोई flattened image नहीं।
+- असली PDFs, screenshots नहीं। Export Chrome के native print engine से होता है: selectable text, clickable links, embedded images और full Unicode, कोई flattened image नहीं।
 - Batch, एक-एक करके नहीं। अपने पूरे Bookmarks, Likes, किसी Profile, Timeline या hand-picked Selection को progress bar, pause / resume / stop और dedup ledger वाले background job में export करें, साथ में optional Fast mode जो आपकी logged-in X session से items सीधे खींचता है और लगभग 10x speed-up देता है।
 - 100% local, zero setup। कोई API keys नहीं, कोई accounts नहीं, कुछ भी आपके browser से बाहर नहीं जाता। Install करें और clip करें।
 
 साथ में शामिल:
 
-- सात export formats: Markdown, PDF, HTML, JSON, TXT, CSV या Obsidian को one-click handoff। Batch अलग-अलग files, एक combined file, या दोनों लिखता है (PDF को छोड़कर हर format)।
-- Obsidian integration: optional vault और subfolder के साथ obsidian:// handoff, साथ में Obsidian-friendly frontmatter schema: [[@handle]] wikilinks, Dataview-friendly metadata, synthesized title और description, और custom tags list।
+- जरूरत पड़ने पर और formats: styled, self-contained HTML page, structured document को JSON में, plain text या metadata की one-row CSV save करें। Batch अलग-अलग files, एक combined file, या दोनों लिखता है।
+- Obsidian integration: optional vault और subfolder के साथ obsidian:// handoff, साथ में tailored frontmatter schema: [[@handle]] wikilinks, Dataview-friendly metadata, synthesized title और description, और custom tags list।
 - Rich YAML frontmatter: author, handle, dates, source URL, content type और engagement stats, हर field अलग से toggleable, और custom filename templates में tokens के रूप में usable।
 - Trigger करने के तीन तरीके: हर tweet पर inline button, toolbar popup और right-click menu।
 - Link rot से बचने के लिए embedded images locally save करें, और single tweet या पूरा thread export करें।
@@ -21,7 +21,7 @@ XClipper क्यों:
 
 उपयोग के लिए उपयुक्त:
 
-- Obsidian और PKM workflows (साथ में Notion, Logseq, Hugo और अन्य Markdown tools)
+- PKM और Markdown-based note-taking workflows
 - research और reference archiving
 - AI prompts और RAG pipelines
 - searchable second brain बनाना

@@ -1,18 +1,18 @@
-XClipper ist ein hochpräziser, source-available Web-Clipper für X (Twitter) - eine Chrome-Erweiterung, die Tweets, Threads und Langform-Artikel als sauberes Markdown, PDF, HTML, JSON, TXT, CSV oder Obsidian-Notizen speichert. Exportiere einzelne Posts oder ganze Sammlungen aus deinen Lesezeichen, Likes, einem Profil oder deiner Startseiten-Timeline. Alles läuft in deinem Browser: kein X-API-Key, kein Konto, kein Server, kein Tracking - und für nichtkommerzielle Nutzung kostenlos.
+XClipper ist ein hochpräziser, source-available Web-Clipper für X (Twitter) - eine Chrome-Erweiterung, die Tweets, Threads und Langform-Artikel als sauberes Markdown, druckfertige PDF-Dateien oder Obsidian-Notizen speichert. Exportiere einzelne Posts oder ganze Sammlungen aus deinen Lesezeichen, Likes, einem Profil oder deiner Startseiten-Timeline. Alles läuft in deinem Browser: kein X-API-Key, kein Konto, kein Server, kein Tracking - und für nichtkommerzielle Nutzung kostenlos.
 
 Warum XClipper:
 
-Die meisten "Tweet zu Markdown"-Tools schicken einen Post durch einen generischen HTML-zu-Markdown-Konverter und hören dort auf. XClipper ist anders aufgebaut:
+Die meisten Clipping-Tools schicken einen Post durch einen generischen HTML-zu-Markdown-Konverter und hören dort auf. XClipper ist anders aufgebaut:
 
 - Ausgabe, die du nicht nachbereinigen musst. Die Seite wird vor dem Rendering in einen typisierten Content-AST geparst, damit die Struktur erhalten bleibt: verschachtelte Threads, zitierte Tweets, Umfragen, Linkkarten und vollständige Langform-Artikel (Überschriften, Listen, Codeblöcke). t.co-Links werden zu echten URLs aufgelöst, Emojis und @Mentions bleiben intakt, gekürzte Posts werden erweitert, und Interaktionsleisten, Follow-Aufforderungen und Tracker werden entfernt.
-- Echte PDFs, keine Screenshots. Der PDF-Export nutzt Chromes native Druck-Engine - mit auswählbarem Text, anklickbaren Links, eingebetteten Bildern und vollständigem Unicode statt eines flachen Bildes.
+- Echte PDFs, keine Screenshots. Der Export nutzt Chromes native Druck-Engine - mit auswählbarem Text, anklickbaren Links, eingebetteten Bildern und vollständigem Unicode statt eines flachen Bildes.
 - Batch statt einzeln. Exportiere deine gesamten Lesezeichen, Likes, ein Profil, deine Timeline oder eine manuell ausgewählte Auswahl in einem Hintergrundjob mit Fortschrittsanzeige, Pause / Fortsetzen / Stopp und Deduplizierungsprotokoll - plus optionalem Fast-Modus, der Einträge direkt aus deiner angemeldeten X-Sitzung abruft und ungefähr 10x schneller ist.
 - 100% lokal, ohne Einrichtung. Keine API-Keys, keine Konten, nichts verlässt deinen Browser. Installieren und clippen.
 
 Ebenfalls enthalten:
 
-- Sieben Exportformate - Markdown, PDF, HTML, JSON, TXT, CSV oder eine Übergabe an Obsidian mit einem Klick. Batch-Exporte schreiben separate Dateien, eine kombinierte Datei oder beides (jedes Format außer PDF).
-- Obsidian-Integration - Übergabe per obsidian:// mit optionalem Vault und Unterordner, plus Obsidian-freundliches frontmatter-Schema: [[@handle]]-Wikilinks, Dataview-freundliche Metadaten, generierter Titel und Beschreibung sowie eine benutzerdefinierte Tag-Liste.
+- Weitere Formate bei Bedarf - speichere eine gestaltete, eigenständige HTML-Seite, das strukturierte Dokument als JSON, reinen Text oder eine CSV-Metadatenzeile. Batch-Exporte schreiben separate Dateien, eine kombinierte Datei oder beides.
+- Obsidian-Integration - Übergabe per obsidian:// mit optionalem Vault und Unterordner, plus maßgeschneidertem frontmatter-Schema: [[@handle]]-Wikilinks, Dataview-freundliche Metadaten, generierter Titel und Beschreibung sowie eine benutzerdefinierte Tag-Liste.
 - Umfangreiches YAML frontmatter - Autor, Handle, Daten, Quell-URL, Inhaltstyp und Interaktionsstatistiken, jeweils pro Feld ein- und ausschaltbar und als Tokens in eigenen Dateinamenvorlagen nutzbar.
 - Drei Auslöser - ein Inline-Button an jedem Tweet, das Toolbar-Popup und das Rechtsklick-Menü.
 - Eingebettete Bilder lokal speichern, um Link-Verfall zu vermeiden, und einen einzelnen Tweet oder einen ganzen Thread exportieren.
@@ -21,7 +21,7 @@ Außerdem: in die Zwischenablage kopieren oder herunterladen, eine optionale Inl
 
 Gut geeignet für:
 
-- Obsidian- und PKM-Workflows (auch Notion, Logseq, Hugo und andere Markdown-Tools)
+- PKM- und Markdown-basierte Notiz-Workflows
 - Recherche und Referenzarchivierung
 - KI-Prompts und RAG-Pipelines
 - Aufbau eines durchsuchbaren zweiten Gehirns

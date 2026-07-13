@@ -1,18 +1,18 @@
-XClipper es un capturador web de alta fidelidad, con código fuente disponible, para X (Twitter): una extensión de Chrome que guarda tweets, hilos y artículos largos como Markdown limpio, PDF, HTML, JSON, TXT, CSV o notas de Obsidian. Exporta una publicación a la vez, o en lote desde tus marcadores, likes, un perfil o tu cronología de inicio. Todo funciona en tu navegador: sin clave de API de X, sin cuenta, sin servidor, sin seguimiento, y gratis para uso no comercial.
+XClipper es un capturador web de alta fidelidad, con código fuente disponible, para X (Twitter): una extensión de Chrome que guarda tweets, hilos y artículos largos como Markdown limpio, PDF listo para imprimir o notas de Obsidian. Exporta una publicación a la vez, o en lote desde tus marcadores, likes, un perfil o tu cronología de inicio. Todo funciona en tu navegador: sin clave de API de X, sin cuenta, sin servidor, sin seguimiento, y gratis para uso no comercial.
 
 Por qué XClipper:
 
-La mayoría de herramientas de "tweet a markdown" pasan una publicación por un conversor genérico de HTML a Markdown y se detienen ahí. XClipper está construido de otra forma:
+La mayoría de herramientas de recorte pasan una publicación por un conversor genérico de HTML a Markdown y se detienen ahí. XClipper está construido de otra forma:
 
 - Salida que no tendrás que limpiar. La página se analiza en un Content AST tipado antes de renderizar nada, por lo que la estructura se conserva: hilos anidados, tweets citados, encuestas, tarjetas de enlaces y artículos largos completos (encabezados, listas, bloques de código). Los enlaces t.co se resuelven a URL reales, los emojis y @menciones se mantienen intactos, las publicaciones truncadas se expanden, y se eliminan barras de interacción, avisos para seguir y rastreadores.
-- PDFs reales, no capturas de pantalla. La exportación a PDF usa el motor de impresión nativo de Chrome: texto seleccionable, enlaces clicables, imágenes incrustadas y Unicode completo, no una imagen plana.
+- PDFs reales, no capturas de pantalla. La exportación usa el motor de impresión nativo de Chrome: texto seleccionable, enlaces clicables, imágenes incrustadas y Unicode completo, no una imagen plana.
 - En lote, no uno por uno. Exporta todos tus Marcadores, Likes, un Perfil, tu Cronología o una Selección manual en un trabajo en segundo plano con barra de progreso, pausar / reanudar / detener y un registro de deduplicación, además de un modo Fast opcional que extrae elementos directamente de tu sesión iniciada en X para acelerar el proceso aproximadamente 10 veces.
 - 100% local, sin configuración. Sin claves API, sin cuentas, nada sale de tu navegador. Instala y recorta.
 
 También incluido:
 
-- Siete formatos de exportación: Markdown, PDF, HTML, JSON, TXT, CSV o entrega a Obsidian con un clic. Las exportaciones por lote escriben archivos separados, un archivo combinado o ambos (todos los formatos excepto PDF).
-- Integración con Obsidian: entrega mediante obsidian:// con vault y subcarpeta opcionales, además de un esquema de frontmatter compatible con Obsidian: wikilinks [[@handle]], metadatos compatibles con Dataview, título y descripción generados, y una lista de etiquetas personalizada.
+- Más formatos cuando los necesites: guarda una página HTML con estilo y autónoma, el documento estructurado como JSON, texto sin formato o una fila CSV de metadatos. Las exportaciones por lote escriben archivos separados, un archivo combinado o ambos.
+- Integración con Obsidian: entrega mediante obsidian:// con vault y subcarpeta opcionales, además de un esquema de frontmatter adaptado: wikilinks [[@handle]], metadatos compatibles con Dataview, título y descripción generados, y una lista de etiquetas personalizada.
 - YAML frontmatter completo: autor, handle, fechas, URL de origen, tipo de contenido y métricas de interacción, cada campo activable por separado y utilizable como token en plantillas personalizadas de nombre de archivo.
 - Tres formas de activar: un botón inline en cada tweet, el popup de la barra de herramientas y el menú de clic derecho.
 - Guarda imágenes incrustadas localmente para evitar enlaces rotos, y exporta un tweet individual o un hilo completo.
@@ -21,7 +21,7 @@ Además: copiar al portapapeles o descargar, una fila inline opcional con métri
 
 Ideal para:
 
-- Flujos de trabajo en Obsidian y PKM (también Notion, Logseq, Hugo y otras herramientas Markdown)
+- Flujos de trabajo de PKM y toma de notas basada en Markdown
 - Investigación y archivo de referencias
 - Prompts de IA y pipelines RAG
 - Construcción de un segundo cerebro buscable
