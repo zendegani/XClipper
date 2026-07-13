@@ -1,18 +1,18 @@
-XClipper is a high-fidelity, source-available web clipper for X (Twitter) — a Chrome extension that saves tweets, threads, and long-form articles as clean Markdown, PDF, HTML, JSON, TXT, CSV, or Obsidian notes. Export one post at a time, or in batch from your bookmarks, likes, a profile, or your home timeline. Everything runs in your browser: no X API key, no account, no server, no tracking — and it's free for noncommercial use.
+XClipper is a high-fidelity, source-available web clipper for X (Twitter) — a Chrome extension that saves tweets, threads, and long-form articles as clean Markdown, ready-to-print PDF, or Obsidian notes. Export one post at a time, or in batch from your bookmarks, likes, a profile, or your home timeline. Everything runs in your browser: no X API key, no account, no server, no tracking — and it's free for noncommercial use.
 
 Why XClipper:
 
-Most "tweet to markdown" tools run a post through a generic HTML-to-Markdown converter and stop there. XClipper is built differently:
+Most clipping tools run a post through a generic HTML-to-Markdown converter and stop there. XClipper is built differently:
 
 - Output you won't have to clean up. The page is parsed into a typed Content AST before anything renders, so structure survives: nested threads, quote tweets, polls, link cards, and full long-form Articles (headings, lists, code blocks). t.co links resolve to real URLs, emoji and @mentions stay intact, truncated posts expand, and engagement bars, follow prompts, and trackers are stripped.
-- Real PDFs, not screenshots. PDF export uses Chrome's native print engine — selectable text, clickable links, embedded images, and full Unicode, not a flattened image.
+- Real PDFs, not screenshots. Export goes through Chrome's native print engine — selectable text, clickable links, embedded images, and full Unicode, not a flattened image.
 - Batch, not one at a time. Export your whole Bookmarks, Likes, a Profile, your Timeline, or a hand-picked Selection in one background job with a progress bar, pause / resume / stop, and a dedup ledger — plus an optional Fast mode that pulls items straight from your logged-in X session for a roughly 10x speed-up.
 - 100% local, zero setup. No API keys, no accounts, nothing leaves your browser. Install and clip.
 
 Also included:
 
-- Seven export formats — Markdown, PDF, HTML, JSON, TXT, CSV, or a one-click handoff to Obsidian. Batch writes separate files, one combined file, or both (every format except PDF).
-- Obsidian integration — obsidian:// handoff with optional vault and subfolder, plus an Obsidian-friendly frontmatter schema: [[@handle]] wikilinks, Dataview-friendly metadata, synthesized title and description, and a custom tags list.
+- More formats when you need them — save a styled, self-contained HTML page, the structured document as JSON, plain text, or a one-row CSV of metadata. Batch writes separate files, one combined file, or both.
+- Obsidian integration — obsidian:// handoff with optional vault and subfolder, plus a tailored frontmatter schema: [[@handle]] wikilinks, Dataview-friendly metadata, synthesized title and description, and a custom tags list.
 - Rich YAML frontmatter — author, handle, dates, source URL, content type, and engagement stats, each toggleable per field, and usable as tokens in custom filename templates.
 - Three ways to trigger — an inline button on every tweet, the toolbar popup, and the right-click menu.
 - Save embedded images locally to prevent link rot, and export a single tweet or a whole thread.
@@ -21,7 +21,7 @@ Plus: copy to clipboard or download, an optional inline engagement-stats row, an
 
 Great for:
 
-- Obsidian and PKM workflows (also Notion, Logseq, Hugo, and other Markdown tools)
+- PKM and Markdown-based note-taking workflows
 - Research and reference archiving
 - AI prompts and RAG pipelines
 - Building a searchable second brain
