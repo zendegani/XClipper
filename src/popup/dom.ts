@@ -34,6 +34,7 @@ export const batchFormatSelect = document.getElementById('batch-format') as HTML
 export const outSeparate = document.getElementById('out-separate') as HTMLInputElement;
 export const outBoth = document.getElementById('out-both') as HTMLInputElement;
 export const outCombined = document.getElementById('out-combined') as HTMLInputElement;
+export const chkBatchZip = document.getElementById('chk-batch-zip') as HTMLInputElement;
 export const btnBatchIconBookmarks = document.getElementById('btn-batch-icon-bookmarks') as unknown as SVGElement;
 export const btnBatchIconProfile = document.getElementById('btn-batch-icon-profile') as unknown as SVGElement;
 export const btnBatchIconSelection = document.getElementById('btn-batch-icon-selection') as unknown as SVGElement;

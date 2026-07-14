@@ -239,6 +239,12 @@
   "batch_out_combined": {
     "message": "Combined"
   },
+  "opt_batch_zip": {
+    "message": "ZIP में सहेजें (एक डाउनलोड)"
+  },
+  "opt_batch_zip_title": {
+    "message": "हर पोस्ट की फ़ाइलों को एक .zip में पैक करता है — हज़ारों के बजाय एक डाउनलोड। \"Images locally save करें\" चालू होने पर या Combined आउटपुट के साथ उपलब्ध नहीं।"
+  },
   "batch_bar_selected": {
     "message": "selected"
   },

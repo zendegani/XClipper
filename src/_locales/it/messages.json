@@ -239,6 +239,12 @@
   "batch_out_combined": {
     "message": "Combinato"
   },
+  "opt_batch_zip": {
+    "message": "Comprimi in ZIP (un solo download)"
+  },
+  "opt_batch_zip_title": {
+    "message": "Raggruppa tutti i file per post in un unico .zip — un solo download invece di migliaia. Non disponibile con «Salva immagini in locale» attivo o con output «Combinato»."
+  },
   "batch_bar_selected": {
     "message": "selezionati"
   },

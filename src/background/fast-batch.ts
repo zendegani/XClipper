@@ -32,12 +32,15 @@ import { loadSettings } from '../shared/settings';
 import { postProcess, resolveDownloadImages } from '../shared/post-process';
 import { recordExport } from '../shared/review-prompt';
 import {
+  buildPerItemFile,
   docToExtracted,
+  downloadZipArchive,
   writeCombined,
   writeJsonManifest,
   writePerItem,
   type StoredItem,
 } from './batch-sink';
+import type { ZipEntry } from './zip';
 import {
   EXPORTED_LEDGER_KEY,
   INCOMPLETE_LEDGER_KEY,
@@ -301,6 +304,10 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
   const format = settings.batchFormat ?? 'md';
   // CSV is metadata-only — always one combined file (mirrors Standard batch).
   const output = format === 'csv' ? 'combined' : settings.batchOutput ?? 'separate';
+  // Pack per-item files into one archive instead of loose downloads. Local
+  // images override it off — image bytes can't be fetched into the zip —
+  // but images only ever download for Markdown, so only 'md' blocks.
+  const zip = settings.batchZip && output !== 'combined' && !(settings.downloadImages && format === 'md');
   const frontmatterFields = settings.obsidianFriendly
     ? settings.frontmatterFieldsObsidian
     : settings.frontmatterFields;
@@ -323,6 +330,9 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
   const usedFilenames: string[] = [];
   const stubFilenames: string[] = [];
   const items: StoredItem[] = [];
+  // Zip mode: per-item files accumulate here instead of downloading, then land
+  // as one archive after the write phase.
+  const zipEntries: ZipEntry[] = [];
   // Carry incomplete-id memory forward: drop ids that completed this run, add
   // ids still written as stubs — so next run expands the leftovers first.
   const nextIncomplete = new Set(prevIncomplete);
@@ -350,9 +360,13 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
       stubFilenames.push(filename.toLowerCase());
       if (feedId) nextIncomplete.add(feedId);
       incomplete++;
-      return output === 'combined'
-        ? Promise.resolve()
-        : writePerItem(`${folder}/${INCOMPLETE_SUBFOLDER}`, format, filename, result.markdown, result.images, doc, settings);
+      if (output === 'combined') return Promise.resolve();
+      if (zip) {
+        const file = buildPerItemFile(format, filename, result.markdown, doc, settings);
+        zipEntries.push({ name: `${INCOMPLETE_SUBFOLDER}/${file.name}`, content: file.content });
+        return Promise.resolve();
+      }
+      return writePerItem(`${folder}/${INCOMPLETE_SUBFOLDER}`, format, filename, result.markdown, result.images, doc, settings);
     }
     const filename = uniqueFilename(usedFilenames, result.filename);
     usedFilenames.push(filename.toLowerCase());
@@ -365,9 +379,13 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
     }
     if (feedId) nextIncomplete.delete(feedId);
     if (expandedId) nextIncomplete.delete(expandedId);
-    return output === 'combined'
-      ? Promise.resolve()
-      : writePerItem(folder, format, filename, result.markdown, result.images, doc, settings);
+    if (output === 'combined') return Promise.resolve();
+    if (zip) {
+      const file = buildPerItemFile(format, filename, result.markdown, doc, settings);
+      zipEntries.push({ name: file.name, content: file.content });
+      return Promise.resolve();
+    }
+    return writePerItem(folder, format, filename, result.markdown, result.images, doc, settings);
   };
 
   // Super Fast pipeline: with expansion off, a non-article root is
@@ -573,6 +591,8 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
   // Drain any downloads the Super Fast pipeline streamed during collection, so
   // every file is on disk before we write the manifest and finalize.
   await Promise.all(streamedWrites);
+  // Zip mode: everything writeOne collected (stubs included) as one archive.
+  if (zip) await downloadZipArchive(folder, zipEntries);
 
   if (items.length > 0) {
     await writeJsonManifest(

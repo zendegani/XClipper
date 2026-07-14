@@ -18,6 +18,9 @@ export interface BatchJob {
   // File format + grouping snapshotted at job start (default 'md'/'separate').
   format?: 'md' | 'txt' | 'html' | 'json' | 'csv';
   output?: 'separate' | 'both' | 'combined';
+  // Pack per-item files into one .zip at finalize (snapshotted at job start;
+  // already resolved against the local-images setting, which disables it).
+  zip?: boolean;
   // Normalized, deduped status permalinks.
   urls: string[];
   // Index of the item currently being processed (or next to dispatch).
