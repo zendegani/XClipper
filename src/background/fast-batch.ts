@@ -538,7 +538,13 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
     });
     return null;
   } else if (toExpand.length > 0) {
-    setProgress({ phase: 'Expanding threads & articles…', total: toExpand.length, done: 0 });
+    // Super (expandThreads off) still expands articles — their body needs the
+    // TweetDetail fetch — so name only what this run actually expands.
+    setProgress({
+      phase: expandThreads ? 'Expanding threads & articles…' : 'Expanding articles…',
+      total: toExpand.length,
+      done: 0,
+    });
     const ordered = [...toExpand].sort(
       (a, b) => Number(b.doc.metadata.type === 'article') - Number(a.doc.metadata.type === 'article')
     );

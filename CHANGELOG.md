@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Zip files option packs a batch into a single download**: a new toggle next to the batch Output selector packs every per-post file into one `.zip` — one entry on Chrome's downloads shelf instead of one per post, which matters when Auto/Super saves thousands at once. Works with Separate and Both output for every format (the combined file and `data.json` stay separate downloads); rate-limited stubs keep their `_incomplete_rerun_to_complete/` folder inside the archive. The toggle greys out with Combined output, and while **Save images locally** is on — image bytes can't be fetched into the archive, so loose files remain the way to get local images.
 - **Download-flood warning under the batch engine selector**: with Auto or Super selected while the export would still write loose per-post files (Zip off and Output not Combined), a highlighted hint now appears below the Manual · Auto · Super selector recommending the Zip toggle or Combined output, so a thousands-of-download-popups run doesn't come as a surprise. It disappears as soon as either is active.
 
+### Fixed
+
+- **Super mode's Expanding step no longer dimmed**: the step light was greyed out on the assumption that Super skips the whole expansion phase, but Super still fetches full X Article bodies (and completes earlier rate-limited items) — only threads are skipped. The step now stays live, and the run's phase text says "Expanding articles…" in Super instead of Auto's "Expanding threads & articles…".
+
 ---
 ## [2.6.1] - 2026-07-13
 
