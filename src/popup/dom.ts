@@ -56,6 +56,7 @@ export const modeManual = document.getElementById('mode-manual') as HTMLButtonEl
 export const modeAuto = document.getElementById('mode-auto') as HTMLButtonElement;
 export const modeSuper = document.getElementById('mode-super') as HTMLButtonElement;
 export const fastLockedHint = document.getElementById('fast-locked-hint') as HTMLParagraphElement;
+export const floodHint = document.getElementById('flood-hint') as HTMLParagraphElement;
 export const fastDateRange = document.getElementById('fast-date-range') as HTMLDivElement;
 export const fastDateFrom = document.getElementById('fast-date-from') as HTMLInputElement;
 export const fastDateTo = document.getElementById('fast-date-to') as HTMLInputElement;

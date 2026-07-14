@@ -245,6 +245,9 @@
   "opt_batch_zip_title": {
     "message": "Empaqueta todos los archivos por publicación en un único .zip: una sola descarga en lugar de miles. No disponible con «Guardar imágenes localmente» activado ni con la salida «Combinado»."
   },
+  "flood_hint": {
+    "message": "Esto puede guardar miles de archivos separados a la vez. Activa «Comprimir en ZIP» o elige la salida «Combinado» para obtener una sola descarga."
+  },
   "batch_bar_selected": {
     "message": "seleccionados"
   },

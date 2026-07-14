@@ -15,6 +15,8 @@
   --error-bg: rgba(244, 33, 46, 0.12);
   --error-glow: rgba(244, 33, 46, 0.28);
   --error-tint: rgba(244, 33, 46, 0.16);
+  --warning: #9a6700;
+  --warning-bg: rgba(212, 167, 44, 0.14);
   --border-subtle: rgba(0, 0, 0, 0.08);
   --toggle-off-bg: rgba(0, 0, 0, 0.1);
   --toggle-off-knob: #8b98a5;
@@ -39,6 +41,8 @@
     --border-subtle: rgba(255, 255, 255, 0.06);
     --toggle-off-bg: rgba(255, 255, 255, 0.1);
     --toggle-off-knob: var(--text-secondary);
+    --warning: #e3b341;
+    --warning-bg: rgba(227, 179, 65, 0.12);
   }
 }
 
@@ -1079,6 +1083,24 @@ body {
 }
 
 .fast-locked-hint.hidden {
+  display: none;
+}
+
+/* Flood warning: Auto/Super with un-zipped per-item output would drop
+ * thousands of entries on the downloads shelf — nudge toward the Zip toggle
+ * or Combined output. A normal-flow block between the engine selector and
+ * the fetch-mode segment, so showing it pushes the latter down. */
+.flood-hint {
+  margin: -2px 0 0;
+  padding: 6px 8px;
+  font-size: 11px;
+  line-height: 1.35;
+  border-radius: var(--radius-sm);
+  color: var(--warning);
+  background: var(--warning-bg);
+}
+
+.flood-hint.hidden {
   display: none;
 }
 

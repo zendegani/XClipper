@@ -245,6 +245,9 @@
   "opt_batch_zip_title": {
     "message": "Regroupe tous les fichiers par publication dans un seul .zip — un téléchargement au lieu de milliers. Indisponible quand « Enregistrer les images localement » est activé ou avec la sortie « Combiné »."
   },
+  "flood_hint": {
+    "message": "Cela peut enregistrer des milliers de fichiers séparés d'un coup. Activez « Compresser en ZIP » ou choisissez la sortie « Combiné » pour obtenir un seul téléchargement."
+  },
   "batch_bar_selected": {
     "message": "sélectionnés"
   },
