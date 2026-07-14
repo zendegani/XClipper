@@ -29,6 +29,9 @@ import {
   modeAuto,
   modeSuper,
   fastLockedHint,
+  floodHint,
+  outCombined,
+  chkBatchZip,
   fastDateRange,
   fastDateFrom,
   fastDateTo,
@@ -125,6 +128,17 @@ function applyGlow(): void {
   fastSteps?.classList.toggle('hidden', !showExtras);
 }
 
+// Auto/Super save every loaded post as its own file — thousands of downloads
+// unless the user picked Combined output or the zip toggle (a disabled zip
+// toggle counts as off: local images override it). Shown below the engine
+// selector, pushing the fetch-mode segment down while visible. Re-evaluated
+// on engine switches here and on output/zip/format changes in settings-form.
+export function updateFloodHint(): void {
+  const zipOn = chkBatchZip.checked && !chkBatchZip.disabled;
+  const show = inBatchMode && engineMode !== 'manual' && !outCombined.checked && !zipOn;
+  floodHint?.classList.toggle('hidden', !show);
+}
+
 // Apply + persist the chosen engine (no permission handling — see selectMode).
 function setBatchMode(mode: BatchMode): void {
   engineMode = mode;
@@ -140,6 +154,7 @@ function setBatchMode(mode: BatchMode): void {
   fastStepExpand?.classList.toggle('disabled', mode === 'super');
   chrome.storage.local.set({ [BATCH_MODE_KEY]: mode });
   applyGlow();
+  updateFloodHint();
   notifyChanged();
 }
 
@@ -236,6 +251,7 @@ export function syncFastBatchMode(single: boolean): void {
   if (single) fastLockedHint?.classList.add('hidden');
   updateToggleLock();
   applyGlow();
+  updateFloodHint();
 }
 
 export function initFastBatchUi(): void {

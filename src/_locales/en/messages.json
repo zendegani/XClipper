@@ -287,6 +287,9 @@
   "opt_batch_zip_title": {
     "message": "Pack all per-post files into a single .zip — one download instead of thousands. Not available while \"Save images locally\" is on, or with Combined output."
   },
+  "flood_hint": {
+    "message": "This can save thousands of separate files at once. Turn on “Zip files” or pick “Combined” output to get a single download instead."
+  },
   "batch_bar_selected": {
     "message": "selected"
   },

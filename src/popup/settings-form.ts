@@ -22,6 +22,7 @@ import {
   TAGS_PLACEHOLDERS,
 } from '../shared/post-process';
 import { attachPlaceholderAutocomplete } from './placeholder-autocomplete';
+import { updateFloodHint } from './fast-batch-ui';
 import {
   fmtButtons,
   batchFormatControls,
@@ -159,6 +160,8 @@ function syncBatchToggles(): void {
 export function syncBatchControls(): void {
   syncOutputForFormat();
   syncBatchToggles();
+  // The flood hint reads the zip/output state this sync just settled.
+  updateFloodHint();
 }
 
 function updateInlineCopiesEnabled(): void {
@@ -413,13 +416,16 @@ export function initSettingsForm(): void {
   });
 
   // ─── Plain change/blur persistence for the remaining controls ───
-  // Local images and the output radios gate the zip toggle, so they re-sync
-  // the batch controls, not just persist.
+  // Local images and the output radios gate the zip toggle (and the flood
+  // hint), so they re-sync the batch controls, not just persist.
   chkDownloadImages.addEventListener('change', () => {
     syncBatchControls();
     persistAll();
   });
-  chkBatchZip.addEventListener('change', persistAll);
+  chkBatchZip.addEventListener('change', () => {
+    updateFloodHint();
+    persistAll();
+  });
   batchFormatSelect.addEventListener('change', () => {
     syncBatchControls();
     persistAll();

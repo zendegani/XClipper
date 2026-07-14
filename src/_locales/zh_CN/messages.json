@@ -245,6 +245,9 @@
   "opt_batch_zip_title": {
     "message": "将每篇帖子的文件打包成一个 .zip——只需一次下载，而不是数千次。开启“本地保存图片”或选择“合并”输出时不可用。"
   },
+  "flood_hint": {
+    "message": "这可能一次保存数千个单独文件。开启“打包为 ZIP”或选择“合并”输出，即可只下载一个文件。"
+  },
   "batch_bar_selected": {
     "message": "已选择"
   },
