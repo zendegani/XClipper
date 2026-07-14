@@ -125,6 +125,21 @@
               <label for="out-combined" class="seg-label" data-i18n="batch_out_combined">Combined</label>
             </div>
           </div>
+          <label class="toggle-label"
+            data-tooltip="Pack all per-post files into a single .zip — one download instead of thousands. Not available while &quot;Save images locally&quot; is on, or with Combined output."
+            data-i18n-tooltip="opt_batch_zip_title">
+            <span class="toggle-text">
+              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="21 8 21 21 3 21 3 8" />
+                <rect x="1" y="3" width="22" height="5" />
+                <line x1="10" y1="12" x2="14" y2="12" />
+              </svg>
+              <span data-i18n="opt_batch_zip">Zip files (one download)</span>
+            </span>
+            <input type="checkbox" id="chk-batch-zip" class="toggle-input" />
+            <span class="toggle-switch"></span>
+          </label>
           <label class="batch-field">
             <span class="batch-field-label" data-i18n="batch_format">Format</span>
             <select id="batch-format" class="batch-select">

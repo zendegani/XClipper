@@ -239,6 +239,12 @@
   "batch_out_combined": {
     "message": "مدمج"
   },
+  "opt_batch_zip": {
+    "message": "ضغط الملفات في ZIP (تنزيل واحد)"
+  },
+  "opt_batch_zip_title": {
+    "message": "يجمع كل ملفات المنشورات في ملف ‎.zip واحد — تنزيل واحد بدلاً من الآلاف. غير متاح أثناء تفعيل «حفظ الصور محلياً» أو مع الإخراج «مدمج»."
+  },
   "batch_bar_selected": {
     "message": "محددة"
   },

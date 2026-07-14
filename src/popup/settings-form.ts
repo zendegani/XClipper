@@ -29,6 +29,7 @@ import {
   outSeparate,
   outBoth,
   outCombined,
+  chkBatchZip,
   chkDownloadImages,
   chkMetadata,
   chkCloseTab,
@@ -98,6 +99,7 @@ export function persistAll(): void {
     singleFormat: readSingleFormat(),
     batchFormat: batchFormatSelect.value as BatchFormat,
     batchOutput: readBatchOutput(),
+    batchZip: chkBatchZip.checked,
     frontmatterFields,
     frontmatterFieldsObsidian,
     settingsSectionsOpen,
@@ -142,6 +144,13 @@ function syncBatchToggles(): void {
   gate(chkDownloadImages, fmt === 'md');
   gate(chkInlineStats, fmt === 'md' || fmt === 'html');
   gate(chkMetadata, fmt === 'md' || fmt === 'csv');
+  // Zip packs the per-item files, so it's meaningless with Combined-only
+  // output; local images disable it too (image bytes can't be fetched into
+  // the archive — and images only ever download for Markdown). Batch-only
+  // control, so no batchMode factor.
+  const zipBlocked = outCombined.checked || (chkDownloadImages.checked && fmt === 'md');
+  chkBatchZip.disabled = zipBlocked;
+  chkBatchZip.closest('.toggle-label')?.classList.toggle('disabled', zipBlocked);
 }
 
 // Reconcile both batch-only control groups (output radios + format-gated
@@ -325,6 +334,7 @@ export function initSettingsForm(): void {
     applySingleFormat(settings.singleFormat);
     batchFormatSelect.value = settings.batchFormat;
     setBatchOutput(settings.batchOutput);
+    chkBatchZip.checked = settings.batchZip;
     syncBatchControls();
     frontmatterFields = { ...settings.frontmatterFields };
     frontmatterFieldsObsidian = { ...settings.frontmatterFieldsObsidian };
@@ -403,13 +413,22 @@ export function initSettingsForm(): void {
   });
 
   // ─── Plain change/blur persistence for the remaining controls ───
-  chkDownloadImages.addEventListener('change', persistAll);
+  // Local images and the output radios gate the zip toggle, so they re-sync
+  // the batch controls, not just persist.
+  chkDownloadImages.addEventListener('change', () => {
+    syncBatchControls();
+    persistAll();
+  });
+  chkBatchZip.addEventListener('change', persistAll);
   batchFormatSelect.addEventListener('change', () => {
     syncBatchControls();
     persistAll();
   });
   [outSeparate, outBoth, outCombined].forEach((r) =>
-    r.addEventListener('change', persistAll)
+    r.addEventListener('change', () => {
+      syncBatchControls();
+      persistAll();
+    })
   );
   chkMetadata.addEventListener('change', () => {
     // Mirror of the Obsidian-friendly → metadata rule: if metadata goes off,

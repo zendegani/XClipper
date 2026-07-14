@@ -18,9 +18,11 @@ import type {
 import { loadSettings, type BatchFormat, type BatchOutput } from '../shared/settings';
 import { recordExport } from '../shared/review-prompt';
 import {
+  downloadZipArchive,
   writeCombined,
   writeJsonManifest,
   writePerItem,
+  zipEntryFromStored,
   type StoredItem,
 } from './batch-sink';
 import {
@@ -162,10 +164,12 @@ export async function startBatch(
     ...(origin === 'profile' && handle ? { handle } : {}),
   };
   // Snapshot the user's download subfolder once so the whole job lands in one
-  // place even if the setting changes mid-run.
+  // place even if the setting changes mid-run. Same for the zip choice — local
+  // images override it off (image bytes can't be fetched into the archive).
   const settings = await loadSettings();
   const prefix = settings.downloadFolder.trim();
   if (prefix) job = { ...job, folder: `${prefix}/${job.folder}` };
+  if (settings.batchZip && !(settings.downloadImages && format === 'md')) job = { ...job, zip: true };
 
   log(`job ${job.id}: ${job.urls.length} item(s) → ${job.folder}/`);
   chrome.alarms.create(WATCHDOG_ALARM, { periodInMinutes: 0.5 });
@@ -293,7 +297,11 @@ async function handleItemResult(
   const { job: advanced, filename } = recordResult(job, outcome);
   if (outcome.success && filename) {
     // 'combined' writes nothing per item — the one file is built at finalize.
-    if (effectiveOutput(job) !== 'combined') {
+    // Zip mode also defers to finalize: entries are rebuilt there from the
+    // stored docs, so nothing per-item hits the downloads shelf.
+    // (msg.doc missing means there's nothing to rebuild from at finalize, so
+    // such an item is written loose even in zip mode.)
+    if (effectiveOutput(job) !== 'combined' && !(job.zip && msg.doc)) {
       await writePerItem(
         advanced.folder,
         job.format ?? 'md',
@@ -312,8 +320,21 @@ async function handleItemResult(
         });
       } catch (err) {
         // storage.session quota (~10 MB) — the .md files are already on disk,
-        // so a huge batch just loses this item from data.json.
+        // so a huge batch just loses this item from data.json. In zip mode the
+        // stored doc IS the file, so fall back to a loose per-item download
+        // rather than silently dropping the post from the export.
         log(`doc not kept for data.json (${expected}):`, err);
+        if (job.zip && effectiveOutput(job) !== 'combined') {
+          await writePerItem(
+            advanced.folder,
+            job.format ?? 'md',
+            filename,
+            msg.markdown as string,
+            msg.images,
+            msg.doc,
+            await loadSettings()
+          );
+        }
       }
     }
   } else if (!outcome.success) {
@@ -400,8 +421,15 @@ async function finalize(job: BatchJob): Promise<void> {
         items
       );
       const out = effectiveOutput(job);
+      const settings = await loadSettings();
       if (out === 'both' || out === 'combined') {
-        await writeCombined(job.folder, job.format ?? 'md', items.map((i) => i.doc), await loadSettings());
+        await writeCombined(job.folder, job.format ?? 'md', items.map((i) => i.doc), settings);
+      }
+      if (job.zip && out !== 'combined') {
+        await downloadZipArchive(
+          job.folder,
+          items.map((i) => zipEntryFromStored(i, job.format ?? 'md', settings))
+        );
       }
     }
   } catch (err) {

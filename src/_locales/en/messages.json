@@ -281,6 +281,12 @@
   "batch_out_combined": {
     "message": "Combined"
   },
+  "opt_batch_zip": {
+    "message": "Zip files (one download)"
+  },
+  "opt_batch_zip_title": {
+    "message": "Pack all per-post files into a single .zip — one download instead of thousands. Not available while \"Save images locally\" is on, or with Combined output."
+  },
   "batch_bar_selected": {
     "message": "selected"
   },

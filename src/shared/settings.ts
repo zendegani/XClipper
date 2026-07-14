@@ -42,6 +42,10 @@ export interface Settings {
   // Batch export: per-item files, one combined file, or both. CSV is always
   // treated as 'combined' (one-row-per-item files would be pointless).
   batchOutput: BatchOutput;
+  // Batch export: pack the per-item files into one .zip (a single download
+  // instead of thousands). Ignored while local images are on — image bytes
+  // can't be fetched into the archive without extra permissions.
+  batchZip: boolean;
   frontmatterFields: FieldMap;
   frontmatterFieldsObsidian: FieldMap;
   // Section ids in most-recently-opened order (max length = SECTION_MAX_OPEN).
@@ -73,6 +77,7 @@ export const DEFAULT_SETTINGS: Settings = {
   singleFormat: 'md', // Markdown — the default single-export target
   batchFormat: 'md', // Markdown — matches the single-export default
   batchOutput: 'separate', // per-item files only; 'both' adds a combined file
+  batchZip: false, // off — loose per-item files, matching prior behavior
   frontmatterFields: allEnabled(FRONTMATTER_FIELDS_DEFAULT),
   frontmatterFieldsObsidian: allEnabled(FRONTMATTER_FIELDS_OBSIDIAN),
   settingsSectionsOpen: ['downloads', 'obsidian'],

@@ -239,6 +239,12 @@
   "batch_out_combined": {
     "message": "結合"
   },
+  "opt_batch_zip": {
+    "message": "ZIPにまとめる（ダウンロード1回）"
+  },
+  "opt_batch_zip_title": {
+    "message": "投稿ごとのファイルを1つの.zipにまとめます — 数千回ではなく1回のダウンロードに。「画像をローカル保存」がオンのとき、または「結合」出力では使えません。"
+  },
   "batch_bar_selected": {
     "message": "選択済み"
   },

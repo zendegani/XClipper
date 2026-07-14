@@ -239,6 +239,12 @@
   "batch_out_combined": {
     "message": "Kombiniert"
   },
+  "opt_batch_zip": {
+    "message": "Dateien zippen (ein Download)"
+  },
+  "opt_batch_zip_title": {
+    "message": "Packt alle Einzeldateien in eine einzige .zip — ein Download statt Tausender. Nicht verfügbar, solange „Bilder lokal speichern“ aktiv ist oder bei Ausgabe „Kombiniert“."
+  },
   "batch_bar_selected": {
     "message": "ausgewählt"
   },

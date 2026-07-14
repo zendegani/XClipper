@@ -239,6 +239,12 @@
   "batch_out_combined": {
     "message": "合并"
   },
+  "opt_batch_zip": {
+    "message": "打包为 ZIP（单次下载）"
+  },
+  "opt_batch_zip_title": {
+    "message": "将每篇帖子的文件打包成一个 .zip——只需一次下载，而不是数千次。开启“本地保存图片”或选择“合并”输出时不可用。"
+  },
   "batch_bar_selected": {
     "message": "已选择"
   },

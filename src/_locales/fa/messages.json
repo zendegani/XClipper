@@ -239,6 +239,12 @@
   "batch_out_combined": {
     "message": "Combined"
   },
+  "opt_batch_zip": {
+    "message": "فشرده‌سازی در ZIP (یک دانلود)"
+  },
+  "opt_batch_zip_title": {
+    "message": "همهٔ فایل‌های هر پست را در یک فایل ‎.zip می‌گذارد — یک دانلود به‌جای هزاران. هنگام فعال بودن «ذخیره محلی تصاویر» یا با خروجی Combined در دسترس نیست."
+  },
   "batch_bar_selected": {
     "message": "انتخاب‌شده"
   },

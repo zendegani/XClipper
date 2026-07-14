@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ---
 ## [Unreleased]
 
+### Added
+
+- **Zip files option packs a batch into a single download**: a new toggle next to the batch Output selector packs every per-post file into one `.zip` — one entry on Chrome's downloads shelf instead of one per post, which matters when Auto/Super saves thousands at once. Works with Separate and Both output for every format (the combined file and `data.json` stay separate downloads); rate-limited stubs keep their `_incomplete_rerun_to_complete/` folder inside the archive. The toggle greys out with Combined output, and while **Save images locally** is on — image bytes can't be fetched into the archive, so loose files remain the way to get local images.
+
 ---
 ## [2.6.1] - 2026-07-13
 

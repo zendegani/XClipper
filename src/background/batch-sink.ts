@@ -20,8 +20,10 @@ import {
   type ExportFormat,
   type FormatOptions,
 } from '../shared/export-formats';
+import { postProcess } from '../shared/post-process';
 import type { BatchFailure } from './batch-state';
 import { isAllowedImageUrl, sanitizeFilePath } from './security';
+import { buildZip, zipDataUrl, type ZipEntry } from './zip';
 
 export interface StoredItem {
   url: string;
@@ -167,6 +169,21 @@ export async function downloadItem(
   await Promise.all(writes);
 }
 
+// One item's file (name + content) in the chosen format — the piece of the
+// per-item write that both sinks share: writePerItem downloads it, the zip
+// sink packs it into the archive instead.
+export function buildPerItemFile(
+  format: BatchFormat,
+  filename: string,
+  markdown: string,
+  doc: Document | undefined,
+  settings: Settings
+): { name: string; content: string; mime: string } {
+  if (format === 'md' || !doc) return { name: filename, content: markdown, mime: 'text/markdown' };
+  const built = buildFormatExport(format as ExportFormat, docToExtracted(doc), formatOptionsFrom(settings));
+  return { name: filename.replace(/\.md$/i, '') + '.' + built.ext, content: built.content, mime: built.mime };
+}
+
 // Write one item's file in the chosen format. Markdown is the postProcessed
 // output (+ local images); other formats are derived from the AST. Images only
 // attach to Markdown. CSV never reaches this (it's always combined).
@@ -183,9 +200,40 @@ export async function writePerItem(
     await downloadItem(folder, filename, markdown, images);
     return;
   }
-  const built = buildFormatExport(format as ExportFormat, docToExtracted(doc), formatOptionsFrom(settings));
-  const outName = filename.replace(/\.md$/i, '') + '.' + built.ext;
-  await downloadData(folder, outName, built.content, built.mime);
+  const file = buildPerItemFile(format, filename, markdown, doc, settings);
+  await downloadData(folder, file.name, file.content, file.mime);
+}
+
+// Rebuild a stored item as a zip entry. Markdown is re-derived from the AST
+// through the same postProcess pipeline the live write path uses (mirroring
+// the content script's options); local images are always off in zip mode, so
+// the remote-URL rendering is the correct one.
+export function zipEntryFromStored(item: StoredItem, format: BatchFormat, settings: Settings): ZipEntry {
+  const result = postProcess(docToExtracted(item.doc), {
+    includeMetadata: settings.includeMetadata,
+    downloadImages: false,
+    inlineStats: settings.inlineStats,
+    obsidianFriendly: settings.obsidianFriendly,
+    filenameTemplate: settings.filenameTemplate.trim(),
+    frontmatterFields: settings.obsidianFriendly ? settings.frontmatterFieldsObsidian : settings.frontmatterFields,
+  });
+  const file = buildPerItemFile(format, item.filename, result.markdown, item.doc, settings);
+  return { name: file.name, content: file.content };
+}
+
+// Zip sink: every per-item file in one archive — a single download instead of
+// one shelf entry per post. data.json and the combined file stay separate
+// (they're one download each already).
+export async function downloadZipArchive(folder: string, entries: ZipEntry[]): Promise<void> {
+  if (entries.length === 0) return;
+  const d = new Date();
+  const stamp =
+    `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}` + String(d.getDate()).padStart(2, '0');
+  await downloadThrottled({
+    url: zipDataUrl(buildZip(entries, d)),
+    filename: sanitizeFilePath(`${folder}/x-files-${stamp}.zip`),
+    saveAs: false,
+  });
 }
 
 // JSON sink (ADR 0002 #11): one data.json per job with metadata, failures, and
