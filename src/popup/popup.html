@@ -112,19 +112,6 @@
             <input type="checkbox" id="chk-include-reposts" class="toggle-input" />
             <span class="toggle-switch"></span>
           </label>
-          <div class="batch-field">
-            <span class="batch-field-label" data-i18n="batch_output">Output</span>
-            <div class="segmented" role="radiogroup" aria-label="Output"
-              data-tooltip="Separate: one file per post. Both: per-post files plus one combined file. Combined: just one file."
-              data-i18n-tooltip="batch_output_hint">
-              <input type="radio" name="batch-output" id="out-separate" value="separate" class="seg-input" />
-              <label for="out-separate" class="seg-label" data-i18n="batch_out_separate">Separate</label>
-              <input type="radio" name="batch-output" id="out-both" value="both" class="seg-input" />
-              <label for="out-both" class="seg-label" data-i18n="batch_out_both">Both</label>
-              <input type="radio" name="batch-output" id="out-combined" value="combined" class="seg-input" />
-              <label for="out-combined" class="seg-label" data-i18n="batch_out_combined">Combined</label>
-            </div>
-          </div>
           <label class="toggle-label"
             data-tooltip="Pack all per-post files into a single .zip — one download instead of thousands. Not available while &quot;Save images locally&quot; is on, or with Combined output."
             data-i18n-tooltip="opt_batch_zip_title">
@@ -150,6 +137,19 @@
               <option value="csv">CSV (.csv)</option>
             </select>
           </label>
+          <div class="batch-field">
+            <span class="batch-field-label" data-i18n="batch_output">Output</span>
+            <div class="segmented" role="radiogroup" aria-label="Output"
+              data-tooltip="Separate: one file per post. Both: per-post files plus one combined file. Combined: just one file."
+              data-i18n-tooltip="batch_output_hint">
+              <input type="radio" name="batch-output" id="out-separate" value="separate" class="seg-input" />
+              <label for="out-separate" class="seg-label" data-i18n="batch_out_separate">Separate</label>
+              <input type="radio" name="batch-output" id="out-both" value="both" class="seg-input" />
+              <label for="out-both" class="seg-label" data-i18n="batch_out_both">Both</label>
+              <input type="radio" name="batch-output" id="out-combined" value="combined" class="seg-input" />
+              <label for="out-combined" class="seg-label" data-i18n="batch_out_combined">Combined</label>
+            </div>
+          </div>
         </div>
         </details>
       </div>
