@@ -96,3 +96,4 @@ export const btnTagsReset = document.getElementById('btn-obsidian-tags-reset') a
 export const tagsAutocomplete = document.getElementById('obsidian-tags-autocomplete') as HTMLDivElement;
 export const tagsFieldLabel = document.getElementById('obsidian-tags-label') as HTMLLabelElement;
 export const filenamePreview = document.getElementById('filename-preview') as HTMLElement;
+export const filenameAutocomplete = document.getElementById('filename-template-autocomplete') as HTMLDivElement;
