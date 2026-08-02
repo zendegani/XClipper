@@ -10,6 +10,8 @@ import type {
   PollNode,
   LinkCardNode,
   ArticleCardNode,
+  TableNode,
+  TableRowNode,
 } from './types';
 
 export interface RenderPdfHtmlOptions {
@@ -241,6 +243,8 @@ function renderArticleBlock(block: Block): string {
       return `<figure class="article-image"><img src="${escapeAttr(block.posterUrl)}" alt="${escapeAttr(block.alt || '')}"></figure>`;
     case 'thematicBreak':
       return '<hr>';
+    case 'table':
+      return renderTable(block);
     case 'articleCard':
       return renderArticleCard(block);
     case 'tweet':
@@ -248,6 +252,14 @@ function renderArticleBlock(block: Block): string {
     default:
       return '';
   }
+}
+
+function renderTable(table: TableNode): string {
+  const cells = (row: TableRowNode, tag: 'th' | 'td'): string =>
+    row.children.map((c) => `<${tag}>${renderInlines(c.children)}</${tag}>`).join('');
+  const head = table.header ? `<thead><tr>${cells(table.header, 'th')}</tr></thead>` : '';
+  const body = table.children.map((r) => `<tr>${cells(r, 'td')}</tr>`).join('');
+  return `<table>${head}<tbody>${body}</tbody></table>`;
 }
 
 function renderList(list: { ordered: boolean; children: { type: 'listItem'; children: Block[] }[] }): string {
@@ -366,6 +378,9 @@ const STYLES = `
 .article-body figure img{display:block;width:100%;border-radius:8px}
 .article-body figcaption{font-size:13px;color:#536471;text-align:center;margin-top:6px}
 .article-body hr{border:none;border-top:1px solid #eff3f4;margin:24px 0}
+.article-body table{border-collapse:collapse;width:100%;margin:0 0 16px;font-size:15px}
+.article-body th,.article-body td{border:1px solid #cfd9de;padding:8px 10px;text-align:left;vertical-align:top}
+.article-body th{background:#eff3f4;font-weight:700}
 .xclipper-root strong{font-weight:700}
 .xclipper-root em{font-style:italic}
 .xclipper-root img{max-width:100%;height:auto}

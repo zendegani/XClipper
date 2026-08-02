@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Added
 
 - **Filename template placeholders now autocomplete as you type**: typing `{` in Settings → Filename template opens a filtered list of the available placeholders (`{date}`, `{datetime}`, `{handle}`, `{author}`, `{id}`, `{slug}`, `{type}`) — Arrow keys move, Enter, Tab or a click inserts the full `{name}`. Same typeahead the Obsidian **Tags** field already had. (#55)
+- **Tables in X Articles now export as tables**: an article table used to collapse into one unreadable run of concatenated cells (`LoopYou hand offUse it when…`). It now exports as a proper Markdown table — header row, columns and all — and as a real bordered table in PDF. Cells keep their bold, italic and links; a literal `|` is escaped and a line break inside a cell becomes a space so the row survives.
 
 ### Fixed
 

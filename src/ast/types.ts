@@ -29,6 +29,7 @@ export type Block =
   | BlockquoteNode
   | ImageNode
   | VideoNode
+  | TableNode
   | PollNode
   | LinkCardNode
   | ArticleCardNode
@@ -104,6 +105,25 @@ export interface VideoNode {
   posterUrl: string;
   sourceUrl: string;
   alt?: string;
+}
+
+// X Article tables. `header` is the `<th>` row when the source has one —
+// markdown tables require a header row, so renderers emit an empty one when
+// it's absent rather than promoting a data row and losing a line of content.
+export interface TableNode {
+  type: 'table';
+  header?: TableRowNode;
+  children: TableRowNode[];
+}
+
+export interface TableRowNode {
+  type: 'tableRow';
+  children: TableCellNode[];
+}
+
+export interface TableCellNode {
+  type: 'tableCell';
+  children: InlineNode[];
 }
 
 export interface PollNode {
