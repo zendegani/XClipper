@@ -139,6 +139,26 @@ describe('domToAst() article tables', () => {
     expect(md).not.toContain('a | b |');
   });
 
+  // Escaping the pipe alone would turn the author's `\` + `|` into `\\|`,
+  // which reads as an escaped backslash plus a live pipe — the row splits.
+  it('escapes a backslash before escaping the pipe', () => {
+    loadArticle(`
+      <section data-block="true" contenteditable="false">
+        <table>
+          <tr><th><span>Syntax</span></th></tr>
+          <tr><td><span>C:\\ | next</span></td></tr>
+        </table>
+      </section>
+    `);
+
+    const cellLine = renderMarkdown(firstBlock().ast)
+      .split('\n')
+      .find((l) => l.includes('C:'))!;
+    expect(cellLine).toBe('| C:\\\\ \\| next |');
+    // One cell, not two: the escaped pipe must not close it early.
+    expect(cellLine.split(/(?<!\\)\|/).filter((s) => s.trim()).length).toBe(1);
+  });
+
   it('pads short rows so the column count stays stable', () => {
     loadArticle(`
       <section data-block="true" contenteditable="false">

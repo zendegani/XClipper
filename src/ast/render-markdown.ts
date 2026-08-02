@@ -358,10 +358,13 @@ function renderTable(table: TableNode): string {
 }
 
 // A cell is a single line: hard breaks become spaces, and a literal pipe
-// would otherwise end the cell early.
+// would otherwise end the cell early. Backslashes are escaped first — escaping
+// only the pipe turns the author's `\` + `|` into `\\|`, which markdown reads
+// as an escaped backslash followed by a live pipe, splitting the row.
 function renderTableCell(cell: TableCellNode): string {
   return renderInlineForArticle(cell.children)
     .replace(/\s*\n\s*/g, ' ')
+    .replace(/\\/g, '\\\\')
     .replace(/\|/g, '\\|')
     .trim();
 }
