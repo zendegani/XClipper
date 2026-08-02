@@ -20,6 +20,7 @@ import {
   FRONTMATTER_FIELDS_OBSIDIAN,
   DEFAULT_TAGS_TEMPLATE,
   TAGS_PLACEHOLDERS,
+  FILENAME_PLACEHOLDERS,
 } from '../shared/post-process';
 import { attachPlaceholderAutocomplete } from './placeholder-autocomplete';
 import { updateFloodHint } from './fast-batch-ui';
@@ -49,6 +50,7 @@ import {
   tagsAutocomplete,
   tagsFieldLabel,
   filenamePreview,
+  filenameAutocomplete,
 } from './dom';
 
 // In-memory snapshot of field selections — the source of truth that gets
@@ -473,9 +475,30 @@ export function initSettingsForm(): void {
   txtDownloadFolder.addEventListener('blur', persistAll);
   txtObsidianFolder.addEventListener('change', persistAll);
   txtObsidianFolder.addEventListener('blur', persistAll);
-  txtFilenameTemplate.addEventListener('input', updateFilenamePreview);
+  // ─── Filename template: preview, autocomplete (`{` opens, filters as typed) ───
+  const filenameAutocompleteWidget = attachPlaceholderAutocomplete({
+    input: txtFilenameTemplate,
+    popover: filenameAutocomplete,
+    placeholders: FILENAME_PLACEHOLDERS,
+    onSelect: () => {
+      updateFilenamePreview();
+      persistAll();
+    },
+  });
+
+  txtFilenameTemplate.addEventListener('input', () => {
+    updateFilenamePreview();
+    filenameAutocompleteWidget.handleInput();
+  });
   txtFilenameTemplate.addEventListener('change', persistAll);
-  txtFilenameTemplate.addEventListener('blur', persistAll);
+  txtFilenameTemplate.addEventListener('blur', () => {
+    // Delay just enough to let an autocomplete click register before the popover
+    // is forced shut by the blur.
+    setTimeout(() => {
+      filenameAutocompleteWidget.close();
+      persistAll();
+    }, 120);
+  });
 
   // ─── ⓘ placeholder-list popovers (filename template, Obsidian tags) ───
   // Show the popover only while the cursor / keyboard focus is literally on the
