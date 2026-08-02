@@ -10,6 +10,8 @@ import type {
   PollNode,
   LinkCardNode,
   ArticleCardNode,
+  TableNode,
+  TableCellNode,
 } from './types';
 
 // AST → markdown body, matching the shape produced by the legacy Turndown
@@ -315,6 +317,8 @@ function renderArticleBlock(block: Block): string {
       return `![${block.alt ?? 'Image'}](${block.url})`;
     case 'thematicBreak':
       return '---';
+    case 'table':
+      return renderTable(block);
     case 'blockquote':
       return block.children
         .map(renderArticleBlock)
@@ -331,4 +335,33 @@ function renderArticleBlock(block: Block): string {
     default:
       return '';
   }
+}
+
+// GFM table. The header row is required by the syntax, so a headerless table
+// gets an empty one — losing the borders is better than losing the rows.
+function renderTable(table: TableNode): string {
+  const width = Math.max(
+    table.header?.children.length ?? 0,
+    ...table.children.map((r) => r.children.length),
+    1
+  );
+  const row = (cells: string[]): string => {
+    const padded = [...cells, ...Array(width - cells.length).fill('')];
+    return `| ${padded.join(' | ')} |`;
+  };
+  const lines = [
+    row((table.header?.children ?? []).map(renderTableCell)),
+    row(Array(width).fill('---')),
+    ...table.children.map((r) => row(r.children.map(renderTableCell))),
+  ];
+  return lines.join('\n');
+}
+
+// A cell is a single line: hard breaks become spaces, and a literal pipe
+// would otherwise end the cell early.
+function renderTableCell(cell: TableCellNode): string {
+  return renderInlineForArticle(cell.children)
+    .replace(/\s*\n\s*/g, ' ')
+    .replace(/\|/g, '\\|')
+    .trim();
 }

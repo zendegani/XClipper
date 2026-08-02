@@ -158,6 +158,19 @@ interface ThematicBreakNode { type: 'thematicBreak'; }
 - `CodeBlockNode.lang` is the fenced language hint when present.
 - `VideoNode.sourceUrl` is the playable media URL; `posterUrl` is the still-frame thumbnail. PDF and other static formats render the poster with a link to the source.
 
+### TableNode / TableRowNode / TableCellNode
+
+```ts
+interface TableNode     { type: 'table'; header?: TableRowNode; children: TableRowNode[]; }
+interface TableRowNode  { type: 'tableRow'; children: TableCellNode[]; }
+interface TableCellNode { type: 'tableCell'; children: InlineNode[]; }
+```
+
+- X Article tables. The `<th>` row becomes `header`; `children` holds the data rows only.
+- `header` is optional because a table can start straight into data rows. Markdown tables require a header, so `renderMarkdown` emits an empty one rather than promoting a data row and losing a line of content.
+- Cells hold inline content, not blocks — nothing in X's article editor can put a paragraph or a list inside a cell.
+- A cell renders to one markdown line: hard breaks collapse to spaces and literal `|` is escaped, since neither survives a GFM row.
+
 ## Inline nodes
 
 The inline taxonomy is intentionally minimal in v1. New inline types should be added only when an extraction case forces them (see the ADR's "minimum survivable" framing).

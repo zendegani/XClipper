@@ -10,6 +10,8 @@ import type {
   CodeBlockNode,
   ParagraphNode,
   ThematicBreakNode,
+  TableNode,
+  TableRowNode,
 } from '../../ast/types';
 import { SELECTORS, extractAuthor, extractDate, extractTweetId } from '../dom';
 import { extractEngagementMetadata } from '../tweet';
@@ -104,6 +106,15 @@ function articleBlockToNodes(block: HTMLElement): Block[] {
     return [{ type: 'thematicBreak' } satisfies ThematicBreakNode];
   }
 
+  // Table — like code blocks and separators, X wraps it in a non-editable
+  // <section> block. Without this branch it falls through to the paragraph
+  // fallback, which concatenates every cell into one unreadable run.
+  const tableEl = block.querySelector('table') || (block.tagName === 'TABLE' ? block : null);
+  if (tableEl) {
+    const table = tableToNode(tableEl);
+    return table ? [table] : [];
+  }
+
   const hasH1 = block.classList.contains('longform-header-one')
     || !!block.querySelector('.longform-header-one');
   if (hasH1) {
@@ -188,6 +199,27 @@ function articleBlockToNodes(block: HTMLElement): Block[] {
   const inline = extractArticleInline(block);
   if (inline.length === 0) return [];
   return [{ type: 'paragraph', children: inline } satisfies ParagraphNode];
+}
+
+function tableToNode(tableEl: Element): TableNode | undefined {
+  let header: TableRowNode | undefined;
+  const rows: TableRowNode[] = [];
+
+  for (const tr of tableEl.querySelectorAll('tr')) {
+    const cells = Array.from(tr.children).filter((c) => c.tagName === 'TH' || c.tagName === 'TD');
+    if (cells.length === 0) continue;
+    const row: TableRowNode = {
+      type: 'tableRow',
+      children: cells.map((c) => ({ type: 'tableCell', children: extractArticleInline(c) })),
+    };
+    // X marks the header row with <th>; a table can also start straight into
+    // data rows, in which case the renderers supply an empty header.
+    if (!header && cells.every((c) => c.tagName === 'TH')) header = row;
+    else rows.push(row);
+  }
+
+  if (!header && rows.length === 0) return undefined;
+  return { type: 'table', ...(header ? { header } : {}), children: rows };
 }
 
 function blockHasOnlyImage(block: HTMLElement): boolean {
