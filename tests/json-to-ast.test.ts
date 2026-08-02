@@ -282,7 +282,7 @@ describe('jsonToAst — X Articles', () => {
     expect(doc.metadata.engagement).toEqual({ likes: 7, views: 50 });
     expect(doc.body).toEqual({
       type: 'article',
-      banner: { type: 'image', url: 'https://pbs.twimg.com/media/cover.jpg' },
+      banner: { type: 'image', url: 'https://pbs.twimg.com/media/cover?format=jpg&name=large' },
       children: [
         { type: 'paragraph', children: [{ type: 'text', value: 'A teaser of the article body.' }] },
         {
@@ -355,7 +355,7 @@ describe('jsonToAst — X Articles', () => {
           { type: 'listItem', children: [{ type: 'paragraph', children: [{ type: 'text', value: 'second' }] }] },
         ],
       },
-      { type: 'image', url: 'https://pbs.twimg.com/media/pic.jpg' },
+      { type: 'image', url: 'https://pbs.twimg.com/media/pic?format=jpg&name=large' },
     ]);
   });
 
@@ -490,6 +490,80 @@ describe('jsonToAst — X Articles', () => {
 
   it('drops a MARKDOWN entity whose shape is neither a fence nor a table', () => {
     expect(blocksOf(withMarkdownEntities('just some prose'))).toEqual([]);
+  });
+
+  // X's editor marks every heading's text Bold, which rendered as
+  // `## **Heading**` — the `##` already carries that. Partial bold is the
+  // author's own emphasis and survives. Keeps parity with the DOM extractor.
+  const withHeading = (text: string, styles: unknown[]) => ({
+    ...articleResult,
+    article: {
+      article_results: {
+        result: {
+          ...articleResult.article.article_results.result,
+          content_state: {
+            blocks: [{ type: 'header-two', text, inlineStyleRanges: styles }],
+            entityMap: [],
+          },
+        },
+      },
+    },
+  });
+
+  it('drops the bold X puts on a whole heading', () => {
+    const result = withHeading('Getting started', [{ style: 'Bold', offset: 0, length: 15 }]);
+    expect(blocksOf(result)).toEqual([
+      { type: 'heading', depth: 2, children: [{ type: 'text', value: 'Getting started' }] },
+    ]);
+    expect(renderMarkdown(jsonToAst(result))).toContain('## Getting started');
+  });
+
+  it('keeps bold on part of a heading', () => {
+    const result = withHeading('Getting started', [{ style: 'Bold', offset: 0, length: 7 }]);
+    expect(blocksOf(result)).toEqual([
+      {
+        type: 'heading',
+        depth: 2,
+        children: [
+          { type: 'strong', children: [{ type: 'text', value: 'Getting' }] },
+          { type: 'text', value: ' started' },
+        ],
+      },
+    ]);
+  });
+});
+
+// X's GraphQL returns the canonical media URL; the DOM extractor emits the
+// sized variant found on the page. Same image — the mapper normalizes to the
+// DOM's form so a post exported either way produces identical markdown.
+describe('jsonToAst — media URL parity with the DOM extractor', () => {
+  it('rewrites a canonical pbs media URL to the sized variant', () => {
+    const node = jsonToTweetNode(
+      tweet({
+        extended_entities: {
+          media: [{ type: 'photo', media_url_https: 'https://pbs.twimg.com/media/HMkR1.jpg' }],
+        },
+      })
+    );
+    expect(node.media).toEqual([
+      { kind: 'image', url: 'https://pbs.twimg.com/media/HMkR1?format=jpg&name=large' },
+    ]);
+  });
+
+  it('leaves a URL that is already sized, or not a pbs media URL, alone', () => {
+    const already = 'https://pbs.twimg.com/media/HMkR1?format=jpg&name=small';
+    const foreign = 'https://example.com/pic.jpg';
+    const node = jsonToTweetNode(
+      tweet({
+        extended_entities: {
+          media: [
+            { type: 'photo', media_url_https: already },
+            { type: 'photo', media_url_https: foreign },
+          ],
+        },
+      })
+    );
+    expect(node.media.map((m) => m.url)).toEqual([already, foreign]);
   });
 });
 

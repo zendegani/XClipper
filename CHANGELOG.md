@@ -17,6 +17,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **Bold and italic no longer break when the author styled a trailing space**: X Article authors routinely bold a label together with the space after it, which produced `**Best used for: **Shorter tasks` — markdown ignores a closing `**` that follows whitespace, so the asterisks showed up literally instead of rendering bold. The space now moves outside the markers (`**Best used for:** Shorter tasks`). Same fix for italic, for both the normal and Fast Batch export paths. (Originally fixed in 1.2.0 and lost in the Content AST rewrite.)
+- **Fast Batch headings no longer come out bold**: X's article editor marks every heading's text bold, so Auto and Super exported `## **Getting started**` — asterisks around a line the `##` already makes a heading. The wrapper is dropped; bold on *part* of a heading is the author's own emphasis and stays.
+- **Fast Batch image links now match a normal export**: Auto and Super wrote the canonical image URL (`…/HMkRVmsaEAA3Dl5.jpg`) while a normal export wrote the sized variant (`…?format=jpg&name=large`), so the same post exported two ways produced two different files. Both now use the sized form.
 - **Stray asterisks from empty bold runs removed**: X ends some article paragraphs with a bold zero-width joiner, which exported as a bare `****` — four asterisks with nothing visible between them. Emphasis that contains nothing but invisible characters now renders without the markers.
 
 ---
