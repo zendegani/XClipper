@@ -397,6 +397,100 @@ describe('jsonToAst — X Articles', () => {
       { type: 'paragraph', children: [{ type: 'text', value: 'after' }] },
     ]);
   });
+
+  // Code blocks and tables are the one part of an article X does NOT send as
+  // structured Draft.js — an atomic MARKDOWN entity holds raw markdown source.
+  // Before these were mapped, every code block and table in a Fast Batch
+  // export was silently dropped.
+  const withMarkdownEntities = (...markdown: string[]) => ({
+    ...articleResult,
+    article: {
+      article_results: {
+        result: {
+          ...articleResult.article.article_results.result,
+          content_state: {
+            blocks: markdown.map((_, i) => ({
+              type: 'atomic',
+              text: ' ',
+              entityRanges: [{ key: i, offset: 0, length: 1 }],
+            })),
+            entityMap: markdown.map((md, i) => ({
+              key: String(i),
+              value: { type: 'MARKDOWN', data: { markdown: md } },
+            })),
+          },
+        },
+      },
+    },
+  });
+
+  const blocksOf = (result: unknown): unknown[] =>
+    (jsonToAst(result).body as { children: unknown[] }).children;
+
+  it('maps a MARKDOWN entity holding a fenced code block', () => {
+    expect(blocksOf(withMarkdownEntities('```bash\n/loop 5m check my PR\n\n```'))).toEqual([
+      { type: 'code', lang: 'bash', value: '/loop 5m check my PR' },
+    ]);
+  });
+
+  it('maps an unfenced-language code block without a lang', () => {
+    expect(blocksOf(withMarkdownEntities('```\nplain\n```'))).toEqual([
+      { type: 'code', value: 'plain' },
+    ]);
+  });
+
+  it('maps a MARKDOWN entity holding a GFM table, with cell formatting', () => {
+    const md = '| **Loop**  | **Reach for**  |\n| --- | --- |\n|  Turn-based | `/goal` |';
+    expect(blocksOf(withMarkdownEntities(md))).toEqual([
+      {
+        type: 'table',
+        header: {
+          type: 'tableRow',
+          children: [
+            { type: 'tableCell', children: [{ type: 'strong', children: [{ type: 'text', value: 'Loop' }] }] },
+            { type: 'tableCell', children: [{ type: 'strong', children: [{ type: 'text', value: 'Reach for' }] }] },
+          ],
+        },
+        children: [
+          {
+            type: 'tableRow',
+            children: [
+              { type: 'tableCell', children: [{ type: 'text', value: 'Turn-based' }] },
+              { type: 'tableCell', children: [{ type: 'inlineCode', value: '/goal' }] },
+            ],
+          },
+        ],
+      },
+    ]);
+  });
+
+  it('treats a table with no delimiter row as all-data, and unescapes cell pipes', () => {
+    const block = blocksOf(withMarkdownEntities('| a \\| b | c |'))[0] as {
+      type: string;
+      header?: unknown;
+      children: { children: { children: unknown[] }[] }[];
+    };
+    expect(block.type).toBe('table');
+    expect(block.header).toBeUndefined();
+    expect(block.children[0].children[0].children).toEqual([{ type: 'text', value: 'a | b' }]);
+  });
+
+  it('parses links and italics inside a cell', () => {
+    const md = '| x |\n| --- |\n| see [docs](https://example.com) and *this* |';
+    const row = (blocksOf(withMarkdownEntities(md))[0] as {
+      children: { children: { children: unknown[] }[] }[];
+    }).children[0];
+    expect(row.children[0].children).toEqual([
+      { type: 'text', value: 'see ' },
+      { type: 'link', url: 'https://example.com', children: [{ type: 'text', value: 'docs' }] },
+      { type: 'text', value: ' and ' },
+      { type: 'emphasis', children: [{ type: 'text', value: 'this' }] },
+    ]);
+  });
+
+  it('drops a MARKDOWN entity whose shape is neither a fence nor a table', () => {
+    expect(blocksOf(withMarkdownEntities('just some prose'))).toEqual([]);
+  });
 });
 
 describe('jsonToTweetNode — cards', () => {

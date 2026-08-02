@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { existsSync, readFileSync } from 'node:fs';
 import { jsonToAst } from '../src/graphql/json-to-ast';
+import { tweetDetailToDocument } from '../src/graphql/tweet-detail';
 import { parseTimelinePage } from '../src/graphql/timeline';
 import { renderMarkdown } from '../src/ast/render-markdown';
 
@@ -72,5 +73,30 @@ if (!path) {
   // Surface the skip the way extractor.test.ts does, so it isn't silent.
   console.warn(
     '[json-to-ast-live] no captured GraphQL response found (looked in _local/) — skipping real-data validation'
+  );
+}
+
+// A real TweetDetail for an X Article whose body contains a table and code
+// blocks — both arrive as atomic MARKDOWN entities holding raw markdown, the
+// one part of the body X doesn't send as structured Draft.js.
+const ARTICLE_CAPTURE = '_local/article-with-table.json';
+const articlePath = existsSync(ARTICLE_CAPTURE) ? ARTICLE_CAPTURE : undefined;
+
+describe.skipIf(!articlePath)('tweetDetailToDocument — real captured article', () => {
+  const raw = articlePath ? JSON.parse(readFileSync(ARTICLE_CAPTURE, 'utf8')) : undefined;
+
+  it('maps the article body to markdown with its table and code blocks intact', () => {
+    const doc = tweetDetailToDocument(raw, '2074208949205881033');
+    expect(doc).toBeTruthy();
+    const md = renderMarkdown(doc!);
+    expect(md).toContain('| --- | --- | --- | --- |');
+    expect(md).toContain('| Proactive | The prompt |');
+    expect(md).toContain('```bash');
+  });
+});
+
+if (!articlePath) {
+  console.warn(
+    `[json-to-ast-live] no captured article response at ${ARTICLE_CAPTURE} — skipping table/code-block validation`
   );
 }
