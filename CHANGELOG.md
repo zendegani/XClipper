@@ -8,6 +8,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ---
 ## [Unreleased]
 
+### Added
+
+- **Filename template placeholders now autocomplete as you type**: typing `{` in Settings → Filename template opens a filtered list of the available placeholders (`{date}`, `{datetime}`, `{handle}`, `{author}`, `{id}`, `{slug}`, `{type}`) — Arrow keys move, Enter, Tab or a click inserts the full `{name}`. Same typeahead the Obsidian **Tags** field already had. (#55)
+
 ---
 ## [2.7.0] - 2026-07-14
 
