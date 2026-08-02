@@ -3,9 +3,10 @@ import { readFileSync, existsSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 import { JSDOM } from 'jsdom';
 import { domToAst } from '../src/content/dom-to-ast';
-import { renderMarkdown } from '../src/ast/render-markdown';
+import { renderMarkdown, renderMarkdownBody } from '../src/ast/render-markdown';
 import { postProcess } from '../src/shared/post-process';
 import type { ExtractedContent, TweetMetadata } from '../src/types/messages';
+import type { Document, InlineNode } from '../src/ast/types';
 
 // Phase 3 parity test: AST extractor → AST → renderMarkdown → postProcess,
 // compared against the existing .md fixture. Diffs here are either renderer
@@ -115,4 +116,71 @@ describe('AST renderMarkdown parity', () => {
       expect(normalize(processed.markdown)).toBe(normalize(expected));
     });
   }
+});
+
+// Authors on X often style the trailing space of a run, so the AST carries
+// whitespace inside strong/emphasis. Markdown can't: `**bold **` isn't bold.
+describe('emphasis edge whitespace', () => {
+  const author = { name: 'A', handle: 'a' };
+  const tweetDoc = (text: InlineNode[]): Document => ({
+    version: 1,
+    metadata: {
+      type: 'tweet',
+      sourceUrl: 'https://x.com/a/status/1',
+      tweetId: '1',
+      author,
+      date: '2026-01-01T00:00:00.000Z',
+    },
+    body: { type: 'tweet', author, date: '2026-01-01T00:00:00.000Z', tweetId: '1', text, media: [] },
+  });
+  const render = (text: InlineNode[]): string => renderMarkdownBody(tweetDoc(text));
+
+  it('hoists a trailing space out of strong', () => {
+    expect(render([
+      { type: 'strong', children: [{ type: 'text', value: 'Best used for: ' }] },
+      { type: 'text', value: 'Shorter tasks.' },
+    ])).toBe('**Best used for:** Shorter tasks.');
+  });
+
+  it('hoists a trailing space out of emphasis', () => {
+    expect(render([
+      { type: 'emphasis', children: [{ type: 'text', value: 'written by ' }] },
+      { type: 'text', value: 'someone' },
+    ])).toBe('*written by* someone');
+  });
+
+  it('hoists a leading space', () => {
+    expect(render([
+      { type: 'text', value: 'and' },
+      { type: 'strong', children: [{ type: 'text', value: ' dynamic workflows' }] },
+    ])).toBe('and **dynamic workflows**');
+  });
+
+  it('drops the markers when the run is only whitespace', () => {
+    expect(render([
+      { type: 'text', value: 'a' },
+      { type: 'strong', children: [{ type: 'text', value: ' ' }] },
+      { type: 'text', value: 'b' },
+    ])).toBe('a b');
+  });
+
+  it('drops the markers when the run is only zero-width characters', () => {
+    expect(render([
+      { type: 'text', value: 'turns.' },
+      { type: 'strong', children: [{ type: 'text', value: '\u200d' }] },
+    ])).toBe('turns.\u200d');
+  });
+
+  it('keeps a run that has a zero-width character alongside real text', () => {
+    expect(render([
+      { type: 'strong', children: [{ type: 'text', value: 'bold\u200d' }] },
+    ])).toBe('**bold\u200d**');
+  });
+
+  it('leaves an already-tight run alone', () => {
+    expect(render([
+      { type: 'strong', children: [{ type: 'text', value: 'Triggered by' }] },
+      { type: 'text', value: ': A user prompt.' },
+    ])).toBe('**Triggered by**: A user prompt.');
+  });
 });

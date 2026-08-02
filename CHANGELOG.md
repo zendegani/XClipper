@@ -12,6 +12,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Filename template placeholders now autocomplete as you type**: typing `{` in Settings → Filename template opens a filtered list of the available placeholders (`{date}`, `{datetime}`, `{handle}`, `{author}`, `{id}`, `{slug}`, `{type}`) — Arrow keys move, Enter, Tab or a click inserts the full `{name}`. Same typeahead the Obsidian **Tags** field already had. (#55)
 
+### Fixed
+
+- **Bold and italic no longer break when the author styled a trailing space**: X Article authors routinely bold a label together with the space after it, which produced `**Best used for: **Shorter tasks` — markdown ignores a closing `**` that follows whitespace, so the asterisks showed up literally instead of rendering bold. The space now moves outside the markers (`**Best used for:** Shorter tasks`). Same fix for italic, for both the normal and Fast Batch export paths. (Originally fixed in 1.2.0 and lost in the Content AST rewrite.)
+- **Stray asterisks from empty bold runs removed**: X ends some article paragraphs with a bold zero-width joiner, which exported as a bare `****` — four asterisks with nothing visible between them. Emphasis that contains nothing but invisible characters now renders without the markers.
+
 ---
 ## [2.7.0] - 2026-07-14
 
