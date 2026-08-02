@@ -6,16 +6,16 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
-## [Unreleased]
+## [2.7.1] - 2026-08-02
 
 ### Added
 
 - **Filename template placeholders now autocomplete as you type**: typing `{` in Settings → Filename template opens a filtered list of the available placeholders (`{date}`, `{datetime}`, `{handle}`, `{author}`, `{id}`, `{slug}`, `{type}`) — Arrow keys move, Enter, Tab or a click inserts the full `{name}`. Same typeahead the Obsidian **Tags** field already had. (#55)
-- **Tables in X Articles now export as tables**: an article table used to collapse into one unreadable run of concatenated cells (`LoopYou hand offUse it when…`). It now exports as a proper Markdown table — header row, columns and all — and as a real bordered table in PDF. Cells keep their bold, italic and links; a literal `|` is escaped and a line break inside a cell becomes a space so the row survives.
-- **Fast Batch no longer drops code blocks and tables from articles**: in Auto and Super mode, every code block and table in an X Article was silently missing from the export — X sends those two as raw markdown rather than as structured content, and they were skipped. Both now come through, matching a normal export.
 
 ### Fixed
 
+- **Tables in X Articles now export as tables**: an article table used to collapse into one unreadable run of concatenated cells (`LoopYou hand offUse it when…`). It now exports as a proper Markdown table — header row, columns and all — and as a real bordered table in PDF. Cells keep their bold, italic and links; a literal `|` is escaped and a line break inside a cell becomes a space so the row survives.
+- **Fast Batch no longer drops code blocks and tables from articles**: in Auto and Super mode, every code block and table in an X Article was silently missing from the export — X sends those two as raw markdown rather than as structured content, and they were skipped. Both now come through, matching a normal export.
 - **Bold and italic no longer break when the author styled a trailing space**: X Article authors routinely bold a label together with the space after it, which produced `**Best used for: **Shorter tasks` — markdown ignores a closing `**` that follows whitespace, so the asterisks showed up literally instead of rendering bold. The space now moves outside the markers (`**Best used for:** Shorter tasks`). Same fix for italic, for both the normal and Fast Batch export paths. (Originally fixed in 1.2.0 and lost in the Content AST rewrite.)
 - **Fast Batch headings no longer come out bold**: X's article editor marks every heading's text bold, so Auto and Super exported `## **Getting started**` — asterisks around a line the `##` already makes a heading. The wrapper is dropped; bold on *part* of a heading is the author's own emphasis and stays.
 - **Fast Batch image links now match a normal export**: Auto and Super wrote the canonical image URL (`…/HMkRVmsaEAA3Dl5.jpg`) while a normal export wrote the sized variant (`…?format=jpg&name=large`), so the same post exported two ways produced two different files. Both now use the sized form.
