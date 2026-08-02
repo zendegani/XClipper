@@ -196,7 +196,7 @@ function articleDocument(t: RawTweet, article: RawArticle, sourceUrl?: string): 
 
   const body: ArticleNode = { type: 'article', children };
   const cover = article.cover_media?.media_info?.original_img_url;
-  if (cover) body.banner = { type: 'image', url: cover };
+  if (cover) body.banner = { type: 'image', url: normalizeMediaUrl(cover) };
 
   const eng = engagement(t);
   return {
@@ -287,7 +287,7 @@ function draftToBlocks(cs: RawContentState, mediaEntities: RawMediaEntity[]): Bl
     }
 
     if (type === 'header-one' || type === 'header-two' || type === 'header-three') {
-      const inline = draftInline(b, entities);
+      const inline = unwrapWholeStrong(draftInline(b, entities));
       if (inline.length === 0) continue;
       const depth = type === 'header-one' ? 1 : type === 'header-two' ? 2 : 3;
       out.push({ type: 'heading', depth, children: inline } satisfies HeadingNode);
@@ -300,6 +300,25 @@ function draftToBlocks(cs: RawContentState, mediaEntities: RawMediaEntity[]): Bl
   }
   flush();
   return out;
+}
+
+// X's article editor marks every heading's text Bold, so a heading maps to a
+// single strong spanning the whole line — `## **Getting started**`, where the
+// `##` already says it. Drop that wrapper; bold on *part* of a heading is the
+// author's own emphasis and stays. (The DOM extractor takes heading text
+// plain, so this is also what keeps the two paths in step.)
+function unwrapWholeStrong(nodes: InlineNode[]): InlineNode[] {
+  const only = nodes.length === 1 ? nodes[0] : undefined;
+  return only?.type === 'strong' ? only.children : nodes;
+}
+
+// X's GraphQL returns the canonical media URL (…/HMkRVmsaEAA3Dl5.jpg) while
+// the DOM extractor emits the sized variant it finds on the page. Same image;
+// normalize to the DOM's form so both acquisition paths render identical
+// markdown for the same post.
+function normalizeMediaUrl(url: string): string {
+  const m = url.match(/^(https:\/\/pbs\.twimg\.com\/media\/[^./?#]+)\.(jpg|jpeg|png|webp)$/i);
+  return m ? `${m[1]}?format=${m[2].toLowerCase()}&name=large` : url;
 }
 
 // An atomic block carries a single entity: a DIVIDER (→ horizontal rule),
@@ -319,7 +338,7 @@ function atomicBlock(
   const mediaId = ent.data?.mediaItems?.[0]?.mediaId;
   if (!mediaId) return undefined;
   const url = mediaById.get(mediaId)?.media_info?.original_img_url;
-  return url ? { type: 'image', url } : undefined;
+  return url ? { type: 'image', url: normalizeMediaUrl(url) } : undefined;
 }
 
 // Code blocks and tables are the one part of an article X does NOT hand over
@@ -555,14 +574,16 @@ function media(items: RawMedia[]): MediaItem[] {
   for (const m of items) {
     const alt = m.ext_alt_text || undefined;
     if (m.type === 'photo') {
-      if (m.media_url_https) out.push({ kind: 'image', url: m.media_url_https, ...(alt ? { alt } : {}) });
+      if (m.media_url_https) {
+        out.push({ kind: 'image', url: normalizeMediaUrl(m.media_url_https), ...(alt ? { alt } : {}) });
+      }
     } else if (m.type === 'video' || m.type === 'animated_gif') {
       const src = bestVariant(m.video_info?.variants ?? []);
       if (src) {
         out.push({
           kind: m.type === 'animated_gif' ? 'gif' : 'video',
           url: src,
-          ...(m.media_url_https ? { posterUrl: m.media_url_https } : {}),
+          ...(m.media_url_https ? { posterUrl: normalizeMediaUrl(m.media_url_https) } : {}),
           ...(alt ? { alt } : {}),
         });
       }
