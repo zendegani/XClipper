@@ -257,12 +257,28 @@ function renderInline(node: InlineNode, ctx: InlineContext): string {
       return `[${display}](${node.url})`;
     }
     case 'strong':
-      return `**${renderInlineNodes(node.children, ctx)}**`;
+      return wrapEmphasis(renderInlineNodes(node.children, ctx), '**');
     case 'emphasis':
-      return `*${renderInlineNodes(node.children, ctx)}*`;
+      return wrapEmphasis(renderInlineNodes(node.children, ctx), '*');
     case 'inlineCode':
       return `\`${node.value}\``;
   }
+}
+
+// X authors routinely style the trailing space of a run ("Best used for: "),
+// so the AST faithfully carries whitespace inside the emphasis. Markdown can't:
+// a closing delimiter preceded by whitespace isn't a delimiter at all, so
+// `**Best used for: **` renders as literal asterisks. Hoist edge whitespace
+// outside the markers; drop the markers when there's nothing visible left to
+// emphasize — X ends some article paragraphs with a bold zero-width joiner,
+// and a bold joiner is just two pairs of asterisks on screen. The invisible
+// characters themselves are kept: the AST says the author typed them.
+function wrapEmphasis(inner: string, marker: string): string {
+  const lead = inner.match(/^\s*/)![0];
+  const trail = inner.slice(lead.length).match(/\s*$/)![0];
+  const core = inner.slice(lead.length, inner.length - trail.length);
+  const visible = core.replace(/[\u200b-\u200d\u2060\ufeff]/g, '');
+  return visible ? `${lead}${marker}${core}${marker}${trail}` : inner;
 }
 
 // ─── Article body ───────────────────────────────────────────────────
