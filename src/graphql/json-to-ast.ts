@@ -26,6 +26,8 @@ import type {
   ListNode,
   MediaItem,
   PollNode,
+  TableNode,
+  TableRowNode,
   TweetNode,
 } from '../ast/types';
 
@@ -136,8 +138,8 @@ interface RawDraftBlock {
   entityRanges?: RawEntityRange[];
 }
 interface RawEntityValue {
-  type?: string; // 'LINK' | 'MEDIA'
-  data?: { url?: string; mediaItems?: { mediaId?: string }[] };
+  type?: string; // 'LINK' | 'MEDIA' | 'DIVIDER' | 'MARKDOWN'
+  data?: { url?: string; mediaItems?: { mediaId?: string }[]; markdown?: string };
 }
 interface RawContentState {
   blocks?: RawDraftBlock[];
@@ -300,8 +302,9 @@ function draftToBlocks(cs: RawContentState, mediaEntities: RawMediaEntity[]): Bl
   return out;
 }
 
-// An atomic block carries a single entity: a DIVIDER (→ horizontal rule) or
-// MEDIA (→ image, resolved via media_entities by mediaId).
+// An atomic block carries a single entity: a DIVIDER (→ horizontal rule),
+// MEDIA (→ image, resolved via media_entities by mediaId) or MARKDOWN
+// (→ code block or table).
 function atomicBlock(
   b: RawDraftBlock,
   entities: Map<string, RawEntityValue>,
@@ -311,11 +314,107 @@ function atomicBlock(
   if (!range || range.key == null) return undefined;
   const ent = entities.get(String(range.key));
   if (ent?.type === 'DIVIDER') return { type: 'thematicBreak' };
+  if (ent?.type === 'MARKDOWN') return markdownEntityBlock(ent.data?.markdown);
   if (ent?.type !== 'MEDIA') return undefined;
   const mediaId = ent.data?.mediaItems?.[0]?.mediaId;
   if (!mediaId) return undefined;
   const url = mediaById.get(mediaId)?.media_info?.original_img_url;
   return url ? { type: 'image', url } : undefined;
+}
+
+// Code blocks and tables are the one part of an article X does NOT hand over
+// as structured Draft.js: the entity holds raw markdown source. Parse the two
+// shapes X emits so this path lands on the same AST as the DOM extractor —
+// otherwise every code block and table in a Fast Batch export is dropped.
+function markdownEntityBlock(markdown?: string): Block | undefined {
+  const src = (markdown ?? '').trim();
+  if (!src) return undefined;
+
+  const fence = src.match(/^```([^\n]*)\n([\s\S]*?)\n?```$/);
+  if (fence) {
+    const lang = fence[1].trim();
+    const value = fence[2].replace(/\s+$/, '');
+    return { type: 'code', value, ...(lang ? { lang } : {}) };
+  }
+
+  if (src.startsWith('|')) return markdownTable(src);
+  return undefined;
+}
+
+function markdownTable(src: string): TableNode | undefined {
+  const rows = src
+    .split('\n')
+    .map((l) => l.trim())
+    .filter(Boolean)
+    .map(splitTableRow)
+    .filter((r): r is string[] => r !== undefined);
+  if (rows.length === 0) return undefined;
+
+  const isDelimiter = (cells: string[]): boolean =>
+    cells.length > 0 && cells.every((c) => /^:?-{1,}:?$/.test(c));
+  const toRow = (cells: string[]): TableRowNode => ({
+    type: 'tableRow',
+    children: cells.map((c) => ({ type: 'tableCell', children: parseInlineMarkdown(c) })),
+  });
+
+  // `| a | b |` / `| --- | --- |` / data rows. The delimiter row is what makes
+  // the row above it a header; without one every row is data.
+  const header = isDelimiter(rows[1] ?? []) ? toRow(rows[0]) : undefined;
+  const body = rows.filter((cells, i) => !isDelimiter(cells) && !(header && i === 0));
+  if (!header && body.length === 0) return undefined;
+  return { type: 'table', ...(header ? { header } : {}), children: body.map(toRow) };
+}
+
+function splitTableRow(line: string): string[] | undefined {
+  if (!line.startsWith('|')) return undefined;
+  const cells: string[] = [];
+  let cur = '';
+  for (let i = 1; i < line.length; i++) {
+    if (line[i] === '\\' && line[i + 1] === '|') {
+      cur += '|';
+      i++;
+    } else if (line[i] === '|') {
+      cells.push(cur.trim());
+      cur = '';
+    } else {
+      cur += line[i];
+    }
+  }
+  // Tolerate a row whose closing pipe is missing.
+  if (cur.trim()) cells.push(cur.trim());
+  return cells;
+}
+
+// Just enough inline markdown for what X puts in a table cell: bold, italic,
+// inline code and links. Anything else stays literal text.
+function parseInlineMarkdown(src: string): InlineNode[] {
+  const out: InlineNode[] = [];
+  let text = '';
+  const flush = (): void => {
+    if (text) out.push({ type: 'text', value: text });
+    text = '';
+  };
+  for (let i = 0; i < src.length; ) {
+    const rest = src.slice(i);
+    const code = rest.match(/^`([^`]+)`/);
+    const link = rest.match(/^\[([^\]]*)\]\(([^)\s]+)\)/);
+    const strong = rest.match(/^\*\*([\s\S]+?)\*\*/);
+    const em = rest.match(/^\*([^*]+)\*/);
+    const match = code || link || strong || em;
+    if (!match) {
+      text += src[i];
+      i++;
+      continue;
+    }
+    flush();
+    if (code) out.push({ type: 'inlineCode', value: code[1] });
+    else if (link) out.push({ type: 'link', url: link[2], children: parseInlineMarkdown(link[1]) });
+    else if (strong) out.push({ type: 'strong', children: parseInlineMarkdown(strong[1]) });
+    else out.push({ type: 'emphasis', children: parseInlineMarkdown(em![1]) });
+    i += match[0].length;
+  }
+  flush();
+  return out;
 }
 
 // Build inline nodes for one Draft block: walk character runs that share the
