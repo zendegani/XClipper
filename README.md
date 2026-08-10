@@ -1,3 +1,5 @@
+
+
 <h1 align="center">
   <img src="assets/xclipper-wordmark.svg" alt="XClipper" height="72" />
 </h1>
@@ -123,7 +125,7 @@ Install **XClipper** from the [Chrome Web Store](https://chromewebstore.google.c
 git clone https://github.com/zendegani/xclipper.git
 cd xclipper
 npm install
-npm run build
+npm run build:chrome
 ```
 
 Then open `chrome://extensions/` → enable **Developer mode** → **Load unpacked** → select `dist/`.
