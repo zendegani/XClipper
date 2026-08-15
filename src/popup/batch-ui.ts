@@ -18,6 +18,7 @@ import type {
 } from '../types/messages';
 import { hostMatches } from '../shared/media';
 import { loadSettings } from '../shared/settings';
+import { pageSourceOfPath, type XPage } from '../shared/x-routes';
 // Pure module (no chrome.* at import time) — safe to share with the popup.
 import {
   EXPORTED_LEDGER_KEY,
@@ -669,33 +670,24 @@ export async function initBatchUi(): Promise<void> {
 }
 
 // Best-effort page type from the URL, for initial tab focus when the injector
-// hasn't reported a source yet (e.g. right after an extension reload).
-function sourceFromUrl(url: string | undefined): BatchTab | null {
+// hasn't reported a source yet (e.g. right after an extension reload). Shares
+// the injector's route table so the two can't drift.
+function pageFromUrl(url: string | undefined): XPage | null {
   if (!url) return null;
-  let path: string;
   try {
-    path = new URL(url).pathname.replace(/\/+$/, '');
+    return pageSourceOfPath(new URL(url).pathname);
   } catch {
     return null;
   }
-  // Bookmarks and Likes now live under X's History surface; the older routes
-  // still resolve, so accept both. `/i/history/likes` falls through to the
-  // Likes test below.
-  if (path === '/i/history' || path === '/i/history/bookmarks' || path === '/i/bookmarks') return 'bookmarks';
-  if (path === '/home') return 'timeline';
-  if (/\/likes$/.test(path)) return 'likes';
-  const reserved = new Set(['/home', '/explore', '/notifications', '/messages', '/search', '/settings', '/i', '/compose']);
-  if (/^\/[A-Za-z0-9_]{1,15}$/.test(path) && !reserved.has(path)) return 'profile';
-  return null;
+}
+
+function sourceFromUrl(url: string | undefined): BatchTab | null {
+  return pageFromUrl(url)?.source ?? null;
 }
 
 // Profile handle straight from the URL — Fast doesn't need the injector, so this
 // works even when the page wasn't reloaded after an extension update.
 function handleFromUrl(url: string | undefined): string | undefined {
-  if (sourceFromUrl(url) !== 'profile') return undefined;
-  try {
-    return new URL(url as string).pathname.replace(/^\/+|\/+$/g, '').split('/')[0] || undefined;
-  } catch {
-    return undefined;
-  }
+  const page = pageFromUrl(url);
+  return page?.source === 'profile' ? page.handle : undefined;
 }
