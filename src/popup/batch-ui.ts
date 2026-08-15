@@ -83,10 +83,12 @@ const TAB_ICONS: Record<BatchTab, SVGElement> = {
   timeline: btnBatchIconTimeline,
 };
 
-// Sources with a fixed URL we can open directly (no handle needed). Profile and
-// Likes are per-account, so they can't be opened generically.
+// Sources with a fixed URL we can open directly (no handle needed). Likes is
+// your own and now sits at a fixed address under History, so it qualifies too;
+// only Profile is per-account and can't be opened generically.
 const OPEN_URLS: Partial<Record<BatchTab, string>> = {
   bookmarks: 'https://x.com/i/history',
+  likes: 'https://x.com/i/history/likes',
   timeline: 'https://x.com/home',
 };
 
@@ -101,7 +103,8 @@ let jobIsActive = false;
 let appendable = false;
 // When the active tab's source has a canonical URL but the user isn't on it,
 // the action button becomes "Open <page>" and navigates there instead of
-// exporting. Only sources that need no handle (bookmarks, timeline) qualify.
+// exporting. Only sources that need no handle (bookmarks, likes, timeline)
+// qualify.
 let openTarget: string | undefined;
 // Last polled snapshot, so a tab switch can re-evaluate progress visibility
 // immediately instead of waiting for the next poll.
@@ -298,9 +301,10 @@ function gateWrongSource(source: HarvestResult['source']): boolean {
   }
   if (activeTab === 'likes' && source !== 'likes') {
     hideDedupAndResets();
+    openTarget = OPEN_URLS.likes;
     setButton(
-      t('btn_batch_likes', 'Export likes'),
-      false,
+      t('btn_batch_go_likes', 'Open Likes'),
+      true,
       t('btn_batch_open_likes', 'Open your Likes page on x.com to export the posts you have liked.')
     );
     return true;

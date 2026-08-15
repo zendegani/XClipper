@@ -233,6 +233,9 @@
   "btn_batch_go_timeline": {
     "message": "Open Timeline"
   },
+  "btn_batch_go_likes": {
+    "message": "Open Likes"
+  },
   "group_batch": {
     "message": "Batch export"
   },
