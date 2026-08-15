@@ -6,13 +6,10 @@ import { pageSourceOfPath } from '../src/shared/x-routes';
 // notice, because the matchers simply stopped matching.
 
 describe('pageSourceOfPath() — History hub', () => {
-  // The hub lands on its Bookmarks tab, so the bare path is a bookmarks page.
+  // Bookmarks is the hub's default tab and has no path of its own: selecting it
+  // returns to the bare path, which is therefore the bookmarks page itself.
   it('reads the hub root as Bookmarks', () => {
     expect(pageSourceOfPath('/i/history')).toEqual({ source: 'bookmarks' });
-  });
-
-  it('reads the hub Bookmarks tab as Bookmarks', () => {
-    expect(pageSourceOfPath('/i/history/bookmarks')).toEqual({ source: 'bookmarks' });
   });
 
   it('reads the hub Likes tab as Likes, with no handle', () => {

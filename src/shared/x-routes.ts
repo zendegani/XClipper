@@ -31,9 +31,11 @@ const NON_PROFILE_PATHS = new Set([
 export function pageSourceOfPath(pathname: string): XPage | null {
   const path = pathname.replace(/\/+$/, '');
 
-  // X moved Bookmarks and Likes under one History hub, which lands on its
-  // Bookmarks tab at the bare path. Likes is tested first, or `/i/history/likes`
-  // reads as that bare path.
+  // X moved Bookmarks and Likes under one History hub. Bookmarks is the hub's
+  // default tab and has no path of its own — selecting it returns to the bare
+  // `/i/history`, and `/i/history/bookmarks` just redirects there — so the bare
+  // path IS the bookmarks page. Likes is tested first, or its path reads as
+  // that bare one.
   //
   // Both are matched exactly, never by prefix. The web hub carries just these
   // two tabs today, but the mobile app already adds Videos and Articles, so
@@ -42,9 +44,10 @@ export function pageSourceOfPath(pathname: string): XPage | null {
   // otherwise. (If X ever re-points the bare path at a different default tab,
   // the Bookmarks mapping below needs revisiting.)
   if (path === '/i/history/likes') return { source: 'likes' };
-  if (path === '/i/history' || path === '/i/history/bookmarks') return { source: 'bookmarks' };
-  // Pre-History route, still resolving for accounts the rollout hasn't reached.
-  // Prefix-matched because bookmark folders sit underneath it.
+  if (path === '/i/history') return { source: 'bookmarks' };
+  // Pre-History routes. These now redirect to the hub, so they're only reached
+  // on accounts the rollout hasn't finished with — but the redirect means a tab
+  // sitting on one is rare either way. Prefix-matched for bookmark folders.
   if (path === '/i/bookmarks' || path.startsWith('/i/bookmarks/')) return { source: 'bookmarks' };
 
   if (path === '/home') return { source: 'timeline' };
