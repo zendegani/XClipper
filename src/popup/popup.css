@@ -13,8 +13,6 @@
   --success-bg: rgba(0, 186, 124, 0.12);
   --error: #f4212e;
   --error-bg: rgba(244, 33, 46, 0.12);
-  --error-glow: rgba(244, 33, 46, 0.28);
-  --error-tint: rgba(244, 33, 46, 0.16);
   --warning: #9a6700;
   --warning-bg: rgba(212, 167, 44, 0.14);
   --border-subtle: rgba(0, 0, 0, 0.08);
@@ -936,7 +934,7 @@ body {
   margin-inline-end: 4px;
 }
 
-/* ─── Fast Batch toggle (red, sits above Export settings) ─────── */
+/* ─── Fast Batch toggle (sits above Export settings) ──────────── */
 /* Batch engine selector: Manual | Auto | Super — one segmented control that
  * replaces the old Fast on/off + Super on/off toggles. Full-width so it reads as
  * a primary choice; the fetch-mode segment (.fast-seg) below twins its shape. */
@@ -971,20 +969,13 @@ body {
   border-left: 1px solid var(--border-subtle);
 }
 
-/* Manual selected — the batch accent (same blue as the Export button + the
- * fetch-mode segment), the neutral "selected" for the no-permission engine. */
+/* Selected engine — the batch accent (same blue as the Export button + the
+ * fetch-mode segment) for every engine, Manual included. The "uses your X
+ * session" signal is carried by the red (i) beside the caption, not by a red
+ * segment. */
 .mode-seg-btn.active {
   background: var(--batch);
   color: #fff;
-}
-
-/* Auto / Super carry the "uses your X session" signal in red when active, so the
- * consent-bearing engines stay visually distinct from plain Manual. */
-#mode-auto.active,
-#mode-super.active {
-  background: var(--error);
-  color: #fff;
-  box-shadow: 0 2px 8px var(--error-glow);
 }
 
 .mode-seg-btn .beta-badge {
@@ -1043,12 +1034,15 @@ body {
   flex: 1;
 }
 
+/* Shown for Auto/Super only — it is the single red mark in the batch view, the
+ * "uses your logged-in X session" signal that used to colour the whole engine
+ * segment and the active source tab. */
 .mode-info {
   display: inline-flex;
   align-items: center;
   flex-shrink: 0;
   margin-bottom: 1px;
-  color: var(--text-secondary);
+  color: var(--error);
   cursor: help;
 }
 
@@ -1227,14 +1221,6 @@ body {
 .fast-step[data-tooltip]:hover::after,
 .fast-step[data-tooltip]:focus-visible::after {
   transform: translateX(0) translateY(0);
-}
-
-/* When Auto/Super is selected the red signals are the engine selector, the step
- * lights, and the ACTIVE source tab — everything else (Export button, progress,
- * reset buttons) stays the normal blue to avoid a wall of red. */
-#view-main.fast-on .batch-tab.active {
-  background: var(--error);
-  box-shadow: 0 2px 8px var(--error-glow);
 }
 
 /* Fast Batch has no honest determinate total — collection is open-ended and
