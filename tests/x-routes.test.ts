@@ -6,6 +6,7 @@ import { pageSourceOfPath } from '../src/shared/x-routes';
 // notice, because the matchers simply stopped matching.
 
 describe('pageSourceOfPath() — History hub', () => {
+  // The hub lands on its Bookmarks tab, so the bare path is a bookmarks page.
   it('reads the hub root as Bookmarks', () => {
     expect(pageSourceOfPath('/i/history')).toEqual({ source: 'bookmarks' });
   });
@@ -24,10 +25,13 @@ describe('pageSourceOfPath() — History hub', () => {
     expect(pageSourceOfPath('/i/history/likes')?.source).toBe('likes');
   });
 
-  // The hub also holds Videos and Articles — browsing history, not saved posts.
-  // Harvesting those as bookmarks would export things the user never saved.
+  // Bookmarks and Likes are the only tabs on the web hub today, but the mobile
+  // app already has Videos and Articles and the web rollout is expected to
+  // follow. Those hold watch/read history, not saved posts — harvesting them as
+  // bookmarks would export things the user never saved. Prefix-matching the hub
+  // would do exactly that the day they land.
   it.each(['/i/history/videos', '/i/history/articles'])(
-    'refuses to harvest the %s tab',
+    'refuses to harvest the %s tab if the web rollout adds it',
     (path) => {
       expect(pageSourceOfPath(path)).toBeNull();
     }
@@ -50,12 +54,13 @@ describe('pageSourceOfPath() — pre-History routes', () => {
     });
   });
 
-  it('still reads per-account Likes, keeping the handle', () => {
-    // The handle keys the dedupe set, so walking from one account's likes to
-    // another's starts a fresh harvest instead of sharing one set.
-    expect(pageSourceOfPath('/elonmusk/likes')).toEqual({
+  it('still reads the old Likes route, keeping the handle', () => {
+    // Only ever your own handle — X made likes private years ago. The handle
+    // keys the dedupe set, so switching X accounts starts a fresh harvest
+    // rather than inheriting the previous account's.
+    expect(pageSourceOfPath('/jack/likes')).toEqual({
       source: 'likes',
-      handle: 'elonmusk',
+      handle: 'jack',
     });
   });
 });
