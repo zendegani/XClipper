@@ -28,12 +28,12 @@
     "07-batch-export": "node scripts/store-screenshot.mjs store/mockups/07-batch-export.html assets/07-batch-export.png"
   },
   "devDependencies": {
-    "@puppeteer/browsers": "^3.1.0",
+    "@puppeteer/browsers": "^3.2.0",
     "@types/chrome": "^0.2.5",
     "@types/jsdom": "^28.0.3",
-    "esbuild": "^0.28.1",
+    "esbuild": "^0.28.2",
     "jsdom": "^30.0.1",
-    "puppeteer-core": "^25.5.0",
+    "puppeteer-core": "^25.6.0",
     "typescript": "^7.0.2",
     "vitest": "^4.1.10"
   }
