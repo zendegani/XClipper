@@ -30,7 +30,7 @@
   "devDependencies": {
     "@puppeteer/browsers": "^3.2.0",
     "@types/chrome": "^0.2.5",
-    "@types/jsdom": "^28.0.3",
+    "@types/jsdom": "^30.0.0",
     "esbuild": "^0.28.2",
     "jsdom": "^30.0.1",
     "puppeteer-core": "^25.6.0",
