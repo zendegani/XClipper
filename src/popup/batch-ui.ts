@@ -86,7 +86,7 @@ const TAB_ICONS: Record<BatchTab, SVGElement> = {
 // Sources with a fixed URL we can open directly (no handle needed). Profile and
 // Likes are per-account, so they can't be opened generically.
 const OPEN_URLS: Partial<Record<BatchTab, string>> = {
-  bookmarks: 'https://x.com/i/bookmarks',
+  bookmarks: 'https://x.com/i/history',
   timeline: 'https://x.com/home',
 };
 
@@ -674,7 +674,10 @@ function sourceFromUrl(url: string | undefined): BatchTab | null {
   } catch {
     return null;
   }
-  if (path === '/i/bookmarks') return 'bookmarks';
+  // Bookmarks and Likes now live under X's History surface; the older routes
+  // still resolve, so accept both. `/i/history/likes` falls through to the
+  // Likes test below.
+  if (path === '/i/history' || path === '/i/history/bookmarks' || path === '/i/bookmarks') return 'bookmarks';
   if (path === '/home') return 'timeline';
   if (/\/likes$/.test(path)) return 'likes';
   const reserved = new Set(['/home', '/explore', '/notifications', '/messages', '/search', '/settings', '/i', '/compose']);

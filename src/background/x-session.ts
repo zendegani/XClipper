@@ -96,7 +96,7 @@ class HttpError extends Error {
 
 export async function authedFetchJson(url: string): Promise<unknown> {
   if (!auth) {
-    throw new Error('No X auth captured yet — open x.com (e.g. /i/bookmarks) once, then retry');
+    throw new Error('No X auth captured yet — open x.com (e.g. /i/history) once, then retry');
   }
   const res = await fetch(url, {
     method: 'GET',
