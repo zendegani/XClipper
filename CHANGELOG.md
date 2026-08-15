@@ -12,6 +12,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Open Likes button jumps straight to your liked posts**: the batch export **Likes** tab used to grey its button out whenever you weren't already on a Likes page, leaving you to go find the page yourself — it had no fixed address to send you to. Your own likes now sit at a fixed address under X's History hub, so the tab offers a working **Open Likes** button, the way Bookmarks and Timeline already did. The label is English for now in every language, until it's translated.
 
+### Changed
+
+- **Auto and Super no longer wash the popup in red**: choosing one of the session-based engines used to turn the engine segment *and* the active source icon solid red, which read as an alarm rather than a mode. Both now use the same blue as every other selected control, and the "this runs through your logged-in X session" signal moved to the small ⓘ beside the explanation — red, and shown only for Auto and Super.
+
 ### Fixed
 
 - **Bookmarks and Likes batch export follow X's new History address**: X is moving Bookmarks and Likes under a single History hub — `x.com/i/history` and `x.com/i/history/likes` — and batch export didn't recognize either page, so the Bookmarks and Likes tabs found nothing to collect and **Open Bookmarks** led to the old address. Both new addresses now work, alongside the old `/i/bookmarks` and `/<handle>/likes` for accounts the rollout hasn't reached.
