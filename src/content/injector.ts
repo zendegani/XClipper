@@ -296,21 +296,28 @@ const NON_PROFILE_PATHS = new Set([
 type HarvestSource =
   | { kind: 'bookmarks'; key: string }
   | { kind: 'profile'; key: string; handle: string }
-  | { kind: 'likes'; key: string; handle: string }
+  | { kind: 'likes'; key: string }
   | { kind: 'timeline'; key: string }
   | null;
 
 function harvestSourceOfPage(): HarvestSource {
   const path = window.location.pathname;
-  if (path.startsWith('/i/bookmarks')) return { kind: 'bookmarks', key: 'bookmarks' };
+  // X moved Bookmarks and Likes under one History surface (/i/history and
+  // /i/history/likes); the older routes still resolve, so match both. Likes
+  // must be tested first — /i/history/likes would otherwise read as Bookmarks.
+  // Likes shows tweets by many authors (the ones the user liked), so unlike a
+  // profile we keep every author's permalink.
+  if (path === '/i/history/likes') return { kind: 'likes', key: 'likes' };
+  if (path === '/i/history' || path === '/i/history/bookmarks' || path.startsWith('/i/bookmarks')) {
+    return { kind: 'bookmarks', key: 'bookmarks' };
+  }
   // Home feed shows tweets by many authors (like Likes) — keep every author's
   // permalink (no repost filter, which only applies to a profile).
   if (path === '/home') return { kind: 'timeline', key: 'timeline' };
-  // Likes live at /<handle>/likes and show tweets by many authors (the ones
-  // the user liked) — so, unlike a profile, we keep every author's permalink.
+  // Legacy per-account Likes route.
   const liked = path.match(/^\/([A-Za-z0-9_]{1,15})\/likes$/);
   if (liked && !NON_PROFILE_PATHS.has(liked[1].toLowerCase())) {
-    return { kind: 'likes', key: `likes:${liked[1].toLowerCase()}`, handle: liked[1] };
+    return { kind: 'likes', key: `likes:${liked[1].toLowerCase()}` };
   }
   const m = path.match(/^\/([A-Za-z0-9_]{1,15})$/);
   if (m && !NON_PROFILE_PATHS.has(m[1].toLowerCase())) {

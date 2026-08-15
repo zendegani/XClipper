@@ -14,7 +14,7 @@
 // live:
 //   1) chrome://extensions → XClipper → service worker (Inspect)
 //   2) await xclipperFastBatch()      // grants permission, then EXPORTS bookmarks
-// If it says no request was captured, open https://x.com/i/bookmarks, scroll
+// If it says no request was captured, open https://x.com/i/history, scroll
 // once, and re-run.
 
 import type { Document } from '../ast/types';
