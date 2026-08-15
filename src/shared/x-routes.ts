@@ -10,9 +10,11 @@ export type XPageSource = 'bookmarks' | 'likes' | 'timeline' | 'profile';
 
 export interface XPage {
   source: XPageSource;
-  // Whose page it is, when the route names an account: a profile's owner, or
-  // the account whose likes are shown on the legacy `/<handle>/likes` route.
-  // The History routes are always the signed-in user's own, so they carry none.
+  // Whose page it is, when the route names an account. For a profile that's
+  // whoever's posts you're looking at; for the legacy `/<handle>/likes` route
+  // it can only ever be you, since X made likes private years ago — it's kept
+  // so switching accounts still re-keys the harvest. The History routes name
+  // nobody, being always your own.
   handle?: string;
 }
 
@@ -29,10 +31,16 @@ const NON_PROFILE_PATHS = new Set([
 export function pageSourceOfPath(pathname: string): XPage | null {
   const path = pathname.replace(/\/+$/, '');
 
-  // X moved Bookmarks and Likes under one History hub. Likes is tested first,
-  // or `/i/history/likes` reads as the hub's own path. The hub's other tabs
-  // (Videos, Articles) are deliberately left unmatched — they hold browsing
-  // history, not saved posts, and must never export as bookmarks.
+  // X moved Bookmarks and Likes under one History hub, which lands on its
+  // Bookmarks tab at the bare path. Likes is tested first, or `/i/history/likes`
+  // reads as that bare path.
+  //
+  // Both are matched exactly, never by prefix. The web hub carries just these
+  // two tabs today, but the mobile app already adds Videos and Articles, so
+  // more are expected here — and watch history is not something the user saved.
+  // Anything new under the hub stays unharvested until this module says
+  // otherwise. (If X ever re-points the bare path at a different default tab,
+  // the Bookmarks mapping below needs revisiting.)
   if (path === '/i/history/likes') return { source: 'likes' };
   if (path === '/i/history' || path === '/i/history/bookmarks') return { source: 'bookmarks' };
   // Pre-History route, still resolving for accounts the rollout hasn't reached.

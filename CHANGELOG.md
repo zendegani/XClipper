@@ -14,7 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
-- **Bookmarks and Likes batch export follow X's new History address**: X is moving Bookmarks and Likes under a single History hub — `x.com/i/history` and `x.com/i/history/likes` — and batch export didn't recognize either page, so the Bookmarks and Likes tabs found nothing to collect and **Open Bookmarks** led to the old address. Both new addresses now work, alongside the old `/i/bookmarks` and `/<handle>/likes` for accounts the rollout hasn't reached. The hub's other tabs (Videos, Articles) are deliberately left alone, so History browsing never gets exported as bookmarks.
+- **Bookmarks and Likes batch export follow X's new History address**: X is moving Bookmarks and Likes under a single History hub — `x.com/i/history` and `x.com/i/history/likes` — and batch export didn't recognize either page, so the Bookmarks and Likes tabs found nothing to collect and **Open Bookmarks** led to the old address. Both new addresses now work, alongside the old `/i/bookmarks` and `/<handle>/likes` for accounts the rollout hasn't reached.
 
 ---
 ## [2.7.1] - 2026-08-02
