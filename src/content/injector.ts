@@ -4,6 +4,7 @@
 
 import { getStatusUrl, normalizeStatusUrl } from './status-url';
 import { decorateSelection, enterSelection, exitSelection } from './selection';
+import { pageSourceOfPath, type XPage } from '../shared/x-routes';
 
 const BUTTON_ATTR = 'data-xclipper-injected';
 let decorated = new WeakSet<Element>();
@@ -285,45 +286,17 @@ function scan(): void {
 // when the source changes, so a later visit doesn't export items removed
 // meanwhile.
 
-// Top-level x.com paths that are app surfaces, not profile handles.
-const NON_PROFILE_PATHS = new Set([
-  'home', 'explore', 'notifications', 'messages', 'settings', 'search',
-  'compose', 'jobs', 'communities', 'premium', 'verified-orgs', 'about',
-  'tos', 'privacy', 'login', 'logout', 'signup', 'share', 'intent',
-  'hashtag', 'places', 'topics', 'account', 'follower_requests',
-]);
-
-type HarvestSource =
-  | { kind: 'bookmarks'; key: string }
-  | { kind: 'profile'; key: string; handle: string }
-  | { kind: 'likes'; key: string }
-  | { kind: 'timeline'; key: string }
-  | null;
+type HarvestSource = (XPage & { key: string }) | null;
 
 function harvestSourceOfPage(): HarvestSource {
-  const path = window.location.pathname;
-  // X moved Bookmarks and Likes under one History surface (/i/history and
-  // /i/history/likes); the older routes still resolve, so match both. Likes
-  // must be tested first — /i/history/likes would otherwise read as Bookmarks.
-  // Likes shows tweets by many authors (the ones the user liked), so unlike a
-  // profile we keep every author's permalink.
-  if (path === '/i/history/likes') return { kind: 'likes', key: 'likes' };
-  if (path === '/i/history' || path === '/i/history/bookmarks' || path.startsWith('/i/bookmarks')) {
-    return { kind: 'bookmarks', key: 'bookmarks' };
-  }
-  // Home feed shows tweets by many authors (like Likes) — keep every author's
-  // permalink (no repost filter, which only applies to a profile).
-  if (path === '/home') return { kind: 'timeline', key: 'timeline' };
-  // Legacy per-account Likes route.
-  const liked = path.match(/^\/([A-Za-z0-9_]{1,15})\/likes$/);
-  if (liked && !NON_PROFILE_PATHS.has(liked[1].toLowerCase())) {
-    return { kind: 'likes', key: `likes:${liked[1].toLowerCase()}` };
-  }
-  const m = path.match(/^\/([A-Za-z0-9_]{1,15})$/);
-  if (m && !NON_PROFILE_PATHS.has(m[1].toLowerCase())) {
-    return { kind: 'profile', key: `profile:${m[1].toLowerCase()}`, handle: m[1] };
-  }
-  return null;
+  const page = pageSourceOfPath(window.location.pathname);
+  if (!page) return null;
+  // Key the dedupe set per account wherever the route names one, so walking
+  // from one profile (or one Likes page) to another starts a fresh set.
+  return {
+    ...page,
+    key: page.handle ? `${page.source}:${page.handle.toLowerCase()}` : page.source,
+  };
 }
 
 const harvested = new Set<string>();
@@ -345,7 +318,7 @@ function harvestTimeline(): HarvestSource {
   for (const article of document.querySelectorAll('article[role="article"]')) {
     const url = getStatusUrl(article);
     if (!url) continue;
-    if (source.kind === 'profile' && !includeReposts) {
+    if (source.source === 'profile' && source.handle && !includeReposts) {
       // Repost cells link to the original author's permalink — skip them so
       // a profile export contains the profile owner's own posts.
       const author = url.match(/x\.com\/([^/]+)\/status\//)?.[1] || '';
@@ -364,8 +337,8 @@ try {
     if (msg && msg.action === 'XCLIPPER_HARVEST') {
       const source = harvestTimeline(); // catch cells rendered since the last mutation
       sendResponse({
-        source: source ? source.kind : null,
-        ...(source?.kind === 'profile' ? { handle: source.handle } : {}),
+        source: source ? source.source : null,
+        ...(source?.source === 'profile' ? { handle: source.handle } : {}),
         urls: Array.from(harvested),
       });
       return false;
