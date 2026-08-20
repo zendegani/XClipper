@@ -41,9 +41,12 @@ function captureHeaders(
     void chrome.storage.session.set({ [SESSION_AUTH_KEY]: auth });
   }
 
-  const op = details.url.match(/\/graphql\/[^/]+\/(Bookmarks|Likes|UserTweets|TweetDetail)\b/)?.[1];
+  const op = details.url.match(
+    /\/graphql\/[^/]+\/(Bookmarks|Likes|UserOriginalsTimeline|UserTweets|TweetDetail)\b/
+  )?.[1];
   if (op && templates[op] !== details.url) {
     templates[op] = details.url;
+    log('captured', op); // which step lights go green is otherwise invisible
     void chrome.storage.session.set({ [SESSION_TEMPLATES_KEY]: { ...templates } });
   }
   return undefined; // observe-only; never block/modify
