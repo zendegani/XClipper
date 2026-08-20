@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
+## [2.7.3] - 2026-08-20
+
+### Fixed
+
+- **Profile export works again in Auto and Super**: the **Profile** tab's first step light stayed red however often you reloaded the profile page, so a profile export could never start — X renamed the request that loads a profile's posts, and XClipper was still watching for the old name. Both names are now recognized, so the light turns green the way it always did for Bookmarks and Likes. Bookmarks and Likes were never affected. (#107)
+
+---
 ## [2.7.2] - 2026-08-15
 
 ### Added
