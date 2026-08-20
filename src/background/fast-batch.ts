@@ -150,12 +150,19 @@ export interface FastBatchResult {
 
 export type FastSource = 'bookmarks' | 'profile' | 'likes';
 
-// Which captured GraphQL operation backs each source, + a label for progress.
-const SOURCE_CONFIG: Record<FastSource, { op: string; label: string }> = {
-  bookmarks: { op: 'Bookmarks', label: 'bookmarks' },
-  profile: { op: 'UserTweets', label: 'posts' },
-  likes: { op: 'Likes', label: 'likes' },
+// Which captured GraphQL operations back each source, + a label for progress.
+// Listed newest-first: X renames these (the profile Posts timeline went from
+// `UserTweets` to `UserOriginalsTimeline`), and the old name keeps working for
+// clients still being served it, so whichever was captured is used (#107).
+const SOURCE_CONFIG: Record<FastSource, { ops: string[]; label: string }> = {
+  bookmarks: { ops: ['Bookmarks'], label: 'bookmarks' },
+  profile: { ops: ['UserOriginalsTimeline', 'UserTweets'], label: 'posts' },
+  likes: { ops: ['Likes'], label: 'likes' },
 };
+
+// The captured request for a source's feed, or undefined if none was seen yet.
+const feedTemplate = (source: FastSource): string | undefined =>
+  SOURCE_CONFIG[source].ops.map((op) => templates[op]).find(Boolean);
 
 // Resume-mode frontier per source (issue #83): the cursor where the last Resume
 // run stopped consuming, so the next continues from there.
@@ -282,7 +289,8 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
   // profile / likes), and (to expand threads/articles) TweetDetail. After an
   // extension reload neither has been seen yet. Check BOTH up front (before
   // paginating) and give one plain hint — the user does it once, then it works.
-  const needFeed = !templates[cfg.op];
+  const template = feedTemplate(source);
+  const needFeed = !template;
   const needTweetDetail = expandThreads && !templates.TweetDetail;
   if (needFeed || needTweetDetail) {
     const feedHint = `Reload your ${cfg.label} page`;
@@ -292,11 +300,10 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
         : needFeed
           ? `${feedHint}, then click Export again.`
           : 'Open any one tweet, then click Export again.';
-    log(`preconditions missing (${cfg.op}:${needFeed} tweetDetail:${needTweetDetail})`);
+    log(`preconditions missing (${cfg.ops.join('/')}:${needFeed} tweetDetail:${needTweetDetail})`);
     setProgress({ status: 'error', needTweetDetail, error: msg });
     return null;
   }
-  const template = templates[cfg.op];
 
   const settings = await loadSettings();
   // Profile: drop reposts unless the user opted to include them (matches Standard).
@@ -705,7 +712,7 @@ export function initFastBatch(): void {
       void (async () => {
         await restoreSession(); // templates may live in session storage after a SW restart
         sendResponse({
-          feed: !!templates[SOURCE_CONFIG[src].op],
+          feed: !!feedTemplate(src),
           tweetDetail: !!templates.TweetDetail,
         } satisfies FastBatchReadyResponse);
       })();
