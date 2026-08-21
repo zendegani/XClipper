@@ -6,6 +6,13 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
+## [2.7.4] - 2026-08-21
+
+### Changed
+
+- **Fast Batch no longer logs each captured request**: the background console wrote a line every time a bookmarks, likes or profile page fetched another batch of posts while you scrolled. It was a debugging aid left over from the 2.7.3 profile fix; nothing else changes.
+
+---
 ## [2.7.3] - 2026-08-20
 
 ### Fixed
