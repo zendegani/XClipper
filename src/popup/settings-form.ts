@@ -32,7 +32,10 @@ import {
   outBoth,
   outCombined,
   chkBatchZip,
-  chkDownloadImages,
+  saveLocalField,
+  saveLocalOff,
+  saveLocalImages,
+  saveLocalMedia,
   chkMetadata,
   chkCloseTab,
   chkInlineCopies,
@@ -86,7 +89,8 @@ export function applySingleFormat(fmt: BatchFormat): void {
 
 export function persistAll(): void {
   saveSettings({
-    downloadImages: chkDownloadImages.checked,
+    downloadImages: readSaveLocal() !== 'off',
+    saveVideos: readSaveLocal() === 'media',
     includeMetadata: chkMetadata.checked,
     closeTabAfterExport: chkCloseTab.checked,
     inlineButtonCopies: chkInlineCopies.checked,
@@ -123,6 +127,30 @@ function setBatchOutput(value: BatchOutput): void {
   outCombined.checked = value === 'combined';
 }
 
+// The Off | Images | Media control is presentation over two stored booleans,
+// not a setting of its own — see Settings.saveVideos for why the pair can't
+// collapse into one key. Media implies Images: the poster is an image, and one
+// control beats two.
+type SaveLocal = 'off' | 'images' | 'media';
+
+function readSaveLocal(): SaveLocal {
+  if (saveLocalMedia.checked) return 'media';
+  if (saveLocalImages.checked) return 'images';
+  return 'off';
+}
+
+// The single-export flows only care whether local media is on at all, not
+// which tier — they never download video (Phase 1 is Fast Batch only).
+export function saveLocalEnabled(): boolean {
+  return readSaveLocal() !== 'off';
+}
+
+function setSaveLocal(value: SaveLocal): void {
+  saveLocalOff.checked = value === 'off';
+  saveLocalImages.checked = value === 'images';
+  saveLocalMedia.checked = value === 'media';
+}
+
 // CSV is metadata-only, so a per-item CSV makes no sense — force one combined
 // file and lock the other two options while CSV is selected.
 function syncOutputForFormat(): void {
@@ -144,14 +172,18 @@ function syncBatchToggles(): void {
     chk.disabled = disabled;
     chk.closest('.toggle-label')?.classList.toggle('disabled', disabled);
   };
-  gate(chkDownloadImages, fmt === 'md');
   gate(chkInlineStats, fmt === 'md' || fmt === 'html');
   gate(chkMetadata, fmt === 'md' || fmt === 'csv');
+  // Same greying rule for the save-locally group, but it's a radio set in a
+  // .batch-field rather than a .toggle-label, so gate() doesn't fit it.
+  const saveLocalDisabled = batchMode && fmt !== 'md';
+  for (const r of [saveLocalOff, saveLocalImages, saveLocalMedia]) r.disabled = saveLocalDisabled;
+  saveLocalField.classList.toggle('disabled', saveLocalDisabled);
   // Zip packs the per-item files, so it's meaningless with Combined-only
   // output; local images disable it too (image bytes can't be fetched into
   // the archive — and images only ever download for Markdown). Batch-only
   // control, so no batchMode factor.
-  const zipBlocked = outCombined.checked || (chkDownloadImages.checked && fmt === 'md');
+  const zipBlocked = outCombined.checked || (readSaveLocal() !== 'off' && fmt === 'md');
   chkBatchZip.disabled = zipBlocked;
   chkBatchZip.closest('.toggle-label')?.classList.toggle('disabled', zipBlocked);
 }
@@ -323,7 +355,7 @@ function updateTagsPreview(): void {
 export function initSettingsForm(): void {
   // Restore toggle states on popup open.
   loadSettings().then((settings) => {
-    chkDownloadImages.checked = settings.downloadImages;
+    setSaveLocal(settings.downloadImages ? (settings.saveVideos ? 'media' : 'images') : 'off');
     chkMetadata.checked = settings.includeMetadata;
     chkCloseTab.checked = settings.closeTabAfterExport;
     chkInlineCopies.checked = settings.inlineButtonCopies;
@@ -420,10 +452,12 @@ export function initSettingsForm(): void {
   // ─── Plain change/blur persistence for the remaining controls ───
   // Local images and the output radios gate the zip toggle (and the flood
   // hint), so they re-sync the batch controls, not just persist.
-  chkDownloadImages.addEventListener('change', () => {
-    syncBatchControls();
-    persistAll();
-  });
+  [saveLocalOff, saveLocalImages, saveLocalMedia].forEach((r) =>
+    r.addEventListener('change', () => {
+      syncBatchControls();
+      persistAll();
+    })
+  );
   chkBatchZip.addEventListener('change', () => {
     updateFloodHint();
     persistAll();

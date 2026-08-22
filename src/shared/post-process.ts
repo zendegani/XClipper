@@ -4,6 +4,7 @@ import { isAllowedImageUrl } from './media';
 export interface PostProcessOptions {
   includeMetadata: boolean;
   downloadImages: boolean;
+  videoAttachments?: { renderedUrl: string; downloadUrl: string }[];
   inlineStats?: boolean;
   obsidianFriendly?: boolean;
   filenameTemplate?: string;
@@ -277,6 +278,19 @@ function stripSourceFooter(md: string): string {
   return md.replace(/\n+---\n+> Source:.*\n> Date:.*$/s, '');
 }
 
+export function deriveBasename(url: string, defaultExt: string): string {
+  const urlObj = new URL(url);
+  let fname = urlObj.pathname.split('/').pop() || 'image';
+  const formatMatch = url.match(/format=([a-zA-Z0-9]+)/);
+  if (formatMatch && !fname.includes('.')) fname += `.${formatMatch[1]}`;
+  if (!fname.includes('.')) fname += `.${defaultExt}`;
+  return fname.replace(/[^a-zA-Z0-9_.-]/g, '_');
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+}
+
 export function postProcess(
   data: ExtractedContent,
   opts: PostProcessOptions
@@ -386,19 +400,7 @@ export function postProcess(
         }
 
         try {
-          const urlObj = new URL(imgUrl);
-          let fname = urlObj.pathname.split('/').pop() || 'image';
-
-          const formatMatch = imgUrl.match(/format=([a-zA-Z0-9]+)/);
-          if (formatMatch && !fname.includes('.')) {
-            fname += `.${formatMatch[1]}`;
-          }
-          if (!fname.includes('.')) {
-            fname += '.jpg';
-          }
-
-          fname = fname.replace(/[^a-zA-Z0-9_.-]/g, '_');
-          const localPath = `${dirName}/${fname}`;
+          const localPath = `${dirName}/${deriveBasename(imgUrl, 'jpg')}`;
 
           if (!imagesToDownload.find((i) => i.url === imgUrl)) {
             imagesToDownload.push({ url: imgUrl, filename: localPath });
@@ -410,6 +412,29 @@ export function postProcess(
         }
       }
     );
+
+    for (const v of opts.videoAttachments ?? []) {
+      if (!isAllowedImageUrl(v.downloadUrl)) continue;
+      const localPath = `${dirName}/${deriveBasename(v.downloadUrl, 'mp4')}`;
+      const linkRe = new RegExp(
+        `(\\[▶ (?:Video|GIF)\\]\\()${escapeRegExp(v.renderedUrl)}(\\))`,
+        'g'
+      );
+      // Replace via a function, not a replacement string: localPath carries the
+      // user's filename template, and buildFilename doesn't strip '$' — a
+      // template like "$1" would otherwise be read back as a capture group.
+      let linked = false;
+      finalMarkdown = finalMarkdown.replace(linkRe, (_match, open: string, close: string) => {
+        linked = true;
+        return `${open}${localPath}${close}`;
+      });
+      // Only queue what the Markdown actually points at. A missing renderer
+      // token must not leave an orphan .mp4 on disk.
+      if (!linked) continue;
+      if (!imagesToDownload.find((i) => i.url === v.downloadUrl)) {
+        imagesToDownload.push({ url: v.downloadUrl, filename: localPath });
+      }
+    }
   }
 
   return {

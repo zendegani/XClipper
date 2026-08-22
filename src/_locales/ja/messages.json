@@ -404,11 +404,20 @@
   "opt_obsidian_tags_info": {
     "message": "タグのプレースホルダーを表示"
   },
-  "opt_save_images_title": {
-    "message": "Markdownファイルと同じフォルダに画像をダウンロードする"
+  "opt_save_local_title": {
+    "message": "オフ: メディアは X へのリンクのままにします。画像: Markdown ファイルと同じフォルダに画像をダウンロードします。メディア: 動画も .mp4 で保存します（サイズが大幅に大きくなります）。"
   },
-  "opt_save_images": {
-    "message": "画像をローカル保存（.md のみ）"
+  "opt_save_local": {
+    "message": "ローカル保存（.md のみ）"
+  },
+  "opt_save_local_off": {
+    "message": "オフ"
+  },
+  "opt_save_local_images": {
+    "message": "画像"
+  },
+  "opt_save_local_media": {
+    "message": "メディア"
   },
   "opt_metadata_title": {
     "message": "いいね、リポスト、閲覧数をYAMLフロントマターとして追加"

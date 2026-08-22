@@ -1,8 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import type { Document } from '../src/ast/types';
+import type { Document, MediaItem } from '../src/ast/types';
 import { renderDigest } from '../src/ast/render-digest';
+import { docToExtracted } from '../src/background/batch-sink';
 
-function tweetDoc(handle: string, text: string, id: string): Document {
+function tweetDoc(handle: string, text: string, id: string, media: MediaItem[] = []): Document {
   return {
     version: 1,
     metadata: {
@@ -18,7 +19,7 @@ function tweetDoc(handle: string, text: string, id: string): Document {
       date: '2026-06-11',
       tweetId: id,
       text: [{ type: 'text', value: text }],
-      media: [],
+      media,
     },
   };
 }
@@ -39,5 +40,32 @@ describe('renderDigest', () => {
   it('renders a single document without trailing separator noise', () => {
     const digest = renderDigest([tweetDoc('alice', 'only', '1')]);
     expect(digest.trim().endsWith('> Date: 2026-06-11')).toBe(true);
+  });
+
+  it('keeps real MP4s poster-only in a combined digest', () => {
+    const mp4 = 'https://video.twimg.com/vid/clip.mp4?tag=27';
+    const digest = renderDigest([tweetDoc('alice', 'with video', '1', [{
+      kind: 'video',
+      url: mp4,
+      posterUrl: 'https://pbs.twimg.com/media/poster.jpg',
+    }])]);
+
+    expect(digest).not.toContain(mp4);
+    expect(digest).not.toContain('alice-1/clip.mp4');
+  });
+});
+
+describe('docToExtracted video-link option', () => {
+  it('enables video links only when the caller opts in', () => {
+    const mp4 = 'https://video.twimg.com/vid/clip.mp4?tag=27';
+    const doc = tweetDoc('alice', 'with video', '1', [{
+      kind: 'video',
+      url: mp4,
+      posterUrl: 'https://pbs.twimg.com/media/poster.jpg',
+    }]);
+
+    expect(docToExtracted(doc).markdown).not.toContain(mp4);
+    expect(docToExtracted(doc, { includeVideoLinks: true }).markdown)
+      .toContain(`[▶ Video](${mp4})`);
   });
 });

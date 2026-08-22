@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
-import { postProcess, buildFilename, applyFilenameTemplate, applyTagsTemplate, DEFAULT_TAGS_TEMPLATE } from '../src/shared/post-process';
+import { postProcess, buildFilename, applyFilenameTemplate, applyTagsTemplate, DEFAULT_TAGS_TEMPLATE, deriveBasename } from '../src/shared/post-process';
 import type { ExtractedContent } from '../src/types/messages';
+import type { Document } from '../src/ast/types';
+import { collectMedia, isDownloadableVideo } from '../src/ast/collect-media';
+import { docToExtracted } from '../src/background/batch-sink';
 
 function content(markdown: string): ExtractedContent {
   return {
@@ -86,6 +89,155 @@ describe('postProcess() image downloads', () => {
     expect(result.images).toEqual([
       { url: allowedUrl, filename: 'example-123/example.jpg' },
     ]);
+  });
+});
+
+describe('deriveBasename()', () => {
+  it.each([
+    ['https://pbs.twimg.com/media/example?format=jpg&name=large', 'jpg', 'example.jpg'],
+    ['https://pbs.twimg.com/media/HIEVJQ4XoAAXNNi.jpg', 'jpg', 'HIEVJQ4XoAAXNNi.jpg'],
+  ])('keeps image basenames unchanged for %s', (url, defaultExt, expected) => {
+    expect(deriveBasename(url, defaultExt)).toBe(expected);
+  });
+
+  it('derives the basename of a real X video URL', () => {
+    expect(deriveBasename(
+      'https://video.twimg.com/amplify_video/2059311116694757376/vid/avc1/1920x1080/_vGThNd8HNc3yfnk.mp4?tag=27',
+      'mp4'
+    )).toBe('_vGThNd8HNc3yfnk.mp4');
+  });
+
+  it('uses the default extension when the URL pathname has none', () => {
+    expect(deriveBasename('https://video.twimg.com/vid/clip', 'mp4')).toBe('clip.mp4');
+  });
+
+  it('sanitizes filename characters from the pathname', () => {
+    expect(deriveBasename('https://video.twimg.com/vid/clip%20name!.mp4', 'mp4'))
+      .toBe('clip_20name_.mp4');
+  });
+});
+
+describe('postProcess() video attachments', () => {
+  const posterUrl = 'https://pbs.twimg.com/media/poster?format=jpg&name=large';
+  const videoUrl = 'https://video.twimg.com/amplify_video/2059311116694757376/vid/avc1/1920x1080/_vGThNd8HNc3yfnk.mp4?tag=27';
+  const downloadUrl = `${videoUrl}&name=large`;
+
+  it('localizes only video-link tokens, preserves query strings, and deduplicates downloads', () => {
+    const result = postProcess(
+      content([
+        `![🎥 Video](${posterUrl})`,
+        `[▶ Video](${videoUrl})`,
+        `Mention ${videoUrl}`,
+        `[An ordinary link](${videoUrl})`,
+      ].join('\n\n')),
+      {
+        includeMetadata: false,
+        downloadImages: true,
+        filenameTemplate: '{date}-{handle}',
+        videoAttachments: [
+          { renderedUrl: videoUrl, downloadUrl },
+          { renderedUrl: videoUrl, downloadUrl },
+        ],
+      }
+    );
+
+    expect(result.markdown).toContain('![🎥 Video](2026-05-11-example/poster.jpg)');
+    expect(result.markdown).toContain('[▶ Video](2026-05-11-example/_vGThNd8HNc3yfnk.mp4)');
+    expect(result.markdown).toContain(`Mention ${videoUrl}`);
+    expect(result.markdown).toContain(`[An ordinary link](${videoUrl})`);
+    expect(result.images).toEqual([
+      { url: posterUrl, filename: '2026-05-11-example/poster.jpg' },
+      { url: downloadUrl, filename: '2026-05-11-example/_vGThNd8HNc3yfnk.mp4' },
+    ]);
+  });
+
+  // buildFilename strips path separators but not '$'. Replacement STRINGS read
+  // '$1' back as a capture group, so the local path has to go in via a
+  // replacer function or a templated folder name corrupts every video link.
+  it('survives a filename template containing a dollar sign', () => {
+    const result = postProcess(
+      content(`Watch this.\n\n[▶ Video](${videoUrl})`),
+      {
+        includeMetadata: false,
+        downloadImages: true,
+        filenameTemplate: '$1-{handle}',
+        videoAttachments: [{ renderedUrl: videoUrl, downloadUrl }],
+      }
+    );
+
+    expect(result.markdown).toContain('[▶ Video]($1-example/_vGThNd8HNc3yfnk.mp4)');
+    expect(result.markdown).not.toContain('[▶ Video]([▶ Video]');
+    expect(result.images).toEqual([
+      { url: downloadUrl, filename: '$1-example/_vGThNd8HNc3yfnk.mp4' },
+    ]);
+  });
+
+  // Queuing an attachment the Markdown never points at leaves an orphan .mp4.
+  it('does not queue a download when no video link token matched', () => {
+    const result = postProcess(
+      content(`![🎥 Video](${posterUrl})`),
+      {
+        includeMetadata: false,
+        downloadImages: true,
+        videoAttachments: [{ renderedUrl: videoUrl, downloadUrl }],
+      }
+    );
+
+    expect(result.images).toEqual([
+      { url: posterUrl, filename: 'example-123/poster.jpg' },
+    ]);
+  });
+
+  it('renders, localizes, and queues an article VideoNode through the real seams', () => {
+    const articleVideo = 'https://video.twimg.com/vid/article.mp4?tag=27';
+    const articlePoster = 'https://pbs.twimg.com/media/article.jpg';
+    const doc: Document = {
+      version: 1,
+      metadata: {
+        type: 'article',
+        sourceUrl: 'https://x.com/example/status/123',
+        tweetId: '123',
+        author: { name: 'Example', handle: 'example' },
+        date: '2026-05-11T00:00:00.000Z',
+        title: 'Example article',
+      },
+      body: {
+        type: 'article',
+        children: [{ type: 'video', posterUrl: articlePoster, sourceUrl: articleVideo }],
+      },
+    };
+    const videoAttachments = collectMedia(doc)
+      .filter(isDownloadableVideo)
+      .map((media) => ({ renderedUrl: media.url, downloadUrl: media.url }));
+
+    const result = postProcess(
+      docToExtracted(doc, { includeVideoLinks: true }),
+      { includeMetadata: false, downloadImages: true, videoAttachments },
+    );
+
+    expect(result.markdown).toContain('![🎥 Video](example-example-article/article.jpg)');
+    expect(result.markdown).toContain('[▶ Video](example-example-article/article.mp4)');
+    expect(result.images).toEqual([
+      { url: articlePoster, filename: 'example-example-article/article.jpg' },
+      { url: articleVideo, filename: 'example-example-article/article.mp4' },
+    ]);
+  });
+
+  it('keeps slug filenames and Obsidian descriptions valid with a video link', () => {
+    const result = postProcess(
+      content(`# Example (@example)\n\nWatch this clip.\n\n[▶ Video](${videoUrl})`),
+      {
+        includeMetadata: true,
+        downloadImages: true,
+        obsidianFriendly: true,
+        filenameTemplate: '{slug}',
+        videoAttachments: [{ renderedUrl: videoUrl, downloadUrl }],
+      }
+    );
+
+    expect(result.filename).toBe('watch-this-clip-video.md');
+    expect(result.markdown).toContain('description: "Watch this clip. ▶ Video"');
+    expect(result.markdown).toContain('[▶ Video](watch-this-clip-video/_vGThNd8HNc3yfnk.mp4)');
   });
 });
 

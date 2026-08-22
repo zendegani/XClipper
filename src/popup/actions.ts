@@ -9,7 +9,7 @@ import { buildFormatExport, type ExportFormat } from '../shared/export-formats';
 import { recordExport } from '../shared/review-prompt';
 import { buildObsidianUrl } from '../shared/obsidian';
 import { hostMatches } from '../shared/media';
-import { currentFrontmatterFields, readSingleFormat, applySingleFormat, persistAll } from './settings-form';
+import { currentFrontmatterFields, readSingleFormat, applySingleFormat, persistAll, saveLocalEnabled } from './settings-form';
 import type { BatchFormat } from '../shared/settings';
 import {
   btnDownload,
@@ -21,7 +21,6 @@ import {
   chkMetadata,
   chkInlineStats,
   chkObsidianFriendly,
-  chkDownloadImages,
   txtFilenameTemplate,
   txtObsidianTags,
   txtObsidianVault,
@@ -147,7 +146,7 @@ async function extractMarkdown(
   // markdown via URL, not a filesystem package, so leave images as remote
   // URLs (Obsidian renders pbs.twimg.com inline fine).
   const downloadImages =
-    forAction === 'obsidian' ? false : resolveDownloadImages(forAction, chkDownloadImages.checked);
+    forAction === 'obsidian' ? false : resolveDownloadImages(forAction, saveLocalEnabled());
 
   // Need engagement data if either renderer wants it.
   const data = await extractContent(includeMetadata || inlineStats);

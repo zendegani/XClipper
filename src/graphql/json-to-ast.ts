@@ -63,11 +63,18 @@ interface RawEntities {
   media?: (RawIndexed & { url?: string })[];
 }
 
+interface RawVideoVariant {
+  bitrate?: number;
+  bit_rate?: number;
+  content_type?: string;
+  url?: string;
+}
+
 interface RawMedia {
   type?: string; // 'photo' | 'video' | 'animated_gif'
   media_url_https?: string;
   ext_alt_text?: string | null;
-  video_info?: { variants?: { bitrate?: number; content_type?: string; url?: string }[] };
+  video_info?: { variants?: RawVideoVariant[] };
 }
 
 interface RawBinding {
@@ -147,7 +154,11 @@ interface RawContentState {
 }
 interface RawMediaEntity {
   media_id?: string;
-  media_info?: { original_img_url?: string };
+  media_info?: {
+    original_img_url?: string;
+    preview_image?: { original_img_url?: string };
+    variants?: RawVideoVariant[];
+  };
 }
 
 // A timeline entry's tweet may be wrapped (e.g. TweetWithVisibilityResults).
@@ -322,7 +333,7 @@ function normalizeMediaUrl(url: string): string {
 }
 
 // An atomic block carries a single entity: a DIVIDER (→ horizontal rule),
-// MEDIA (→ image, resolved via media_entities by mediaId) or MARKDOWN
+// MEDIA (→ image/video, resolved via media_entities by mediaId) or MARKDOWN
 // (→ code block or table).
 function atomicBlock(
   b: RawDraftBlock,
@@ -337,7 +348,17 @@ function atomicBlock(
   if (ent?.type !== 'MEDIA') return undefined;
   const mediaId = ent.data?.mediaItems?.[0]?.mediaId;
   if (!mediaId) return undefined;
-  const url = mediaById.get(mediaId)?.media_info?.original_img_url;
+  const info = mediaById.get(mediaId)?.media_info;
+  const posterUrl = info?.preview_image?.original_img_url;
+  const sourceUrl = bestVariant(info?.variants ?? []);
+  if (sourceUrl) {
+    return {
+      type: 'video',
+      sourceUrl,
+      ...(posterUrl ? { posterUrl: normalizeMediaUrl(posterUrl) } : {}),
+    };
+  }
+  const url = info?.original_img_url ?? posterUrl;
   return url ? { type: 'image', url: normalizeMediaUrl(url) } : undefined;
 }
 
@@ -594,10 +615,11 @@ function media(items: RawMedia[]): MediaItem[] {
 
 // Highest-bitrate progressive MP4 (X also ships HLS .m3u8 variants with no
 // bitrate, which a downloader can't save directly — prefer the mp4s).
-function bestVariant(variants: { bitrate?: number; content_type?: string; url?: string }[]): string | undefined {
+function bestVariant(variants: RawVideoVariant[]): string | undefined {
   const mp4 = variants.filter((v) => v.content_type === 'video/mp4' && v.url);
   if (mp4.length === 0) return variants.find((v) => v.url)?.url;
-  return mp4.sort((a, b) => (b.bitrate ?? 0) - (a.bitrate ?? 0))[0].url;
+  const bitrate = (v: RawVideoVariant): number => v.bitrate ?? v.bit_rate ?? 0;
+  return mp4.sort((a, b) => bitrate(b) - bitrate(a))[0].url;
 }
 
 type CardResult =

@@ -102,7 +102,7 @@ export interface ImageNode {
 
 export interface VideoNode {
   type: 'video';
-  posterUrl: string;
+  posterUrl?: string;
   sourceUrl: string;
   alt?: string;
 }

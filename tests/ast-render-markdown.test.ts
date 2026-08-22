@@ -6,7 +6,7 @@ import { domToAst } from '../src/content/dom-to-ast';
 import { renderMarkdown, renderMarkdownBody } from '../src/ast/render-markdown';
 import { postProcess } from '../src/shared/post-process';
 import type { ExtractedContent, TweetMetadata } from '../src/types/messages';
-import type { Document, InlineNode } from '../src/ast/types';
+import type { Document, InlineNode, MediaItem } from '../src/ast/types';
 
 // Phase 3 parity test: AST extractor → AST → renderMarkdown → postProcess,
 // compared against the existing .md fixture. Diffs here are either renderer
@@ -182,5 +182,185 @@ describe('emphasis edge whitespace', () => {
       { type: 'strong', children: [{ type: 'text', value: 'Triggered by' }] },
       { type: 'text', value: ': A user prompt.' },
     ])).toBe('**Triggered by**: A user prompt.');
+  });
+});
+
+describe('video media rendering', () => {
+  const author = { name: 'A', handle: 'a' };
+  const renderMedia = (
+    media: MediaItem,
+    options?: { includeVideoLinks?: boolean },
+  ): string => renderMarkdownBody({
+    version: 1,
+    metadata: {
+      type: 'tweet',
+      sourceUrl: 'https://x.com/a/status/1',
+      tweetId: '1',
+      author,
+      date: '2026-01-01T00:00:00.000Z',
+    },
+    body: {
+      type: 'tweet',
+      author,
+      date: '2026-01-01T00:00:00.000Z',
+      tweetId: '1',
+      text: [],
+      media: [media],
+    },
+  }, options);
+
+  it('keeps a real MP4 poster-only by default', () => {
+    const mp4 = 'https://video.twimg.com/vid/clip.MP4?tag=27';
+    const poster = 'https://pbs.twimg.com/media/poster.jpg';
+    expect(renderMedia({ kind: 'video', url: mp4, posterUrl: poster }))
+      .toBe(`![🎥 Video](${poster})`);
+  });
+
+  it('renders a real MP4 link when video links are enabled', () => {
+    const mp4 = 'https://video.twimg.com/vid/clip.MP4?tag=27';
+    const poster = 'https://pbs.twimg.com/media/poster.jpg';
+    expect(renderMedia(
+      { kind: 'video', url: mp4, posterUrl: poster },
+      { includeVideoLinks: true },
+    ))
+      .toBe(`![🎥 Video](${poster})\n\n[▶ Video](${mp4})`);
+  });
+
+  it('keeps a non-video.twimg MP4 poster-only when video links are enabled', () => {
+    const mp4 = 'https://pbs.twimg.com/x/clip.mp4';
+    const poster = 'https://pbs.twimg.com/media/poster.jpg';
+    const rendered = renderMedia(
+      { kind: 'video', url: mp4, posterUrl: poster },
+      { includeVideoLinks: true },
+    );
+
+    expect(rendered).toBe(`![🎥 Video](${poster})`);
+    expect(rendered).not.toContain('[▶ Video]');
+    expect(rendered).not.toContain(mp4);
+  });
+
+  it('keeps a real MP4 without a poster as plain text by default', () => {
+    const mp4 = 'https://video.twimg.com/vid/clip.mp4?tag=27';
+    const rendered = renderMedia({ kind: 'video', url: mp4 });
+    expect(rendered).toBe('[🎥 Video]');
+    expect(rendered).not.toContain(mp4);
+    expect(rendered).not.toContain('![');
+  });
+
+  it('renders a real MP4 without a poster as a link when enabled', () => {
+    const mp4 = 'https://video.twimg.com/vid/clip.mp4?tag=27';
+    expect(renderMedia(
+      { kind: 'video', url: mp4 },
+      { includeVideoLinks: true },
+    )).toBe(`[▶ Video](${mp4})`);
+  });
+
+  it('renders HLS with a poster as the poster only', () => {
+    const hls = 'https://video.twimg.com/vid/clip.m3u8';
+    const poster = 'https://pbs.twimg.com/media/poster.jpg';
+    expect(renderMedia({ kind: 'video', url: hls, posterUrl: poster }))
+      .toBe(`![🎥 Video](${poster})`);
+  });
+
+  it('renders HLS without a poster as plain video text', () => {
+    const hls = 'https://video.twimg.com/vid/clip.m3u8';
+    const rendered = renderMedia({ kind: 'video', url: hls });
+    expect(rendered).toBe('[🎥 Video]');
+    expect(rendered).not.toContain(hls);
+  });
+
+  it('uses the GIF label for an enabled animated GIF MP4 link', () => {
+    const mp4 = 'https://video.twimg.com/vid/clip.mp4';
+    expect(renderMedia(
+      { kind: 'gif', url: mp4 },
+      { includeVideoLinks: true },
+    )).toBe(`[▶ GIF](${mp4})`);
+  });
+
+  it('keeps poster-only media byte-identical', () => {
+    const poster = 'https://pbs.twimg.com/media/poster.jpg';
+    expect(renderMedia({ kind: 'video', url: poster, posterUrl: poster }))
+      .toBe(`![🎥 Video](${poster})`);
+  });
+
+  it('keeps quoted-tweet videos poster-only unless links are enabled', () => {
+    const mp4 = 'https://video.twimg.com/vid/quote.mp4';
+    const poster = 'https://pbs.twimg.com/media/quote.jpg';
+    const quote: Document = {
+      version: 1,
+      metadata: {
+        type: 'tweet',
+        sourceUrl: 'https://x.com/a/status/1',
+        tweetId: '1',
+        author,
+        date: '2026-01-01T00:00:00.000Z',
+      },
+      body: {
+        type: 'tweet',
+        author,
+        date: '2026-01-01T00:00:00.000Z',
+        tweetId: '1',
+        text: [],
+        media: [],
+        quotedTweet: {
+          type: 'tweet',
+          author: { name: 'B', handle: 'b' },
+          date: '2026-01-01T00:00:00.000Z',
+          tweetId: '2',
+          text: [],
+          media: [{ kind: 'video', url: mp4, posterUrl: poster }],
+        },
+      },
+    };
+
+    expect(renderMarkdownBody(quote)).not.toContain(mp4);
+    expect(renderMarkdownBody(quote, { includeVideoLinks: true })).toContain(`[▶ Video](${mp4})`);
+  });
+
+  it('renders an article VideoNode link only when enabled', () => {
+    const mp4 = 'https://video.twimg.com/vid/article.mp4';
+    const poster = 'https://pbs.twimg.com/media/article.jpg';
+    const article: Document = {
+      version: 1,
+      metadata: {
+        type: 'article',
+        sourceUrl: 'https://x.com/a/status/1',
+        tweetId: '1',
+        author,
+        date: '2026-01-01T00:00:00.000Z',
+        title: 'Article',
+      },
+      body: {
+        type: 'article',
+        children: [{ type: 'video', posterUrl: poster, sourceUrl: mp4 }],
+      },
+    };
+
+    expect(renderMarkdownBody(article)).toBe(`![🎥 Video](${poster})`);
+    expect(renderMarkdownBody(article, { includeVideoLinks: true }))
+      .toBe(`![🎥 Video](${poster})\n\n[▶ Video](${mp4})`);
+  });
+
+  it('renders a posterless article VideoNode as link-only when enabled', () => {
+    const mp4 = 'https://video.twimg.com/vid/article.mp4';
+    const article: Document = {
+      version: 1,
+      metadata: {
+        type: 'article',
+        sourceUrl: 'https://x.com/a/status/1',
+        tweetId: '1',
+        author,
+        date: '2026-01-01T00:00:00.000Z',
+        title: 'Article',
+      },
+      body: {
+        type: 'article',
+        children: [{ type: 'video', sourceUrl: mp4 }],
+      },
+    };
+
+    const rendered = renderMarkdownBody(article, { includeVideoLinks: true });
+    expect(rendered).toBe(`[▶ Video](${mp4})`);
+    expect(rendered).not.toContain('![');
   });
 });

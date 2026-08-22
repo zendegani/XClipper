@@ -74,7 +74,10 @@ export const fastStepExpand = document.getElementById('fast-step-expand') as HTM
 export const batchSection = document.getElementById('batch-section') as HTMLDivElement;
 
 // ─── Settings checkboxes ─────────────────────────────────────────────
-export const chkDownloadImages = document.getElementById('chk-download-images') as HTMLInputElement;
+export const saveLocalField = document.getElementById('save-local-field') as HTMLDivElement;
+export const saveLocalOff = document.getElementById('save-local-off') as HTMLInputElement;
+export const saveLocalImages = document.getElementById('save-local-images') as HTMLInputElement;
+export const saveLocalMedia = document.getElementById('save-local-media') as HTMLInputElement;
 export const chkMetadata = document.getElementById('chk-include-metadata') as HTMLInputElement;
 export const chkCloseTab = document.getElementById('chk-close-tab') as HTMLInputElement;
 export const chkInlineCopies = document.getElementById('chk-inline-copies') as HTMLInputElement;
