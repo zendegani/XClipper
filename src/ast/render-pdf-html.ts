@@ -125,7 +125,7 @@ function renderAuthorHeader(tweet: TweetNode): string {
 function formatDate(iso: string): string {
   const d = new Date(iso);
   if (isNaN(d.getTime())) return '';
-  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC' });
 }
 
 function renderEngagement(e: NonNullable<TweetNode['engagement']>): string {
