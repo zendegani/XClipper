@@ -404,11 +404,20 @@
   "opt_obsidian_tags_info": {
     "message": "Mostrar placeholders de tags"
   },
-  "opt_save_images_title": {
-    "message": "Baixar imagens para uma pasta ao lado do arquivo Markdown"
+  "opt_save_local_title": {
+    "message": "Desligado: manter a mídia como links para o X. Imagens: baixar as imagens para uma pasta ao lado do arquivo Markdown. Mídia: salvar também os vídeos em .mp4 — bem maiores."
   },
-  "opt_save_images": {
-    "message": "Salvar imagens localmente (somente com .md)"
+  "opt_save_local": {
+    "message": "Salvar localmente (somente com .md)"
+  },
+  "opt_save_local_off": {
+    "message": "Desligado"
+  },
+  "opt_save_local_images": {
+    "message": "Imagens"
+  },
+  "opt_save_local_media": {
+    "message": "Mídia"
   },
   "opt_metadata_title": {
     "message": "Adicionar curtidas, reposts, visualizações como YAML frontmatter"

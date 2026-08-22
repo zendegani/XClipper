@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { jsonToAst, jsonToTweetNode } from '../src/graphql/json-to-ast';
 import { renderMarkdown } from '../src/ast/render-markdown';
+import { isDownloadableVideo } from '../src/ast/collect-media';
 
 // Fixtures here are MODELED ON X's documented GraphQL schema, not captured from
 // a live response (that needs a logged-in session — see ADR 0003). They pin the
@@ -200,6 +201,48 @@ describe('jsonToTweetNode — media', () => {
       { kind: 'video', url: 'https://video/high.mp4', posterUrl: 'https://pbs.twimg.com/poster.jpg' },
     ]);
   });
+
+  it('keeps an HLS-only variant as a non-downloadable fallback', () => {
+    const node = jsonToTweetNode(
+      tweet({
+        extended_entities: {
+          media: [
+            {
+              type: 'video',
+              media_url_https: 'https://pbs.twimg.com/poster.jpg',
+              video_info: {
+                variants: [{ content_type: 'application/x-mpegURL', url: 'https://video/x.m3u8' }],
+              },
+            },
+          ],
+        },
+      })
+    );
+
+    expect(node.media).toEqual([
+      { kind: 'video', url: 'https://video/x.m3u8', posterUrl: 'https://pbs.twimg.com/poster.jpg' },
+    ]);
+    expect(isDownloadableVideo(node.media[0])).toBe(false);
+  });
+
+  it('maps a video without a poster URL', () => {
+    const node = jsonToTweetNode(
+      tweet({
+        extended_entities: {
+          media: [
+            {
+              type: 'video',
+              video_info: {
+                variants: [{ content_type: 'video/mp4', url: 'https://video/clip.mp4' }],
+              },
+            },
+          ],
+        },
+      })
+    );
+
+    expect(node.media).toEqual([{ kind: 'video', url: 'https://video/clip.mp4' }]);
+  });
 });
 
 describe('jsonToTweetNode — quotes and wrappers', () => {
@@ -357,6 +400,40 @@ describe('jsonToAst — X Articles', () => {
       },
       { type: 'image', url: 'https://pbs.twimg.com/media/pic?format=jpg&name=large' },
     ]);
+  });
+
+  it('maps a progressive article video without preview_image to a posterless VideoNode', () => {
+    const mp4 = 'https://video.twimg.com/ext_tw_video/x/clip.mp4?tag=12';
+    const result = {
+      ...articleResult,
+      article: {
+        article_results: {
+          result: {
+            ...articleResult.article.article_results.result,
+            media_entities: [
+              {
+                media_id: 'video-1',
+                media_info: {
+                  variants: [{ content_type: 'video/mp4', url: mp4, bitrate: 832000 }],
+                },
+              },
+            ],
+            content_state: {
+              blocks: [{ type: 'atomic', text: ' ', entityRanges: [{ key: 0, offset: 0, length: 1 }] }],
+              entityMap: [
+                {
+                  key: '0',
+                  value: { type: 'MEDIA', data: { mediaItems: [{ mediaId: 'video-1' }] } },
+                },
+              ],
+            },
+          },
+        },
+      },
+    };
+
+    const body = jsonToAst(result).body as { type: 'article'; children: unknown[] };
+    expect(body.children).toEqual([{ type: 'video', sourceUrl: mp4 }]);
   });
 
   // Atomic DIVIDER entities → thematic break; `blockquote` blocks (grouped when

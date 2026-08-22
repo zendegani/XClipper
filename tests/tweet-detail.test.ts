@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { existsSync, readFileSync } from 'node:fs';
 import type { ArticleNode, ThreadNode } from '../src/ast/types';
+import { collectMedia, isDownloadableVideo } from '../src/ast/collect-media';
 import { flattenTweetDetail, tweetDetailToDocument } from '../src/graphql/tweet-detail';
 import { renderMarkdown } from '../src/ast/render-markdown';
 
@@ -57,6 +58,29 @@ describe('tweetDetailToDocument', () => {
     const doc = tweetDetailToDocument(tweetDetail([mk('1', 'alice', 'lone'), mk('2', 'bob', 'reply')]));
     expect(doc.metadata.type).toBe('tweet');
     expect(doc.metadata.tweetId).toBe('1');
+  });
+});
+
+// Minimized from a real public TweetDetail capture for status 2059312764448051555.
+// It preserves X's article MEDIA entity, ApiVideo media_info, and variant field
+// names while dropping replies and unrelated article blocks.
+describe('tweetDetailToDocument — captured article video', () => {
+  const raw = JSON.parse(
+    readFileSync('tests/fixtures/graphql/tweetdetail-2059312764448051555-video.min.json', 'utf8')
+  );
+  const doc = tweetDetailToDocument(raw);
+  const body = doc.body as ArticleNode;
+  const mp4 = 'https://video.twimg.com/amplify_video/2059311116694757376/vid/avc1/1920x1080/_vGThNd8HNc3yfnk.mp4?tag=27';
+  const poster = 'https://pbs.twimg.com/amplify_video_thumb/2059311116694757376/img/P-7i_6SwXeHF5lkV.jpg';
+
+  it('maps the highest-bitrate progressive MP4 into a downloadable VideoNode', () => {
+    expect(doc.metadata.type).toBe('article');
+    expect(body.children.filter((block) => block.type === 'video')).toEqual([
+      { type: 'video', posterUrl: poster, sourceUrl: mp4 },
+    ]);
+    expect(collectMedia(doc).filter(isDownloadableVideo).map((media) => media.url)).toEqual([mp4]);
+    expect(renderMarkdown(doc)).not.toContain(`[▶ Video](${mp4})`);
+    expect(renderMarkdown(doc, { includeVideoLinks: true })).toContain(`[▶ Video](${mp4})`);
   });
 });
 

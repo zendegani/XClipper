@@ -404,11 +404,20 @@
   "opt_obsidian_tags_info": {
     "message": "Tag-Platzhalter anzeigen"
   },
-  "opt_save_images_title": {
-    "message": "Bilder in einem Ordner neben der Markdown-Datei speichern"
+  "opt_save_local_title": {
+    "message": "Aus: Medien als Links zu X behalten. Bilder: Bilder in einem Ordner neben der Markdown-Datei speichern. Medien: zusätzlich Videos als .mp4 speichern — diese sind deutlich größer."
   },
-  "opt_save_images": {
-    "message": "Bilder lokal speichern (nur mit .md)"
+  "opt_save_local": {
+    "message": "Lokal speichern (nur mit .md)"
+  },
+  "opt_save_local_off": {
+    "message": "Aus"
+  },
+  "opt_save_local_images": {
+    "message": "Bilder"
+  },
+  "opt_save_local_media": {
+    "message": "Medien"
   },
   "opt_metadata_title": {
     "message": "Likes, Reposts, Aufrufe als YAML-Frontmatter hinzufügen"

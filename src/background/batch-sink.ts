@@ -10,7 +10,7 @@
 import type { ExtractedContent } from '../types/messages';
 import type { Document } from '../ast/types';
 import { renderDigest } from '../ast/render-digest';
-import { renderMarkdown } from '../ast/render-markdown';
+import { renderMarkdown, type MarkdownRenderOptions } from '../ast/render-markdown';
 import { renderPdfHtmlMany } from '../ast/render-pdf-html';
 import type { BatchFormat, Settings } from '../shared/settings';
 import {
@@ -58,13 +58,16 @@ export function formatOptionsFrom(s: Settings): FormatOptions {
 // Reconstruct the ExtractedContent the format builders + postProcess expect from
 // an AST. renderMarkdown gives the raw body Markdown (no frontmatter) used by the
 // TXT and CSV-description paths — the same string single-export passes.
-export function docToExtracted(doc: Document): ExtractedContent {
+export function docToExtracted(
+  doc: Document,
+  renderOptions: MarkdownRenderOptions = {},
+): ExtractedContent {
   const m = doc.metadata;
   return {
     type: m.type,
     author: { name: m.author.name, handle: m.author.handle },
     title: m.title,
-    markdown: renderMarkdown(doc),
+    markdown: renderMarkdown(doc, renderOptions),
     sourceUrl: m.sourceUrl,
     date: m.date,
     tweetId: m.tweetId,
@@ -93,7 +96,7 @@ export function buildCombined(format: BatchFormat, docs: Document[], opts: Forma
     case 'json':
       return { content: JSON.stringify(docs, null, 2), mime: 'application/json', ext: 'json' };
     case 'csv':
-      return { content: buildCsvTable(docs.map(docToExtracted), opts), mime: 'text/csv', ext: 'csv' };
+      return { content: buildCsvTable(docs.map((doc) => docToExtracted(doc)), opts), mime: 'text/csv', ext: 'csv' };
   }
 }
 

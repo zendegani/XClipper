@@ -21,6 +21,12 @@ export type BatchOutput = 'separate' | 'both' | 'combined';
 
 export interface Settings {
   downloadImages: boolean;
+  // Local video (.mp4) alongside local images. Deliberately a second boolean
+  // rather than widening downloadImages into an enum: loadSettings spreads
+  // DEFAULT_SETTINGS over the saved partial, so a replacement key would be
+  // absent for every existing user and silently turn their local images off.
+  // The popup presents the pair as one Off | Images | Media control.
+  saveVideos: boolean;
   includeMetadata: boolean;
   closeTabAfterExport: boolean;
   inlineButtonCopies: boolean;
@@ -62,6 +68,7 @@ export function allEnabled(keys: readonly string[]): FieldMap {
 
 export const DEFAULT_SETTINGS: Settings = {
   downloadImages: false,
+  saveVideos: false, // off — videos are 2–50MB, two orders of magnitude past images
   includeMetadata: true, // on by default
   closeTabAfterExport: false,
   inlineButtonCopies: false, // inline button downloads by default
