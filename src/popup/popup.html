@@ -62,7 +62,9 @@
               <polyline points="6 9 12 15 18 9" />
             </svg>
           </summary>
-          <label class="toggle-label" data-tooltip="Download images to a folder next to the markdown file" data-i18n-tooltip="opt_save_images_title">
+          <div class="batch-field save-local-field" id="save-local-field"
+            data-tooltip="Off: link to media on X. Images: save images next to the markdown file. Media: save videos as .mp4 too — these are much larger."
+            data-i18n-tooltip="opt_save_local_title">
             <span class="toggle-text">
               <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round">
@@ -70,11 +72,17 @@
                 <circle cx="8.5" cy="8.5" r="1.5" />
                 <polyline points="21 15 16 10 5 21" />
               </svg>
-              <span data-i18n="opt_save_images">Save images locally (only with .md)</span>
+              <span data-i18n="opt_save_local">Save locally (only with .md)</span>
             </span>
-            <input type="checkbox" id="chk-download-images" class="toggle-input" />
-            <span class="toggle-switch"></span>
-          </label>
+            <div class="segmented" role="radiogroup" aria-label="Save locally">
+              <input type="radio" name="save-local" id="save-local-off" value="off" class="seg-input" />
+              <label for="save-local-off" class="seg-label" data-i18n="opt_save_local_off">Off</label>
+              <input type="radio" name="save-local" id="save-local-images" value="images" class="seg-input" />
+              <label for="save-local-images" class="seg-label" data-i18n="opt_save_local_images">Images</label>
+              <input type="radio" name="save-local" id="save-local-media" value="media" class="seg-input" />
+              <label for="save-local-media" class="seg-label" data-i18n="opt_save_local_media">Media</label>
+            </div>
+          </div>
           <label class="toggle-label" data-tooltip="Render likes, reposts, replies, bookmarks, and views as a row in the Markdown body" data-i18n-tooltip="opt_inline_stats_title">
             <span class="toggle-text">
               <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"

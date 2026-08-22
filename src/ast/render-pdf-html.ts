@@ -239,8 +239,12 @@ function renderArticleBlock(block: Block): string {
       return `<blockquote>${block.children.map(renderArticleBlock).join('')}</blockquote>`;
     case 'image':
       return `<figure class="article-image"><img src="${escapeAttr(block.url)}" alt="${escapeAttr(block.alt || '')}">${block.caption ? `<figcaption>${escapeHtml(block.caption)}</figcaption>` : ''}</figure>`;
-    case 'video':
+    case 'video': {
+      // An MP4 URL inside <img> renders as a broken-image glyph; with no
+      // poster there is nothing visual to show, so drop the figure.
+      if (!block.posterUrl) return '';
       return `<figure class="article-image"><img src="${escapeAttr(block.posterUrl)}" alt="${escapeAttr(block.alt || '')}"></figure>`;
+    }
     case 'thematicBreak':
       return '<hr>';
     case 'table':

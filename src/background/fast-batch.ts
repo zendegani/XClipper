@@ -25,6 +25,7 @@ import type {
   FastBatchStatusResponse,
 } from '../types/messages';
 import { isExtensionPageSender } from './security';
+import { collectMedia, isDownloadableVideo } from '../ast/collect-media';
 import { jsonToAst } from '../graphql/json-to-ast';
 import { tweetDetailToDocument } from '../graphql/tweet-detail';
 import { getVariables, paginateTimeline, setVariablesParam } from '../graphql/timeline';
@@ -315,6 +316,15 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
   // images override it off — image bytes can't be fetched into the zip —
   // but images only ever download for Markdown, so only 'md' blocks.
   const zip = settings.batchZip && output !== 'combined' && !(settings.downloadImages && format === 'md');
+  // Local MP4s ride the per-item Markdown path only: combined and CSV return
+  // before writePerItem so they'd discard the download list, and zip is already
+  // mutually exclusive with local media. saveVideos is the Media position of
+  // the popup's save-locally control; every other position stays poster-only.
+  const localVideo =
+    output === 'separate' &&
+    format === 'md' &&
+    settings.saveVideos &&
+    resolveDownloadImages('download', settings.downloadImages);
   const frontmatterFields = settings.obsidianFriendly
     ? settings.frontmatterFieldsObsidian
     : settings.frontmatterFields;
@@ -354,9 +364,22 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
     // Expansion can change the canonical id, so track both — see Item.feedId.
     const expandedId = doc.metadata.tweetId;
     const isStub = s.needsExpand && !s.ledger;
-    const result = postProcess(docToExtracted(doc), {
+    // Structural: walk the AST for the MP4 rather than parsing the rendered
+    // Markdown back out. renderedUrl is what the renderer wrote into the
+    // [▶ Video] token; downloadUrl is what we fetch — the same today, kept
+    // separate because that is the seam a later phase would widen.
+    const videoAttachments = localVideo
+      ? collectMedia(doc)
+          .filter(isDownloadableVideo)
+          .map((m) => ({ renderedUrl: m.url, downloadUrl: m.url }))
+      : undefined;
+    const result = postProcess(docToExtracted(
+      doc,
+      localVideo ? { includeVideoLinks: true } : undefined,
+    ), {
       includeMetadata: settings.includeMetadata,
       downloadImages: resolveDownloadImages('download', settings.downloadImages),
+      videoAttachments,
       inlineStats: settings.inlineStats,
       obsidianFriendly: settings.obsidianFriendly,
       filenameTemplate: settings.filenameTemplate.trim(),

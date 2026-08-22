@@ -13,6 +13,11 @@ import type {
   TableNode,
   TableCellNode,
 } from './types';
+import { isProgressiveMp4 } from './collect-media';
+
+export interface MarkdownRenderOptions {
+  includeVideoLinks?: boolean;
+}
 
 // AST → markdown body, matching the shape produced by the legacy Turndown
 // pipeline (header + body + source footer). postProcess() then prepends YAML
@@ -21,12 +26,12 @@ import type {
 // Goal: semantic parity with the existing .md fixtures. Where the AST encodes
 // information the legacy pipeline lost (e.g. t.co → resolved URL), the
 // renderer emits the AST-truthful form; those are justified diffs.
-export function renderMarkdown(doc: Document): string {
+export function renderMarkdown(doc: Document, options: MarkdownRenderOptions = {}): string {
   const { body, metadata } = doc;
   const parts: string[] =
-    body.type === 'tweet'   ? renderTweetDocument(body, metadata) :
-    body.type === 'thread'  ? renderThreadDocument(body, metadata) :
-    /* article */             renderArticleDocument(body, metadata);
+    body.type === 'tweet'   ? renderTweetDocument(body, metadata, options) :
+    body.type === 'thread'  ? renderThreadDocument(body, metadata, options) :
+    /* article */             renderArticleDocument(body, metadata, options);
 
   parts.push('', '---', '', `> Source: ${metadata.sourceUrl}`, `> Date: ${metadata.date}`);
   return parts.join('\n');
@@ -35,14 +40,14 @@ export function renderMarkdown(doc: Document): string {
 // Body content only — no author header and no Source/Date footer. The CSV
 // `text` column uses this, since author / url / date already have their own
 // columns; re-emitting them inside the text would be redundant.
-export function renderMarkdownBody(doc: Document): string {
+export function renderMarkdownBody(doc: Document, options: MarkdownRenderOptions = {}): string {
   const { body } = doc;
-  if (body.type === 'article') return renderArticleChildren(body.children);
+  if (body.type === 'article') return renderArticleChildren(body.children, options);
   const parts: string[] = [];
   const tweets = body.type === 'thread' ? body.tweets : [body];
   tweets.forEach((tweet, idx) => {
     if (idx > 0) parts.push('', '---', '');
-    appendTweetBody(parts, tweet);
+    appendTweetBody(parts, tweet, options);
   });
   return parts.join('\n').trim();
 }
@@ -53,22 +58,34 @@ function tweetHeader(meta: DocumentMetadata): string {
   return `# ${meta.author.name} (@${meta.author.handle})`;
 }
 
-function renderTweetDocument(tweet: TweetNode, meta: DocumentMetadata): string[] {
+function renderTweetDocument(
+  tweet: TweetNode,
+  meta: DocumentMetadata,
+  options: MarkdownRenderOptions,
+): string[] {
   const parts: string[] = [tweetHeader(meta), ''];
-  appendTweetBody(parts, tweet);
+  appendTweetBody(parts, tweet, options);
   return parts;
 }
 
-function renderThreadDocument(thread: ThreadNode, meta: DocumentMetadata): string[] {
+function renderThreadDocument(
+  thread: ThreadNode,
+  meta: DocumentMetadata,
+  options: MarkdownRenderOptions,
+): string[] {
   const parts: string[] = [tweetHeader(meta), ''];
   thread.tweets.forEach((tweet, idx) => {
     if (idx > 0) parts.push('', '---', '');
-    appendTweetBody(parts, tweet);
+    appendTweetBody(parts, tweet, options);
   });
   return parts;
 }
 
-function renderArticleDocument(article: ArticleNode, meta: DocumentMetadata): string[] {
+function renderArticleDocument(
+  article: ArticleNode,
+  meta: DocumentMetadata,
+  options: MarkdownRenderOptions,
+): string[] {
   const parts: string[] = [];
   if (meta.title) {
     parts.push(`# ${meta.title}`, '', `*By ${meta.author.name} (@${meta.author.handle})*`, '');
@@ -76,17 +93,21 @@ function renderArticleDocument(article: ArticleNode, meta: DocumentMetadata): st
     parts.push(`# Article by ${meta.author.name} (@${meta.author.handle})`, '');
   }
   if (article.banner) parts.push(`![Banner](${article.banner.url})`, '');
-  const body = renderArticleChildren(article.children);
+  const body = renderArticleChildren(article.children, options);
   if (body) parts.push(body);
   return parts;
 }
 
 // ─── Tweet body ─────────────────────────────────────────────────────
 
-function appendTweetBody(parts: string[], tweet: TweetNode): void {
+function appendTweetBody(
+  parts: string[],
+  tweet: TweetNode,
+  options: MarkdownRenderOptions,
+): void {
   const text = renderInlineForTweet(tweet.text);
-  const mediaLines = tweet.media.map(renderMediaItem);
-  const embed = renderTweetEmbed(tweet);
+  const mediaLines = tweet.media.map((media) => renderMediaItem(media, options));
+  const embed = renderTweetEmbed(tweet, options);
   const pollLines = tweet.poll ? renderPoll(tweet.poll) : '';
 
   // Legacy layout: text + (poll appended to text) + media + embed.
@@ -115,17 +136,17 @@ function appendTweetBody(parts: string[], tweet: TweetNode): void {
   }
 }
 
-function renderTweetEmbed(tweet: TweetNode): string {
-  if (tweet.quotedTweet) return renderQuotedTweetBlock(tweet.quotedTweet);
+function renderTweetEmbed(tweet: TweetNode, options: MarkdownRenderOptions): string {
+  if (tweet.quotedTweet) return renderQuotedTweetBlock(tweet.quotedTweet, options);
   if (tweet.articleCard) return renderArticleCardBlock(tweet.articleCard);
   if (tweet.linkCard) return renderLinkCardBlock(tweet.linkCard);
   return '';
 }
 
-function renderQuotedTweetBlock(quote: TweetNode): string {
+function renderQuotedTweetBlock(quote: TweetNode, options: MarkdownRenderOptions): string {
   const headerLine = `**${quote.author.name} (@${quote.author.handle})**`;
   const text = renderInlineForTweet(quote.text);
-  const mediaLines = quote.media.map(renderMediaItem);
+  const mediaLines = quote.media.map((media) => renderMediaItem(media, options));
 
   const segments: string[] = [headerLine];
   // Article-card quote: cover image + 📝 title + description, after the
@@ -185,9 +206,16 @@ function renderPoll(poll: PollNode): string {
   return out;
 }
 
-function renderMediaItem(m: MediaItem): string {
+function renderMediaItem(m: MediaItem, options: MarkdownRenderOptions): string {
   if (m.kind === 'video' || m.kind === 'gif') {
-    return `![🎥 Video](${m.posterUrl ?? m.url})`;
+    const hasRealMp4 = m.url !== m.posterUrl && isProgressiveMp4(m.url);
+    const videoLink = `[▶ ${m.kind === 'gif' ? 'GIF' : 'Video'}](${m.url})`;
+    if (hasRealMp4 && options.includeVideoLinks && m.posterUrl) {
+      return `![🎥 Video](${m.posterUrl})\n\n${videoLink}`;
+    }
+    if (hasRealMp4 && options.includeVideoLinks) return videoLink;
+    if (m.posterUrl) return `![🎥 Video](${m.posterUrl})`;
+    return '[🎥 Video]';
   }
   // Legacy pipeline always rendered "Image" as the alt for tweet photos,
   // discarding the DOM alt (which X populates with strings like "Image" or
@@ -285,17 +313,17 @@ function wrapEmphasis(inner: string, marker: string): string {
 
 // ─── Article body ───────────────────────────────────────────────────
 
-function renderArticleChildren(blocks: Block[]): string {
+function renderArticleChildren(blocks: Block[], options: MarkdownRenderOptions): string {
   const out: string[] = [];
   for (const block of blocks) {
-    const md = renderArticleBlock(block);
+    const md = renderArticleBlock(block, options);
     if (md) out.push(md);
   }
   // Collapse runs of 3+ blank lines (legacy pipeline does the same).
   return out.join('\n\n').replace(/\n{3,}/g, '\n\n').trim();
 }
 
-function renderArticleBlock(block: Block): string {
+function renderArticleBlock(block: Block, options: MarkdownRenderOptions): string {
   switch (block.type) {
     case 'paragraph':
       return renderInlineForArticle(block.children);
@@ -305,7 +333,7 @@ function renderArticleBlock(block: Block): string {
       const lines = block.children.map((item, i) => {
         const bullet = block.ordered ? `${i + 1}. ` : '- ';
         const inner = item.children
-          .map((b) => (b.type === 'paragraph' ? renderInlineForArticle(b.children) : renderArticleBlock(b)))
+          .map((b) => (b.type === 'paragraph' ? renderInlineForArticle(b.children) : renderArticleBlock(b, options)))
           .join('\n');
         return `${bullet}${inner}`;
       });
@@ -321,17 +349,21 @@ function renderArticleBlock(block: Block): string {
       return renderTable(block);
     case 'blockquote':
       return block.children
-        .map(renderArticleBlock)
+        .map((child) => renderArticleBlock(child, options))
         .join('\n\n')
         .split('\n').map((l) => `> ${l}`).join('\n');
     case 'video':
-      return `![🎥 Video](${block.posterUrl})`;
+      return renderMediaItem({
+        kind: 'video',
+        url: block.sourceUrl,
+        ...(block.posterUrl !== undefined ? { posterUrl: block.posterUrl } : {}),
+      }, options);
     case 'articleCard':
       // In article body flow the card is the whole block — render it as a
       // blockquote stanza, same shape as the in-tweet form.
       return renderArticleCardBlock(block).replace(/^\n\n/, '');
     case 'tweet':
-      return renderQuotedTweetBlock(block).replace(/^\n\n/, '');
+      return renderQuotedTweetBlock(block, options).replace(/^\n\n/, '');
     default:
       return '';
   }

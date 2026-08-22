@@ -404,11 +404,20 @@
   "opt_obsidian_tags_info": {
     "message": "显示标签占位符"
   },
-  "opt_save_images_title": {
-    "message": "将图片下载到 Markdown 文件旁的文件夹中"
+  "opt_save_local_title": {
+    "message": "关闭：媒体保留为 X 链接。图片：将图片下载到 Markdown 文件旁的文件夹中。媒体：同时将视频保存为 .mp4——体积大得多。"
   },
-  "opt_save_images": {
-    "message": "本地保存图片（仅 .md）"
+  "opt_save_local": {
+    "message": "本地保存（仅 .md）"
+  },
+  "opt_save_local_off": {
+    "message": "关闭"
+  },
+  "opt_save_local_images": {
+    "message": "图片"
+  },
+  "opt_save_local_media": {
+    "message": "媒体"
   },
   "opt_metadata_title": {
     "message": "将点赞、转发、浏览量作为 YAML frontmatter 添加"

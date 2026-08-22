@@ -404,11 +404,20 @@
   "opt_obsidian_tags_info": {
     "message": "إظهار عناصر الوسوم النائبة"
   },
-  "opt_save_images_title": {
-    "message": "تنزيل الصور إلى مجلد بجانب ملف Markdown"
+  "opt_save_local_title": {
+    "message": "إيقاف: الإبقاء على الوسائط كروابط إلى X. الصور: تنزيل الصور إلى مجلد بجانب ملف Markdown. الوسائط: حفظ الفيديو أيضاً بصيغة .mp4 — وحجمه أكبر بكثير."
   },
-  "opt_save_images": {
-    "message": "حفظ الصور محلياً (مع .md فقط)"
+  "opt_save_local": {
+    "message": "حفظ محلي (مع .md فقط)"
+  },
+  "opt_save_local_off": {
+    "message": "إيقاف"
+  },
+  "opt_save_local_images": {
+    "message": "الصور"
+  },
+  "opt_save_local_media": {
+    "message": "الوسائط"
   },
   "opt_metadata_title": {
     "message": "إضافة الإعجابات وإعادات النشر والمشاهدات كـ YAML frontmatter"

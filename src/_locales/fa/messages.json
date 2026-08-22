@@ -404,11 +404,20 @@
   "opt_obsidian_tags_info": {
     "message": "نمایش placeholder های برچسب"
   },
-  "opt_save_images_title": {
-    "message": "دانلود تصاویر در پوشه‌ای در کنار فایل Markdown"
+  "opt_save_local_title": {
+    "message": "خاموش: رسانه به صورت پیوند به X باقی می‌ماند. تصاویر: دانلود تصاویر در پوشه‌ای در کنار فایل Markdown. رسانه: ذخیره ویدیوها به صورت .mp4 نیز — حجم آن‌ها بسیار بیشتر است."
   },
-  "opt_save_images": {
-    "message": "ذخیره محلی تصاویر (فقط با .md)"
+  "opt_save_local": {
+    "message": "ذخیره محلی (فقط با .md)"
+  },
+  "opt_save_local_off": {
+    "message": "Off"
+  },
+  "opt_save_local_images": {
+    "message": "Images"
+  },
+  "opt_save_local_media": {
+    "message": "Media"
   },
   "opt_metadata_title": {
     "message": "افزودن لایک‌ها، بازنشرها و بازدیدها به YAML frontmatter"

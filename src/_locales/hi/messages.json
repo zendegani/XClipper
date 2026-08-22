@@ -404,11 +404,20 @@
   "opt_obsidian_tags_info": {
     "message": "टैग placeholders दिखाएँ"
   },
-  "opt_save_images_title": {
-    "message": "Markdown फ़ाइल के बगल वाले फ़ोल्डर में इमेज डाउनलोड करें"
+  "opt_save_local_title": {
+    "message": "Off: मीडिया X के लिंक के रूप में ही रहेगा। Images: Markdown फ़ाइल के बगल वाले फ़ोल्डर में इमेज डाउनलोड करें। Media: वीडियो भी .mp4 में सेव करें — ये बहुत बड़े होते हैं।"
   },
-  "opt_save_images": {
-    "message": "Images locally save करें (केवल .md)"
+  "opt_save_local": {
+    "message": "Locally save करें (केवल .md)"
+  },
+  "opt_save_local_off": {
+    "message": "Off"
+  },
+  "opt_save_local_images": {
+    "message": "Images"
+  },
+  "opt_save_local_media": {
+    "message": "Media"
   },
   "opt_metadata_title": {
     "message": "likes, reposts, views को YAML frontmatter में जोड़ें"

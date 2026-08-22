@@ -404,11 +404,20 @@
   "opt_obsidian_tags_info": {
     "message": "Показать плейсхолдеры тегов"
   },
-  "opt_save_images_title": {
-    "message": "Скачивать изображения в папку рядом с Markdown-файлом"
+  "opt_save_local_title": {
+    "message": "Выкл.: оставить медиа ссылками на X. Изображения: скачивать изображения в папку рядом с Markdown-файлом. Медиа: сохранять также видео в .mp4 — они значительно больше."
   },
-  "opt_save_images": {
-    "message": "Сохранять изображения локально (только с .md)"
+  "opt_save_local": {
+    "message": "Сохранять локально (только с .md)"
+  },
+  "opt_save_local_off": {
+    "message": "Выкл."
+  },
+  "opt_save_local_images": {
+    "message": "Изображения"
+  },
+  "opt_save_local_media": {
+    "message": "Медиа"
   },
   "opt_metadata_title": {
     "message": "Добавлять лайки, репосты, просмотры как YAML frontmatter"
