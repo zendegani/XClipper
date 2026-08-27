@@ -1,5 +1,6 @@
 import type {
   AutoExtractRequest,
+  DownloadAiZipRequest,
   DownloadRequest,
   PdfPrintRequest,
   PdfPrintResponse,
@@ -14,6 +15,8 @@ import {
 import { initBatch } from './batch';
 import { initFastBatch } from './fast-batch';
 import { normalizeStatusUrl } from './batch-state';
+import { aiZipFilename, buildAiZipEntries } from './ai-zip';
+import { buildZip, zipDataUrl } from './zip';
 
 // ─── Context menu: Save / Copy tweet as Markdown ────────────────────
 
@@ -257,6 +260,14 @@ function loadDownloadFolder(): Promise<string> {
   });
 }
 
+async function fetchImageBytes(url: string): Promise<Uint8Array> {
+  const response = await fetch(url);
+  if (!response.ok) {
+    throw new Error(`Failed to fetch media for ZIP (${response.status})`);
+  }
+  return new Uint8Array(await response.arrayBuffer());
+}
+
 // ─── PDF via Chrome's print engine ─────────────────────────────────
 //
 // Content sends PDF_PRINT_REQUEST { html, filenameBase }. We stash the HTML
@@ -295,8 +306,8 @@ chrome.runtime.onMessage.addListener((message: PdfPrintRequest, _sender, sendRes
 });
 
 chrome.runtime.onMessage.addListener(
-  (message: DownloadRequest, sender, sendResponse) => {
-    if (!message || message.action !== 'DOWNLOAD_MD') return false;
+  (message: DownloadRequest | DownloadAiZipRequest, sender, sendResponse) => {
+    if (!message || (message.action !== 'DOWNLOAD_MD' && message.action !== 'DOWNLOAD_AI_ZIP')) return false;
 
     if (!isTrustedDownloadSender(sender, chrome.runtime.id)) {
       sendResponse({ success: false, error: 'Untrusted sender' });
@@ -306,8 +317,38 @@ chrome.runtime.onMessage.addListener(
     // Prepend the user-configured subfolder before sanitization so the
     // existing `..` / leading-slash / illegal-char stripping in
     // `sanitizeFilePath` applies to the combined path too.
-    loadDownloadFolder().then((folder) => {
+    loadDownloadFolder().then(async (folder) => {
       const prefix = folder ? folder + '/' : '';
+
+      if (message.action === 'DOWNLOAD_AI_ZIP') {
+        try {
+          const entries = await buildAiZipEntries(message, fetchImageBytes);
+          const d = new Date();
+          chrome.downloads.download(
+            {
+              url: zipDataUrl(buildZip(entries, d)),
+              filename: sanitizeFilePath(prefix + aiZipFilename(message.filename)),
+              saveAs: false,
+            },
+            (downloadId) => {
+              if (chrome.runtime.lastError) {
+                sendResponse({
+                  success: false,
+                  error: chrome.runtime.lastError.message,
+                });
+              } else {
+                sendResponse({ success: true, downloadId });
+              }
+            }
+          );
+        } catch (err) {
+          sendResponse({
+            success: false,
+            error: err instanceof Error ? err.message : String(err),
+          });
+        }
+        return;
+      }
 
       // First download any required images
       if (message.images && message.images.length > 0) {

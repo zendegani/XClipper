@@ -4,10 +4,10 @@ import { buildZip, zipDataUrl } from '../src/background/zip';
 // Walk the archive's local file headers and read every entry back — a tiny
 // structural reader, enough to prove the container is well-formed without a
 // zip dependency.
-function readEntries(bytes: Uint8Array): { name: string; content: string; crc: number }[] {
+function readEntries(bytes: Uint8Array): { name: string; content: string; data: Uint8Array; crc: number }[] {
   const view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
   const decoder = new TextDecoder();
-  const entries: { name: string; content: string; crc: number }[] = [];
+  const entries: { name: string; content: string; data: Uint8Array; crc: number }[] = [];
   let pos = 0;
   while (view.getUint32(pos, true) === 0x04034b50) {
     const crc = view.getUint32(pos + 14, true);
@@ -16,7 +16,8 @@ function readEntries(bytes: Uint8Array): { name: string; content: string; crc: n
     const extraLen = view.getUint16(pos + 28, true);
     const name = decoder.decode(bytes.subarray(pos + 30, pos + 30 + nameLen));
     const start = pos + 30 + nameLen + extraLen;
-    entries.push({ name, content: decoder.decode(bytes.subarray(start, start + size)), crc });
+    const data = bytes.subarray(start, start + size);
+    entries.push({ name, content: decoder.decode(data), data, crc });
     pos = start + size;
   }
   return entries;
@@ -28,7 +29,7 @@ describe('buildZip', () => {
       { name: 'a.md', content: 'hello' },
       { name: '_incomplete_rerun_to_complete/ünïcodé-名前.md', content: '# Ünïcode content 🎉' },
     ]);
-    expect(readEntries(zip)).toEqual([
+    expect(readEntries(zip).map(({ name, content, crc }) => ({ name, content, crc }))).toEqual([
       // CRC-32 of "hello" is the well-known 0x3610a686.
       { name: 'a.md', content: 'hello', crc: 0x3610a686 },
       {
@@ -37,6 +38,12 @@ describe('buildZip', () => {
         crc: expect.any(Number),
       },
     ]);
+  });
+
+  it('stores binary entries without UTF-8 re-encoding them', () => {
+    const bytes = new Uint8Array([0, 255, 80, 75]);
+    const zip = buildZip([{ name: 'media/image.jpg', content: bytes }]);
+    expect(readEntries(zip)[0].data).toEqual(bytes);
   });
 
   it('writes a consistent central directory and end record', () => {

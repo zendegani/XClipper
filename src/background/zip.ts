@@ -1,5 +1,5 @@
-// Minimal ZIP writer for the batch "Zip files" option: packs every per-item
-// text file into one archive so a thousand-post run is a single download
+// Minimal ZIP writer for the batch "Zip files" option and single AI package:
+// packs text or binary entries into one archive so related files are a single download
 // instead of a thousand shelf entries. Entries are STORED (no compression) —
 // the container format is the point here, not the byte savings — which keeps
 // this dependency-free and byte-predictable. Names are written as UTF-8 with
@@ -9,7 +9,7 @@
 export interface ZipEntry {
   // Forward-slash relative path inside the archive (may include subfolders).
   name: string;
-  content: string;
+  content: string | Uint8Array;
 }
 
 // Standard CRC-32 (IEEE 802.3), table-driven.
@@ -46,7 +46,7 @@ export function buildZip(entries: ZipEntry[], now = new Date()): Uint8Array {
 
   for (const entry of entries) {
     const name = encoder.encode(entry.name);
-    const data = encoder.encode(entry.content);
+    const data = typeof entry.content === 'string' ? encoder.encode(entry.content) : entry.content;
     const crc = crc32(data);
 
     const local = new Uint8Array(30 + name.length + data.length);

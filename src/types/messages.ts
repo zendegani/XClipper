@@ -43,6 +43,13 @@ export interface DownloadRequest {
   mime?: string;
 }
 
+export interface DownloadAiZipRequest {
+  action: 'DOWNLOAD_AI_ZIP';
+  content: string;
+  filename: string;
+  images?: { url: string; filename: string }[];
+}
+
 export interface ExportPdfRequest {
   action: 'EXPORT_PDF';
 }

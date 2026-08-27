@@ -366,6 +366,39 @@ body {
   color: var(--obsidian);
 }
 
+.ai-export-row {
+  --ai-zip: #008a5c;
+  --ai-zip-glow: rgba(0, 138, 92, 0.18);
+  display: flex;
+}
+
+.ai-export-row .btn-action {
+  flex: 1 1 auto;
+  width: 100%;
+  padding: 9px 10px;
+  border-radius: var(--radius-sm);
+}
+
+.btn-ai-zip {
+  background: transparent;
+  color: var(--ai-zip);
+  border: 1px solid var(--ai-zip);
+}
+
+.btn-ai-zip:hover {
+  background: var(--ai-zip-glow);
+  color: var(--ai-zip);
+  box-shadow: 0 4px 16px var(--ai-zip-glow);
+}
+
+.btn-ai-zip:active {
+  box-shadow: 0 2px 8px var(--ai-zip-glow);
+}
+
+.btn-ai-zip .btn-icon {
+  color: var(--ai-zip);
+}
+
 /* ─── Review prompt banner ──────────────────────────────────── */
 .review-banner {
   position: relative;

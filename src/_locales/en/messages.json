@@ -20,6 +20,18 @@
   "btn_pdf_hint": {
     "message": "Generate a formatted PDF export with current settings, then choose where to save it."
   },
+  "btn_ai_zip": {
+    "message": "Export for AI (.zip)"
+  },
+  "btn_ai_zip_hint": {
+    "message": "Package Markdown and local media into one .zip for uploading to an AI chat."
+  },
+  "packaging_zip": {
+    "message": "Packaging…"
+  },
+  "ai_zip_downloaded": {
+    "message": "AI ZIP downloaded!"
+  },
   "btn_obsidian": {
     "message": "Add to Obsidian"
   },

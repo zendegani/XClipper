@@ -3,7 +3,7 @@
 // current selections from the DOM refs and the settings-form field maps; it
 // does not own any settings state.
 
-import type { ExtractResponse, DownloadRequest, ExtractedContent } from '../types/messages';
+import type { ExtractResponse, DownloadAiZipRequest, DownloadRequest, ExtractedContent } from '../types/messages';
 import { postProcess, resolveDownloadImages, buildFilename, type PostProcessResult } from '../shared/post-process';
 import { buildFormatExport, type ExportFormat } from '../shared/export-formats';
 import { recordExport } from '../shared/review-prompt';
@@ -14,6 +14,7 @@ import type { BatchFormat } from '../shared/settings';
 import {
   btnDownload,
   btnCopy,
+  btnAiZip,
   btnPdf,
   btnObsidian,
   fmtButtons,
@@ -31,7 +32,7 @@ import {
 // Every button the export flows disable while one of them is running, so a
 // second click can't race an in-flight extraction (the format selectors too,
 // so the target format can't change mid-flight).
-const allExportButtons = [btnDownload, btnCopy, btnPdf, btnObsidian, ...fmtButtons];
+const allExportButtons = [btnDownload, btnCopy, btnAiZip, btnPdf, btnObsidian, ...fmtButtons];
 
 function showStatus(
   message: string,
@@ -48,7 +49,7 @@ function showStatus(
   }
 }
 
-function setLoading(loading: boolean, target?: 'download' | 'copy' | 'obsidian' | 'pdf'): void {
+function setLoading(loading: boolean, target?: 'download' | 'copy' | 'aiZip' | 'obsidian' | 'pdf'): void {
   for (const btn of allExportButtons) btn.disabled = loading;
 
   // Only animate the button that was actually clicked
@@ -62,6 +63,11 @@ function setLoading(loading: boolean, target?: 'download' | 'copy' | 'obsidian' 
     const cpLabel = btnCopy.querySelector('.btn-label');
     if (cpLabel) cpLabel.textContent = loading ? (chrome.i18n.getMessage('extracting') || 'Extracting…') : (chrome.i18n.getMessage('btn_copy') || 'Copy');
   }
+  if (target === 'aiZip' || !target) {
+    btnAiZip.classList.toggle('loading', loading);
+    const zipLabel = btnAiZip.querySelector('.btn-label');
+    if (zipLabel) zipLabel.textContent = loading ? (chrome.i18n.getMessage('packaging_zip') || 'Packaging…') : (chrome.i18n.getMessage('btn_ai_zip') || 'Export for AI (.zip)');
+  }
   if (target === 'obsidian' || !target) {
     btnObsidian.classList.toggle('loading', loading);
     const obLabel = btnObsidian.querySelector('.btn-label');
@@ -73,18 +79,21 @@ function setLoading(loading: boolean, target?: 'download' | 'copy' | 'obsidian' 
     if (pdfLabel) pdfLabel.textContent = loading ? (chrome.i18n.getMessage('rendering_pdf') || 'Rendering PDF…') : (chrome.i18n.getMessage('btn_pdf') || 'Export .pdf');
   }
 
-  // When stopping, always reset all four to default state
+  // When stopping, always reset every export button to its default state.
   if (!loading) {
     btnDownload.classList.remove('loading');
     btnCopy.classList.remove('loading');
+    btnAiZip.classList.remove('loading');
     btnObsidian.classList.remove('loading');
     btnPdf.classList.remove('loading');
     const dlLabel = btnDownload.querySelector('.btn-label');
     const cpLabel = btnCopy.querySelector('.btn-label');
+    const zipLabel = btnAiZip.querySelector('.btn-label');
     const obLabel = btnObsidian.querySelector('.btn-label');
     const pdfLabel = btnPdf.querySelector('.btn-label');
     if (dlLabel) dlLabel.textContent = chrome.i18n.getMessage('btn_download') || 'Download';
     if (cpLabel) cpLabel.textContent = chrome.i18n.getMessage('btn_copy') || 'Copy';
+    if (zipLabel) zipLabel.textContent = chrome.i18n.getMessage('btn_ai_zip') || 'Export for AI (.zip)';
     if (obLabel) obLabel.textContent = chrome.i18n.getMessage('btn_obsidian') || 'Add to Obsidian';
     if (pdfLabel) pdfLabel.textContent = chrome.i18n.getMessage('btn_pdf') || 'Export .pdf';
   }
@@ -135,7 +144,7 @@ async function extractContent(includeMetadata: boolean): Promise<ExtractedConten
 }
 
 async function extractMarkdown(
-  forAction: 'download' | 'copy' | 'obsidian' = 'download',
+  forAction: 'download' | 'copy' | 'aiZip' | 'obsidian' = 'download',
 ): Promise<PostProcessResult> {
   const includeMetadata = chkMetadata.checked;
   const inlineStats = chkInlineStats.checked;
@@ -147,7 +156,11 @@ async function extractMarkdown(
   // markdown via URL, not a filesystem package, so leave images as remote
   // URLs (Obsidian renders pbs.twimg.com inline fine).
   const downloadImages =
-    forAction === 'obsidian' ? false : resolveDownloadImages(forAction, chkDownloadImages.checked);
+    forAction === 'obsidian'
+      ? false
+      : forAction === 'aiZip'
+        ? true
+        : resolveDownloadImages(forAction, chkDownloadImages.checked);
 
   // Need engagement data if either renderer wants it.
   const data = await extractContent(includeMetadata || inlineStats);
@@ -175,7 +188,7 @@ function handleExtractionError(err: unknown): void {
   setLoading(false);
 }
 
-// Wires the four export buttons. Call once on popup open.
+// Wires the export buttons. Call once on popup open.
 export function initActions(): void {
   // ─── Download / Copy: dispatch on the selected format ───
   // '.md' runs the full Markdown pipeline (frontmatter, local images, filename
@@ -189,6 +202,10 @@ export function initActions(): void {
     const fmt = readSingleFormat();
     if (fmt === 'md') void runMarkdownCopy();
     else void runFormatExport(fmt, 'copy');
+  });
+
+  btnAiZip.addEventListener('click', () => {
+    void runAiZipDownload();
   });
 
   // ─── Format selector: activate + persist the clicked format ───
@@ -307,6 +324,35 @@ async function runMarkdownDownload(): Promise<void> {
         };
         const label = typeLabels[result.type] || chrome.i18n.getMessage('downloaded') || 'Downloaded!';
         showStatus(`✓ ${label}`, 'success');
+        void recordExport();
+      }
+      setLoading(false);
+    });
+  } catch (err) {
+    handleExtractionError(err);
+  }
+}
+
+// ─── Export for AI (.zip): Markdown + local media in one archive ───
+async function runAiZipDownload(): Promise<void> {
+  setLoading(true, 'aiZip');
+  statusEl.className = 'status hidden';
+
+  try {
+    const result = await extractMarkdown('aiZip');
+
+    const downloadMsg: DownloadAiZipRequest = {
+      action: 'DOWNLOAD_AI_ZIP',
+      content: result.markdown,
+      filename: result.filename,
+      images: result.images.length > 0 ? result.images : undefined,
+    };
+
+    chrome.runtime.sendMessage(downloadMsg, (downloadResponse) => {
+      if (chrome.runtime.lastError || !downloadResponse?.success) {
+        showStatus(downloadResponse?.error || chrome.i18n.getMessage('download_failed') || 'Download failed.', 'error');
+      } else {
+        showStatus(`✓ ${chrome.i18n.getMessage('ai_zip_downloaded') || 'AI ZIP downloaded!'}`, 'success');
         void recordExport();
       }
       setLoading(false);

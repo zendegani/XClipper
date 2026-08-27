@@ -6,6 +6,7 @@
 // ─── Action buttons + status line ────────────────────────────────────
 export const btnDownload = document.getElementById('btn-download') as HTMLButtonElement;
 export const btnCopy = document.getElementById('btn-copy') as HTMLButtonElement;
+export const btnAiZip = document.getElementById('btn-ai-zip') as HTMLButtonElement;
 export const btnPdf = document.getElementById('btn-pdf') as HTMLButtonElement;
 export const btnObsidian = document.getElementById('btn-obsidian') as HTMLButtonElement;
 export const statusEl = document.getElementById('status') as HTMLDivElement;
