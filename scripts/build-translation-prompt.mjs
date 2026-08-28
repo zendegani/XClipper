@@ -12,9 +12,11 @@
 //
 // Reads:
 //   src/_locales/<code>/messages.json  — for register reference (current strings)
-//   src/_locales/en/messages.json      — English source, in keys mode
+//   src/_locales/en/messages.json      — English source (the store strings, and in keys mode every key)
 //   store/locales/<code>.txt           — for register reference (current long body)
 //   store/locales/en.txt               — English source to translate, in store mode
+//
+// Every English string comes from those files, so the prompt never goes stale.
 // Prints the full prompt to stdout.
 
 import { readFileSync } from 'node:fs';
@@ -42,9 +44,9 @@ if (!code || !LOCALE_NAMES[code] || !MODES.includes(mode)) {
 const locale = LOCALE_NAMES[code];
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const messages = JSON.parse(readFileSync(resolve(ROOT, `src/_locales/${code}/messages.json`), 'utf8'));
+const en = JSON.parse(readFileSync(resolve(ROOT, 'src/_locales/en/messages.json'), 'utf8'));
 
 if (mode === 'keys') {
-  const en = JSON.parse(readFileSync(resolve(ROOT, 'src/_locales/en/messages.json'), 'utf8'));
   const missing = Object.keys(en).filter((k) => !(k in messages));
   if (missing.length === 0) {
     console.error(`${code}: no missing keys`);
@@ -101,6 +103,12 @@ Translate now. Output the JSON object only.
 const refLong = readFileSync(resolve(ROOT, `store/locales/${code}.txt`), 'utf8').trim();
 const enLong = readFileSync(resolve(ROOT, `store/locales/en.txt`), 'utf8').trim();
 
+// The store counts characters, not UTF-16 units — an emoji or an em dash is one.
+const len = (s) => [...s].length;
+const enName = en.extensionName.message;
+const enSummary = en.extensionDescription.message;
+const enTagline = en.tagline.message;
+
 const prompt = `You are translating Chrome Web Store SEO copy from English into ${locale} for the XClipper extension. There are FOUR English source strings to translate, all part of one coherent listing.
 
 OUTPUT FORMAT
@@ -118,26 +126,21 @@ Output JSON with exactly these four keys, no preamble or commentary:
 - Before outputting, COUNT the characters in extensionName and extensionDescription. If either exceeds the limit, rewrite it shorter by dropping the least essential word (typically a trailing verb or one of the content nouns). Verify the count again. The store will reject the manifest if exceeded.
 
 KEEP IN ENGLISH / LATIN SCRIPT (do NOT translate)
-- Brand names: XClipper, Obsidian, Logseq, Notion, Hugo, NotebookLM, Twitter, X
-- File formats: Markdown, PDF, .md, YAML
-- Technical terms: Dataview, RAG, API, URL, URI, frontmatter, wikilinked, [[@handle]]
-- Placeholders: {date}, {handle}, {slug}, {type}
+- Brand names: XClipper, Obsidian, Twitter, X
+- File formats and extensions: Markdown, PDF, YAML, .md, .mp4
+- Technical terms: Content AST, Dataview, RAG, API, URL, frontmatter, wikilinks, [[@handle]], 720p
 - All URLs (github.com/..., etc.) and code-style strings (obsidian://, x.com)
 
 SEO STRATEGY — preserve across locales
-- extensionName is FUNCTION-FORWARD (not brand-forward). It leads with the category positioning "X / Twitter Web Clipper" — the words users actually search for. Then a colon, then the ACTION VERB + content nouns + three output formats. The brand "XClipper" lives elsewhere (short_name, popup wordmark) and is NOT in the extensionName.
-- English source: "X / Twitter Web Clipper: Save Threads & Articles to Markdown, PDF, Obsidian" (75 chars exactly — your translation has no room to grow).
-- Translate "Web Clipper" to the natural ${locale} term for that concept (e.g. Web-Clipper in German, ウェブクリッパー in Japanese, 网页剪藏 in Chinese). Translate "Save" to the natural save-as-file verb. If the literal translation breaks the budget, drop the trailing verb or one of the format names — keep "Markdown" and "PDF", drop "Obsidian" first if needed (it's covered in the summary).
-- extensionDescription uses a DIFFERENT verb (Export → exportieren / exporter / 書き出す / 导出 / etc.) plus the content nouns and formats, ending with the "Free, no API" trust signal.
-- longDescription opens with "XClipper is a free, open-source web clipper for X (Twitter)" — same "web clipper" treatment as above. This is the ONE place the brand "XClipper" appears in the listing text.
-
-LANGUAGE LIST ORDER (inside longDescription, the bullet starting "Multi-language UI:" or its translation)
-- Order: ${locale}'s own name FIRST, then the other 11 languages sorted alphabetically using ${locale}'s alphabet/collation rules.
-- Translate each language name into ${locale}'s natural rendering.
-- "Portuguese (Brazil)" and "Chinese (Simplified)" keep the regional qualifier.
+- extensionName is FUNCTION-FORWARD (not brand-forward). It leads with the category positioning "X / Twitter Web Clipper" — the words users actually search for. Then a colon, then the content nouns and the three output formats. The brand "XClipper" lives elsewhere (short_name, popup wordmark) and is NOT in the extensionName.
+- The English extensionName is ${len(enName)} characters, so your translation has ${75 - len(enName)} characters of headroom at most.
+- Translate "Web Clipper" to the natural ${locale} term for that concept (e.g. Web-Clipper in German, ウェブクリッパー in Japanese, 网页剪藏 in Chinese). If the literal translation breaks the budget, drop one of the format names — keep "Markdown" and "PDF", drop "Obsidian" first if needed (it's covered in the summary).
+- extensionDescription uses an ACTION VERB (Export → exportieren / exporter / エクスポート / 导出 / etc.) plus the content nouns and the batch range, and closes with a short trust clause. The English is ${len(enSummary)} characters, leaving ${132 - len(enSummary)} of headroom — if ${locale} runs long, shorten the trust clause first, then the batch range. Never drop the content nouns.
+- Do NOT chain output formats as a keyword list in the name or the summary. A previous listing was rejected by Chrome Web Store review for keyword spam; the formats belong in the longDescription, in sentences.
+- The brand "XClipper" appears in the longDescription's opening sentence and its closing disclaimer. Keep it in both.
 
 REGISTER & TONE
-- Match the formality of the REFERENCE TRANSLATIONS below (du vs Sie in German, tu vs vous in French, etc.). Do not paraphrase loosely. Stay close to source meaning. Match line and bullet structure of the English source exactly.
+- Match the formality of the REFERENCE TRANSLATIONS below (du vs Sie in German, tu vs vous in French, etc.). Do not paraphrase loosely. Stay close to source meaning. Match line and bullet structure of the English source exactly — same number of lines, same bullet order.
 
 REFERENCE TRANSLATIONS (for register only — content is outdated, do NOT copy strings from these)
 
@@ -152,8 +155,9 @@ ${refLong}
 
 ENGLISH SOURCES TO TRANSLATE
 
-extensionName: X / Twitter Web Clipper: Bookmarks & Threads to Markdown, PDF, Obsidian
-extensionDescription: Export X (Twitter) posts, threads, bookmarks & articles to Markdown, PDF or Obsidian — one at a time or in batch. Free, no API.
+extensionName: ${enName}
+extensionDescription: ${enSummary}
+tagline: ${enTagline}
 
 longDescription:
 \`\`\`
