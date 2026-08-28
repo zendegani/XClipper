@@ -2345,6 +2345,25 @@ details.option-group[open] .option-group-chevron {
   background: transparent;
 }
 
+/* ...but a disabled segment that is still the selection keeps its fill, or the
+ * greyed-out group shows no selection at all and reads as if it were Off.
+ * Needs the extra :checked to outrank the equal-specificity rule above. */
+.seg-input:checked:disabled + .seg-label,
+.seg-input:checked:disabled + .seg-label:hover {
+  background: var(--accent);
+  color: #fff;
+  opacity: 0.4;
+}
+
+/* The save-locally row greys with the same rule as the toggle rows, but it's a
+ * .batch-field wrapping a segmented control rather than a .toggle-label, so it
+ * needs its own selector. Dim the label only — never the container, which
+ * carries the data-tooltip whose ::after would inherit the opacity (issue #38).
+ * The segments dim themselves via .seg-input:disabled above. */
+.save-local-field.disabled .toggle-text {
+  opacity: 0.4;
+}
+
 /* Keyboard focus on the (hidden) radio shows on its label. */
 .seg-input:focus-visible + .seg-label {
   outline: 2px solid var(--accent);
