@@ -87,6 +87,16 @@ function extractArticleBlocks(): Block[] {
   return out;
 }
 
+// X renders an article's blocks with a `-narrow` class variant when the
+// column is narrow (`longform-header-two-narrow`), and classList.contains is
+// exact-token, so checking the plain name alone silently loses every heading
+// and list item at that width — they degrade to paragraphs. Match both.
+function hasLongformBlock(block: HTMLElement, name: string): boolean {
+  return block.classList.contains(name)
+    || block.classList.contains(`${name}-narrow`)
+    || !!block.querySelector(`.${name}, .${name}-narrow`);
+}
+
 function articleBlockToNodes(block: HTMLElement): Block[] {
   // Code block — must check before separator (both use <section>).
   const codeBlock = block.querySelector('[data-testid="markdown-code-block"]')
@@ -117,8 +127,7 @@ function articleBlockToNodes(block: HTMLElement): Block[] {
     return table ? [table] : [];
   }
 
-  const hasH1 = block.classList.contains('longform-header-one')
-    || !!block.querySelector('.longform-header-one');
+  const hasH1 = hasLongformBlock(block, 'longform-header-one');
   if (hasH1) {
     const text = block.textContent?.trim() || '';
     if (!text) return [];
@@ -126,8 +135,7 @@ function articleBlockToNodes(block: HTMLElement): Block[] {
     return [node];
   }
 
-  const hasH2 = block.classList.contains('longform-header-two')
-    || !!block.querySelector('.longform-header-two');
+  const hasH2 = hasLongformBlock(block, 'longform-header-two');
   if (hasH2) {
     const text = block.textContent?.trim() || '';
     if (!text) return [];
@@ -137,7 +145,9 @@ function articleBlockToNodes(block: HTMLElement): Block[] {
 
   if (block.tagName === 'UL') {
     const items: ListItemNode[] = [];
-    for (const li of block.querySelectorAll('.longform-unordered-list-item')) {
+    for (const li of block.querySelectorAll(
+      '.longform-unordered-list-item, .longform-unordered-list-item-narrow'
+    )) {
       const inline = extractArticleInline(li);
       if (inline.length === 0) continue;
       items.push({ type: 'listItem', children: [{ type: 'paragraph', children: inline }] });
@@ -145,7 +155,10 @@ function articleBlockToNodes(block: HTMLElement): Block[] {
     return items.length > 0 ? [{ type: 'list', ordered: false, children: items } satisfies ListNode] : [];
   }
 
-  if (block.classList.contains('longform-unordered-list-item')) {
+  if (
+    block.classList.contains('longform-unordered-list-item')
+    || block.classList.contains('longform-unordered-list-item-narrow')
+  ) {
     const inline = extractArticleInline(block);
     if (inline.length === 0) return [];
     return [{
