@@ -56,12 +56,6 @@
   "btn_batch_hint": {
     "message": "Exportiert alle auf dieser Seite geladenen Lesezeichen als Markdown-Dateien in einen Ordner. Scrolle auf der Lesezeichen-Seite, um mehr zu laden."
   },
-  "fast_batch": {
-    "message": "Fast Batch"
-  },
-  "fast_batch_info": {
-    "message": "Ruft Einträge über deine angemeldete X-Sitzung ab und ist deutlich schneller - kein API-Key, nichts verlässt deinen Browser. Hinweis: Große Läufe können Xs Rate Limit erreichen, daher taktet sich der Export selbst und stoppt sauber, damit du ihn erneut starten kannst."
-  },
   "batch_mode": {
     "message": "Batch-Engine"
   },

@@ -56,12 +56,6 @@
   "btn_batch_hint": {
     "message": "Exporta todos los marcadores cargados en esta página como archivos Markdown en una carpeta. Desplázate por la página de marcadores para cargar más."
   },
-  "fast_batch": {
-    "message": "Fast Batch"
-  },
-  "fast_batch_info": {
-    "message": "Obtiene elementos mediante tu sesión iniciada de X para acelerar mucho el proceso: sin clave API, nada sale de tu navegador. Aviso: las ejecuciones grandes pueden alcanzar el límite de frecuencia de X, así que regula su ritmo y se detiene correctamente para que puedas volver a ejecutarlo."
-  },
   "batch_mode": {
     "message": "Modo de lote"
   },
