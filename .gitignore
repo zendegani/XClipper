@@ -23,6 +23,9 @@ dist-firefox/
 
 # Test HTML fixtures (large, regenerated locally; not worth versioning)
 tests/fixtures/*.html
+# This article's AST snapshot is an order of magnitude larger than the rest;
+# its .md snapshot already covers the same extraction. Regenerated locally.
+tests/fixtures/DeRonin_-2076690611399176506.ast.json
 
 # Local scratch (notes, link dumps — never versioned)
 _local/
