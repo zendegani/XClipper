@@ -30,7 +30,7 @@ Ideal para:
 
 Limitaciones actuales:
 
-- El vídeo se guarda con una resolución de hasta 720p; las pocas publicaciones que X ofrece solo mediante streaming conservan su miniatura
+- El vídeo se guarda con una resolución de hasta 720p. En las pocas publicaciones para las que X no ofrece un archivo de vídeo descargable, se guarda la miniatura, como hasta ahora
 - Fast Batch llama directamente a la API interna de X, por lo que ejecuciones grandes pueden alcanzar el límite de frecuencia de X (bloqueo suave); es opcional, regula su ritmo, y puedes reanudar o volver a ejecutar más tarde
 - Si instalas o actualizas la extensión con una pestaña de x.com ya abierta, recarga la pestaña antes de exportar; esto es intencional para evitar fallos silenciosos en una página no inicializada
 

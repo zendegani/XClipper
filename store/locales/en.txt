@@ -30,7 +30,7 @@ Great for:
 
 Current limitations:
 
-- Video is saved at up to 720p, and the few posts X serves only as a stream keep their thumbnail instead
+- Video is saved at up to 720p. For the small number of posts where X provides no downloadable video file, the thumbnail is saved instead, exactly as before
 - Fast Batch calls X's internal API directly, so large runs can hit X's rate limit (soft-blocking); it's opt-in, paces itself, and you can resume or re-run later
 - If you install or update the extension while an x.com tab is already open, reload the tab before exporting — this is intentional, to avoid silent failures on an uninitialized page
 
