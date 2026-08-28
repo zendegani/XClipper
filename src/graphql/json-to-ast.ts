@@ -613,13 +613,33 @@ function media(items: RawMedia[]): MediaItem[] {
   return out;
 }
 
-// Highest-bitrate progressive MP4 (X also ships HLS .m3u8 variants with no
-// bitrate, which a downloader can't save directly — prefer the mp4s).
+// X ships every video as a ladder of progressive MP4s with the frame size in
+// the URL path (…/vid/avc1/1280x720/…). Cap the pick at 720p: the top rung can
+// be 4K, and one 18-minute 4K article video measured 784MB — two orders of
+// magnitude past the images this setting was sized for, and long enough that
+// the download can outlive the service worker and strand the rest of the batch.
+const MAX_VIDEO_HEIGHT = 720;
+
+function variantHeight(url?: string): number {
+  return Number(/\/\d+x(\d+)\//.exec(url ?? '')?.[1] ?? 0);
+}
+
+// Highest-bitrate progressive MP4 within the cap (X also ships HLS .m3u8
+// variants with no bitrate, which a downloader can't save directly — prefer
+// the mp4s).
 function bestVariant(variants: RawVideoVariant[]): string | undefined {
   const mp4 = variants.filter((v) => v.content_type === 'video/mp4' && v.url);
   if (mp4.length === 0) return variants.find((v) => v.url)?.url;
   const bitrate = (v: RawVideoVariant): number => v.bitrate ?? v.bit_rate ?? 0;
-  return mp4.sort((a, b) => bitrate(b) - bitrate(a))[0].url;
+  const withinCap = mp4.filter((v) => {
+    const h = variantHeight(v.url);
+    return h > 0 && h <= MAX_VIDEO_HEIGHT;
+  });
+  // Nothing inside the cap means either an all-oversized ladder or a URL shape
+  // we can't read. Fail small — the smallest file is a poor picture, the
+  // largest is a gigabyte nobody asked for.
+  if (withinCap.length === 0) return mp4.sort((a, b) => bitrate(a) - bitrate(b))[0].url;
+  return withinCap.sort((a, b) => bitrate(b) - bitrate(a))[0].url;
 }
 
 type CardResult =
