@@ -2,7 +2,7 @@
   <img src="assets/xclipper-wordmark.svg" alt="XClipper" height="72" />
 </h1>
 
-<p align="center"><em>The high-fidelity X / Twitter web clipper — save posts, threads & articles to Markdown, PDF, HTML, JSON, CSV & Obsidian, one at a time or in batch.</em></p>
+<p align="center"><em>The high-fidelity X / Twitter web clipper — save posts, threads & articles to Markdown, PDF, HTML, JSON, CSV & Obsidian, with images & video saved as local files, one at a time or in batch.</em></p>
 
 <p align="center">
   <a href="https://github.com/zendegani/xclipper/actions/workflows/ci.yml"><img src="https://github.com/zendegani/xclipper/actions/workflows/ci.yml/badge.svg" alt="CI" /></a>
@@ -27,14 +27,15 @@
   <img src="store/promo/Marquee promo tile.png" alt="XClipper — export X posts, threads & articles to Markdown, PDF, HTML, JSON, CSV & Obsidian, one at a time or in batch" width="100%" />
 </p>
 
-**XClipper** is a source-available Chrome extension that exports x.com content as **Markdown, PDF, HTML, JSON, TXT, CSV, or Obsidian notes** — one post at a time, or in **batch** from your bookmarks, a profile, your likes, your home timeline, or a hand-picked selection. It runs entirely in your browser: no X API key, no account, no server. Free for noncommercial use ([commercial license](#license) required to sell or build a paid product on it).
+**XClipper** is a source-available Chrome extension that exports x.com content as **Markdown, PDF, HTML, JSON, TXT, CSV, or Obsidian notes** — one post at a time, or in **batch** from your bookmarks, a profile, your likes, your home timeline, or a hand-picked selection. Images, videos, and GIFs come down as real files next to the Markdown — or packed into a single `.zip`. It runs entirely in your browser: no X API key, no server. Free for noncommercial use ([commercial license](#license) required to sell or build a paid product on it).
 
 ## Why XClipper
 
-Most "tweet to markdown" tools run a post through a generic HTML→Markdown converter and stop there. XClipper is built differently, and it shows up in four places:
+Most "tweet to markdown" tools run a post through a generic HTML→Markdown converter and stop there. XClipper is built differently, and it shows up in five places:
 
 - **Output you won't have to clean up.** The DOM is parsed into a typed **Content AST** before anything is rendered, so structure survives: nested threads, quote tweets, polls, link cards, and full long-form **Articles** (headings, lists, code blocks) all come through faithfully. `t.co` links are resolved to real URLs, emoji and @mentions stay intact, truncated posts are expanded, and engagement bars, follow prompts, and trackers are stripped.
 - **Real PDFs, not screenshots.** PDF export goes through Chrome's native print engine — selectable text, clickable links, embedded images, and full Unicode/emoji — so the result is an actual document, not a flattened image.
+- **Media saved as files, not links.** Images are downloaded next to the Markdown, and each post's video or GIF is saved as a real `.mp4` — quoted posts included — with a `▶ Video` link in the Markdown pointing at the file, so your notes survive link rot and deleted posts.
 - **Batch, not one-at-a-time.** Export your entire **Bookmarks**, **Likes**, a **Profile**, your home **Timeline**, or a hand-picked **Selection** in a single background job, with progress, pause/resume/stop, and dedup — plus an optional **Fast mode** that pulls items straight from your X session for a roughly **10× speed-up**.
 - **100% local, zero setup.** No API keys, no accounts, nothing leaves your browser. Install and clip.
 
@@ -52,7 +53,8 @@ Most "tweet to markdown" tools run a post through a generic HTML→Markdown conv
 - **High-fidelity Markdown** — Tweets, nested threads, quote tweets, polls, link cards, and X Articles render cleanly via the AST pipeline (no Turndown), with resolved `t.co` links, inlined emoji, and tidy @mentions.
 - **True PDF export** — Tweets, threads, and articles printed through Chrome's native engine: selectable text, clickable links, embedded images, full Unicode.
 - **Obsidian integration** — One-click handoff via the `obsidian://` URI scheme with optional vault targeting, plus an **Obsidian-friendly frontmatter** schema (`[[@handle]]` wikilinks, synthesized title, `published`/`created` dates, prose description, and a customizable tags list with `{`-autocomplete).
-- **Local image downloads** — Save embedded X media next to your file to prevent link rot.
+- **Video & GIF downloads** — Set local saving to **Media** and each post's video or animated GIF is saved as an `.mp4` beside the Markdown (quoted posts included), linked as `▶ Video`. Works for a single post and for batch (Auto/Super engines), with **Markdown** format and **Separate** files. On **Images**, embedded pictures come down the same way.
+- **One-file `.zip` export** — With **Zip files** on, a single post lands as one archive holding the Markdown and its media instead of a file plus a sibling folder — one thing to drop into a note, an archive, or an AI chat.
 
 ### Also included
 
@@ -144,9 +146,8 @@ Filenames default to `@handle-tweetId.md` (tweets/threads) or `@handle-article-s
 
 ## Current Limitations
 
-- Videos and GIFs are not exported as playable media files
+- Video is saved at up to 720p; the few posts X serves as a stream with no downloadable file keep their thumbnail instead
 - Requires a page reload if the extension was installed or updated after the tab was opened
-- Some content may stop working if x.com changes its page structure significantly
 
 ---
 
