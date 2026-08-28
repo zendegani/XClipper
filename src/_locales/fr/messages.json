@@ -56,12 +56,6 @@
   "btn_batch_hint": {
     "message": "Exporte tous les signets chargés sur cette page comme fichiers Markdown dans un dossier. Faites défiler la page des signets pour en charger davantage."
   },
-  "fast_batch": {
-    "message": "Fast Batch"
-  },
-  "fast_batch_info": {
-    "message": "Récupère les éléments via votre session X connectée pour un gros gain de vitesse : aucune clé API, rien ne quitte votre navigateur. Attention : les gros exports peuvent atteindre la limite de débit de X, donc il régule son rythme et s’arrête proprement pour que vous puissiez relancer."
-  },
   "batch_mode": {
     "message": "Moteur Batch"
   },

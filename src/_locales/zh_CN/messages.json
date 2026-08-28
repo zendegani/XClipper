@@ -56,12 +56,6 @@
   "btn_batch_hint": {
     "message": "将此页面已加载的所有书签作为 Markdown 文件导出到一个文件夹。滚动书签页面可加载更多。"
   },
-  "fast_batch": {
-    "message": "Fast Batch"
-  },
-  "fast_batch_info": {
-    "message": "通过你已登录的 X 会话获取项目，大幅提速；无需 API 密钥，任何内容都不会离开浏览器。注意：大型任务可能触发 X 的速率限制，因此会自动控制节奏并礼貌停止，方便你重新运行。"
-  },
   "batch_mode": {
     "message": "批量引擎"
   },
