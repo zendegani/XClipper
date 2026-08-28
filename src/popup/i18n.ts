@@ -1,16 +1,10 @@
-// Applies localized strings + bidi direction to the popup DOM, driven by the
-// active Chrome UI language. Called once on popup load. Pure DOM decoration —
-// no app state — which is why it lives apart from popup.ts.
+// Applies localized strings to the popup DOM, driven by the active Chrome UI
+// language. Called once on popup load. Pure DOM decoration — no app state —
+// which is why it lives apart from popup.ts.
 
 export function applyI18n(): void {
-  // Chrome ships canonical direction + locale tokens per active UI language.
-  // Setting them on <html> is what makes bidi text (e.g. Latin words embedded
-  // in Arabic/Persian sentences) flow correctly and lets logical CSS props
-  // (inset-inline-*, margin-inline-*) mirror the layout for RTL locales.
-  const bidiDir = chrome.i18n.getMessage('@@bidi_dir');
-  if (bidiDir === 'rtl' || bidiDir === 'ltr') {
-    document.documentElement.setAttribute('dir', bidiDir);
-  }
+  // Chrome ships a canonical locale token per active UI language; on <html> it
+  // gives the popup a correct lang for a11y and font selection.
   const uiLocale = chrome.i18n.getMessage('@@ui_locale');
   if (uiLocale) {
     document.documentElement.setAttribute('lang', uiLocale.replace(/_/g, '-'));

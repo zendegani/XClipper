@@ -1821,13 +1821,6 @@ details.option-group[open] .option-group-chevron {
   column-gap: 14px;
 }
 
-/* Field names are YAML keys (e.g. `author`, `created`) — code identifiers, not
- * prose — so keep the row layout LTR even when the popup is RTL. The mode
- * header above (translated label + button) stays RTL. */
-[dir="rtl"] .fm-picker-fields {
-  direction: ltr;
-}
-
 .fm-picker-fields .fm-field {
   break-inside: avoid;
 }
