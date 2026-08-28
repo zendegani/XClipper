@@ -1,4 +1,4 @@
-XClipper is a high-fidelity, source-available web clipper for X (Twitter) — a Chrome extension that saves tweets, threads, and long-form articles (text, images, and video) as clean Markdown, ready-to-print PDF, or Obsidian notes. Export one post at a time, or in batch from your bookmarks, likes, a profile, or your home timeline. Everything runs in your browser: no X API key, no account, no server, no tracking — and it's free for noncommercial use.
+XClipper is a high-fidelity, source-available web clipper for X (Twitter) — a Chrome extension that saves tweets, threads, and long-form articles (text, images, and video) as clean Markdown, ready-to-print PDF, or Obsidian notes. Export one post at a time, or in batch from your bookmarks, likes, a profile, or your home timeline. Everything runs in your browser: no X API key, no server, no tracking — and it's free for noncommercial use.
 
 Why XClipper:
 
@@ -6,7 +6,7 @@ Most clipping tools run a post through a generic HTML-to-Markdown converter and 
 
 - Output you won't have to clean up. The page is parsed into a typed Content AST before anything renders, so structure survives: nested threads, quote tweets, polls, link cards, and full long-form Articles (headings, lists, code blocks). t.co links resolve to real URLs, emoji and @mentions stay intact, truncated posts expand, and engagement bars, follow prompts, and trackers are stripped.
 - Real PDFs, not screenshots. Export goes through Chrome's native print engine — selectable text, clickable links, embedded images, and full Unicode, not a flattened image.
-- Media saved as files, not links. Images are downloaded next to the Markdown, and each post's video or GIF is saved as a real .mp4 — quoted posts included — with a link in the Markdown pointing at the file, so your notes survive link rot and deleted posts.
+- Media saved as files, not links. Images are downloaded next to the Markdown, and each post's video or GIF is saved as a real .mp4 — quoted posts included — with a link in the Markdown pointing at the file, so your notes survive link rot and deleted posts. Saving video needs Markdown with separate files, and Chrome asks once for an optional permission so XClipper can use your existing X session.
 - Batch, not one at a time. Export your whole Bookmarks, Likes, a Profile, your Timeline, or a hand-picked Selection in one background job with a progress bar, pause / resume / stop, and a dedup ledger — plus an optional Fast mode that pulls items straight from your logged-in X session for a roughly 10x speed-up.
 - 100% local, zero setup. No API keys, no accounts, nothing leaves your browser. Install and clip.
 
@@ -30,9 +30,8 @@ Great for:
 
 Current limitations:
 
-- Saving video as a file asks Chrome for one optional permission the first time (it uses your own logged-in X session), needs the Markdown format with separate files, and tops out at 720p; the few posts X serves only as a stream keep their thumbnail
+- Video is saved at up to 720p, and the few posts X serves only as a stream keep their thumbnail instead
 - Fast Batch calls X's internal API directly, so large runs can hit X's rate limit (soft-blocking); it's opt-in, paces itself, and you can resume or re-run later
-- Some functionality may break if x.com changes its page structure significantly
 - If you install or update the extension while an x.com tab is already open, reload the tab before exporting — this is intentional, to avoid silent failures on an uninitialized page
 
 Changelog:

@@ -3,7 +3,7 @@
     "message": "X / Twitter Web-Clipper: Lesezeichen & Threads zu Markdown, PDF, Obsidian"
   },
   "extensionDescription": {
-    "message": "Posts, Videos und Langform-Artikel aus Likes oder Profilen exportieren: einzeln oder Tausende pro Batch. Kostenlos und lokal."
+    "message": "Posts, Videos und Langform-Artikel aus Likes oder Profilen exportieren: einzeln oder Tausende pro Batch. Lokal und ohne X-API-Key."
   },
   "tagline": {
     "message": "Threads und Artikel als Markdown oder PDF speichern"
