@@ -1,4 +1,4 @@
-XClipper es un capturador web de alta fidelidad, con código fuente disponible, para X (Twitter): una extensión de Chrome que guarda tweets, hilos y artículos largos como Markdown limpio, PDF listo para imprimir o notas de Obsidian. Exporta una publicación a la vez, o en lote desde tus marcadores, likes, un perfil o tu cronología de inicio. Todo funciona en tu navegador: sin clave de API de X, sin cuenta, sin servidor, sin seguimiento, y gratis para uso no comercial.
+XClipper es un capturador web de alta fidelidad, con código fuente disponible, para X (Twitter): una extensión de Chrome que guarda tweets, hilos y artículos largos (texto, imágenes y vídeo) como Markdown limpio, PDF listo para imprimir o notas de Obsidian. Exporta una publicación a la vez, o en lote desde tus marcadores, likes, un perfil o tu cronología de inicio. Todo funciona en tu navegador: sin clave de API de X, sin cuenta, sin servidor, sin seguimiento, y gratis para uso no comercial.
 
 Por qué XClipper:
 
@@ -6,6 +6,7 @@ La mayoría de herramientas de recorte pasan una publicación por un conversor g
 
 - Salida que no tendrás que limpiar. La página se analiza en un Content AST tipado antes de renderizar nada, por lo que la estructura se conserva: hilos anidados, tweets citados, encuestas, tarjetas de enlaces y artículos largos completos (encabezados, listas, bloques de código). Los enlaces t.co se resuelven a URL reales, los emojis y @menciones se mantienen intactos, las publicaciones truncadas se expanden, y se eliminan barras de interacción, avisos para seguir y rastreadores.
 - PDFs reales, no capturas de pantalla. La exportación usa el motor de impresión nativo de Chrome: texto seleccionable, enlaces clicables, imágenes incrustadas y Unicode completo, no una imagen plana.
+- Multimedia guardado como archivos, no como enlaces. Las imágenes se descargan junto al Markdown, y el vídeo o GIF de cada publicación se guarda como un .mp4 real, incluidos los de las publicaciones citadas, con un enlace en el Markdown que apunta al archivo, para que tus notas sobrevivan a los enlaces rotos y a las publicaciones borradas.
 - En lote, no uno por uno. Exporta todos tus Marcadores, Likes, un Perfil, tu Cronología o una Selección manual en un trabajo en segundo plano con barra de progreso, pausar / reanudar / detener y un registro de deduplicación, además de un modo Fast opcional que extrae elementos directamente de tu sesión iniciada en X para acelerar el proceso aproximadamente 10 veces.
 - 100% local, sin configuración. Sin claves API, sin cuentas, nada sale de tu navegador. Instala y recorta.
 
@@ -15,7 +16,7 @@ También incluido:
 - Integración con Obsidian: entrega mediante obsidian:// con vault y subcarpeta opcionales, además de un esquema de frontmatter adaptado: wikilinks [[@handle]], metadatos compatibles con Dataview, título y descripción generados, y una lista de etiquetas personalizada.
 - YAML frontmatter completo: autor, handle, fechas, URL de origen, tipo de contenido y métricas de interacción, cada campo activable por separado y utilizable como token en plantillas personalizadas de nombre de archivo.
 - Tres formas de activar: un botón inline en cada tweet, el popup de la barra de herramientas y el menú de clic derecho.
-- Guarda imágenes incrustadas localmente para evitar enlaces rotos, y exporta un tweet individual o un hilo completo.
+- Exporta un tweet individual, un hilo completo o un artículo largo entero.
 
 Además: copiar al portapapeles o descargar, una fila inline opcional con métricas de interacción y una subcarpeta opcional de descargas.
 
@@ -29,7 +30,7 @@ Ideal para:
 
 Limitaciones actuales:
 
-- Los vídeos y GIFs no se exportan como archivos multimedia reproducibles
+- Guardar el vídeo como archivo pide un permiso opcional de Chrome la primera vez (usa tu propia sesión de X iniciada), requiere el formato Markdown con archivos separados y llega hasta 720p; las pocas publicaciones que X sirve solo como stream conservan su miniatura
 - Fast Batch llama directamente a la API interna de X, por lo que ejecuciones grandes pueden alcanzar el límite de frecuencia de X (bloqueo suave); es opcional, regula su ritmo, y puedes reanudar o volver a ejecutar más tarde
 - Algunas funciones pueden dejar de funcionar si x.com cambia significativamente la estructura de sus páginas
 - Si instalas o actualizas la extensión con una pestaña de x.com ya abierta, recarga la pestaña antes de exportar; esto es intencional para evitar fallos silenciosos en una página no inicializada
