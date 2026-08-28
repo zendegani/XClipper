@@ -2268,6 +2268,25 @@ details.option-group[open] .option-group-chevron {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  /* Long translations ("Desactivado | Imágenes | Multimedia") outgrow the row:
+   * let the control drop to its own line rather than be shrunk into the
+   * segmented group's `overflow: hidden`, which silently ate the last option. */
+  flex-wrap: wrap;
+}
+
+/* A basis, not `auto`: the wrap decision then compares this floor — not the
+ * label's full single-line width — against what the control needs, so a label
+ * that can simply wrap its own text (en, de, ja, zh) keeps the one-line row.
+ * Short labels (Format, Output) keep the default basis and never force a wrap. */
+.batch-field > .toggle-text {
+  flex: 1 1 150px;
+}
+
+.batch-field > .segmented,
+.batch-field > .batch-select {
+  flex: none;
+  /* Keeps the control right-aligned on the line it wraps onto. */
+  margin-inline-start: auto;
 }
 
 .batch-field-label {

@@ -6,6 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
+
+## [2.8.1] - 2026-08-29
+
+### Fixed
+
+- **Off · Images · Media no longer loses its last option in translation**: in locales whose words run longer — Spanish's *Desactivado · Imágenes · Multimedia*, French's *Médias*, German's *Medien* — the setting's label crowded the three-way control and its last position was clipped away by the control's own overflow, so **Media** could be neither seen nor clicked. The control now keeps its full width and moves to its own line beneath the label when the row is too narrow for both; English, Japanese and Chinese keep the single-line row they had.
+
+---
+
 ## [2.8.0] - 2026-08-28
 
 ### Added
@@ -22,6 +31,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **PDF exports no longer print the day before**: a post exported to PDF showed its date in your computer's time zone, so anywhere west of UTC a late-evening post could print the previous day — disagreeing with the date in the same post's file name and Markdown frontmatter, which have always been UTC. All three now agree. Markdown and Obsidian exports were never affected. (#113)
 
 ---
+
 ## [2.7.4] - 2026-08-21
 
 ### Changed
@@ -29,6 +39,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Fast Batch no longer logs each captured request**: the background console wrote a line every time a bookmarks, likes or profile page fetched another batch of posts while you scrolled. It was a debugging aid left over from the 2.7.3 profile fix; nothing else changes.
 
 ---
+
 ## [2.7.3] - 2026-08-20
 
 ### Fixed
@@ -36,6 +47,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Profile export works again in Auto and Super**: the **Profile** tab's first step light stayed red however often you reloaded the profile page, so a profile export could never start — X renamed the request that loads a profile's posts, and XClipper was still watching for the old name. Both names are now recognized, so the light turns green the way it always did for Bookmarks and Likes. Bookmarks and Likes were never affected. (#107)
 
 ---
+
 ## [2.7.2] - 2026-08-15
 
 ### Added
@@ -51,6 +63,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Bookmarks and Likes batch export follow X's new History address**: X is moving Bookmarks and Likes under a single History hub — `x.com/i/history` and `x.com/i/history/likes` — and batch export didn't recognize either page, so the Bookmarks and Likes tabs found nothing to collect and **Open Bookmarks** led to the old address. Both new addresses now work, alongside the old `/i/bookmarks` and `/<handle>/likes` for accounts the rollout hasn't reached.
 
 ---
+
 ## [2.7.1] - 2026-08-02
 
 ### Added
@@ -67,6 +80,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Stray asterisks from empty bold runs removed**: X ends some article paragraphs with a bold zero-width joiner, which exported as a bare `****` — four asterisks with nothing visible between them. Emphasis that contains nothing but invisible characters now renders without the markers.
 
 ---
+
 ## [2.7.0] - 2026-07-14
 
 ### Added
@@ -79,6 +93,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Super mode's Expanding step no longer dimmed**: the step light was greyed out on the assumption that Super skips the whole expansion phase, but Super still fetches full X Article bodies (and completes earlier rate-limited items) — only threads are skipped. The step now stays live, and the run's phase text says "Expanding articles…" in Super instead of Auto's "Expanding threads & articles…".
 
 ---
+
 ## [2.6.1] - 2026-07-13
 
 ### Changed
@@ -86,6 +101,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Store listing reworded to satisfy Chrome Web Store metadata policy**: the one-line extension summary no longer repeats the formats already named in the title and now leads with likes, profiles, and long-form articles; no functional changes.
 
 ---
+
 ## [2.6.0] - 2026-07-12
 
 ### Added
@@ -110,6 +126,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Fast Batch no longer re-exports edited or re-rooted posts every run**: some posts (edited tweets, and thread replies that re-root to the thread's first tweet on expansion) end up with a different canonical id than the one the bookmarks feed lists, so the dedup history — which only stored the canonical id — never matched them again and they re-exported on every run. Fast Batch now remembers both ids, so these posts are correctly skipped once exported.
 
 ---
+
 ## [2.5.1] - 2026-07-11
 
 ### Fixed
@@ -118,6 +135,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Fast Batch retries incomplete posts first**: the next run now expands the posts a previous rate-limited run left incomplete before any fresh ones, so the stable bookmark order can't keep postponing the same tail of posts run after run.
 
 ---
+
 ## [2.5.0] - 2026-06-17
 
 ### Added
@@ -125,6 +143,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Firefox extension build**: added a Firefox MV3 build target and package command (`npm run build:firefox`, `npm run package:firefox`) that emits `dist-firefox/` with a Gecko-compatible manifest, background script fallback, and native toolbar theme icons.
 
 ---
+
 ## [2.4.0] - 2026-06-15
 
 ### Added
@@ -143,6 +162,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Open Bookmarks / Timeline from their tab when off-page**: When you're not on the right page, the **Bookmarks** and **Timeline** tabs now show an **Open Bookmarks / Open Timeline** button that takes you there (instead of a disabled button) — then scroll and export.
 
 ---
+
 ## [2.3.0] - 2026-06-14
 
 ### Added
@@ -154,6 +174,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Faster batch export**: the politeness gap between posts dropped from 2–4 s to ~0.6–1.2 s, and the per-post thread/media hydration now settles adaptively — it proceeds the instant content mounts instead of always waiting a fixed delay, while keeping the same upper bound so slow-loading threads are never truncated. Together these noticeably cut batch wall-clock. To keep the tighter pace safe, a batch now **auto-pauses** when it hits a login or rate-limit wall, or after several failures in a row — the popup shows why, and Resume picks up where it left off.
 
 ---
+
 ## [2.2.0] - 2026-06-13
 
 ### Added
@@ -175,6 +196,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Toolbar icon in dark mode**: the toolbar icon now switches to a light-slash variant when the OS is in dark mode, so it no longer disappears against a dark Chrome toolbar.
 
 ---
+
 ## [2.1.0] - 2026-06-12
 
 ### Added
@@ -188,6 +210,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Selection bar made easier to spot**: Larger and easier to spot, with a slide-up entrance and a "Tap tweets to select" hint.
 
 ---
+
 ## [2.0.4] - 2026-06-11
 
 ### Changed
@@ -200,6 +223,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Frontmatter field selection in inline-button, context-menu, and PDF exports**: These flows now apply the same default-merged frontmatter field map as the popup, so a partial field selection saved by an older version no longer drops newly-added fields. Default selections are unaffected.
 
 ---
+
 ## [2.0.3] - 2026-06-07
 
 ### Added
@@ -257,7 +281,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Content AST Architecture**: Refactored the core extraction pipeline from a direct DOM-to-Markdown translation (via Turndown) to a typed, JSON-serializable Content AST (Abstract Syntax Tree) as the single source of truth (`DOM → AST → MD/PDF`). This decouples content parsing from rendering, enabling clean support for multiple formats (Markdown, PDF) and preserving complex, platform-specific semantics like nested quote-tweets, polls, link cards, and threads.
 - **PDF export**: New **Download .pdf** button next to **Add to Obsidian**. Opens a print-preview tab where you save the tweet / thread / article as a PDF via the browser's native print dialog. Text is selectable, links are clickable, and emoji and non-ASCII glyphs render correctly.
-- **X Article quote cards**: Tweets that quote one of X's long-form Articles now appear as `📝` card blocks (banner + title + description) in Markdown and PDF. 
+- **X Article quote cards**: Tweets that quote one of X's long-form Articles now appear as `📝` card blocks (banner + title + description) in Markdown and PDF.
 
 ### Changed
 
