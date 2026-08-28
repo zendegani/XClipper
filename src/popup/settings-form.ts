@@ -22,6 +22,7 @@ import {
   TAGS_PLACEHOLDERS,
   FILENAME_PLACEHOLDERS,
 } from '../shared/post-process';
+import { hostMatches } from '../shared/media';
 import { attachPlaceholderAutocomplete } from './placeholder-autocomplete';
 import { updateFloodHint } from './fast-batch-ui';
 import {
@@ -64,6 +65,13 @@ const MEDIA_ACCESS: chrome.permissions.Permissions = {
   permissions: ['webRequest'],
   origins: ['*://x.com/*'],
 };
+
+async function reloadActiveXTab(): Promise<void> {
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  if (tab?.id && hostMatches(tab.url || '', 'x.com', 'www.x.com')) {
+    await chrome.tabs.reload(tab.id);
+  }
+}
 
 // In-memory snapshot of field selections — the source of truth that gets
 // persisted. Checkbox `checked` state mirrors whichever mode is currently
@@ -486,8 +494,14 @@ export function initSettingsForm(): void {
   saveLocalMedia.addEventListener('click', () => {
     chrome.permissions.contains(MEDIA_ACCESS, (has) => {
       if (has) return;
-      chrome.permissions.request(MEDIA_ACCESS, () => {
+      chrome.permissions.request(MEDIA_ACCESS, (granted) => {
         void chrome.runtime.lastError; // benign gesture/denial errors
+        // The capture listener only arms once the permission lands, and the
+        // page fetched its TweetDetail long before that — so without a reload
+        // there is no request template to replay and the first export after
+        // granting would quietly fall back to the thumbnail. Reload the post
+        // so the very next export has what it needs.
+        if (granted) void reloadActiveXTab();
       });
     });
   });

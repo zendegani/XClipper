@@ -181,19 +181,39 @@ async function extractMarkdown(
 // no options — includeVideoLinks is the only difference between the two passes.
 //
 // Every failure path (no permission, nothing resolved, no AST on the wire)
-// returns undefined, which leaves the export exactly as it is today.
+// returns undefined, which leaves the export exactly as it is today — but a
+// post that HAS video and still didn't resolve says so, because silently
+// shipping the thumbnail is the one outcome the user can't tell apart from
+// success until they open the folder.
 async function resolveLocalVideo(
   data: ExtractedContent
 ): Promise<{ renderedUrl: string; downloadUrl: string }[] | undefined> {
   if (!saveLocalMediaEnabled() || !data.body) return undefined;
 
+  // A node still standing on its poster is a video we haven't resolved yet.
+  // None here means nothing to fetch, so skip the round trip entirely.
+  const unresolved = collectMedia(data.body).filter(
+    (m) => (m.kind === 'video' || m.kind === 'gif') && m.url === m.posterUrl
+  );
+  if (unresolved.length === 0) return undefined;
+
   const response: ResolveVideoUrlsResponse | undefined = await chrome.runtime.sendMessage({
     action: 'RESOLVE_VIDEO_URLS',
     tweetId: data.tweetId,
   });
-  if (!response?.urls?.length) return undefined;
 
-  if (applyVideoUrls(data.body, new Map(response.urls)) === 0) return undefined;
+  const applied = response?.urls?.length
+    ? applyVideoUrls(data.body, new Map(response.urls))
+    : 0;
+  if (applied === 0) {
+    showStatus(
+      chrome.i18n.getMessage('video_unresolved') ||
+        'Video kept as a link — reload the post once, then export again.',
+      'info'
+    );
+    return undefined;
+  }
+
   data.markdown = renderMarkdown(data.body, { includeVideoLinks: true });
 
   return collectMedia(data.body)

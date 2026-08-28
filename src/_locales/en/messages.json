@@ -580,5 +580,8 @@
   },
   "copied": {
     "message": "Copied!"
+  },
+  "video_unresolved": {
+    "message": "Video kept as a link — reload the post once, then export again."
   }
 }
