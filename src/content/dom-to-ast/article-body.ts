@@ -4,6 +4,7 @@ import type {
   Block,
   TweetNode,
   ImageNode,
+  VideoNode,
   HeadingNode,
   ListNode,
   ListItemNode,
@@ -16,6 +17,7 @@ import type {
 import { SELECTORS, extractAuthor, extractDate, extractTweetId } from '../dom';
 import { extractEngagementMetadata } from '../tweet';
 import { hostMatches } from '../../shared/media';
+import { VIDEO_THUMB_RE, canonicalVideoThumbUrl } from './media';
 import { stripHandlePrefix } from './shared';
 import { extractArticleInline } from './inline';
 import { extractArticleCard } from './cards';
@@ -235,12 +237,12 @@ function extractSimpleTweet(block: HTMLElement): TweetNode | undefined {
   return articleToTweetNode(tweetArticle);
 }
 
-function findArticleBlockImage(block: HTMLElement): ImageNode | undefined {
+function findArticleBlockImage(block: HTMLElement): ImageNode | VideoNode | undefined {
   const imgEl = block.querySelector('img') as HTMLImageElement | null;
   return imageNodeFromElement(imgEl);
 }
 
-function findArticleMediaImage(block: HTMLElement): ImageNode | undefined {
+function findArticleMediaImage(block: HTMLElement): ImageNode | VideoNode | undefined {
   const mediaLink = block.querySelector('a[href*="/article/"][href*="/media/"], a[href*="/media/"]');
   if (!mediaLink) return undefined;
   const imgEl = mediaLink.querySelector('img') as HTMLImageElement | null;
@@ -250,16 +252,24 @@ function findArticleMediaImage(block: HTMLElement): ImageNode | undefined {
   return imageNodeFromElement(imgEl);
 }
 
-function imageNodeFromElement(imgEl: HTMLImageElement | null): ImageNode | undefined {
+function imageNodeFromElement(imgEl: HTMLImageElement | null): ImageNode | VideoNode | undefined {
   if (!imgEl) return undefined;
   let src = imgEl.src || '';
   if (!src) return undefined;
   if (src.includes('twimg.com/emoji') || hostMatches(src, 'abs-0.twimg.com') || /\.svg($|\?)/.test(src)) {
     return undefined;
   }
+  const alt = imgEl.getAttribute('alt') || undefined;
+  // A video in an article body reaches the DOM as its thumbnail — the player
+  // never mounts. The tweet path already tells those apart by path segment;
+  // do the same here so an article video is a video node rather than an image
+  // of one, and can be resolved to its file like any other.
+  if (VIDEO_THUMB_RE.test(src)) {
+    const url = canonicalVideoThumbUrl(src);
+    return { type: 'video', sourceUrl: url, posterUrl: url, ...(alt ? { alt } : {}) };
+  }
   if (hostMatches(src, 'pbs.twimg.com')) {
     src = src.replace(/&name=\w+/, '&name=large');
   }
-  const alt = imgEl.getAttribute('alt') || undefined;
   return { type: 'image', url: src, ...(alt ? { alt } : {}) };
 }

@@ -80,6 +80,27 @@ describe('applyVideoUrls()', () => {
     expect(applyVideoUrls(d, new Map())).toBe(0);
   });
 
+  // A video in an X Article body arrives as its own block, not as tweet media.
+  it('fills in a video block inside an article body', () => {
+    const d: Document = {
+      metadata: {
+        type: 'article',
+        author: { name: 'A', handle: 'a' },
+        sourceUrl: 'https://x.com/a/article/1',
+        date: '2026-01-01T00:00:00.000Z',
+        tweetId: '1',
+      },
+      body: {
+        type: 'article',
+        children: [{ type: 'video', sourceUrl: POSTER, posterUrl: POSTER }],
+      },
+    };
+
+    expect(applyVideoUrls(d, new Map([[posterKey(POSTER)!, MP4]]))).toBe(1);
+    expect(collectMedia(d).filter(isDownloadableVideo)).toHaveLength(1);
+    expect(renderMarkdown(d, { includeVideoLinks: true })).toContain(`[▶ Video](${MP4})`);
+  });
+
   // The point of the whole exercise: once the node carries a real source, the
   // existing renderer and media collector treat it as a downloadable video
   // with no changes of their own.
