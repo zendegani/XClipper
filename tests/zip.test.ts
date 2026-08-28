@@ -39,6 +39,21 @@ describe('buildZip', () => {
     ]);
   });
 
+  // Media entries arrive as raw bytes. Running them through TextEncoder would
+  // mangle every byte above 0x7f, so the writer must store them untouched.
+  it('stores binary entries byte-for-byte', () => {
+    const media = new Uint8Array([0xff, 0xd8, 0xff, 0xe0, 0x00, 0x10]);
+    const zip = buildZip([{ name: 'post/image.jpg', content: media }]);
+
+    const view = new DataView(zip.buffer, zip.byteOffset, zip.byteLength);
+    const size = view.getUint32(18, true);
+    const nameLen = view.getUint16(26, true);
+    const start = 30 + nameLen + view.getUint16(28, true);
+
+    expect(size).toBe(media.length);
+    expect(zip.subarray(start, start + size)).toEqual(media);
+  });
+
   it('writes a consistent central directory and end record', () => {
     const entries = [
       { name: 'one.txt', content: 'first' },

@@ -284,11 +284,17 @@
   "batch_out_combined": {
     "message": "Combined"
   },
-  "opt_batch_zip": {
+  "opt_zip": {
     "message": "Zip files (one download)"
   },
-  "opt_batch_zip_title": {
-    "message": "Pack all per-post files into a single .zip — one download instead of thousands. Not available while \"Save images locally\" is on, or with Combined output."
+  "opt_zip_title": {
+    "message": "Pack the export into a single .zip. In Batch, one download instead of thousands; in Single, one archive instead of a Markdown file plus a media folder."
+  },
+  "opt_zip_title_batch": {
+    "message": "Pack all per-post files into a single .zip — one download instead of thousands. Not available while local media saving is on, or with Combined output."
+  },
+  "opt_zip_title_single": {
+    "message": "Pack the export into a single .zip — one archive instead of a Markdown file plus a sibling media folder."
   },
   "flood_hint": {
     "message": "This can save thousands of separate files at once. Turn on “Zip files” or pick “Combined” output to get a single download instead."

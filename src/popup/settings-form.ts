@@ -31,7 +31,8 @@ import {
   outSeparate,
   outBoth,
   outCombined,
-  chkBatchZip,
+  chkZip,
+  zipToggle,
   saveLocalField,
   saveLocalOff,
   saveLocalImages,
@@ -55,6 +56,8 @@ import {
   filenamePreview,
   filenameAutocomplete,
 } from './dom';
+
+const t = (key: string, fallback: string): string => chrome.i18n.getMessage(key) || fallback;
 
 // In-memory snapshot of field selections — the source of truth that gets
 // persisted. Checkbox `checked` state mirrors whichever mode is currently
@@ -106,7 +109,7 @@ export function persistAll(): void {
     singleFormat: readSingleFormat(),
     batchFormat: batchFormatSelect.value as BatchFormat,
     batchOutput: readBatchOutput(),
-    batchZip: chkBatchZip.checked,
+    batchZip: chkZip.checked,
     frontmatterFields,
     frontmatterFieldsObsidian,
     settingsSectionsOpen,
@@ -179,13 +182,18 @@ function syncBatchToggles(): void {
   const saveLocalDisabled = batchMode && fmt !== 'md';
   for (const r of [saveLocalOff, saveLocalImages, saveLocalMedia]) r.disabled = saveLocalDisabled;
   saveLocalField.classList.toggle('disabled', saveLocalDisabled);
-  // Zip packs the per-item files, so it's meaningless with Combined-only
-  // output; local images disable it too (image bytes can't be fetched into
-  // the archive — and images only ever download for Markdown). Batch-only
-  // control, so no batchMode factor.
-  const zipBlocked = outCombined.checked || (readSaveLocal() !== 'off' && fmt === 'md');
-  chkBatchZip.disabled = zipBlocked;
-  chkBatchZip.closest('.toggle-label')?.classList.toggle('disabled', zipBlocked);
+  // Zip means different things per mode, so it gates differently. In Batch it
+  // packs the per-item files: meaningless with Combined-only output, and still
+  // blocked while local media is on, because a thousand posts' images and
+  // videos will not fit through the base64 data: URL the archive is delivered
+  // as. In Single the archive is one post, so that ceiling doesn't apply and
+  // pairing Zip with local media is the whole point — keep it enabled.
+  const zipBlocked = batchMode && (outCombined.checked || (readSaveLocal() !== 'off' && fmt === 'md'));
+  chkZip.disabled = zipBlocked;
+  chkZip.closest('.toggle-label')?.classList.toggle('disabled', zipBlocked);
+  zipToggle.dataset.tooltip = batchMode
+    ? t('opt_zip_title_batch', 'Pack all per-post files into a single .zip — one download instead of thousands. Not available while local media saving is on, or with Combined output.')
+    : t('opt_zip_title_single', 'Pack the export into a single .zip — one archive instead of a Markdown file plus a sibling media folder.');
 }
 
 // Reconcile both batch-only control groups (output radios + format-gated
@@ -371,7 +379,7 @@ export function initSettingsForm(): void {
     applySingleFormat(settings.singleFormat);
     batchFormatSelect.value = settings.batchFormat;
     setBatchOutput(settings.batchOutput);
-    chkBatchZip.checked = settings.batchZip;
+    chkZip.checked = settings.batchZip;
     syncBatchControls();
     frontmatterFields = { ...settings.frontmatterFields };
     frontmatterFieldsObsidian = { ...settings.frontmatterFieldsObsidian };
@@ -458,7 +466,7 @@ export function initSettingsForm(): void {
       persistAll();
     })
   );
-  chkBatchZip.addEventListener('change', () => {
+  chkZip.addEventListener('change', () => {
     updateFloodHint();
     persistAll();
   });

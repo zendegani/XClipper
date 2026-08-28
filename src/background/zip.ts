@@ -1,6 +1,10 @@
-// Minimal ZIP writer for the batch "Zip files" option: packs every per-item
-// text file into one archive so a thousand-post run is a single download
-// instead of a thousand shelf entries. Entries are STORED (no compression) —
+// Minimal ZIP writer for the "Zip files" option: packs every per-item file
+// into one archive so a thousand-post run is a single download instead of a
+// thousand shelf entries, and a single export is one archive instead of a
+// Markdown file plus a sibling media folder. Entries carry either text or raw
+// bytes — media only rides along on the single-export path, where the archive
+// is one post and the base64 data: URL below stays a sane size.
+// Entries are STORED (no compression) —
 // the container format is the point here, not the byte savings — which keeps
 // this dependency-free and byte-predictable. Names are written as UTF-8 with
 // the language-encoding flag (bit 11) set so unzip tools decode CJK/emoji
@@ -9,7 +13,7 @@
 export interface ZipEntry {
   // Forward-slash relative path inside the archive (may include subfolders).
   name: string;
-  content: string;
+  content: string | Uint8Array;
 }
 
 // Standard CRC-32 (IEEE 802.3), table-driven.
@@ -46,7 +50,7 @@ export function buildZip(entries: ZipEntry[], now = new Date()): Uint8Array {
 
   for (const entry of entries) {
     const name = encoder.encode(entry.name);
-    const data = encoder.encode(entry.content);
+    const data = typeof entry.content === 'string' ? encoder.encode(entry.content) : entry.content;
     const crc = crc32(data);
 
     const local = new Uint8Array(30 + name.length + data.length);
