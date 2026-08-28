@@ -1,12 +1,14 @@
 import type {
   AutoExtractRequest,
   DownloadRequest,
+  ResolveVideoUrlsRequest,
   PdfPrintRequest,
   PdfPrintResponse,
   ThemeReport,
 } from '../types/messages';
 import {
   isAllowedImageUrl,
+  isExtensionPageSender,
   isTrustedDownloadSender,
   isTrustedXContentSender,
   sanitizeFilePath,
@@ -16,6 +18,7 @@ import { initFastBatch } from './fast-batch';
 import { normalizeStatusUrl } from './batch-state';
 import { buildSingleZipEntries, zipFilenameFor } from './single-zip';
 import { buildZip, zipDataUrl } from './zip';
+import { resolveVideoUrls } from './resolve-video';
 
 // ─── Context menu: Save / Copy tweet as Markdown ────────────────────
 
@@ -258,6 +261,21 @@ function loadDownloadFolder(): Promise<string> {
     });
   });
 }
+
+// Single export asks for a post's MP4 URLs before saving media locally. Only
+// the popup may ask: this replays the user's captured X session, so it stays
+// off the content-script surface.
+chrome.runtime.onMessage.addListener(
+  (message: ResolveVideoUrlsRequest, sender, sendResponse) => {
+    if (!message || message.action !== 'RESOLVE_VIDEO_URLS') return false;
+    if (!isExtensionPageSender(sender, chrome.runtime.id)) {
+      sendResponse({ urls: [] });
+      return false;
+    }
+    resolveVideoUrls(message.tweetId).then((map) => sendResponse({ urls: [...map] }));
+    return true; // keep channel open for async sendResponse
+  }
+);
 
 // Media bytes for the single-export archive. Returns null instead of throwing:
 // one expired media URL must not cost the user the whole export, so the caller
