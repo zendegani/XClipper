@@ -48,7 +48,6 @@ export async function resolveVideoUrls(tweetId: string): Promise<Map<string, str
       const key = media.posterUrl ? posterKey(media.posterUrl) : null;
       if (key) map.set(key, media.url);
     }
-    log(`resolved ${map.size} video(s) for ${tweetId}`, [...map.keys()]);
     return map;
   } catch (err) {
     log('video resolution failed, keeping remote links:', err);
