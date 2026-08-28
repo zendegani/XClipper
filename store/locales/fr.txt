@@ -30,7 +30,7 @@ Idéal pour :
 
 Limitations actuelles :
 
-- Les vidéos sont enregistrées en 720p au maximum ; pour les rares posts que X ne propose qu'en streaming, seule la miniature est enregistrée
+- Les vidéos sont enregistrées en 720p au maximum. Pour les rares posts pour lesquels X ne fournit aucun fichier vidéo téléchargeable, c'est la miniature qui est enregistrée, comme auparavant
 - Fast Batch appelle directement l'API interne de X, donc les gros exports peuvent atteindre la limite de débit de X (blocage souple) ; c'est optionnel, le rythme est régulé automatiquement, et vous pouvez reprendre ou relancer plus tard
 - Si vous installez ou mettez à jour l'extension alors qu'un onglet x.com est déjà ouvert, rechargez l'onglet avant l'exportation ; c'est intentionnel afin d'éviter les échecs silencieux sur une page non initialisée
 
