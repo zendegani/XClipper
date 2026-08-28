@@ -14,6 +14,7 @@ import type { BatchFormat } from '../shared/settings';
 import {
   btnDownload,
   btnCopy,
+  chkZip,
   btnPdf,
   btnObsidian,
   fmtButtons,
@@ -288,11 +289,14 @@ async function runMarkdownDownload(): Promise<void> {
   try {
     const result = await extractMarkdown();
 
+    // Zip only earns its keep when there is media to keep together with the
+    // Markdown — a lone .md in an archive is just an extra step for the user.
     const downloadMsg: DownloadRequest = {
       action: 'DOWNLOAD_MD',
       content: result.markdown,
       filename: result.filename,
       images: result.images.length > 0 ? result.images : undefined,
+      zip: chkZip.checked && result.images.length > 0,
     };
 
     chrome.runtime.sendMessage(downloadMsg, (downloadResponse) => {

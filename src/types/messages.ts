@@ -37,6 +37,10 @@ export interface DownloadRequest {
   content: string;
   filename: string;
   images?: { url: string; filename: string }[];
+  // Single export only: pack `content` and `images` into one .zip instead of
+  // writing the file and downloading each media item beside it. The media
+  // bytes are fetched in the background so they can go into the archive.
+  zip?: boolean;
   // MIME type for the data: URL. Defaults to text/markdown. Set by the
   // alternate-format exports (HTML/JSON/TXT/CSV) so the saved file carries the
   // right type; Chrome still names the file from `filename`'s extension.

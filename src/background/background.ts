@@ -14,6 +14,8 @@ import {
 import { initBatch } from './batch';
 import { initFastBatch } from './fast-batch';
 import { normalizeStatusUrl } from './batch-state';
+import { buildSingleZipEntries, zipFilenameFor } from './single-zip';
+import { buildZip, zipDataUrl } from './zip';
 
 // ─── Context menu: Save / Copy tweet as Markdown ────────────────────
 
@@ -257,6 +259,20 @@ function loadDownloadFolder(): Promise<string> {
   });
 }
 
+// Media bytes for the single-export archive. Returns null instead of throwing:
+// one expired media URL must not cost the user the whole export, so the caller
+// skips that entry and packs the rest. Nothing extra is needed permission-wise
+// — twimg.com reflects the extension origin in Access-Control-Allow-Origin.
+async function fetchMediaBytes(url: string): Promise<Uint8Array | null> {
+  try {
+    const res = await fetch(url);
+    if (!res.ok) return null;
+    return new Uint8Array(await res.arrayBuffer());
+  } catch {
+    return null;
+  }
+}
+
 // ─── PDF via Chrome's print engine ─────────────────────────────────
 //
 // Content sends PDF_PRINT_REQUEST { html, filenameBase }. We stash the HTML
@@ -306,8 +322,34 @@ chrome.runtime.onMessage.addListener(
     // Prepend the user-configured subfolder before sanitization so the
     // existing `..` / leading-slash / illegal-char stripping in
     // `sanitizeFilePath` applies to the combined path too.
-    loadDownloadFolder().then((folder) => {
+    loadDownloadFolder().then(async (folder) => {
       const prefix = folder ? folder + '/' : '';
+
+      // Zip mode: the media goes inside the archive rather than beside it, so
+      // the bytes are fetched here instead of handed to chrome.downloads.
+      if (message.zip) {
+        const entries = await buildSingleZipEntries(
+          message.content,
+          message.filename,
+          message.images,
+          fetchMediaBytes
+        );
+        chrome.downloads.download(
+          {
+            url: zipDataUrl(buildZip(entries)),
+            filename: sanitizeFilePath(prefix + zipFilenameFor(message.filename)),
+            saveAs: false,
+          },
+          (downloadId) => {
+            if (chrome.runtime.lastError) {
+              sendResponse({ success: false, error: chrome.runtime.lastError.message });
+            } else {
+              sendResponse({ success: true, downloadId });
+            }
+          }
+        );
+        return;
+      }
 
       // First download any required images
       if (message.images && message.images.length > 0) {

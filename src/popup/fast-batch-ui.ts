@@ -31,7 +31,7 @@ import {
   fastLockedHint,
   floodHint,
   outCombined,
-  chkBatchZip,
+  chkZip,
   fastDateRange,
   fastDateFrom,
   fastDateTo,
@@ -134,7 +134,7 @@ function applyGlow(): void {
 // selector, pushing the fetch-mode segment down while visible. Re-evaluated
 // on engine switches here and on output/zip/format changes in settings-form.
 export function updateFloodHint(): void {
-  const zipOn = chkBatchZip.checked && !chkBatchZip.disabled;
+  const zipOn = chkZip.checked && !chkZip.disabled;
   const show = inBatchMode && engineMode !== 'manual' && !outCombined.checked && !zipOn;
   floodHint?.classList.toggle('hidden', !show);
 }
