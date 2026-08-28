@@ -20,6 +20,9 @@
   "btn_pdf_hint": {
     "message": "Generate a formatted PDF export with current settings, then choose where to save it."
   },
+  "rendering_pdf": {
+    "message": "Rendering PDF…"
+  },
   "btn_obsidian": {
     "message": "Add to Obsidian"
   },
@@ -554,8 +557,14 @@
   "error_unexpected": {
     "message": "An unexpected error occurred."
   },
+  "error_no_tab": {
+    "message": "No active tab."
+  },
   "download_failed": {
     "message": "Download failed."
+  },
+  "pdf_failed": {
+    "message": "PDF export failed."
   },
   "article_downloaded": {
     "message": "Article downloaded!"
@@ -568,6 +577,9 @@
   },
   "downloaded": {
     "message": "Downloaded!"
+  },
+  "pdf_downloaded": {
+    "message": "PDF downloaded!"
   },
   "article_copied": {
     "message": "Article copied!"
