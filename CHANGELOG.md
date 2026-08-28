@@ -6,11 +6,15 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
-## [2.7.4] - 2026-08-21
+## [2.7.4] - 2026-08-28
 
 ### Changed
 
 - **Fast Batch no longer logs each captured request**: the background console wrote a line every time a bookmarks, likes or profile page fetched another batch of posts while you scrolled. It was a debugging aid left over from the 2.7.3 profile fix; nothing else changes.
+
+### Fixed
+
+- **PDF exports no longer print the day before**: a post exported to PDF showed its date in your computer's time zone, so anywhere west of UTC a late-evening post could print the previous day — disagreeing with the date in the same post's file name and Markdown frontmatter, which have always been UTC. All three now agree. Markdown and Obsidian exports were never affected. (#113)
 
 ---
 ## [2.7.3] - 2026-08-20
