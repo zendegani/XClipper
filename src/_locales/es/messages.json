@@ -20,6 +20,9 @@
   "btn_pdf_hint": {
     "message": "Genera una exportación PDF con la configuración actual y luego elige dónde guardarla."
   },
+  "rendering_pdf": {
+    "message": "Generando PDF…"
+  },
   "btn_obsidian": {
     "message": "Añadir a Obsidian"
   },
@@ -554,8 +557,14 @@
   "error_unexpected": {
     "message": "Ocurrió un error inesperado."
   },
+  "error_no_tab": {
+    "message": "No hay ninguna pestaña activa."
+  },
   "download_failed": {
     "message": "Error en la descarga."
+  },
+  "pdf_failed": {
+    "message": "Error al exportar el PDF."
   },
   "article_downloaded": {
     "message": "¡Artículo descargado!"
@@ -568,6 +577,9 @@
   },
   "downloaded": {
     "message": "¡Descargado!"
+  },
+  "pdf_downloaded": {
+    "message": "¡PDF descargado!"
   },
   "article_copied": {
     "message": "¡Artículo copiado!"

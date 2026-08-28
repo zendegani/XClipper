@@ -20,6 +20,9 @@
   "btn_pdf_hint": {
     "message": "現在の設定で整形済みのPDF書き出しを作成し、保存先を選びます。"
   },
+  "rendering_pdf": {
+    "message": "PDFを作成中…"
+  },
   "btn_obsidian": {
     "message": "Obsidianに追加"
   },
@@ -554,8 +557,14 @@
   "error_unexpected": {
     "message": "予期しないエラーが発生しました。"
   },
+  "error_no_tab": {
+    "message": "アクティブなタブがありません。"
+  },
   "download_failed": {
     "message": "ダウンロードに失敗しました。"
+  },
+  "pdf_failed": {
+    "message": "PDFのエクスポートに失敗しました。"
   },
   "article_downloaded": {
     "message": "記事をダウンロードしました！"
@@ -568,6 +577,9 @@
   },
   "downloaded": {
     "message": "ダウンロード完了！"
+  },
+  "pdf_downloaded": {
+    "message": "PDFをダウンロードしました！"
   },
   "article_copied": {
     "message": "記事をコピーしました！"

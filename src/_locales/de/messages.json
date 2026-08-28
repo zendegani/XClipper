@@ -20,6 +20,9 @@
   "btn_pdf_hint": {
     "message": "Erstellt einen formatierten PDF-Export mit den aktuellen Einstellungen; anschließend wählst du den Speicherort."
   },
+  "rendering_pdf": {
+    "message": "PDF wird erstellt…"
+  },
   "btn_obsidian": {
     "message": "Zu Obsidian hinzufügen"
   },
@@ -554,8 +557,14 @@
   "error_unexpected": {
     "message": "Ein unerwarteter Fehler ist aufgetreten."
   },
+  "error_no_tab": {
+    "message": "Kein aktiver Tab."
+  },
   "download_failed": {
     "message": "Fehler beim Herunterladen."
+  },
+  "pdf_failed": {
+    "message": "PDF-Export fehlgeschlagen."
   },
   "article_downloaded": {
     "message": "Artikel heruntergeladen!"
@@ -568,6 +577,9 @@
   },
   "downloaded": {
     "message": "Heruntergeladen!"
+  },
+  "pdf_downloaded": {
+    "message": "PDF heruntergeladen!"
   },
   "article_copied": {
     "message": "Artikel kopiert!"

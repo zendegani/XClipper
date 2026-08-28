@@ -20,6 +20,9 @@
   "btn_pdf_hint": {
     "message": "Génère un export PDF mis en forme avec les réglages actuels, puis choisissez où l’enregistrer."
   },
+  "rendering_pdf": {
+    "message": "Génération du PDF…"
+  },
   "btn_obsidian": {
     "message": "Ajouter à Obsidian"
   },
@@ -554,8 +557,14 @@
   "error_unexpected": {
     "message": "Une erreur inattendue s'est produite."
   },
+  "error_no_tab": {
+    "message": "Aucun onglet actif."
+  },
   "download_failed": {
     "message": "Échec du téléchargement."
+  },
+  "pdf_failed": {
+    "message": "Échec de l’export PDF."
   },
   "article_downloaded": {
     "message": "Article téléchargé !"
@@ -568,6 +577,9 @@
   },
   "downloaded": {
     "message": "Téléchargé !"
+  },
+  "pdf_downloaded": {
+    "message": "PDF téléchargé !"
   },
   "article_copied": {
     "message": "Article copié !"
