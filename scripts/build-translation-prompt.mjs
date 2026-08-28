@@ -1,14 +1,20 @@
 #!/usr/bin/env node
 // Generate a GPT-5.5 translation prompt for one locale.
 //
-// Usage:   node scripts/build-translation-prompt.mjs <locale-code>
+// Two modes:
+//   store (default) — the four Chrome Web Store listing strings
+//   keys            — every messages.json key present in en/ but missing from <code>/
+//
+// Usage:   node scripts/build-translation-prompt.mjs <locale-code> [store|keys]
 // Example: node scripts/build-translation-prompt.mjs fr
+//          node scripts/build-translation-prompt.mjs fr keys
 //          node scripts/build-translation-prompt.mjs fr | pbcopy  (mac, copy to clipboard)
 //
 // Reads:
 //   src/_locales/<code>/messages.json  — for register reference (current strings)
+//   src/_locales/en/messages.json      — English source, in keys mode
 //   store/locales/<code>.txt           — for register reference (current long body)
-//   store/locales/en.txt               — English source to translate
+//   store/locales/en.txt               — English source to translate, in store mode
 // Prints the full prompt to stdout.
 
 import { readFileSync } from 'node:fs';
@@ -16,22 +22,19 @@ import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const LOCALE_NAMES = {
-  ar: 'Arabic',
   de: 'German',
   es: 'Spanish',
-  fa: 'Persian',
   fr: 'French',
-  hi: 'Hindi',
-  it: 'Italian',
   ja: 'Japanese',
-  pt_BR: 'Brazilian Portuguese',
-  ru: 'Russian',
   zh_CN: 'Simplified Chinese',
 };
 
+const MODES = ['store', 'keys'];
+
 const code = process.argv[2];
-if (!code || !LOCALE_NAMES[code]) {
-  console.error('Usage: node scripts/build-translation-prompt.mjs <locale-code>');
+const mode = process.argv[3] ?? 'store';
+if (!code || !LOCALE_NAMES[code] || !MODES.includes(mode)) {
+  console.error('Usage: node scripts/build-translation-prompt.mjs <locale-code> [store|keys]');
   console.error('Supported: ' + Object.keys(LOCALE_NAMES).join(', '));
   process.exit(1);
 }
@@ -39,6 +42,62 @@ if (!code || !LOCALE_NAMES[code]) {
 const locale = LOCALE_NAMES[code];
 const ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const messages = JSON.parse(readFileSync(resolve(ROOT, `src/_locales/${code}/messages.json`), 'utf8'));
+
+if (mode === 'keys') {
+  const en = JSON.parse(readFileSync(resolve(ROOT, 'src/_locales/en/messages.json'), 'utf8'));
+  const missing = Object.keys(en).filter((k) => !(k in messages));
+  if (missing.length === 0) {
+    console.error(`${code}: no missing keys`);
+    process.exit(1);
+  }
+  // Short labels sit inside narrow popup controls; captions get a sentence.
+  // The model needs to know which budget applies before it starts writing.
+  const SHORT = new Set([
+    'batch_mode', 'batch_mode_info_label', 'mode_manual', 'mode_auto', 'mode_super',
+    'fast_paginate', 'fast_paginate_recent', 'fast_paginate_resume',
+    'btn_batch_go_likes', 'opt_zip',
+  ]);
+  const sources = missing
+    .map((k) => `${SHORT.has(k) ? '[SHORT LABEL]' : '[SENTENCE]  '} ${k}\n    ${en[k].message}`)
+    .join('\n\n');
+
+  process.stdout.write(`You are translating UI strings from English into ${locale} for XClipper, a Chrome extension that exports x.com (Twitter) posts, threads and X Articles to Markdown, PDF and Obsidian.
+
+OUTPUT FORMAT
+Output a single JSON object, no preamble or commentary, mapping each of the ${missing.length} keys below to its ${locale} string:
+{
+${missing.map((k) => `  "${k}": "..."`).join(',\n')}
+}
+Do not translate, rename, add or drop keys. Output all ${missing.length}.
+
+LENGTH BUDGET
+- [SHORT LABEL] strings sit in narrow popup controls (a three-way selector, a button, a checkbox). Keep them at most as long as the English, and no longer than comparable existing labels in the reference below. No trailing period.
+- [SENTENCE] strings are hints and captions. One tight sentence; do not pad. Keep the trailing period where the English has one.
+
+KEEP IN ENGLISH / LATIN SCRIPT (do NOT translate)
+- Brand and product names: XClipper, Obsidian, Markdown, X, PDF
+- File extensions and formats: .zip, .md
+- The mode names Manual / Auto / Super are a parallel set shown side by side in one selector. Translate them only if ${locale} has natural, equally short equivalents that stay visibly parallel; otherwise keep the English.
+
+REGISTER & TERMINOLOGY
+- Match the REFERENCE TRANSLATIONS below exactly for register (du vs Sie, tu vs vous, です/ます form, Simplified Chinese Latin/CJK spacing).
+- Reuse the existing rendering of: Batch, thread, post, X Article, export, download, media, rate limit, settings.
+- Preserve the punctuation that carries meaning — em dashes separating clauses, and the em dash before the trust clause in batch_mode_hint.
+
+REFERENCE TRANSLATIONS (register and terminology only — do NOT copy or re-translate these)
+\`\`\`json
+${JSON.stringify(messages, null, 2)}
+\`\`\`
+
+ENGLISH SOURCES TO TRANSLATE
+
+${sources}
+
+Translate now. Output the JSON object only.
+`);
+  process.exit(0);
+}
+
 const refLong = readFileSync(resolve(ROOT, `store/locales/${code}.txt`), 'utf8').trim();
 const enLong = readFileSync(resolve(ROOT, `store/locales/en.txt`), 'utf8').trim();
 
