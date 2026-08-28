@@ -70,10 +70,12 @@ describe('tweetDetailToDocument — captured article video', () => {
   );
   const doc = tweetDetailToDocument(raw);
   const body = doc.body as ArticleNode;
-  const mp4 = 'https://video.twimg.com/amplify_video/2059311116694757376/vid/avc1/1920x1080/_vGThNd8HNc3yfnk.mp4?tag=27';
+  // The 720p rung, not the 1080p one the fixture also carries — see the cap in
+  // bestVariant.
+  const mp4 = 'https://video.twimg.com/amplify_video/2059311116694757376/vid/avc1/1280x720/xpclcol5eLxJgMu9.mp4?tag=27';
   const poster = 'https://pbs.twimg.com/amplify_video_thumb/2059311116694757376/img/P-7i_6SwXeHF5lkV.jpg';
 
-  it('maps the highest-bitrate progressive MP4 into a downloadable VideoNode', () => {
+  it('maps the capped progressive MP4 into a downloadable VideoNode', () => {
     expect(doc.metadata.type).toBe('article');
     expect(body.children.filter((block) => block.type === 'video')).toEqual([
       { type: 'video', posterUrl: poster, sourceUrl: mp4 },

@@ -174,8 +174,19 @@ describe('jsonToTweetNode — inline text from entities', () => {
   });
 });
 
+// X's real variant shape: a resolution ladder with the frame size in the URL
+// path, plus an HLS stream carrying no bitrate.
+const VID = 'https://video.twimg.com/ext_tw_video/1/pu/vid/avc1';
+const ladder = () => [
+  { content_type: 'application/x-mpegURL', url: 'https://video.twimg.com/ext_tw_video/1/pu/pl/x.m3u8' },
+  { content_type: 'video/mp4', bitrate: 256000, url: `${VID}/480x270/a.mp4` },
+  { content_type: 'video/mp4', bitrate: 832000, url: `${VID}/640x360/b.mp4` },
+  { content_type: 'video/mp4', bitrate: 2176000, url: `${VID}/1280x720/c.mp4` },
+  { content_type: 'video/mp4', bitrate: 10368000, url: `${VID}/1920x1080/d.mp4` },
+];
+
 describe('jsonToTweetNode — media', () => {
-  it('maps photos and picks the highest-bitrate mp4 video variant', () => {
+  it('picks the highest-bitrate mp4 within the 720p cap', () => {
     const node = jsonToTweetNode(
       tweet({
         extended_entities: {
@@ -184,9 +195,44 @@ describe('jsonToTweetNode — media', () => {
             {
               type: 'video',
               media_url_https: 'https://pbs.twimg.com/poster.jpg',
+              video_info: { variants: ladder() },
+            },
+          ],
+        },
+      })
+    );
+    expect(node.media).toEqual([
+      { kind: 'image', url: 'https://pbs.twimg.com/p.jpg', alt: 'a cat' },
+      { kind: 'video', url: `${VID}/1280x720/c.mp4`, posterUrl: 'https://pbs.twimg.com/poster.jpg' },
+    ]);
+  });
+
+  // The cap exists because the top rung can be 4K: one 18-minute 4K article
+  // video measured 784MB, against ~13MB for the same post at 720p.
+  it('skips the 1080p and 4K rungs even though they are higher bitrate', () => {
+    const node = jsonToTweetNode(
+      tweet({
+        extended_entities: {
+          media: [
+            { type: 'video', video_info: { variants: ladder() } },
+          ],
+        },
+      })
+    );
+    expect(node.media[0].url).toBe(`${VID}/1280x720/c.mp4`);
+  });
+
+  // A ladder we can't read the frame size from, or one where every rung is
+  // oversized, fails small rather than risking the gigabyte-scale rung.
+  it('falls back to the smallest mp4 when no variant URL carries a frame size', () => {
+    const node = jsonToTweetNode(
+      tweet({
+        extended_entities: {
+          media: [
+            {
+              type: 'video',
               video_info: {
                 variants: [
-                  { content_type: 'application/x-mpegURL', url: 'https://video/x.m3u8' },
                   { content_type: 'video/mp4', bitrate: 256000, url: 'https://video/low.mp4' },
                   { content_type: 'video/mp4', bitrate: 2176000, url: 'https://video/high.mp4' },
                 ],
@@ -196,10 +242,28 @@ describe('jsonToTweetNode — media', () => {
         },
       })
     );
-    expect(node.media).toEqual([
-      { kind: 'image', url: 'https://pbs.twimg.com/p.jpg', alt: 'a cat' },
-      { kind: 'video', url: 'https://video/high.mp4', posterUrl: 'https://pbs.twimg.com/poster.jpg' },
-    ]);
+    expect(node.media[0].url).toBe('https://video/low.mp4');
+  });
+
+  it('falls back to the smallest mp4 when every rung is above the cap', () => {
+    const node = jsonToTweetNode(
+      tweet({
+        extended_entities: {
+          media: [
+            {
+              type: 'video',
+              video_info: {
+                variants: [
+                  { content_type: 'video/mp4', bitrate: 10368000, url: `${VID}/1920x1080/d.mp4` },
+                  { content_type: 'video/mp4', bitrate: 41000000, url: `${VID}/3324x2160/e.mp4` },
+                ],
+              },
+            },
+          ],
+        },
+      })
+    );
+    expect(node.media[0].url).toBe(`${VID}/1920x1080/d.mp4`);
   });
 
   it('keeps an HLS-only variant as a non-downloadable fallback', () => {
