@@ -23,6 +23,9 @@
   "btn_obsidian": {
     "message": "Ajouter à Obsidian"
   },
+  "btn_md_hint": {
+    "message": "Markdown — l’export complet mis en forme."
+  },
   "btn_html_hint": {
     "message": "Enregistrer comme fichier HTML stylisé et autonome."
   },
@@ -58,6 +61,33 @@
   },
   "fast_batch_info": {
     "message": "Récupère les éléments via votre session X connectée pour un gros gain de vitesse : aucune clé API, rien ne quitte votre navigateur. Attention : les gros exports peuvent atteindre la limite de débit de X, donc il régule son rythme et s’arrête proprement pour que vous puissiez relancer."
+  },
+  "batch_mode": {
+    "message": "Moteur Batch"
+  },
+  "batch_mode_hint": {
+    "message": "Auto et Super récupèrent les posts via votre session X connectée — sans clé API, sans mot de passe, rien ne quitte votre navigateur. Les gros exports peuvent atteindre la limite de débit de X ; ils s’arrêtent proprement en laissant le reste en attente — patientez environ 15 minutes, puis relancez pour reprendre."
+  },
+  "batch_mode_info_label": {
+    "message": "Infos Auto/Super"
+  },
+  "mode_manual": {
+    "message": "Manuel"
+  },
+  "mode_auto": {
+    "message": "Auto"
+  },
+  "mode_super": {
+    "message": "Super"
+  },
+  "mode_caption_manual": {
+    "message": "Vous faites défiler la page ; chaque post chargé est enregistré, avec les fils et articles complets."
+  },
+  "mode_caption_auto": {
+    "message": "Récupère automatiquement via votre session X — sans défilement, avec les fils et articles complets."
+  },
+  "mode_caption_super": {
+    "message": "Récupère des milliers de posts à la fois, mais seulement le premier tweet de chacun — fils ignorés."
   },
   "btn_batch_fast_hint": {
     "message": "Récupère tous vos signets via votre session X, beaucoup plus vite. Développe les fils et articles."
@@ -97,6 +127,24 @@
   },
   "fast_date_clear": {
     "message": "Effacer"
+  },
+  "fast_paginate": {
+    "message": "Collecte"
+  },
+  "fast_paginate_recent": {
+    "message": "Récent"
+  },
+  "fast_paginate_resume": {
+    "message": "Suite"
+  },
+  "fast_caption_recent": {
+    "message": "Parcourt le haut du fil — les nouveaux posts ajoutés depuis la dernière exécution."
+  },
+  "fast_caption_resume": {
+    "message": "Poursuit la récupération en profondeur là où la dernière reprise s’est arrêtée."
+  },
+  "fast_caption_daterange": {
+    "message": "Uniquement les posts publiés dans la plage ci-dessous ; parcourt en profondeur sans déplacer le point de reprise."
   },
   "fast_step_page": {
     "message": "Recharger x.com"
@@ -191,6 +239,9 @@
   "btn_batch_go_timeline": {
     "message": "Ouvrir le fil"
   },
+  "btn_batch_go_likes": {
+    "message": "Voir Likes"
+  },
   "group_batch": {
     "message": "Export en lot"
   },
@@ -238,6 +289,18 @@
   },
   "batch_out_combined": {
     "message": "Combiné"
+  },
+  "opt_zip": {
+    "message": "Compresser en ZIP"
+  },
+  "opt_zip_title": {
+    "message": "Regroupe l’export dans un seul .zip : en lot, un téléchargement au lieu de milliers ; en export unique, une archive au lieu d’un fichier Markdown et d’un dossier de médias."
+  },
+  "opt_zip_title_batch": {
+    "message": "Regroupe tous les fichiers par post dans un seul .zip — un téléchargement au lieu de milliers ; indisponible avec l’enregistrement local des médias ou la sortie Combiné."
+  },
+  "opt_zip_title_single": {
+    "message": "Regroupe l’export dans un seul .zip — une archive au lieu d’un fichier Markdown et d’un dossier de médias adjacent."
   },
   "flood_hint": {
     "message": "Cela peut enregistrer des milliers de fichiers séparés d'un coup. Activez « Compresser en ZIP » ou choisissez la sortie « Combiné » pour obtenir un seul téléchargement."
@@ -523,5 +586,8 @@
   },
   "copied": {
     "message": "Copié !"
+  },
+  "video_unresolved": {
+    "message": "Vidéo conservée sous forme de lien — rechargez une fois le post, puis réexportez."
   }
 }

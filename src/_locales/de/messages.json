@@ -23,6 +23,9 @@
   "btn_obsidian": {
     "message": "Zu Obsidian hinzufügen"
   },
+  "btn_md_hint": {
+    "message": "Markdown - der vollständige formatierte Export."
+  },
   "btn_html_hint": {
     "message": "Als gestaltete, eigenständige HTML-Datei speichern."
   },
@@ -58,6 +61,33 @@
   },
   "fast_batch_info": {
     "message": "Ruft Einträge über deine angemeldete X-Sitzung ab und ist deutlich schneller - kein API-Key, nichts verlässt deinen Browser. Hinweis: Große Läufe können Xs Rate Limit erreichen, daher taktet sich der Export selbst und stoppt sauber, damit du ihn erneut starten kannst."
+  },
+  "batch_mode": {
+    "message": "Batch-Engine"
+  },
+  "batch_mode_hint": {
+    "message": "Auto und Super rufen über deine angemeldete X-Sitzung ab - kein API-Key, kein Passwort, nichts verlässt deinen Browser. Große Läufe können Xs Soft-Rate-Limit erreichen; der Export stoppt sauber und lässt den Rest ausstehend - warte etwa 15 Minuten und starte ihn erneut, um fortzufahren."
+  },
+  "batch_mode_info_label": {
+    "message": "Zu Auto & Super"
+  },
+  "mode_manual": {
+    "message": "Manual"
+  },
+  "mode_auto": {
+    "message": "Auto"
+  },
+  "mode_super": {
+    "message": "Super"
+  },
+  "mode_caption_manual": {
+    "message": "Du scrollst; jeder geladene Post wird gespeichert, samt vollständigen Threads & Artikeln."
+  },
+  "mode_caption_auto": {
+    "message": "Ruft automatisch über deine X-Sitzung ab - ohne Scrollen, mit vollständigen Threads & Artikeln."
+  },
+  "mode_caption_super": {
+    "message": "Ruft Tausende auf einmal ab, speichert aber nur den ersten Tweet jedes Posts - Threads werden übersprungen."
   },
   "btn_batch_fast_hint": {
     "message": "Ruft alle deine Lesezeichen über deine X-Sitzung ab - viel schneller. Erweitert Threads & Artikel."
@@ -97,6 +127,24 @@
   },
   "fast_date_clear": {
     "message": "Leeren"
+  },
+  "fast_paginate": {
+    "message": "Abrufmodus"
+  },
+  "fast_paginate_recent": {
+    "message": "Neu"
+  },
+  "fast_paginate_resume": {
+    "message": "Weiter"
+  },
+  "fast_caption_recent": {
+    "message": "Durchsucht den Anfang des Feeds nach neuen Posts seit deinem letzten Lauf."
+  },
+  "fast_caption_resume": {
+    "message": "Setzt den tiefen Rücklauf dort fort, wo der letzte Weiter-Lauf gestoppt hat."
+  },
+  "fast_caption_daterange": {
+    "message": "Nur Posts aus dem Zeitraum unten; durchsucht ältere Posts, ohne die Weiter-Position zu ändern."
   },
   "fast_step_page": {
     "message": "x.com neu laden"
@@ -191,6 +239,9 @@
   "btn_batch_go_timeline": {
     "message": "Timeline öffnen"
   },
+  "btn_batch_go_likes": {
+    "message": "Zu Likes"
+  },
   "group_batch": {
     "message": "Batch-Export"
   },
@@ -238,6 +289,18 @@
   },
   "batch_out_combined": {
     "message": "Kombiniert"
+  },
+  "opt_zip": {
+    "message": "Dateien zippen (1×)"
+  },
+  "opt_zip_title": {
+    "message": "Packt den Export in eine einzige .zip. Im Batch erhältst du einen statt Tausender Downloads; beim Einzelexport ein Archiv statt einer Markdown-Datei plus Medienordner."
+  },
+  "opt_zip_title_batch": {
+    "message": "Packt alle Dateien pro Post in eine einzige .zip - ein Download statt Tausender. Nicht verfügbar, wenn Medien lokal gespeichert werden oder die Ausgabe „Kombiniert“ gewählt ist."
+  },
+  "opt_zip_title_single": {
+    "message": "Packt den Export in eine einzige .zip - ein Archiv statt einer Markdown-Datei plus danebenliegendem Medienordner."
   },
   "flood_hint": {
     "message": "Das kann Tausende einzelne Dateien auf einmal speichern. Aktiviere „Dateien zippen“ oder wähle die Ausgabe „Kombiniert“, um stattdessen einen einzigen Download zu erhalten."
@@ -523,5 +586,8 @@
   },
   "copied": {
     "message": "Kopiert!"
+  },
+  "video_unresolved": {
+    "message": "Video bleibt als Link erhalten - lade den Post einmal neu und exportiere erneut."
   }
 }

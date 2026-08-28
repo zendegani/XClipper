@@ -23,6 +23,9 @@
   "btn_obsidian": {
     "message": "添加到 Obsidian"
   },
+  "btn_md_hint": {
+    "message": "Markdown — 完整的格式化导出。"
+  },
   "btn_html_hint": {
     "message": "保存为带样式的独立 HTML 文件。"
   },
@@ -58,6 +61,33 @@
   },
   "fast_batch_info": {
     "message": "通过你已登录的 X 会话获取项目，大幅提速；无需 API 密钥，任何内容都不会离开浏览器。注意：大型任务可能触发 X 的速率限制，因此会自动控制节奏并礼貌停止，方便你重新运行。"
+  },
+  "batch_mode": {
+    "message": "批量引擎"
+  },
+  "batch_mode_hint": {
+    "message": "自动和超级模式通过你已登录的 X 会话获取内容 — 无需 API 密钥或密码，任何内容都不会离开浏览器。大型任务可能触发 X 的软性速率限制；任务会礼貌停止并保留其余待处理项目 — 等待约 15 分钟，再次运行即可从中断处继续。"
+  },
+  "batch_mode_info_label": {
+    "message": "关于自动和超级模式"
+  },
+  "mode_manual": {
+    "message": "手动"
+  },
+  "mode_auto": {
+    "message": "自动"
+  },
+  "mode_super": {
+    "message": "超级"
+  },
+  "mode_caption_manual": {
+    "message": "由你滚动页面；加载的每个帖子都会保存，包含完整线程和文章。"
+  },
+  "mode_caption_auto": {
+    "message": "通过你的 X 会话自动获取，无需滚动，包含完整线程和文章。"
+  },
+  "mode_caption_super": {
+    "message": "一次获取数千条，但每个帖子仅保存首条推文 — 跳过线程。"
   },
   "btn_batch_fast_hint": {
     "message": "通过你的 X 会话获取所有书签，速度更快。会展开线程和文章。"
@@ -97,6 +127,24 @@
   },
   "fast_date_clear": {
     "message": "清除"
+  },
+  "fast_paginate": {
+    "message": "获取模式"
+  },
+  "fast_paginate_recent": {
+    "message": "最近"
+  },
+  "fast_paginate_resume": {
+    "message": "继续"
+  },
+  "fast_caption_recent": {
+    "message": "扫描信息流顶部 — 查找上次运行后新增的帖子。"
+  },
+  "fast_caption_resume": {
+    "message": "从上次“继续”模式停止的位置接着深度回溯。"
+  },
+  "fast_caption_daterange": {
+    "message": "仅导出在下方时间范围内发布的帖子；深度扫描但不移动“继续”模式的位置。"
   },
   "fast_step_page": {
     "message": "重新加载 x.com"
@@ -191,6 +239,9 @@
   "btn_batch_go_timeline": {
     "message": "打开时间线"
   },
+  "btn_batch_go_likes": {
+    "message": "打开 Likes"
+  },
   "group_batch": {
     "message": "批量导出"
   },
@@ -238,6 +289,18 @@
   },
   "batch_out_combined": {
     "message": "合并"
+  },
+  "opt_zip": {
+    "message": "打包为 ZIP（单次下载）"
+  },
+  "opt_zip_title": {
+    "message": "将导出内容打包为单个 .zip。批量导出时只下载一次，而不是数千次；单条导出时只生成一个压缩包，而不是一个 Markdown 文件加媒体文件夹。"
+  },
+  "opt_zip_title_batch": {
+    "message": "将每个帖子的文件打包为单个 .zip — 只下载一次，而不是数千次。开启本地保存媒体或选择“合并”输出时不可用。"
+  },
+  "opt_zip_title_single": {
+    "message": "将导出内容打包为单个 .zip — 只生成一个压缩包，而不是一个 Markdown 文件加同级媒体文件夹。"
   },
   "flood_hint": {
     "message": "这可能一次保存数千个单独文件。开启“打包为 ZIP”或选择“合并”输出，即可只下载一个文件。"
@@ -523,5 +586,8 @@
   },
   "copied": {
     "message": "已复制！"
+  },
+  "video_unresolved": {
+    "message": "视频保留为链接 — 重新加载帖子一次，然后再次导出。"
   }
 }
