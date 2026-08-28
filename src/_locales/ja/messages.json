@@ -23,6 +23,9 @@
   "btn_obsidian": {
     "message": "Obsidianに追加"
   },
+  "btn_md_hint": {
+    "message": "Markdown — 完全に整形されたエクスポートです。"
+  },
   "btn_html_hint": {
     "message": "スタイル付きの自己完結HTMLファイルとして保存します。"
   },
@@ -58,6 +61,33 @@
   },
   "fast_batch_info": {
     "message": "ログイン済みのXセッション経由で項目を取得し、大きく高速化します。APIキー不要で、何もブラウザの外へ出ません。注意: 大量実行ではXのレート制限に達することがあるため、ペースを調整し、再実行できるように丁寧に停止します。"
+  },
+  "batch_mode": {
+    "message": "一括処理方式"
+  },
+  "batch_mode_hint": {
+    "message": "AutoとSuperはログイン済みのXセッション経由で取得します—APIキーもパスワードも不要で、データはブラウザの外へ出ません。大量実行ではXのソフトレート制限に達することがありますが、穏やかに停止して残りを保留します—約15分待ってから再実行すれば、中断地点から続行できます。"
+  },
+  "batch_mode_info_label": {
+    "message": "AutoとSuperについて"
+  },
+  "mode_manual": {
+    "message": "Manual"
+  },
+  "mode_auto": {
+    "message": "Auto"
+  },
+  "mode_super": {
+    "message": "Super"
+  },
+  "mode_caption_manual": {
+    "message": "ページをスクロールすると、読み込んだ全投稿が保存され、スレッドと記事も完全に取得されます。"
+  },
+  "mode_caption_auto": {
+    "message": "Xセッション経由で自動取得します—スクロール不要で、スレッドと記事も完全に取得します。"
+  },
+  "mode_caption_super": {
+    "message": "一度に数千件を取得しますが、各投稿の最初のツイートだけを保存し、スレッドはスキップします。"
   },
   "btn_batch_fast_hint": {
     "message": "Xセッション経由ですべてのブックマークを取得します。大幅に高速で、スレッドと記事を展開します。"
@@ -97,6 +127,24 @@
   },
   "fast_date_clear": {
     "message": "クリア"
+  },
+  "fast_paginate": {
+    "message": "取得モード"
+  },
+  "fast_paginate_recent": {
+    "message": "最新"
+  },
+  "fast_paginate_resume": {
+    "message": "再開"
+  },
+  "fast_caption_recent": {
+    "message": "フィード上部をスキャンし、前回の実行後に追加された新しい投稿を取得します。"
+  },
+  "fast_caption_resume": {
+    "message": "前回の「再開」が停止した位置から、過去分をさらにさかのぼって取得します。"
+  },
+  "fast_caption_daterange": {
+    "message": "下の期間内に投稿されたものだけを対象に、「再開」の位置を動かさず深くスキャンします。"
   },
   "fast_step_page": {
     "message": "x.comを再読み込み"
@@ -191,6 +239,9 @@
   "btn_batch_go_timeline": {
     "message": "タイムラインを開く"
   },
+  "btn_batch_go_likes": {
+    "message": "Likesを開く"
+  },
   "group_batch": {
     "message": "一括エクスポート"
   },
@@ -238,6 +289,18 @@
   },
   "batch_out_combined": {
     "message": "結合"
+  },
+  "opt_zip": {
+    "message": "ZIPにまとめる（1回）"
+  },
+  "opt_zip_title": {
+    "message": "エクスポートを1つの.zipにまとめます。一括処理では数千回の代わりに1回のダウンロード、単体ではMarkdownファイルとメディアフォルダの代わりに1つのアーカイブになります。"
+  },
+  "opt_zip_title_batch": {
+    "message": "投稿ごとの全ファイルを1つの.zipにまとめ、数千回の代わりに1回のダウンロードで済みます—ローカルへのメディア保存がオンの場合や、出力が「結合」の場合は使えません。"
+  },
+  "opt_zip_title_single": {
+    "message": "エクスポートを1つの.zipにまとめます—Markdownファイルと同階層のメディアフォルダの代わりに、1つのアーカイブになります。"
   },
   "flood_hint": {
     "message": "数千件のファイルが一度に保存される可能性があります。「ZIPにまとめる」をオンにするか、出力を「結合」にすると1回のダウンロードで済みます。"
@@ -523,5 +586,8 @@
   },
   "copied": {
     "message": "コピー完了！"
+  },
+  "video_unresolved": {
+    "message": "動画はリンクのままです—投稿を一度再読み込みしてから、もう一度エクスポートしてください。"
   }
 }
