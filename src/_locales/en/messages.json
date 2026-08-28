@@ -3,7 +3,7 @@
     "message": "X / Twitter Web Clipper: Bookmarks & Threads to Markdown, PDF, Obsidian"
   },
   "extensionDescription": {
-    "message": "Export posts, videos & long-form articles from your likes or any profile — one at a time or thousands per batch. Free and local."
+    "message": "Export posts, videos & long-form articles from your likes or any profile — one at a time or thousands per batch. No X API key."
   },
   "tagline": {
     "message": "Save threads & articles as Markdown or PDF"

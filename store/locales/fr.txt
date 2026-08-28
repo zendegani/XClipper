@@ -1,4 +1,4 @@
-XClipper est un web clipper haute fidélité, dont le code source est disponible, pour X (Twitter) : une extension Chrome qui enregistre les tweets, fils et articles longs (texte, images et vidéo) en Markdown propre, PDF prêt à imprimer ou notes Obsidian. Exportez un post à la fois, ou en lot depuis vos signets, likes, un profil ou votre fil d'accueil. Tout fonctionne dans votre navigateur : aucune clé API X, aucun compte, aucun serveur, aucun suivi, et c'est gratuit pour un usage non commercial.
+XClipper est un web clipper haute fidélité, dont le code source est disponible, pour X (Twitter) : une extension Chrome qui enregistre les tweets, fils et articles longs (texte, images et vidéo) en Markdown propre, PDF prêt à imprimer ou notes Obsidian. Exportez un post à la fois, ou en lot depuis vos signets, likes, un profil ou votre fil d'accueil. Tout fonctionne dans votre navigateur : aucune clé API X, aucun serveur, aucun suivi, et c'est gratuit pour un usage non commercial.
 
 Pourquoi XClipper :
 
@@ -6,7 +6,7 @@ La plupart des outils de clipping passent un post dans un convertisseur HTML-ver
 
 - Une sortie que vous n'aurez pas à nettoyer. La page est analysée dans un Content AST typé avant tout rendu, ce qui préserve la structure : fils imbriqués, tweets cités, sondages, cartes de liens et articles longs complets (titres, listes, blocs de code). Les liens t.co sont résolus vers leurs vraies URL, les emojis et @mentions restent intacts, les posts tronqués sont développés, et les barres d'engagement, invitations à suivre et traceurs sont retirés.
 - De vrais PDF, pas des captures d'écran. L'export passe par le moteur d'impression natif de Chrome : texte sélectionnable, liens cliquables, images intégrées et Unicode complet, pas une image aplatie.
-- Les médias enregistrés comme fichiers, pas comme liens. Les images sont téléchargées à côté du Markdown, et la vidéo ou le GIF de chaque post est enregistré en vrai .mp4, y compris ceux des posts cités, avec un lien dans le Markdown qui pointe vers le fichier, pour que vos notes survivent aux liens morts et aux posts supprimés.
+- Des médias enregistrés sous forme de fichiers, pas de liens. Les images sont téléchargées à côté du fichier Markdown. Les vidéos et les GIF, y compris ceux des posts cités, sont enregistrés localement au format .mp4. Un lien vers chaque fichier est ajouté au Markdown, pour que vos notes survivent aux liens morts et aux posts supprimés. Pour enregistrer les vidéos, sélectionnez le format Markdown avec des fichiers séparés. Chrome vous demandera une seule fois d'accorder à XClipper l'autorisation facultative d'utiliser votre session X en cours.
 - En lot, pas un par un. Exportez tous vos signets, likes, un profil, votre fil ou une sélection manuelle dans une tâche en arrière-plan avec barre de progression, pause / reprise / arrêt et registre de déduplication, plus un mode Fast optionnel qui récupère les éléments directement depuis votre session X connectée pour une accélération d'environ 10x.
 - 100 % local, aucune configuration. Pas de clés API, pas de comptes, rien ne quitte votre navigateur. Installez et clippez.
 
@@ -16,7 +16,7 @@ La plupart des outils de clipping passent un post dans un convertisseur HTML-ver
 - Intégration Obsidian : envoi via obsidian:// avec vault et sous-dossier optionnels, plus un schéma de frontmatter adapté : wikilinks [[@handle]], métadonnées compatibles Dataview, titre et description générés, et liste de tags personnalisée.
 - Frontmatter YAML riche : auteur, handle, dates, URL source, type de contenu et statistiques d'engagement, chaque champ étant activable séparément et utilisable comme token dans des modèles de noms de fichiers personnalisés.
 - Trois façons de lancer l'export : un bouton inline sur chaque tweet, le popup de la barre d'outils et le menu du clic droit.
-- Exportez un tweet seul, un fil complet ou un article long entier.
+- Exportez un tweet individuel, un fil complet ou un article long dans son intégralité.
 
 En plus : copier dans le presse-papiers ou télécharger, une ligne optionnelle de statistiques d'engagement inline et un sous-dossier de téléchargement optionnel.
 
@@ -30,9 +30,8 @@ Idéal pour :
 
 Limitations actuelles :
 
-- Enregistrer la vidéo en fichier demande une autorisation Chrome facultative la première fois (elle utilise votre propre session X connectée), nécessite le format Markdown avec fichiers séparés et plafonne à 720p ; les rares posts que X ne diffuse qu'en flux conservent leur miniature
+- Les vidéos sont enregistrées en 720p au maximum ; pour les rares posts que X ne propose qu'en streaming, seule la miniature est enregistrée
 - Fast Batch appelle directement l'API interne de X, donc les gros exports peuvent atteindre la limite de débit de X (blocage souple) ; c'est optionnel, le rythme est régulé automatiquement, et vous pouvez reprendre ou relancer plus tard
-- Certaines fonctionnalités peuvent cesser de fonctionner si x.com modifie significativement sa structure de page
 - Si vous installez ou mettez à jour l'extension alors qu'un onglet x.com est déjà ouvert, rechargez l'onglet avant l'exportation ; c'est intentionnel afin d'éviter les échecs silencieux sur une page non initialisée
 
 Changelog :
