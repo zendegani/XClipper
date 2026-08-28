@@ -24,11 +24,14 @@ export async function resolveVideoUrls(tweetId: string): Promise<Map<string, str
   if (!/^\d+$/.test(tweetId)) return empty;
 
   await restoreSession();
-  if (!(await hasAccess())) return empty;
+  if (!(await hasAccess())) {
+    log('no webRequest permission — pick Media in Export settings to grant it');
+    return empty;
+  }
 
   const template = templates.TweetDetail;
   if (!template) {
-    log('no TweetDetail request observed yet — reload the post once');
+    log('no TweetDetail request observed yet — reload the post once, then retry');
     return empty;
   }
 
@@ -45,6 +48,7 @@ export async function resolveVideoUrls(tweetId: string): Promise<Map<string, str
       const key = media.posterUrl ? posterKey(media.posterUrl) : null;
       if (key) map.set(key, media.url);
     }
+    log(`resolved ${map.size} video(s) for ${tweetId}`, [...map.keys()]);
     return map;
   } catch (err) {
     log('video resolution failed, keeping remote links:', err);
