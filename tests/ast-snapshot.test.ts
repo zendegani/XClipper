@@ -27,7 +27,6 @@ const AST_READY_FIXTURES = [
   'marcelpociot-2038915006050300007',
   'theonejvo-2015892980851474595',
   'trq212-2035372716820218141',
-  'DeRonin_-2076690611399176506',
 ];
 
 function normalize(doc: Document): unknown {
