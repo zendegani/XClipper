@@ -6,28 +6,26 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
-## [Unreleased]
-
-### Added
-
-- **Single exports can now be packed into one .zip**: the **Zip files** option is no longer batch-only — it now sits above the batch settings and applies to a single post too. With local saving on, a post lands as one archive holding the Markdown and its media instead of a Markdown file plus a sibling media folder you have to keep together by hand, which makes it one file to drop into a note, an archive, or an AI chat. Batch keeps its existing rule: Zip and local media stay mutually exclusive there, because a thousand posts' media won't fit through the archive's delivery path. If a media file can't be fetched, it's left out and the rest of the export still lands. (thanks @santhonys for raising it, #115)
-- **Single exports can now save videos too**: choosing **Media** in Export settings previously did nothing beyond images outside Auto and Super, because a page only ever exposes a video's thumbnail. Picking Media now asks for the same optional permission the Auto and Super engines use, resolves the post's video through your own X session, and saves it as an `.mp4` with a `▶ Video` link pointing at the file. Decline the permission and nothing breaks — Media still saves images and videos stay as links, exactly as before.
-
----
-## [2.7.4] - 2026-08-28
+## [2.8.0] - 2026-08-28
 
 ### Added
 
 - **Videos and GIFs now save as files in Auto and Super**: the local-saving control in Export settings is now **Off · Images · Media**, and the new **Media** position saves each post's video or animated GIF as an `.mp4` next to the Markdown alongside the images, with a `▶ Video` link in the Markdown pointing at the local file. Quoted posts' videos come down too. Video is saved at up to 720p — X offers rungs as high as 4K, where one long post alone can run to several hundred megabytes. Auto and Super only, and only with **Markdown** format and **Separate** output; the handful of posts X serves as a stream with no downloadable file keep their thumbnail as before, unchanged. Videos are orders of magnitude larger than images, so **Media** is its own position rather than something folded into image saving — if you already had local images on you're on **Images**, and nothing changes until you choose **Media** yourself. (#95)
-
-### Changed
-
-- **Fast Batch no longer logs each captured request**: the background console wrote a line every time a bookmarks, likes or profile page fetched another batch of posts while you scrolled. It was a debugging aid left over from the 2.7.3 profile fix; nothing else changes.
+- **Single exports can now be packed into one .zip**: the **Zip files** option is no longer batch-only — it now sits above the batch settings and applies to a single post too. With local saving on, a post lands as one archive holding the Markdown and its media instead of a Markdown file plus a sibling media folder you have to keep together by hand, which makes it one file to drop into a note, an archive, or an AI chat. Batch keeps its existing rule: Zip and local media stay mutually exclusive there, because a thousand posts' media won't fit through the archive's delivery path. If a media file can't be fetched, it's left out and the rest of the export still lands. (thanks @santhonys for raising it, #115)
+- **Single exports can now save videos too**: choosing **Media** in Export settings previously did nothing beyond images outside Auto and Super, because a page only ever exposes a video's thumbnail. Picking Media now asks for the same optional permission the Auto and Super engines use, resolves the post's video through your own X session, and saves it as an `.mp4` with a `▶ Video` link pointing at the file. Decline the permission and nothing breaks — Media still saves images and videos stay as links, exactly as before.
 
 ### Fixed
 
 - **Videos inside X Articles no longer vanish from Auto and Super exports**: a video placed in the body of an X Article was dropped from the export entirely — the text ran straight from the paragraph before it to the paragraph after, with no thumbnail and nothing to show something had been there. The video's thumbnail now appears in its proper place, whichever local-saving position you're on. (#95)
+- **Videos in an X Article body are now recognised as videos**: an article-body video was extracted as a plain image of its thumbnail, so it could never be saved as a file the way the same video in a post already was. It is now treated as a video on both paths, which also means its thumbnail is labelled `🎥 Video` rather than `Image` in the Markdown.
 - **PDF exports no longer print the day before**: a post exported to PDF showed its date in your computer's time zone, so anywhere west of UTC a late-evening post could print the previous day — disagreeing with the date in the same post's file name and Markdown frontmatter, which have always been UTC. All three now agree. Markdown and Obsidian exports were never affected. (#113)
+
+---
+## [2.7.4] - 2026-08-21
+
+### Changed
+
+- **Fast Batch no longer logs each captured request**: the background console wrote a line every time a bookmarks, likes or profile page fetched another batch of posts while you scrolled. It was a debugging aid left over from the 2.7.3 profile fix; nothing else changes.
 
 ---
 ## [2.7.3] - 2026-08-20
