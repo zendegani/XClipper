@@ -47,6 +47,20 @@ export interface DownloadRequest {
   mime?: string;
 }
 
+// Single export, local-media saving only: ask the background to resolve this
+// post's MP4 URLs through the captured X session, since the DOM only exposes
+// posters. Answered with an empty list whenever that isn't possible — see
+// resolve-video.ts.
+export interface ResolveVideoUrlsRequest {
+  action: 'RESOLVE_VIDEO_URLS';
+  tweetId: string;
+}
+
+export interface ResolveVideoUrlsResponse {
+  // [poster path, MP4 URL] pairs — a Map doesn't survive the message boundary.
+  urls: [string, string][];
+}
+
 export interface ExportPdfRequest {
   action: 'EXPORT_PDF';
 }

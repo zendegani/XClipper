@@ -3,13 +3,21 @@
 // current selections from the DOM refs and the settings-form field maps; it
 // does not own any settings state.
 
-import type { ExtractResponse, DownloadRequest, ExtractedContent } from '../types/messages';
+import type {
+  ExtractResponse,
+  DownloadRequest,
+  ExtractedContent,
+  ResolveVideoUrlsResponse,
+} from '../types/messages';
 import { postProcess, resolveDownloadImages, buildFilename, type PostProcessResult } from '../shared/post-process';
 import { buildFormatExport, type ExportFormat } from '../shared/export-formats';
 import { recordExport } from '../shared/review-prompt';
 import { buildObsidianUrl } from '../shared/obsidian';
 import { hostMatches } from '../shared/media';
-import { currentFrontmatterFields, readSingleFormat, applySingleFormat, persistAll, saveLocalEnabled } from './settings-form';
+import { renderMarkdown } from '../ast/render-markdown';
+import { applyVideoUrls } from '../ast/apply-video-urls';
+import { collectMedia, isDownloadableVideo } from '../ast/collect-media';
+import { currentFrontmatterFields, readSingleFormat, applySingleFormat, persistAll, saveLocalEnabled, saveLocalMediaEnabled } from './settings-form';
 import type { BatchFormat } from '../shared/settings';
 import {
   btnDownload,
@@ -157,10 +165,40 @@ async function extractMarkdown(
     downloadImages,
     inlineStats,
     obsidianFriendly,
+    videoAttachments: downloadImages ? await resolveLocalVideo(data) : undefined,
     filenameTemplate: txtFilenameTemplate.value.trim(),
     obsidianTagsTemplate: txtObsidianTags.value.trim(),
     frontmatterFields: currentFrontmatterFields(obsidianFriendly),
   });
+}
+
+// Turn this post's videos into local files, when the user asked for Media.
+//
+// The DOM extractor only ever sees a poster, so the MP4 comes from the
+// background's captured X session and gets written back onto the AST; the
+// Markdown is then re-rendered so its [▶ Video] link points at the file we're
+// about to save. Re-rendering is safe because the content script renders with
+// no options — includeVideoLinks is the only difference between the two passes.
+//
+// Every failure path (no permission, nothing resolved, no AST on the wire)
+// returns undefined, which leaves the export exactly as it is today.
+async function resolveLocalVideo(
+  data: ExtractedContent
+): Promise<{ renderedUrl: string; downloadUrl: string }[] | undefined> {
+  if (!saveLocalMediaEnabled() || !data.body) return undefined;
+
+  const response: ResolveVideoUrlsResponse | undefined = await chrome.runtime.sendMessage({
+    action: 'RESOLVE_VIDEO_URLS',
+    tweetId: data.tweetId,
+  });
+  if (!response?.urls?.length) return undefined;
+
+  if (applyVideoUrls(data.body, new Map(response.urls)) === 0) return undefined;
+  data.markdown = renderMarkdown(data.body, { includeVideoLinks: true });
+
+  return collectMedia(data.body)
+    .filter(isDownloadableVideo)
+    .map((m) => ({ renderedUrl: m.url, downloadUrl: m.url }));
 }
 
 function handleExtractionError(err: unknown): void {

@@ -59,6 +59,12 @@ import {
 
 const t = (key: string, fallback: string): string => chrome.i18n.getMessage(key) || fallback;
 
+// Same grant Fast Batch's Auto/Super engines ask for — one capture serves both.
+const MEDIA_ACCESS: chrome.permissions.Permissions = {
+  permissions: ['webRequest'],
+  origins: ['*://x.com/*'],
+};
+
 // In-memory snapshot of field selections — the source of truth that gets
 // persisted. Checkbox `checked` state mirrors whichever mode is currently
 // visible; the other mode's choices live here so toggling Obsidian doesn't
@@ -142,10 +148,17 @@ function readSaveLocal(): SaveLocal {
   return 'off';
 }
 
-// The single-export flows only care whether local media is on at all, not
-// which tier — they never download video (Phase 1 is Fast Batch only).
+// Whether to rewrite media links to local paths at all — true for both tiers,
+// since Media implies Images.
 export function saveLocalEnabled(): boolean {
   return readSaveLocal() !== 'off';
+}
+
+// Media is the tier that also wants the video file itself. Single export can
+// only honour that once the X session is captured, which is why picking Media
+// asks for the same permission the Auto/Super engines do.
+export function saveLocalMediaEnabled(): boolean {
+  return readSaveLocal() === 'media';
 }
 
 function setSaveLocal(value: SaveLocal): void {
@@ -466,6 +479,18 @@ export function initSettingsForm(): void {
       persistAll();
     })
   );
+  // Saving the video file needs X's own GraphQL payload — the DOM only carries
+  // the poster. Ask for the same optional permission the Auto/Super engines
+  // use, from the click itself because chrome.permissions.request needs the
+  // gesture. Declining is fine: Media still saves images, video stays a link.
+  saveLocalMedia.addEventListener('click', () => {
+    chrome.permissions.contains(MEDIA_ACCESS, (has) => {
+      if (has) return;
+      chrome.permissions.request(MEDIA_ACCESS, () => {
+        void chrome.runtime.lastError; // benign gesture/denial errors
+      });
+    });
+  });
   chkZip.addEventListener('change', () => {
     updateFloodHint();
     persistAll();

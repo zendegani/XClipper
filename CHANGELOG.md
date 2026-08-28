@@ -6,6 +6,14 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/),
 and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
 ---
+## [Unreleased]
+
+### Added
+
+- **Single exports can now be packed into one .zip**: the **Zip files** option is no longer batch-only — it now sits above the batch settings and applies to a single post too. With local saving on, a post lands as one archive holding the Markdown and its media instead of a Markdown file plus a sibling media folder you have to keep together by hand, which makes it one file to drop into a note, an archive, or an AI chat. Batch keeps its existing rule: Zip and local media stay mutually exclusive there, because a thousand posts' media won't fit through the archive's delivery path. If a media file can't be fetched, it's left out and the rest of the export still lands. (thanks @santhonys for raising it, #115)
+- **Single exports can now save videos too**: choosing **Media** in Export settings previously did nothing beyond images outside Auto and Super, because a page only ever exposes a video's thumbnail. Picking Media now asks for the same optional permission the Auto and Super engines use, resolves the post's video through your own X session, and saves it as an `.mp4` with a `▶ Video` link pointing at the file. Decline the permission and nothing breaks — Media still saves images and videos stay as links, exactly as before.
+
+---
 ## [2.7.4] - 2026-08-28
 
 ### Added
