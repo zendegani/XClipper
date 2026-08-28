@@ -5,12 +5,12 @@ import { hostMatches } from '../../shared/media';
 // Video thumbnail hosts on pbs.twimg.com. A thumb img with one of these path
 // segments is a video (or GIF) whose <video> player hasn't mounted yet —
 // without this check, an un-hydrated video is misclassified as an image.
-const VIDEO_THUMB_RE = /\/(amplify_video_thumb|tweet_video_thumb|ext_tw_video_thumb)\//;
+export const VIDEO_THUMB_RE = /\/(amplify_video_thumb|tweet_video_thumb|ext_tw_video_thumb)\//;
 
 // Rewrite a thumb img src (…/HE6Z?format=jpg&name=large) into the same form a
 // <video poster> attribute carries (…/HE6Z.jpg), so hydrated and un-hydrated
 // extractions of the same video produce identical URLs.
-function canonicalVideoThumbUrl(src: string): string {
+export function canonicalVideoThumbUrl(src: string): string {
   try {
     const u = new URL(src);
     const format = u.searchParams.get('format');
