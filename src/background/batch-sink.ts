@@ -7,10 +7,10 @@
 // Batch (fast-batch.ts) reuse exactly the same writers — only acquisition
 // differs.
 
-import type { ExtractedContent } from '../types/messages';
 import type { Document } from '../ast/types';
 import { renderDigest } from '../ast/render-digest';
-import { renderMarkdown, type MarkdownRenderOptions } from '../ast/render-markdown';
+import { renderMarkdown } from '../ast/render-markdown';
+import { docToExtracted } from '../shared/extracted-content';
 import { renderPdfHtmlMany } from '../ast/render-pdf-html';
 import type { BatchFormat, Settings } from '../shared/settings';
 import {
@@ -52,27 +52,6 @@ export function formatOptionsFrom(s: Settings): FormatOptions {
     frontmatterFields: s.obsidianFriendly ? s.frontmatterFieldsObsidian : s.frontmatterFields,
     obsidianTagsTemplate: s.obsidianTagsTemplate,
     includeMetadata: s.includeMetadata,
-  };
-}
-
-// Reconstruct the ExtractedContent the format builders + postProcess expect from
-// an AST. renderMarkdown gives the raw body Markdown (no frontmatter) used by the
-// TXT and CSV-description paths — the same string single-export passes.
-export function docToExtracted(
-  doc: Document,
-  renderOptions: MarkdownRenderOptions = {},
-): ExtractedContent {
-  const m = doc.metadata;
-  return {
-    type: m.type,
-    author: { name: m.author.name, handle: m.author.handle },
-    title: m.title,
-    markdown: renderMarkdown(doc, renderOptions),
-    sourceUrl: m.sourceUrl,
-    date: m.date,
-    tweetId: m.tweetId,
-    metadata: m.engagement,
-    body: doc,
   };
 }
 

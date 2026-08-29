@@ -1,7 +1,6 @@
 import type { ExtractedContent, TweetMetadata } from '../types/messages';
-import type { Document as AstDocument } from '../ast/types';
 import { domToAst } from './dom-to-ast';
-import { renderMarkdown } from '../ast/render-markdown';
+import { docToExtracted } from '../shared/extracted-content';
 import {
   delay,
   extractAuthorFromArticle,
@@ -120,7 +119,7 @@ export async function extractTweetAsync(
     rehydrateHost = await loadThreadIntoDom();
   }
   try {
-    return astToExtractedContent(domToAst({ singleTweet: opts.singleTweet }));
+    return docToExtracted(domToAst({ singleTweet: opts.singleTweet }));
   } finally {
     // Always tear down the off-screen rehydration host so the live page
     // returns to a clean state, even if extraction throws.
@@ -343,18 +342,4 @@ function rehydrateMissingArticles(
   return host;
 }
 
-function astToExtractedContent(doc: AstDocument): ExtractedContent {
-  const meta = doc.metadata;
-  return {
-    type: meta.type,
-    author: { name: meta.author.name, handle: `@${meta.author.handle}` },
-    title: meta.title,
-    markdown: renderMarkdown(doc),
-    sourceUrl: meta.sourceUrl,
-    date: meta.date,
-    tweetId: meta.tweetId,
-    ...(meta.engagement ? { metadata: meta.engagement } : {}),
-    body: doc,
-  };
-}
 

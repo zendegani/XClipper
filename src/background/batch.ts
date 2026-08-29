@@ -19,7 +19,6 @@ import type {
 import { loadSettings, type BatchFormat, type BatchOutput, type Settings } from '../shared/settings';
 import { recordExport } from '../shared/review-prompt';
 import {
-  docToExtracted,
   downloadZipArchive,
   writeCombined,
   writeJsonManifest,
@@ -27,6 +26,7 @@ import {
   zipEntryFromStored,
   type StoredItem,
 } from './batch-sink';
+import { docToExtracted } from '../shared/extracted-content';
 import { postProcess, resolveDownloadImages } from '../shared/post-process';
 import { resolveLocalVideo } from '../shared/local-video';
 import { resolveVideoUrls } from './resolve-video';

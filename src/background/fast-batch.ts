@@ -35,11 +35,11 @@ import {
 } from '../graphql/tweet-detail';
 import { getVariables, paginateTimeline, setVariablesParam } from '../graphql/timeline';
 import { loadSettings } from '../shared/settings';
+import { docToExtracted } from '../shared/extracted-content';
 import { postProcess, resolveDownloadImages } from '../shared/post-process';
 import { recordExport } from '../shared/review-prompt';
 import {
   buildPerItemFile,
-  docToExtracted,
   downloadZipArchive,
   writeCombined,
   writeJsonManifest,

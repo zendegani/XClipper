@@ -1,7 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import type { Document, MediaItem } from '../src/ast/types';
 import { renderDigest } from '../src/ast/render-digest';
-import { docToExtracted } from '../src/background/batch-sink';
+import { docToExtracted } from '../src/shared/extracted-content';
 
 function tweetDoc(handle: string, text: string, id: string, media: MediaItem[] = []): Document {
   return {

@@ -3,7 +3,7 @@ import { postProcess, buildFilename, applyFilenameTemplate, applyTagsTemplate, D
 import type { ExtractedContent } from '../src/types/messages';
 import type { Document } from '../src/ast/types';
 import { collectMedia, isDownloadableVideo } from '../src/ast/collect-media';
-import { docToExtracted } from '../src/background/batch-sink';
+import { docToExtracted } from '../src/shared/extracted-content';
 
 function content(markdown: string): ExtractedContent {
   return {
