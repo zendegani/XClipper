@@ -2,6 +2,10 @@
 
 Thanks for your interest. This file captures the working conventions for the project — read it before opening a PR.
 
+**Do not start work or open a pull request until a maintainer has approved the proposed change in an issue. Pull requests without a previously approved issue will be closed.**
+
+Once approved, link the issue in the pull request description using `Closes #123`.
+
 ## Contribution terms
 
 XClipper is **source-available** under the [PolyForm Noncommercial License](LICENSE), and the maintainer also offers separate **commercial licenses**. By submitting a contribution (a pull request, patch, or any other work), you agree to the following — it's short and it matters:
@@ -97,16 +101,16 @@ Not suitable for frontmatter:
 - No remote script loading, no remote runtime dependencies, no `eval` or string-based timers. MV3's default CSP enforces most of this anyway.
 - The background's `DOWNLOAD_MD` listener validates message senders; don't bypass that check.
 
-## When to open an issue before a PR
+## Issue approval before a PR
 
-Open an issue first for any change that:
+Every pull request must link to an issue that a maintainer approved before work began. This requirement applies to all changes, including small bug fixes, typos, and tightening of existing code.
+
+In particular, discuss any change that:
 
 - Alters user-visible output (the Markdown a user sees in an exported `.md` file).
 - Adds a manifest permission, a content-script match pattern, or a new dependency.
 - Replaces an existing module rather than incrementally improving it.
 - Adds or modifies localized strings.
-
-For small bug fixes, typos, and tightening of existing code, a direct PR is fine.
 
 ## For developers
 
