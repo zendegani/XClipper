@@ -61,6 +61,20 @@ describe('jsonToAst — metadata', () => {
     expect(doc.metadata.sourceUrl).toBe('https://x.com/bob/status/123');
   });
 
+  // X's UI shows reposts and quotes as one number and the DOM extractor reads
+  // that label, so the mapper sums the payload's two fields to match (#125).
+  // Verified against a real capture: 165 retweets + 66 quotes = the 231 a DOM
+  // run reported for the same post.
+  it('reports reposts as retweets plus quotes', () => {
+    const doc = jsonToAst(tweet({ retweet_count: 165, quote_count: 66 }));
+    expect(doc.metadata.engagement?.reposts).toBe(231);
+  });
+
+  it('falls back to the retweet count alone when quote_count is absent', () => {
+    const doc = jsonToAst(tweet({ retweet_count: 165 }));
+    expect(doc.metadata.engagement?.reposts).toBe(165);
+  });
+
   it('honors an explicit sourceUrl', () => {
     const doc = jsonToAst(tweet(), 'https://x.com/bob/status/123/photo/1');
     expect(doc.metadata.sourceUrl).toBe('https://x.com/bob/status/123/photo/1');

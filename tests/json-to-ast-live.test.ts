@@ -60,6 +60,18 @@ describe.skipIf(!path)('jsonToAst — real captured bookmarks response', () => {
     }
   });
 
+  // #125: the mapper reports X's displayed repost number, which combines the
+  // payload's two separate counters. Pinned against real data so a schema
+  // change that drops either field is caught here rather than in an export.
+  it('reports reposts as the payload retweet + quote counts', () => {
+    for (const result of results) {
+      const l = (result as { legacy?: { retweet_count?: number; quote_count?: number } }).legacy;
+      if (l?.retweet_count === undefined) continue;
+      expect(jsonToAst(result).metadata.engagement?.reposts)
+        .toBe(l.retweet_count + (l.quote_count ?? 0));
+    }
+  });
+
   it('labels X long-form articles as type "article"', () => {
     const hasArticle = (r: unknown): boolean =>
       !!(r as { article?: { article_results?: { result?: unknown } } }).article?.article_results?.result;

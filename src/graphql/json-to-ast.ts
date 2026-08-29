@@ -639,7 +639,10 @@ function engagement(t: RawTweet): EngagementCounts | undefined {
   const l = t.legacy ?? {};
   const out: EngagementCounts = {};
   if (l.reply_count !== undefined) out.replies = l.reply_count;
-  if (l.retweet_count !== undefined) out.reposts = l.retweet_count;
+  // X's own UI — and so the aria-label the DOM extractor reads — shows reposts
+  // and quote posts as one number, while the payload splits them. Sum them so
+  // both acquisition paths report the count the site displays (#125).
+  if (l.retweet_count !== undefined) out.reposts = l.retweet_count + (l.quote_count ?? 0);
   if (l.favorite_count !== undefined) out.likes = l.favorite_count;
   if (l.bookmark_count !== undefined) out.bookmarks = l.bookmark_count;
   const views = t.views?.count;
