@@ -118,10 +118,20 @@ async function fetchTweetDetailJson(id: string): Promise<unknown | null> {
   }
 }
 
-async function fetchTweetDetailDoc(id: string, sourceUrl?: string): Promise<Document | null> {
+// A fetched item. `incomplete` means the Document is missing content X's rate
+// limit kept us from fetching (today: an article's embedded posts, standing in
+// as links), so the caller must NOT ledger it — it's quarantined and a later
+// run completes it, exactly like an article whose body we never got.
+interface TweetDetailFetch {
+  doc: Document;
+  incomplete: boolean;
+}
+
+async function fetchTweetDetailDoc(id: string, sourceUrl?: string): Promise<TweetDetailFetch | null> {
   const json = await fetchTweetDetailJson(id);
   if (json === null) return null;
-  return tweetDetailToDocument(json, sourceUrl, await fetchEmbeddedTweets(json));
+  const { embeds, rateLimited } = await fetchEmbeddedTweets(json);
+  return { doc: tweetDetailToDocument(json, sourceUrl, embeds), incomplete: rateLimited };
 }
 
 // Most TweetDetail embeds an article can name. An article with embedded posts is
@@ -132,22 +142,34 @@ const MAX_ARTICLE_EMBEDS = 8;
 // A post embedded in an X Article body is named by id ONLY — its content appears
 // nowhere in the article's own TweetDetail — so each needs its own fetch to
 // reach the parity the DOM path gets from `[data-testid="simpleTweet"]`
-// (issue #123). Sequential, and failures (rate limit included) are simply left
-// out of the map: the mapper then renders that embed as a link to the post,
-// which beats the silent hole this replaces.
-async function fetchEmbeddedTweets(json: unknown): Promise<EmbeddedTweets | undefined> {
+// (issue #123). Either way the mapper renders the embed, so a miss costs a link
+// rather than the silent hole this replaces — but the two kinds of miss end
+// differently: a post that's gone (deleted/protected) can never be fetched, so
+// the link IS the final answer, while a rate limit is temporary and must leave
+// the article un-ledgered for a re-run.
+async function fetchEmbeddedTweets(
+  json: unknown
+): Promise<{ embeds?: EmbeddedTweets; rateLimited: boolean }> {
   const ids = tweetDetailEmbeddedTweetIds(json).slice(0, MAX_ARTICLE_EMBEDS);
-  if (ids.length === 0) return undefined;
+  if (ids.length === 0) return { rateLimited: false };
   const embeds = new Map<string, TweetNode>();
+  let rateLimited = false;
   for (const id of ids) {
     try {
       const embedJson = await fetchTweetDetailJson(id);
       if (embedJson) embeds.set(id, tweetDetailFocalTweetNode(embedJson));
     } catch (err) {
+      if (classify(err) === 'rate-limit') {
+        // Stop asking for the rest — they'd fail too, and each try digs the
+        // session deeper into X's limit.
+        log(`rate-limited fetching embedded post ${id} — article left for a re-run`);
+        rateLimited = true;
+        break;
+      }
       log(`embedded post ${id} unavailable — linking to it instead:`, err);
     }
   }
-  return embeds;
+  return { embeds, rateLimited };
 }
 
 // Run `fn` over `items` with at most `limit` in flight (TweetDetail is one
@@ -400,7 +422,10 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
     const { doc, feedId } = s;
     // Expansion can change the canonical id, so track both — see Item.feedId.
     const expandedId = doc.metadata.tweetId;
-    const isStub = s.needsExpand && !s.ledger;
+    // Un-ledgered but written = we couldn't finish it (no body, or an embedded
+    // post X rate-limited us out of). Quarantine it so it can't pass for a
+    // complete export, and so the next run knows to redo it.
+    const isStub = !s.ledger;
     const attachments = localVideo ? videoAttachments(doc) : undefined;
     const result = postProcess(docToExtracted(
       doc,
@@ -555,10 +580,11 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
   // 2) Complete the backlog FIRST: items a previous run left incomplete, by a
   //    DIRECT TweetDetail fetch by id — feed-independent, so they finish no
   //    matter where Recent/Resume paginated (issue #83). Success → a full
-  //    Document, written to the root and ledgered; a permanent failure
-  //    (deleted/protected) → dropped from the incomplete set; a rate-limit →
-  //    stop and leave the rest pending. Running first means the limited
-  //    TweetDetail budget always clears the backlog before fresh items.
+  //    Document, written to the root and ledgered (unless a rate limit cost it
+  //    an embedded post — then it stays quarantined for the next run); a
+  //    permanent failure (deleted/protected) → dropped from the incomplete set;
+  //    a rate-limit → stop and leave the rest pending. Running first means the
+  //    limited TweetDetail budget always clears the backlog before fresh items.
   let rateLimited = false;
   const retryItems: Item[] = [];
   const gaveUp = new Set<string>(); // permanently-failed ids to drop from the incomplete set
@@ -570,7 +596,10 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
       if (rateLimited || cancelRequested) return; // budget spent / cancelled — leave pending
       try {
         const full = await fetchTweetDetailDoc(id); // sourceUrl derived from the response
-        if (full) retryItems.push({ doc: full, needsExpand: false, ledger: true, feedId: id });
+        if (full) {
+          retryItems.push({ doc: full.doc, needsExpand: false, ledger: !full.incomplete, feedId: id });
+          if (full.incomplete) rateLimited = true;
+        }
       } catch (err) {
         if (classify(err) === 'rate-limit') rateLimited = true;
         else gaveUp.add(id); // deleted/protected — nothing left to complete
@@ -614,8 +643,11 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
       if (rateLimited || cancelRequested) return; // budget spent / cancelled — leave pending
       try {
         const full = await fetchTweetDetailDoc(s.doc.metadata.tweetId, s.doc.metadata.sourceUrl);
-        if (full) s.doc = full;
-        s.ledger = true;
+        if (full) s.doc = full.doc;
+        // An embed lost to the rate limit leaves the article un-ledgered, so
+        // the re-run that fetches it replaces the link-only version.
+        s.ledger = !full?.incomplete;
+        if (full?.incomplete) rateLimited = true;
         expanded++;
       } catch (err) {
         if (classify(err) === 'rate-limit') {
@@ -631,7 +663,7 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
     const pending = toExpand.filter((s) => !s.ledger).length;
     if (rateLimited && pending > 0) {
       log(
-        `hit X's TweetDetail rate limit — stopped to protect your session. ${pending} item(s) were exported as root tweet / article stub and were NOT marked done; re-run Fast Batch later (a few minutes) and the dedup ledger will fetch just those.`
+        `hit X's TweetDetail rate limit — stopped to protect your session. ${pending} item(s) were exported incomplete (a root tweet, an article stub, or an article whose embedded post is a link) and were NOT marked done; re-run Fast Batch later (a few minutes) and the dedup ledger will fetch just those.`
       );
     }
   }
