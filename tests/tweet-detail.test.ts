@@ -147,8 +147,10 @@ describe('tweetDetailToDocument — captured article video', () => {
   });
 });
 
-// Real captured TweetDetail (git-ignored under _local/, absent in CI → skips).
-const threadPath = ['_local/threaddetail-response.json', '_local/thread-response.json'].find((p) => existsSync(p));
+// Real captured TweetDetail (git-ignored under tests/_local/, absent in CI → skips).
+const threadPath = ['tests/_local/threaddetail-response.json', 'tests/_local/thread-response.json'].find((p) =>
+  existsSync(p)
+);
 
 describe.skipIf(!threadPath)('tweetDetailToDocument — real captured thread', () => {
   // Guarded: skipIf still runs this body, so don't read a missing file in CI.
@@ -167,8 +169,8 @@ describe.skipIf(!threadPath)('tweetDetailToDocument — real captured thread', (
 });
 
 // Real captured TweetDetail whose focal item is an X Article (full Draft.js
-// content_state body). Git-ignored under _local/, absent in CI → skips.
-const articlePath = ['_local/article.json'].find((p) => existsSync(p));
+// content_state body). Git-ignored under tests/_local/, absent in CI → skips.
+const articlePath = ['tests/_local/article.json'].find((p) => existsSync(p));
 
 describe.skipIf(!articlePath)('tweetDetailToDocument — real captured article', () => {
   // Guarded: skipIf still runs this body, so don't read a missing file in CI.

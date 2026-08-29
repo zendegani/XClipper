@@ -7,13 +7,13 @@ import { renderMarkdown } from '../src/ast/render-markdown';
 
 // Exercises jsonToAst against a REAL captured X GraphQL Bookmarks response.
 // The capture holds the user's own bookmarks, so it is git-ignored (under
-// _local/) and absent in CI — this suite then skips with a warning, exactly
+// tests/_local/) and absent in CI — this suite then skips with a warning, exactly
 // like the DOM extractor's gitignored HTML fixtures. A green CI run does NOT
 // mean this ran. See docs/capturing-graphql-fixtures.md.
 
 const CANDIDATES = [
-  '_local/bookmarks-response.json',
-  '_local/fast/bookmarks-response.json',
+  'tests/_local/bookmarks-response.json',
+  'tests/_local/fast/bookmarks-response.json',
   'tests/fixtures/graphql/bookmarks-response.json',
 ];
 const path = CANDIDATES.find((p) => existsSync(p));
@@ -72,14 +72,14 @@ describe.skipIf(!path)('jsonToAst — real captured bookmarks response', () => {
 if (!path) {
   // Surface the skip the way extractor.test.ts does, so it isn't silent.
   console.warn(
-    '[json-to-ast-live] no captured GraphQL response found (looked in _local/) — skipping real-data validation'
+    '[json-to-ast-live] no captured GraphQL response found (looked in tests/_local/) — skipping real-data validation'
   );
 }
 
 // A real TweetDetail for an X Article whose body contains a table and code
 // blocks — both arrive as atomic MARKDOWN entities holding raw markdown, the
 // one part of the body X doesn't send as structured Draft.js.
-const ARTICLE_CAPTURE = '_local/article-with-table.json';
+const ARTICLE_CAPTURE = 'tests/_local/article-with-table.json';
 const articlePath = existsSync(ARTICLE_CAPTURE) ? ARTICLE_CAPTURE : undefined;
 
 describe.skipIf(!articlePath)('tweetDetailToDocument — real captured article', () => {

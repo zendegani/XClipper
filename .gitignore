@@ -30,6 +30,9 @@ tests/fixtures/DeRonin_-2076690611399176506.ast.json
 # Local scratch (notes, link dumps — never versioned)
 _local/
 
+# Private real-data test captures (may contain account/bookmark data)
+tests/_local/
+
 # Logs and temp files
 *.log
 *.bak
