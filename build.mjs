@@ -26,18 +26,10 @@ const commonOptions = {
 function firefoxManifest(manifest) {
   const next = structuredClone(manifest);
 
-  next.permissions = next.permissions.filter((permission) => permission !== 'offscreen');
   next.background = {
     scripts: ['background.js'],
     service_worker: 'background.js',
     type: 'module',
-  };
-  next.action = {
-    ...next.action,
-    theme_icons: [
-      { size: 16, dark: 'icons/icon-16.png', light: 'icons/icon-16-dark.png' },
-      { size: 32, dark: 'icons/icon-32.png', light: 'icons/icon-32-dark.png' },
-    ],
   };
   next.browser_specific_settings = {
     gecko: {
@@ -103,28 +95,13 @@ async function build() {
     format: 'iife',
   });
 
-  const builds = [contentBuild, injectorBuild, backgroundBuild, popupBuild, printBuild];
-  if (!isFirefox) {
-    // Build Chrome's offscreen theme watcher (IIFE). Firefox uses manifest
-    // `action.theme_icons`, so it does not need this runtime document.
-    builds.push(esbuild.build({
-      ...commonOptions,
-      entryPoints: [resolve(__dirname, 'src/offscreen/offscreen.ts')],
-      outfile: resolve(__dirname, outDir, 'offscreen.js'),
-      format: 'iife',
-    }));
-  }
-
-  await Promise.all(builds);
+  await Promise.all([contentBuild, injectorBuild, backgroundBuild, popupBuild, printBuild]);
 
   // Copy static assets
   writeManifest();
   cpSync(resolve(__dirname, 'src/popup/popup.html'), resolve(__dirname, outDir, 'popup.html'));
   cpSync(resolve(__dirname, 'src/popup/popup.css'), resolve(__dirname, outDir, 'popup.css'));
   cpSync(resolve(__dirname, 'src/print/print.html'), resolve(__dirname, outDir, 'print.html'));
-  if (!isFirefox) {
-    cpSync(resolve(__dirname, 'src/offscreen/offscreen.html'), resolve(__dirname, outDir, 'offscreen.html'));
-  }
 
   // Copy icons
   const iconsDir = resolve(__dirname, 'src/icons');
