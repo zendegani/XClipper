@@ -32,10 +32,15 @@ export function extractLinkCard(article: Element): LinkCardNode | undefined {
       else if (!description) description = t;
     }
   } else {
-    // Media-only card: title overlays the image; domain comes from the URL.
+    // Media-only card: title overlays the image. The href is the t.co, so the
+    // hostname would read "t.co" rather than the real destination (#126) —
+    // X puts "<domain> <title>" in the media link's aria-label, so take the
+    // domain from there and only fall back to the URL when that's missing.
     const overlay = mediaBlock?.querySelector('div[dir="ltr"], div[dir="auto"]');
     title = overlay?.textContent?.trim() || '';
-    if (href) {
+    const label = mediaBlock?.querySelector('a[aria-label]')?.getAttribute('aria-label')?.trim() || '';
+    if (title && label.endsWith(title)) domain = label.slice(0, -title.length).trim();
+    if (!domain && href) {
       try {
         domain = new URL(href).hostname.replace(/^www\./, '');
       } catch { /* leave domain empty */ }

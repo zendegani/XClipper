@@ -96,6 +96,10 @@ interface RawLegacy {
   reply_count?: number;
   quote_count?: number;
   bookmark_count?: number;
+  // [start, end) codepoint range of full_text that X actually displays: it
+  // excludes a reply's leading @mentions and (usually) a trailing media/card
+  // t.co. Used to keep the GraphQL path showing what the page shows (#126).
+  display_text_range?: number[];
 }
 
 interface RawTweet {
@@ -583,10 +587,17 @@ export function jsonToTweetNode(raw: unknown): TweetNode {
   // fall back to the truncated legacy pair. The text and the entities used to
   // splice it MUST come from the same source so indices line up.
   const note = t.note_tweet?.note_tweet_results?.result;
+  // Resolved before the text so the inline builder can drop the t.co the card
+  // already represents — X hides it in the page, so rendering both duplicates.
+  const card = fromCard(t.card);
+  const cardUrl = card?.kind === 'link' ? card.linkCard.url : undefined;
   const text =
     note?.text !== undefined
-      ? buildInline(note.text, note.entity_set ?? {})
-      : buildInline(legacy.full_text ?? '', legacy.entities ?? {});
+      ? buildInline(note.text, note.entity_set ?? {}, { cardUrl })
+      : buildInline(legacy.full_text ?? '', legacy.entities ?? {}, {
+          cardUrl,
+          displayStart: legacy.display_text_range?.[0],
+        });
 
   const node: TweetNode = {
     type: 'tweet',
@@ -600,7 +611,6 @@ export function jsonToTweetNode(raw: unknown): TweetNode {
   const eng = engagement(t);
   if (eng) node.engagement = eng;
 
-  const card = fromCard(t.card);
   if (card?.kind === 'poll') node.poll = card.poll;
   if (card?.kind === 'link') node.linkCard = card.linkCard;
 
@@ -737,8 +747,12 @@ function fromCard(card?: RawCard): CardResult {
     const description = get('description');
     if (description) link.description = description;
     const image = get('thumbnail_image_large') ?? get('thumbnail_image') ?? get('photo_image_full_size_large');
-    if (image) link.imageUrl = image;
-    const domain = get('domain') ?? get('vanity_url');
+    // X sizes card thumbnails per layout (name=800x320_1); the DOM path
+    // normalizes to name=large, so do the same here (#126).
+    if (image) link.imageUrl = image.replace(/([?&]name=)\w+/, '$1large');
+    // X sends the bare host here (www.kaggle.com) while the page prints it
+    // without the prefix, which is what the DOM path records (#126).
+    const domain = (get('domain') ?? get('vanity_url'))?.replace(/^www\./, '');
     if (domain) link.domain = domain;
     return { kind: 'link', linkCard: link };
   }
@@ -758,9 +772,22 @@ interface Span {
   node: InlineNode | null; // null = drop this range (media link)
 }
 
-function buildInline(text: string, entities: RawEntities): InlineNode[] {
+interface InlineOptions {
+  // Skip the t.co the link card already renders — X hides it in the page, so
+  // keeping it would show the same destination twice (#126).
+  cardUrl?: string;
+  // display_text_range[0]: everything before it is a reply's leading @mentions,
+  // which X renders as reply context rather than as the tweet's text.
+  displayStart?: number;
+}
+
+function buildInline(text: string, entities: RawEntities, opts: InlineOptions = {}): InlineNode[] {
   const cp = Array.from(text);
   const spans: Span[] = [];
+  // card_url is the t.co in some payloads and the destination in others, so
+  // compare against both forms of the entity.
+  const isCardUrl = (u: RawUrlEntity): boolean =>
+    !!opts.cardUrl && (u.url === opts.cardUrl || u.expanded_url === opts.cardUrl);
 
   for (const u of entities.urls ?? []) {
     if (!u.indices) continue;
@@ -768,7 +795,9 @@ function buildInline(text: string, entities: RawEntities): InlineNode[] {
     spans.push({
       start: u.indices[0],
       end: u.indices[1],
-      node: { type: 'link', url, children: [{ type: 'text', value: u.display_url ?? url }] },
+      node: isCardUrl(u)
+        ? null
+        : { type: 'link', url, children: [{ type: 'text', value: u.display_url ?? url }] },
     });
   }
   for (const m of entities.user_mentions ?? []) {
@@ -803,13 +832,13 @@ function buildInline(text: string, entities: RawEntities): InlineNode[] {
   spans.sort((a, b) => a.start - b.start);
 
   const out: InlineNode[] = [];
-  let cursor = 0;
+  let cursor = opts.displayStart ?? 0;
   const pushText = (from: number, to: number): void => {
     if (to <= from) return;
     pushTextValue(out, unescapeHtml(cp.slice(from, to).join('')));
   };
   for (const span of spans) {
-    if (span.start < cursor) continue; // overlapping entity — skip
+    if (span.start < cursor) continue; // overlapping entity, or before displayStart
     pushText(cursor, span.start);
     if (span.node) out.push(span.node);
     cursor = span.end;

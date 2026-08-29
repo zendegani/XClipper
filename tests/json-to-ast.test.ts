@@ -75,6 +75,93 @@ describe('jsonToAst — metadata', () => {
     expect(doc.metadata.engagement?.reposts).toBe(165);
   });
 
+  // #126: X hides a reply's leading @mentions and the t.co its card already
+  // represents, so the DOM path never sees either. The mapper drops both so
+  // Auto/Super render what the page renders.
+  it("drops the leading mentions outside display_text_range", () => {
+    const doc = jsonToAst(
+      tweet({
+        full_text: '@Google Learn more',
+        display_text_range: [8, 18],
+        entities: { user_mentions: [{ screen_name: 'Google', indices: [0, 7] }] },
+      })
+    );
+    // No stray leading space where the mention was removed.
+    expect(renderMarkdown(doc)).toContain('\nLearn more');
+    expect(renderMarkdown(doc)).not.toContain('@Google');
+  });
+
+  it('keeps a mention when display_text_range does not exclude it', () => {
+    const doc = jsonToAst(
+      tweet({
+        full_text: '@Google Learn more',
+        entities: { user_mentions: [{ screen_name: 'Google', indices: [0, 7] }] },
+      })
+    );
+    expect(renderMarkdown(doc)).toContain('@Google');
+  });
+
+  it('drops the t.co the link card already shows, but keeps other links', () => {
+    const card = {
+      legacy: {
+        name: 'summary_large_image',
+        binding_values: [
+          { key: 'card_url', value: { string_value: 'https://t.co/CARD' } },
+          { key: 'title', value: { string_value: 'A Course' } },
+          { key: 'domain', value: { string_value: 'kaggle.com' } },
+        ],
+      },
+    };
+    const doc = jsonToAst(
+      tweet(
+        {
+          full_text: 'Learn more https://t.co/KEEP https://t.co/CARD',
+          entities: {
+            urls: [
+              { url: 'https://t.co/KEEP', expanded_url: 'https://example.com/a', display_url: 'example.com/a', indices: [11, 28] },
+              { url: 'https://t.co/CARD', expanded_url: 'https://kaggle.com/c', display_url: 'kaggle.com/c', indices: [29, 46] },
+            ],
+          },
+        },
+        { card }
+      )
+    );
+    const md = renderMarkdown(doc);
+    expect(md).toContain('https://example.com/a');
+    expect(md).not.toContain('https://kaggle.com/c');
+  });
+
+  it('records the card domain without the www. the page omits', () => {
+    const card = {
+      legacy: {
+        name: 'summary_large_image',
+        binding_values: [
+          { key: 'title', value: { string_value: 'A Course' } },
+          { key: 'domain', value: { string_value: 'www.kaggle.com' } },
+        ],
+      },
+    };
+    const doc = jsonToAst(tweet({}, { card }));
+    expect(renderMarkdown(doc)).toContain('_From kaggle.com_');
+  });
+
+  it('normalizes the card thumbnail to name=large, as the DOM path does', () => {
+    const card = {
+      legacy: {
+        name: 'summary_large_image',
+        binding_values: [
+          { key: 'title', value: { string_value: 'A Course' } },
+          {
+            key: 'thumbnail_image_large',
+            value: { image_value: { url: 'https://pbs.twimg.com/card_img/1/x?format=jpg&name=800x320_1' } },
+          },
+        ],
+      },
+    };
+    const doc = jsonToAst(tweet({}, { card }));
+    expect(renderMarkdown(doc)).toContain('?format=jpg&name=large');
+  });
+
   it('honors an explicit sourceUrl', () => {
     const doc = jsonToAst(tweet(), 'https://x.com/bob/status/123/photo/1');
     expect(doc.metadata.sourceUrl).toBe('https://x.com/bob/status/123/photo/1');
