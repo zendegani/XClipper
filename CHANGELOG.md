@@ -9,6 +9,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Changed
+
+- **Toolbar icon redrawn to read on any background**: the clip in the mark was a single black stroke, so it disappeared against a dark toolbar and the extension shipped a second, near-white copy of every icon plus a runtime that watched your OS theme to pick between them. The clip is now drawn twice — a near-white casing under a black core — which stays legible on a light or a dark surface, and on a light one looks as it always has. One icon set now covers every case.
+
+### Removed
+
+- **The `offscreen` permission is no longer requested**: it existed only to open a hidden, page-less document that could read your system's light/dark setting, because a service worker cannot; that reading was used for nothing but choosing which toolbar icon to show. With one icon that suits both, the document and the permission are both gone.
+
 ### Fixed
 
 - **Link cards now name the site they point to, not `t.co`**: a card whose image carries the headline — no separate detail block — was labelled `From t.co`, because the only link on it is X's shortener. The real domain is on the card all along, in the media link's accessibility label, so the card now reads `From kaggle.com` as the page does. Auto and Super drop the `www.` X sends there for the same reason. Cards that already showed the right domain are unchanged. (#126)
