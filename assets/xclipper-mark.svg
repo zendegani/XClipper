@@ -11,7 +11,13 @@
       <line x1="76" y1="-50" x2="76" y2="178" stroke="#dc2626"/>
     </g>
   </g>
-  <rect x="2" y="51" width="124" height="26" rx="13"
-        fill="none" stroke="#000000" stroke-width="9"
-        transform="rotate(52 64 64)"/>
+  <!-- The clip is drawn twice: a wide near-white casing, then a narrower black
+       core on top. On a light surface the casing disappears into the background
+       and you see the black clip; on a dark one the black core recedes and the
+       casing carries the shape. One mark stays legible on any background, so
+       there is no light/dark icon pair to switch between. -->
+  <g fill="none" transform="rotate(52 64 64)">
+    <rect x="2" y="51" width="124" height="26" rx="13" stroke="#F8FAFC" stroke-width="16"/>
+    <rect x="2" y="51" width="124" height="26" rx="13" stroke="#000000" stroke-width="8"/>
+  </g>
 </svg>
