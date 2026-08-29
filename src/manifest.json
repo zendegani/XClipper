@@ -10,7 +10,6 @@
     "alarms",
     "contextMenus",
     "downloads",
-    "offscreen",
     "storage"
   ],
   "optional_permissions": [
