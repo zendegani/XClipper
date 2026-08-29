@@ -26,10 +26,6 @@ The "storage" permission is used exclusively to save the user's configuration pr
 
 The "alarms" permission is used only during a batch export to schedule a short periodic timer that acts as a watchdog: if the hidden worker tab driving the batch stalls, the alarm fires so the job can recover or stop cleanly rather than hang. The timer is cleared once the batch completes. No data is collected or transmitted.
 
-### offscreen
-
-The "offscreen" permission (Chrome only) creates a hidden, page-less document whose sole job is to observe the operating system's light/dark color-scheme preference so the toolbar icon can be swapped to match it. It reads no page content and transmits nothing. The Firefox build does not request this permission — it switches the icon declaratively through the manifest's "theme_icons" instead.
-
 ### webRequest (optional)
 
 The "webRequest" permission is optional and off by default. It is requested only if the user turns on the optional Fast Batch mode and confirms a consent prompt; declining leaves the standard batch export fully functional. When granted, it lets the extension read the authentication token the browser already sends on the user's own X.com requests, so Fast Batch can call X's internal data endpoints directly — the same endpoints x.com's own web page calls — instead of opening and rendering each post in a tab, which is much faster. It uses no paid API and no password, reuses the user's existing logged-in X session, and sends nothing to any external server: the data is fetched from X into the browser and saved locally, exactly like standard batch. The permission can be revoked at any time in the browser's extension settings, which disables Fast Batch.

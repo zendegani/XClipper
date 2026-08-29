@@ -182,7 +182,6 @@ npm run clean      # Clean build output
 | `storage`      | Remember your popup toggle preferences and the optional Obsidian vault name |
 | `contextMenus` | Add **Save / Copy tweet as Markdown** to the right-click menu (X.com only) |
 | `alarms`       | Keep batch jobs running reliably while the service worker idles (a watchdog timer) |
-| `offscreen`    | Chrome only: detect your OS light/dark setting to switch the toolbar icon. Firefox uses native `action.theme_icons` instead |
 | `host` (X.com) | Inject a content script on X.com to extract post / article content and draw the inline download button |
 | `webRequest` *(optional)* | **Fast Batch only** — read your X session's auth header to replay X's internal API. Requested only if you enable Fast Batch; never used otherwise |
 
