@@ -96,16 +96,16 @@
     "message": "Fetch your liked posts through your X session — much faster. Expands threads & articles."
   },
   "btn_batch_fast_no_selection": {
-    "message": "Selection isn't available in Fast — turn Fast off to pick tweets by hand."
+    "message": "Selection is only available in Manual — switch to Manual to pick tweets by hand."
   },
   "btn_batch_fast_no_timeline": {
-    "message": "Timeline isn't available in Fast — turn Fast off to export your home feed."
+    "message": "Timeline is only available in Manual — switch to Manual to export your home feed."
   },
   "batch_tab_selection_fast": {
-    "message": "Turn Fast off to pick tweets by hand"
+    "message": "Switch to Manual to pick tweets by hand"
   },
   "batch_tab_timeline_fast": {
-    "message": "Turn Fast off to export your home feed"
+    "message": "Switch to Manual to export your home feed"
   },
   "fast_locked": {
     "message": "An export is running — cancel or let it finish to switch modes."

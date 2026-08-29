@@ -205,8 +205,8 @@ async function refreshFastIdle(): Promise<void> {
         : t('btn_batch_select', 'Select tweets…'),
       false,
       activeTab === 'timeline'
-        ? t('btn_batch_fast_no_timeline', "Timeline isn't available in Fast — turn Fast off to export your home feed.")
-        : t('btn_batch_fast_no_selection', "Selection isn't available in Fast — turn Fast off to pick tweets by hand.")
+        ? t('btn_batch_fast_no_timeline', 'Timeline is only available in Manual — switch to Manual to export your home feed.')
+        : t('btn_batch_fast_no_selection', 'Selection is only available in Manual — switch to Manual to pick tweets by hand.')
     );
     return;
   }
@@ -383,7 +383,7 @@ function applyFastTabGating(): void {
   sel.setAttribute(
     'data-tooltip',
     fast
-      ? t('batch_tab_selection_fast', 'Turn Fast off to pick tweets by hand')
+      ? t('batch_tab_selection_fast', 'Switch to Manual to pick tweets by hand')
       : t('batch_tab_selection', 'Selection')
   );
   const tl = TAB_BUTTONS.timeline;
@@ -391,7 +391,7 @@ function applyFastTabGating(): void {
   tl.setAttribute(
     'data-tooltip',
     fast
-      ? t('batch_tab_timeline_fast', 'Turn Fast off to export your home feed')
+      ? t('batch_tab_timeline_fast', 'Switch to Manual to export your home feed')
       : t('batch_tab_timeline', 'Timeline')
   );
   if (fast && (activeTab === 'selection' || activeTab === 'timeline')) setActiveTab('bookmarks');

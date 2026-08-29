@@ -18,7 +18,7 @@
     "message": "Exporter .pdf"
   },
   "btn_pdf_hint": {
-    "message": "Génère un export PDF mis en forme avec les réglages actuels, puis choisissez où l’enregistrer."
+    "message": "Générez un export PDF mis en forme avec les réglages actuels, puis choisissez où l’enregistrer."
   },
   "rendering_pdf": {
     "message": "Génération du PDF…"
@@ -57,7 +57,7 @@
     "message": "Exporter les signets"
   },
   "btn_batch_hint": {
-    "message": "Exporte tous les signets chargés sur cette page comme fichiers Markdown dans un dossier. Faites défiler la page des signets pour en charger davantage."
+    "message": "Exportez tous les signets chargés sur cette page sous forme de fichiers Markdown dans un dossier. Faites défiler la page des signets pour en charger davantage."
   },
   "batch_mode": {
     "message": "Moteur Batch"
@@ -96,16 +96,16 @@
     "message": "Récupère vos posts likés via votre session X, beaucoup plus vite. Développe les fils et articles."
   },
   "btn_batch_fast_no_selection": {
-    "message": "La sélection n’est pas disponible en Fast ; désactivez Fast pour choisir les tweets à la main."
+    "message": "La sélection est uniquement disponible en mode Manuel ; passez en mode Manuel pour choisir les tweets à la main."
   },
   "btn_batch_fast_no_timeline": {
-    "message": "Le fil n’est pas disponible en Fast ; désactivez Fast pour exporter votre fil d’accueil."
+    "message": "Le fil est uniquement disponible en mode Manuel ; passez en mode Manuel pour exporter votre fil d’accueil."
   },
   "batch_tab_selection_fast": {
-    "message": "Désactivez Fast pour choisir les tweets à la main"
+    "message": "Passez en mode Manuel pour choisir les tweets à la main"
   },
   "batch_tab_timeline_fast": {
-    "message": "Désactivez Fast pour exporter votre fil d’accueil"
+    "message": "Passez en mode Manuel pour exporter votre fil d’accueil"
   },
   "fast_locked": {
     "message": "Un export est en cours ; annulez-le ou laissez-le finir pour changer de mode."
@@ -114,7 +114,7 @@
     "message": "Plage de dates"
   },
   "fast_date_range_hint": {
-    "message": "Exporte uniquement les posts dont la date est dans cette plage ; les posts hors plage sont ignorés sans être développés, afin d’atteindre des posts plus anciens sans toucher la limite de débit de X."
+    "message": "Exportez uniquement les posts dont la date est dans cette plage ; les posts hors plage sont ignorés sans être développés, afin d’atteindre des posts plus anciens sans toucher la limite de débit de X."
   },
   "fast_date_from": {
     "message": "Date de début"
@@ -132,7 +132,7 @@
     "message": "Récent"
   },
   "fast_paginate_resume": {
-    "message": "Suite"
+    "message": "Reprise"
   },
   "fast_caption_recent": {
     "message": "Parcourt le haut du fil — les nouveaux posts ajoutés depuis la dernière exécution."
@@ -189,13 +189,13 @@
     "message": "Réinitialiser l’historique"
   },
   "batch_reset_hint": {
-    "message": "Oublie les posts déjà exportés lors des exécutions précédentes, afin que le prochain lot exporte à nouveau tout ce qui est chargé."
+    "message": "Effacez l’historique des posts déjà exportés lors des exécutions précédentes, afin que le prochain lot exporte à nouveau tout ce qui est chargé."
   },
   "batch_reset_queue": {
     "message": "Réinitialiser la file"
   },
   "batch_reset_queue_hint": {
-    "message": "Vide les posts collectés et reprend la collecte là où vous avez fait défiler la page, pour commencer à un post précis plutôt qu’en haut."
+    "message": "Videz les posts collectés et reprenez la collecte là où vous avez fait défiler la page, pour commencer à un post précis plutôt qu’en haut."
   },
   "btn_batch_open_x": {
     "message": "Ouvrez x.com pour exporter en lot des signets, un profil ou une sélection."
@@ -210,13 +210,13 @@
     "message": "Exporter les posts"
   },
   "btn_batch_profile_hint": {
-    "message": "Exporte les propres posts de ce profil chargés sur la page comme fichiers Markdown dans un dossier. Les reposts sont ignorés ; faites défiler pour en charger plus."
+    "message": "Exportez les posts de ce profil chargés sur la page sous forme de fichiers Markdown dans un dossier. Les reposts sont ignorés ; faites défiler pour en charger davantage."
   },
   "btn_batch_likes": {
     "message": "Exporter les likes"
   },
   "btn_batch_likes_hint": {
-    "message": "Exporte tous les posts likés chargés sur cette page comme fichiers Markdown dans un dossier. Faites défiler votre page Likes pour en charger plus."
+    "message": "Exportez tous les posts likés chargés sur cette page sous forme de fichiers Markdown dans un dossier. Faites défiler votre page Likes pour en charger davantage."
   },
   "btn_batch_open_likes": {
     "message": "Ouvrez votre page Likes sur x.com pour exporter les posts que vous avez likés."
@@ -225,7 +225,7 @@
     "message": "Exporter le fil"
   },
   "btn_batch_timeline_hint": {
-    "message": "Exporte chaque post chargé dans votre fil d’accueil comme fichiers Markdown dans un dossier. Faites défiler pour en charger plus."
+    "message": "Exportez chaque post chargé dans votre fil d’accueil sous forme de fichier Markdown dans un dossier. Faites défiler pour en charger davantage."
   },
   "btn_batch_open_timeline": {
     "message": "Ouvrez votre fil d’accueil, faites défiler pour charger les posts, puis exportez."
@@ -267,7 +267,7 @@
     "message": "Ajouter à la file"
   },
   "btn_batch_add_hint": {
-    "message": "Ajoute les posts nouvellement chargés à la file du lot en cours."
+    "message": "Ajoutez les posts nouvellement chargés à la file du lot en cours."
   },
   "batch_format": {
     "message": "Format"
@@ -288,7 +288,7 @@
     "message": "Combiné"
   },
   "opt_zip": {
-    "message": "Compresser en ZIP"
+    "message": "Compresser en ZIP (un téléchargement)"
   },
   "opt_zip_title": {
     "message": "Regroupe l’export dans un seul .zip : en lot, un téléchargement au lieu de milliers ; en export unique, une archive au lieu d’un fichier Markdown et d’un dossier de médias."
@@ -447,7 +447,7 @@
     "message": "Tags"
   },
   "opt_obsidian_tags_title": {
-    "message": "Tags séparés par des virgules pour le frontmatter Obsidian. Tapez { pour insérer un placeholder. Vide = valeur par défaut (clippings, x, {type})."
+    "message": "Tags séparés par des virgules pour le frontmatter Obsidian. Tapez { pour insérer une variable. Vide = valeur par défaut (clippings, x, {type})."
   },
   "opt_obsidian_tags_placeholder": {
     "message": "clippings, x, {type}"
@@ -456,7 +456,7 @@
     "message": "Réinitialiser"
   },
   "opt_obsidian_tags_info": {
-    "message": "Afficher les placeholders de tags"
+    "message": "Afficher les variables de tags"
   },
   "opt_save_local_title": {
     "message": "Désactivé : conserver les médias sous forme de liens vers X. Images : enregistrer les images dans un dossier à côté du fichier Markdown. Médias : enregistrer aussi les vidéos en .mp4 — bien plus volumineuses."
@@ -480,7 +480,7 @@
     "message": "Inclure les métadonnées"
   },
   "opt_inline_stats_title": {
-    "message": "Afficher likes, partages, réponses, favoris et vues sur une ligne dans le corps Markdown"
+    "message": "Afficher les likes, reposts, réponses, signets et vues sur une ligne dans le corps Markdown"
   },
   "opt_inline_stats": {
     "message": "Afficher les statistiques d’engagement en ligne"
@@ -528,7 +528,7 @@
     "message": "Télécharger le tweet en csv"
   },
   "opt_show_inline_title": {
-    "message": "Ajoute un bouton de téléchargement à côté du bouton de partage sur chaque tweet"
+    "message": "Ajoutez un bouton de téléchargement à côté du bouton de partage dans la barre d’actions de chaque tweet"
   },
   "opt_show_inline": {
     "message": "Afficher le bouton intégré sur les tweets"
@@ -549,7 +549,7 @@
     "message": "Rechargez la page et réessayez."
   },
   "error_specific_page": {
-    "message": "Ouvrez une page spécifique (avec /status/ dans l'URL)."
+    "message": "Ouvrez la page d’un tweet ou d’un article précis (avec /status/ dans l’URL)."
   },
   "error_failed": {
     "message": "Échec de l'extraction du contenu."

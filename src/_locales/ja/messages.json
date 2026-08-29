@@ -96,16 +96,16 @@
     "message": "Xセッション経由でいいねした投稿を取得します。大幅に高速で、スレッドと記事を展開します。"
   },
   "btn_batch_fast_no_selection": {
-    "message": "Fastでは選択を使えません。手動でツイートを選ぶにはFastをオフにしてください。"
+    "message": "選択はManualモードでのみ利用できます。ツイートを手動で選ぶにはManualに切り替えてください。"
   },
   "btn_batch_fast_no_timeline": {
-    "message": "Fastではタイムラインを使えません。ホームフィードをエクスポートするにはFastをオフにしてください。"
+    "message": "タイムラインはManualモードでのみ利用できます。ホームフィードをエクスポートするにはManualに切り替えてください。"
   },
   "batch_tab_selection_fast": {
-    "message": "手動でツイートを選ぶにはFastをオフにする"
+    "message": "手動でツイートを選ぶにはManualに切り替える"
   },
   "batch_tab_timeline_fast": {
-    "message": "ホームフィードをエクスポートするにはFastをオフにする"
+    "message": "ホームフィードをエクスポートするにはManualに切り替える"
   },
   "fast_locked": {
     "message": "エクスポートが実行中です。モードを切り替えるにはキャンセルするか完了を待ってください。"
@@ -216,10 +216,10 @@
     "message": "いいねをエクスポート"
   },
   "btn_batch_likes_hint": {
-    "message": "このページに読み込まれたいいね済み投稿をすべてMarkdownファイルとして1つのフォルダにエクスポートします。さらに読み込むにはLikesページをスクロールしてください。"
+    "message": "このページに読み込まれたいいね済み投稿をすべてMarkdownファイルとして1つのフォルダにエクスポートします。さらに読み込むには「いいね」ページをスクロールしてください。"
   },
   "btn_batch_open_likes": {
-    "message": "x.comのLikesページを開いて、いいねした投稿をエクスポートします。"
+    "message": "x.comの「いいね」ページを開いて、いいねした投稿をエクスポートします。"
   },
   "btn_batch_timeline": {
     "message": "タイムラインをエクスポート"
@@ -237,7 +237,7 @@
     "message": "タイムラインを開く"
   },
   "btn_batch_go_likes": {
-    "message": "Likesを開く"
+    "message": "「いいね」を開く"
   },
   "group_batch": {
     "message": "一括エクスポート"
@@ -252,7 +252,7 @@
     "message": "選択"
   },
   "batch_tab_likes": {
-    "message": "Likes"
+    "message": "いいね"
   },
   "batch_tab_timeline": {
     "message": "タイムライン"
@@ -288,7 +288,7 @@
     "message": "結合"
   },
   "opt_zip": {
-    "message": "ZIPにまとめる（1回）"
+    "message": "ZIPにまとめる（1回のダウンロード）"
   },
   "opt_zip_title": {
     "message": "エクスポートを1つの.zipにまとめます。一括処理では数千回の代わりに1回のダウンロード、単体ではMarkdownファイルとメディアフォルダの代わりに1つのアーカイブになります。"
@@ -492,7 +492,7 @@
     "message": "プロフィールを一括エクスポートするとき、リポストも含めます。オフ = プロフィール所有者自身の投稿のみ。"
   },
   "opt_close_tab_title": {
-    "message": "有効にすると、ツイートのダウンロードまたはコピー後にタブが自動的に閉じられます。"
+    "message": "ツイートのインラインボタンまたは右クリックメニューからエクスポートした後、タブを自動的に閉じます。"
   },
   "opt_close_tab": {
     "message": "エクスポート後に新しいタブを閉じる"
@@ -549,7 +549,7 @@
     "message": "ページを再読み込みして、やり直してください。"
   },
   "error_specific_page": {
-    "message": "特定のページ（URLに/status/を含む）を開いてください。"
+    "message": "特定のツイートまたは記事のページ（URL に /status/ を含む）を開いてください。"
   },
   "error_failed": {
     "message": "コンテンツの抽出に失敗しました。"

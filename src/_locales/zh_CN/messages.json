@@ -1,12 +1,12 @@
 {
   "extensionName": {
-    "message": "X / Twitter 网页剪藏：书签和线程转 Markdown、PDF、Obsidian"
+    "message": "X / Twitter 网页剪藏：书签和推文串转 Markdown、PDF、Obsidian"
   },
   "extensionDescription": {
     "message": "从你的点赞或任何个人资料页导出帖子、视频和长文文章，可逐条导出，也可批量导出数千条。本地运行，无需 X API 密钥。"
   },
   "tagline": {
-    "message": "将线程和文章保存为 Markdown 或 PDF"
+    "message": "将推文串和文章保存为 Markdown 或 PDF"
   },
   "btn_download": {
     "message": "下载"
@@ -63,7 +63,7 @@
     "message": "批量引擎"
   },
   "batch_mode_hint": {
-    "message": "自动和超级模式通过你已登录的 X 会话获取内容 — 无需 API 密钥或密码，任何内容都不会离开浏览器。大型任务可能触发 X 的软性速率限制；任务会礼貌停止并保留其余待处理项目 — 等待约 15 分钟，再次运行即可从中断处继续。"
+    "message": "自动和超级模式通过你已登录的 X 会话获取内容 — 无需 API 密钥或密码，任何内容都不会离开浏览器。大型任务可能触发 X 的软性速率限制；任务会平稳停止并保留其余待处理项目 — 等待约 15 分钟，再次运行即可从中断处继续。"
   },
   "batch_mode_info_label": {
     "message": "关于自动和超级模式"
@@ -78,34 +78,34 @@
     "message": "超级"
   },
   "mode_caption_manual": {
-    "message": "由你滚动页面；加载的每个帖子都会保存，包含完整线程和文章。"
+    "message": "由你滚动页面；加载的每个帖子都会保存，包含完整推文串和文章。"
   },
   "mode_caption_auto": {
-    "message": "通过你的 X 会话自动获取，无需滚动，包含完整线程和文章。"
+    "message": "通过你的 X 会话自动获取，无需滚动，包含完整推文串和文章。"
   },
   "mode_caption_super": {
-    "message": "一次获取数千条，但每个帖子仅保存首条推文 — 跳过线程。"
+    "message": "一次获取数千条，但每个帖子仅保存首条推文 — 跳过推文串。"
   },
   "btn_batch_fast_hint": {
-    "message": "通过你的 X 会话获取所有书签，速度更快。会展开线程和文章。"
+    "message": "通过你的 X 会话获取所有书签，速度更快。会展开推文串和文章。"
   },
   "btn_batch_fast_profile_hint": {
     "message": "通过你的 X 会话获取此资料页自己的帖子，速度更快。会跳过转帖。"
   },
   "btn_batch_fast_likes_hint": {
-    "message": "通过你的 X 会话获取你点赞的帖子，速度更快。会展开线程和文章。"
+    "message": "通过你的 X 会话获取你点赞的帖子，速度更快。会展开推文串和文章。"
   },
   "btn_batch_fast_no_selection": {
-    "message": "Fast 模式不支持选择；关闭 Fast 后可手动选择推文。"
+    "message": "选择功能仅在手动模式下可用；请切换到手动模式来选择推文。"
   },
   "btn_batch_fast_no_timeline": {
-    "message": "Fast 模式不支持时间线；关闭 Fast 后可导出主页信息流。"
+    "message": "时间线仅在手动模式下可用；请切换到手动模式来导出主页信息流。"
   },
   "batch_tab_selection_fast": {
-    "message": "关闭 Fast 以手动选择推文"
+    "message": "切换到手动模式以选择推文"
   },
   "batch_tab_timeline_fast": {
-    "message": "关闭 Fast 以导出主页信息流"
+    "message": "切换到手动模式以导出主页信息流"
   },
   "fast_locked": {
     "message": "导出正在运行；请取消或等待完成后再切换模式。"
@@ -210,16 +210,16 @@
     "message": "导出帖子"
   },
   "btn_batch_profile_hint": {
-    "message": "将此资料页已加载的原创帖子作为 Markdown 文件导出到一个文件夹。会跳过转帖；滚动可加载更多。"
+    "message": "将此资料页中由该用户发布且已加载的帖子作为 Markdown 文件导出到一个文件夹。会跳过转帖；滚动可加载更多。"
   },
   "btn_batch_likes": {
     "message": "导出点赞"
   },
   "btn_batch_likes_hint": {
-    "message": "将此页面已加载的所有点赞帖子作为 Markdown 文件导出到一个文件夹。滚动 Likes 页面可加载更多。"
+    "message": "将此页面已加载的所有点赞帖子作为 Markdown 文件导出到一个文件夹。滚动点赞页面可加载更多。"
   },
   "btn_batch_open_likes": {
-    "message": "打开你在 x.com 的 Likes 页面以导出你点赞的帖子。"
+    "message": "打开你在 x.com 的点赞页面以导出你点赞的帖子。"
   },
   "btn_batch_timeline": {
     "message": "导出时间线"
@@ -237,7 +237,7 @@
     "message": "打开时间线"
   },
   "btn_batch_go_likes": {
-    "message": "打开 Likes"
+    "message": "打开点赞"
   },
   "group_batch": {
     "message": "批量导出"
@@ -252,7 +252,7 @@
     "message": "选择"
   },
   "batch_tab_likes": {
-    "message": "Likes"
+    "message": "点赞"
   },
   "batch_tab_timeline": {
     "message": "时间线"
@@ -321,7 +321,7 @@
     "message": "已有批量任务正在运行。"
   },
   "btn_obsidian_hint": {
-    "message": "在「设置」中配置 Vault、子文件夹和 frontmatter 字段。\n长线程或图片请改用「下载 .md」按钮。"
+    "message": "在「设置」中配置 Vault、子文件夹和 frontmatter 字段。\n长推文串或图片请改用「下载 .md」按钮。"
   },
   "obsidian_opened": {
     "message": "正在打开 Obsidian…"
@@ -474,13 +474,13 @@
     "message": "媒体"
   },
   "opt_metadata_title": {
-    "message": "将点赞、转发、浏览量作为 YAML frontmatter 添加"
+    "message": "将点赞、转帖、浏览量作为 YAML frontmatter 添加"
   },
   "opt_metadata": {
     "message": "包含元数据"
   },
   "opt_inline_stats_title": {
-    "message": "将点赞、转发、回复、书签和浏览量作为一行渲染在 Markdown 正文中"
+    "message": "将点赞、转帖、回复、书签和浏览量作为一行渲染在 Markdown 正文中"
   },
   "opt_inline_stats": {
     "message": "在正文中显示互动数据"
@@ -504,7 +504,7 @@
     "message": "将推文复制为 Markdown"
   },
   "ctx_copy_just_this_tweet": {
-    "message": "仅复制此推文（不含线程）"
+    "message": "仅复制此推文（不含推文串）"
   },
   "ctx_obsidian_tweet": {
     "message": "将推文添加到 Obsidian"
@@ -549,7 +549,7 @@
     "message": "请重新加载页面然后再试。"
   },
   "error_specific_page": {
-    "message": "请打开特定的页面（URL中包含 /status/）。"
+    "message": "请打开特定推文或文章的页面（URL 中包含 /status/）。"
   },
   "error_failed": {
     "message": "提取内容失败。"
@@ -570,7 +570,7 @@
     "message": "文章已下载！"
   },
   "thread_downloaded": {
-    "message": "线程已下载！"
+    "message": "推文串已下载！"
   },
   "tweet_downloaded": {
     "message": "推文已下载！"
@@ -585,7 +585,7 @@
     "message": "文章已复制！"
   },
   "thread_copied": {
-    "message": "线程已复制！"
+    "message": "推文串已复制！"
   },
   "tweet_copied": {
     "message": "推文已复制！"

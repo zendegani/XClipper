@@ -60,7 +60,7 @@
     "message": "Exporta todos los marcadores cargados en esta página como archivos Markdown en una carpeta. Desplázate por la página de marcadores para cargar más."
   },
   "batch_mode": {
-    "message": "Modo de lote"
+    "message": "Motor de exportación por lotes"
   },
   "batch_mode_hint": {
     "message": "Auto y Súper obtienen contenido mediante tu sesión iniciada de X — sin clave API, sin contraseña y sin que nada salga de tu navegador; las ejecuciones grandes pueden alcanzar el límite de frecuencia flexible de X, pero se detienen correctamente y dejan el resto pendiente — espera unos 15 minutos y vuelve a ejecutarlas para continuar desde donde se detuvieron."
@@ -96,16 +96,16 @@
     "message": "Obtén tus publicaciones con like mediante tu sesión de X, mucho más rápido. Expande hilos y artículos."
   },
   "btn_batch_fast_no_selection": {
-    "message": "La selección no está disponible en Fast; desactiva Fast para elegir tweets a mano."
+    "message": "La selección solo está disponible en Manual; cambia a Manual para elegir tweets a mano."
   },
   "btn_batch_fast_no_timeline": {
-    "message": "La cronología no está disponible en Fast; desactiva Fast para exportar tu feed de inicio."
+    "message": "La cronología solo está disponible en Manual; cambia a Manual para exportar tu feed de inicio."
   },
   "batch_tab_selection_fast": {
-    "message": "Desactiva Fast para elegir tweets a mano"
+    "message": "Cambia a Manual para elegir tweets a mano"
   },
   "batch_tab_timeline_fast": {
-    "message": "Desactiva Fast para exportar tu feed de inicio"
+    "message": "Cambia a Manual para exportar tu feed de inicio"
   },
   "fast_locked": {
     "message": "Hay una exportación en curso; cancélala o deja que termine para cambiar de modo."
@@ -129,19 +129,19 @@
     "message": "Modo de carga"
   },
   "fast_paginate_recent": {
-    "message": "Nuevos"
+    "message": "Recientes"
   },
   "fast_paginate_resume": {
-    "message": "Seguir"
+    "message": "Reanudar"
   },
   "fast_caption_recent": {
     "message": "Escanea la parte superior del feed — publicaciones añadidas desde la última ejecución."
   },
   "fast_caption_resume": {
-    "message": "Continúa la recopilación histórica desde donde se detuvo la última ejecución de Seguir."
+    "message": "Continúa la recopilación histórica desde donde se detuvo la última ejecución de «Reanudar»."
   },
   "fast_caption_daterange": {
-    "message": "Solo publicaciones tuiteadas en el rango inferior; escanea en profundidad sin mover la posición de Seguir."
+    "message": "Solo publicaciones tuiteadas en el rango inferior; escanea en profundidad sin mover la posición de «Reanudar»."
   },
   "fast_step_page": {
     "message": "Recargar x.com"
@@ -288,7 +288,7 @@
     "message": "Combinado"
   },
   "opt_zip": {
-    "message": "Comprimir en ZIP"
+    "message": "Comprimir en ZIP (una descarga)"
   },
   "opt_zip_title": {
     "message": "Empaqueta la exportación en un solo .zip: en Lote, una descarga en vez de miles; en Individual, un archivo en vez de un archivo Markdown y una carpeta de multimedia."
@@ -480,7 +480,7 @@
     "message": "Incluir metadatos"
   },
   "opt_inline_stats_title": {
-    "message": "Renderizar likes, retweets, respuestas, marcadores y vistas como una fila dentro del Markdown"
+    "message": "Renderizar likes, reposts, respuestas, marcadores y vistas como una fila dentro del Markdown"
   },
   "opt_inline_stats": {
     "message": "Mostrar estadísticas de interacción en línea"
@@ -549,7 +549,7 @@
     "message": "Recarga la página y vuelve a intentarlo."
   },
   "error_specific_page": {
-    "message": "Abre una página específica (con /status/ en la URL)."
+    "message": "Abre la página de un tweet o artículo específico (con /status/ en la URL)."
   },
   "error_failed": {
     "message": "Error al extraer el contenido."
@@ -594,6 +594,6 @@
     "message": "¡Copiado!"
   },
   "video_unresolved": {
-    "message": "El vídeo se mantuvo como enlace — recarga la publicación una vez y vuelve a exportarla."
+    "message": "El vídeo se mantiene como enlace — recarga la publicación una vez y vuelve a exportarla."
   }
 }
