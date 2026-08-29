@@ -205,6 +205,15 @@ function articleBlockToNodes(block: HTMLElement): Block[] {
     return img ? [img] : [];
   }
 
+  // Video block — must run before the image-only gate below. A mounted player
+  // puts its own chrome in the block (a duration pill is text), so that gate
+  // reads the block as prose and the video leaves as a paragraph saying
+  // "18:48"; an unmounted one carries neither <video> nor <img> and leaves
+  // nothing at all. Either way applyVideoUrls then has no node to resolve to
+  // an .mp4, so the video never reaches the export.
+  const video = findArticleBlockVideo(block);
+  if (video) return [video];
+
   // Image-only paragraph — emit ImageNode rather than wrapping in paragraph.
   const img = findArticleBlockImage(block);
   if (img && blockHasOnlyImage(block)) {
@@ -248,6 +257,41 @@ function extractSimpleTweet(block: HTMLElement): TweetNode | undefined {
     || block.querySelector('[data-testid="simpleTweet"] [data-testid="tweet"]');
   if (!tweetArticle) return undefined;
   return articleToTweetNode(tweetArticle);
+}
+
+// X keeps the poster wherever the player's render state puts it: on the
+// mounted <video>, on the thumbnail <img>, or — before either mounts — as the
+// CSS background of the placeholder.
+function findArticleBlockVideo(block: HTMLElement): VideoNode | undefined {
+  const poster = block.querySelector('video[poster]')?.getAttribute('poster')
+    || videoThumbSrc(block)
+    || videoThumbBackground(block);
+  if (poster) {
+    const url = canonicalVideoThumbUrl(poster);
+    return { type: 'video', sourceUrl: url, posterUrl: url };
+  }
+  // A player whose poster we can't find is an unsupported shape, not an empty
+  // block — say so rather than dropping the video silently.
+  if (block.querySelector('[data-testid="videoPlayer"], [data-testid="videoComponent"]')) {
+    throw new Error('domToAst: article video player with no poster');
+  }
+  return undefined;
+}
+
+function videoThumbSrc(block: HTMLElement): string | undefined {
+  for (const img of block.querySelectorAll('img')) {
+    const src = (img as HTMLImageElement).src || '';
+    if (VIDEO_THUMB_RE.test(src)) return src;
+  }
+  return undefined;
+}
+
+function videoThumbBackground(block: HTMLElement): string | undefined {
+  for (const el of block.querySelectorAll<HTMLElement>('[style*="background-image"]')) {
+    const url = el.style.backgroundImage.match(/url\(["']?([^"')]+)["']?\)/)?.[1];
+    if (url && VIDEO_THUMB_RE.test(url)) return url;
+  }
+  return undefined;
 }
 
 function findArticleBlockImage(block: HTMLElement): ImageNode | VideoNode | undefined {

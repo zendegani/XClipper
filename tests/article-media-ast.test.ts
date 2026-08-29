@@ -16,6 +16,28 @@ function loadArticle(html: string): void {
   });
 }
 
+function articleHtml(blocks: string): string {
+  return `
+    <html>
+      <body>
+        <article role="article">
+          <div data-testid="User-Name">
+            <a href="/theonejvo"><span>Jamieson O'Reilly</span></a>
+            <a href="/theonejvo"><span>@theonejvo</span></a>
+          </div>
+          <time datetime="2026-01-01T00:00:00.000Z"></time>
+          <div data-testid="twitter-article-title">Article with video</div>
+          <div data-testid="twitterArticleRichTextView">
+            <div data-testid="longformRichTextComponent">
+              <div data-contents="true">${blocks}</div>
+            </div>
+          </div>
+        </article>
+      </body>
+    </html>
+  `;
+}
+
 describe('domToAst() article media blocks', () => {
   it('extracts captioned X article media links as images', () => {
     loadArticle(`
@@ -60,5 +82,63 @@ describe('domToAst() article media blocks', () => {
     const markdown = renderMarkdown(ast);
     expect(markdown).toContain('![Image](https://pbs.twimg.com/media/G_f76WFbAAAwrmo?format=jpg&name=large)');
     expect(markdown).not.toContain('/article/2015401219746128322/media/');
+  });
+  it('extracts a mounted article video player as a video node', () => {
+    loadArticle(articleHtml(`
+      <section>
+        <div data-testid="tweetPhoto">
+          <div data-testid="videoPlayer">
+            <div data-testid="videoComponent">
+              <video
+                preload="none"
+                aria-label="Embedded video"
+                poster="https://pbs.twimg.com/amplify_video_thumb/2076673758748639232/img/YpAYEsLVDS7JMxGE.jpg"
+              ></video>
+              <img alt="" src="https://pbs.twimg.com/amplify_video_thumb/2076673758748639232/img/YpAYEsLVDS7JMxGE.jpg">
+            </div>
+            <div>18:48</div>
+          </div>
+        </div>
+      </section>
+    `));
+
+    const ast = domToAst();
+    if (ast.body.type !== 'article') throw new Error('expected an article');
+    expect(ast.body.children[0]).toEqual({
+      type: 'video',
+      sourceUrl: 'https://pbs.twimg.com/amplify_video_thumb/2076673758748639232/img/YpAYEsLVDS7JMxGE.jpg',
+      posterUrl: 'https://pbs.twimg.com/amplify_video_thumb/2076673758748639232/img/YpAYEsLVDS7JMxGE.jpg',
+    });
+  });
+
+  it('extracts an unmounted article video player from its poster background', () => {
+    loadArticle(articleHtml(`
+      <section>
+        <div data-testid="tweetPhoto">
+          <div data-testid="videoPlayer">
+            <div style="background-image: url(&quot;https://pbs.twimg.com/amplify_video_thumb/2076673758748639232/img/YpAYEsLVDS7JMxGE.jpg&quot;);"></div>
+          </div>
+        </div>
+      </section>
+    `));
+
+    const ast = domToAst();
+    if (ast.body.type !== 'article') throw new Error('expected an article');
+    expect(ast.body.children[0]).toEqual({
+      type: 'video',
+      sourceUrl: 'https://pbs.twimg.com/amplify_video_thumb/2076673758748639232/img/YpAYEsLVDS7JMxGE.jpg',
+      posterUrl: 'https://pbs.twimg.com/amplify_video_thumb/2076673758748639232/img/YpAYEsLVDS7JMxGE.jpg',
+    });
+  });
+  it('throws rather than dropping a video player it cannot read a poster from', () => {
+    loadArticle(articleHtml(`
+      <section>
+        <div data-testid="tweetPhoto">
+          <div data-testid="videoPlayer"><div></div></div>
+        </div>
+      </section>
+    `));
+
+    expect(() => domToAst()).toThrow(/video player with no poster/);
   });
 });
