@@ -29,11 +29,11 @@
   },
   "devDependencies": {
     "@puppeteer/browsers": "^3.2.1",
-    "@types/chrome": "^0.2.6",
+    "@types/chrome": "^0.2.7",
     "@types/jsdom": "^30.0.0",
     "esbuild": "^0.28.2",
     "jsdom": "^30.0.1",
-    "puppeteer-core": "^25.8.0",
+    "puppeteer-core": "^25.9.0",
     "typescript": "^7.0.2",
     "vitest": "^4.1.11"
   },
