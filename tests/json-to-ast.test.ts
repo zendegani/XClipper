@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { jsonToAst, jsonToTweetNode } from '../src/graphql/json-to-ast';
+import { articleEmbeddedTweetIds, jsonToAst, jsonToTweetNode } from '../src/graphql/json-to-ast';
 import { renderMarkdown } from '../src/ast/render-markdown';
 import { isDownloadableVideo } from '../src/ast/collect-media';
 
@@ -671,6 +671,60 @@ describe('jsonToAst — X Articles', () => {
         ],
       },
     ]);
+  });
+
+  // A post embedded in the article body arrives as a TWEET entity carrying only
+  // a tweetId — the tweet's own content is nowhere in the payload, so the caller
+  // fetches it and passes it in. Before this, the entity fell through and the
+  // embed vanished from the export (issue #123).
+  const withEmbeddedTweet = (tweetId: string) => ({
+    ...articleResult,
+    article: {
+      article_results: {
+        result: {
+          ...articleResult.article.article_results.result,
+          content_state: {
+            blocks: [
+              { type: 'unstyled', text: 'before' },
+              { type: 'atomic', text: ' ', entityRanges: [{ key: 0, offset: 0, length: 1 }] },
+              { type: 'unstyled', text: 'after' },
+            ],
+            entityMap: [{ key: '0', value: { type: 'TWEET', data: { tweetId } } }],
+          },
+        },
+      },
+    },
+  });
+
+  it('maps a TWEET entity to the fetched post', () => {
+    const embedded = jsonToTweetNode(tweet({ id_str: '777', full_text: 'the embedded post' }, { rest_id: '777' }));
+    const doc = jsonToAst(withEmbeddedTweet('777'), undefined, new Map([['777', embedded]]));
+    const children = (doc.body as { children: unknown[] }).children;
+    expect(children[1]).toEqual(embedded);
+    expect(renderMarkdown(doc)).toContain('the embedded post');
+  });
+
+  it('falls back to a link when the embedded post was not fetched', () => {
+    expect(blocksOf(withEmbeddedTweet('777'))[1]).toEqual({
+      type: 'blockquote',
+      children: [
+        {
+          type: 'paragraph',
+          children: [
+            {
+              type: 'link',
+              url: 'https://x.com/i/status/777',
+              children: [{ type: 'text', value: 'Embedded post on X' }],
+            },
+          ],
+        },
+      ],
+    });
+  });
+
+  it('lists the ids of the posts the body embeds', () => {
+    expect(articleEmbeddedTweetIds(withEmbeddedTweet('777'))).toEqual(['777']);
+    expect(articleEmbeddedTweetIds(articleResult)).toEqual([]);
   });
 });
 

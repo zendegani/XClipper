@@ -17,7 +17,7 @@
 // If it says no request was captured, open https://x.com/i/history, scroll
 // once, and re-run.
 
-import type { Document } from '../ast/types';
+import type { Document, TweetNode } from '../ast/types';
 import type {
   FastBatchProgress,
   FastBatchReadyResponse,
@@ -26,8 +26,13 @@ import type {
 } from '../types/messages';
 import { isExtensionPageSender } from './security';
 import { videoAttachments } from '../shared/local-video';
+import type { EmbeddedTweets } from '../graphql/json-to-ast';
 import { jsonToAst } from '../graphql/json-to-ast';
-import { tweetDetailToDocument } from '../graphql/tweet-detail';
+import {
+  tweetDetailEmbeddedTweetIds,
+  tweetDetailFocalTweetNode,
+  tweetDetailToDocument,
+} from '../graphql/tweet-detail';
 import { getVariables, paginateTimeline, setVariablesParam } from '../graphql/timeline';
 import { loadSettings } from '../shared/settings';
 import { postProcess, resolveDownloadImages } from '../shared/post-process';
@@ -92,7 +97,7 @@ const RETRY_BASE_MS = 1200;
 // the target id (`focalTweetId` is X's well-known TweetDetail variable). Returns
 // null when no TweetDetail request has been observed yet. Retries transient /
 // rate-limit failures with backoff; throws the last error otherwise.
-async function fetchTweetDetailDoc(id: string, sourceUrl?: string): Promise<Document | null> {
+async function fetchTweetDetailJson(id: string): Promise<unknown | null> {
   const template = templates.TweetDetail;
   if (!template) return null;
   const vars = JSON.parse(getVariables(template)) as Record<string, unknown>;
@@ -105,12 +110,44 @@ async function fetchTweetDetailDoc(id: string, sourceUrl?: string): Promise<Docu
       const json = await authedFetchJson(url);
       const errs = (json as { errors?: { message?: string }[] }).errors;
       if (Array.isArray(errs) && errs.length) throw new GraphqlError(errs.map((e) => e.message ?? 'error'));
-      return tweetDetailToDocument(json, sourceUrl);
+      return json;
     } catch (err) {
       if (classify(err) === 'permanent' || attempt >= MAX_RETRIES) throw err;
       await sleep(RETRY_BASE_MS * 2 ** attempt + Math.random() * 400);
     }
   }
+}
+
+async function fetchTweetDetailDoc(id: string, sourceUrl?: string): Promise<Document | null> {
+  const json = await fetchTweetDetailJson(id);
+  if (json === null) return null;
+  return tweetDetailToDocument(json, sourceUrl, await fetchEmbeddedTweets(json));
+}
+
+// Most TweetDetail embeds an article can name. An article with embedded posts is
+// rare and usually has one or two; the cap stops a pathological one from eating
+// the run's TweetDetail budget (the ones past it still render as links).
+const MAX_ARTICLE_EMBEDS = 8;
+
+// A post embedded in an X Article body is named by id ONLY — its content appears
+// nowhere in the article's own TweetDetail — so each needs its own fetch to
+// reach the parity the DOM path gets from `[data-testid="simpleTweet"]`
+// (issue #123). Sequential, and failures (rate limit included) are simply left
+// out of the map: the mapper then renders that embed as a link to the post,
+// which beats the silent hole this replaces.
+async function fetchEmbeddedTweets(json: unknown): Promise<EmbeddedTweets | undefined> {
+  const ids = tweetDetailEmbeddedTweetIds(json).slice(0, MAX_ARTICLE_EMBEDS);
+  if (ids.length === 0) return undefined;
+  const embeds = new Map<string, TweetNode>();
+  for (const id of ids) {
+    try {
+      const embedJson = await fetchTweetDetailJson(id);
+      if (embedJson) embeds.set(id, tweetDetailFocalTweetNode(embedJson));
+    } catch (err) {
+      log(`embedded post ${id} unavailable — linking to it instead:`, err);
+    }
+  }
+  return embeds;
 }
 
 // Run `fn` over `items` with at most `limit` in flight (TweetDetail is one

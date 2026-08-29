@@ -145,8 +145,8 @@ interface RawDraftBlock {
   entityRanges?: RawEntityRange[];
 }
 interface RawEntityValue {
-  type?: string; // 'LINK' | 'MEDIA' | 'DIVIDER' | 'MARKDOWN'
-  data?: { url?: string; mediaItems?: { mediaId?: string }[]; markdown?: string };
+  type?: string; // 'LINK' | 'MEDIA' | 'DIVIDER' | 'MARKDOWN' | 'TWEET'
+  data?: { url?: string; mediaItems?: { mediaId?: string }[]; markdown?: string; tweetId?: string };
 }
 interface RawContentState {
   blocks?: RawDraftBlock[];
@@ -169,10 +169,33 @@ interface RawResult extends RawTweet {
 
 // ─── Entry points ───────────────────────────────────────────────────
 
-export function jsonToAst(raw: unknown, sourceUrl?: string): Document {
+// Tweets embedded in an X Article body, by tweet id — fetched separately by the
+// caller (see articleEmbeddedTweetIds) because the article payload carries only
+// the ids. Absent ids degrade to a link rather than disappearing (issue #123).
+export type EmbeddedTweets = ReadonlyMap<string, TweetNode>;
+
+// The ids of every post embedded in this tweet's Article body, in document
+// order and deduped. Empty for a non-article, or an article whose body wasn't
+// sent (the bookmarks/timeline stub).
+export function articleEmbeddedTweetIds(raw: unknown): string[] {
+  const cs = unwrap(raw).article?.article_results?.result?.content_state;
+  const entities = new Map<string, RawEntityValue>();
+  for (const e of cs?.entityMap ?? []) if (e.key != null && e.value) entities.set(String(e.key), e.value);
+
+  const ids = new Set<string>();
+  for (const b of cs?.blocks ?? []) {
+    const key = (b.entityRanges ?? [])[0]?.key;
+    if (key == null) continue;
+    const ent = entities.get(String(key));
+    if (ent?.type === 'TWEET' && ent.data?.tweetId) ids.add(ent.data.tweetId);
+  }
+  return [...ids];
+}
+
+export function jsonToAst(raw: unknown, sourceUrl?: string, embeds?: EmbeddedTweets): Document {
   const t = unwrap(raw);
   const article = t.article?.article_results?.result;
-  if (article) return articleDocument(t, article, sourceUrl);
+  if (article) return articleDocument(t, article, sourceUrl, embeds);
 
   const tweet = jsonToTweetNode(raw);
   return {
@@ -194,7 +217,12 @@ export function jsonToAst(raw: unknown, sourceUrl?: string): Document {
 // extractor produces). The bookmarks/timeline response omits the body, so there
 // we fall back to a faithful *stub*: title + cover + preview + a "read on X"
 // link — honest, and far better than mislabeling it a tweet.
-function articleDocument(t: RawTweet, article: RawArticle, sourceUrl?: string): Document {
+function articleDocument(
+  t: RawTweet,
+  article: RawArticle,
+  sourceUrl?: string,
+  embeds?: EmbeddedTweets
+): Document {
   const tweetId = t.rest_id ?? t.legacy?.id_str ?? '';
   const url =
     t.legacy?.entities?.urls?.[0]?.expanded_url?.replace(/^http:/, 'https:') ??
@@ -202,7 +230,7 @@ function articleDocument(t: RawTweet, article: RawArticle, sourceUrl?: string): 
 
   const blocks = article.content_state?.blocks ?? [];
   const children: Block[] = blocks.length
-    ? draftToBlocks(article.content_state ?? {}, article.media_entities ?? [])
+    ? draftToBlocks(article.content_state ?? {}, article.media_entities ?? [], embeds)
     : stubChildren(article, url);
 
   const body: ArticleNode = { type: 'article', children };
@@ -245,7 +273,11 @@ function stubChildren(article: RawArticle, url: string): Block[] {
 // so plain string slicing is correct here. We emit the SAME block shapes the DOM
 // article extractor produces, so the renderers are unchanged.
 
-function draftToBlocks(cs: RawContentState, mediaEntities: RawMediaEntity[]): Block[] {
+function draftToBlocks(
+  cs: RawContentState,
+  mediaEntities: RawMediaEntity[],
+  embeds?: EmbeddedTweets
+): Block[] {
   const entities = new Map<string, RawEntityValue>();
   for (const e of cs.entityMap ?? []) if (e.key != null && e.value) entities.set(String(e.key), e.value);
   const mediaById = new Map<string, RawMediaEntity>();
@@ -292,7 +324,7 @@ function draftToBlocks(cs: RawContentState, mediaEntities: RawMediaEntity[]): Bl
     flush();
 
     if (type === 'atomic') {
-      const block = atomicBlock(b, entities, mediaById);
+      const block = atomicBlock(b, entities, mediaById, embeds);
       if (block) out.push(block);
       continue;
     }
@@ -333,18 +365,20 @@ function normalizeMediaUrl(url: string): string {
 }
 
 // An atomic block carries a single entity: a DIVIDER (→ horizontal rule),
-// MEDIA (→ image/video, resolved via media_entities by mediaId) or MARKDOWN
-// (→ code block or table).
+// MEDIA (→ image/video, resolved via media_entities by mediaId), MARKDOWN
+// (→ code block or table) or TWEET (→ embedded post, see embeddedTweetBlock).
 function atomicBlock(
   b: RawDraftBlock,
   entities: Map<string, RawEntityValue>,
-  mediaById: Map<string, RawMediaEntity>
+  mediaById: Map<string, RawMediaEntity>,
+  embeds?: EmbeddedTweets
 ): Block | undefined {
   const range = (b.entityRanges ?? [])[0];
   if (!range || range.key == null) return undefined;
   const ent = entities.get(String(range.key));
   if (ent?.type === 'DIVIDER') return { type: 'thematicBreak' };
   if (ent?.type === 'MARKDOWN') return markdownEntityBlock(ent.data?.markdown);
+  if (ent?.type === 'TWEET') return embeddedTweetBlock(ent.data?.tweetId, embeds);
   if (ent?.type !== 'MEDIA') return undefined;
   const mediaId = ent.data?.mediaItems?.[0]?.mediaId;
   if (!mediaId) return undefined;
@@ -360,6 +394,29 @@ function atomicBlock(
   }
   const url = info?.original_img_url ?? posterUrl;
   return url ? { type: 'image', url: normalizeMediaUrl(url) } : undefined;
+}
+
+// An embedded post. Unlike a MEDIA entity, a TWEET entity is only a `tweetId` —
+// the tweet itself appears NOWHERE in the article's TweetDetail payload, so it
+// has to be fetched separately (fast-batch does that and passes the results in
+// `embeds`). With the tweet in hand we emit the same TweetNode the DOM path
+// gets from `[data-testid="simpleTweet"]`; without it (not fetched, or the
+// fetch was rate-limited) we emit a link the reader can follow — a visible
+// pointer beats a silent hole in the article (issue #123).
+function embeddedTweetBlock(tweetId?: string, embeds?: EmbeddedTweets): Block | undefined {
+  if (!tweetId) return undefined;
+  const tweet = embeds?.get(tweetId);
+  if (tweet) return tweet;
+  const url = `https://x.com/i/status/${tweetId}`;
+  return {
+    type: 'blockquote',
+    children: [
+      {
+        type: 'paragraph',
+        children: [{ type: 'link', url, children: [{ type: 'text', value: 'Embedded post on X' }] }],
+      },
+    ],
+  };
 }
 
 // Code blocks and tables are the one part of an article X does NOT hand over

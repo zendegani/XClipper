@@ -2,7 +2,12 @@ import { describe, it, expect } from 'vitest';
 import { existsSync, readFileSync } from 'node:fs';
 import type { ArticleNode, ThreadNode } from '../src/ast/types';
 import { collectMedia, isDownloadableVideo } from '../src/ast/collect-media';
-import { flattenTweetDetail, tweetDetailToDocument } from '../src/graphql/tweet-detail';
+import {
+  flattenTweetDetail,
+  tweetDetailEmbeddedTweetIds,
+  tweetDetailFocalTweetNode,
+  tweetDetailToDocument,
+} from '../src/graphql/tweet-detail';
 import { renderMarkdown } from '../src/ast/render-markdown';
 
 // A tweet_results.result; a TweetDetail wrapping a focal item + reply modules.
@@ -58,6 +63,62 @@ describe('tweetDetailToDocument', () => {
     const doc = tweetDetailToDocument(tweetDetail([mk('1', 'alice', 'lone'), mk('2', 'bob', 'reply')]));
     expect(doc.metadata.type).toBe('tweet');
     expect(doc.metadata.tweetId).toBe('1');
+  });
+});
+
+// A post embedded in an Article body is named by id only — the article payload
+// carries none of its content — so the caller fetches each id and hands the
+// mapped tweets back through `embeds` (issue #123).
+describe('embedded posts in an Article body', () => {
+  const articleWithEmbed = (tweetId: string) => ({
+    ...mk('1', 'alice', 'https://t.co/abc'),
+    article: {
+      article_results: {
+        result: {
+          rest_id: '999',
+          title: 'My Long Read',
+          content_state: {
+            blocks: [{ type: 'atomic', text: ' ', entityRanges: [{ key: 0, offset: 0, length: 1 }] }],
+            entityMap: [{ key: '0', value: { type: 'TWEET', data: { tweetId } } }],
+          },
+        },
+      },
+    },
+  });
+
+  it('reports the ids the article body embeds', () => {
+    expect(tweetDetailEmbeddedTweetIds(tweetDetail([articleWithEmbed('777')]))).toEqual(['777']);
+    expect(tweetDetailEmbeddedTweetIds(tweetDetail([mk('1', 'alice', 'plain')]))).toEqual([]);
+  });
+
+  // Minimized from a real public TweetDetail capture for status
+  // 2076690611399176506 — three body blocks around the embed, plus the TWEET
+  // entity verbatim. It pins the field path (`data.tweetId`), which is the one
+  // thing the hand-modeled fixtures above can't vouch for.
+  it('reads the TWEET entity out of a real captured article body', () => {
+    const raw = JSON.parse(
+      readFileSync('tests/fixtures/graphql/tweetdetail-2076690611399176506-embedded-tweet.min.json', 'utf8')
+    );
+    expect(tweetDetailEmbeddedTweetIds(raw)).toEqual(['2071293386724982947']);
+
+    // Un-fetched, the embed sits between the two paragraphs it separates —
+    // where it used to leave a hole.
+    const md = renderMarkdown(tweetDetailToDocument(raw));
+    expect(md).toContain(
+      'Example on how you can sell your product with this mechanics:\n\n> [Embedded post on X](https://x.com/i/status/2071293386724982947)\n\nHis tweet got 765'
+    );
+  });
+
+  it('maps an embedded post fetch to the TweetNode the article body needs', () => {
+    const embedded = tweetDetailFocalTweetNode(tweetDetail([mk('777', 'bob', 'the embedded post')]));
+    expect(embedded.tweetId).toBe('777');
+
+    const doc = tweetDetailToDocument(
+      tweetDetail([articleWithEmbed('777')]),
+      undefined,
+      new Map([['777', embedded]])
+    );
+    expect((doc.body as ArticleNode).children).toEqual([embedded]);
   });
 });
 

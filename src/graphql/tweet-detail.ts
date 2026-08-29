@@ -9,7 +9,8 @@
 // quotes/media/cards/long-form all work for free.
 
 import type { Document, TweetNode } from '../ast/types';
-import { jsonToAst, jsonToTweetNode } from './json-to-ast';
+import type { EmbeddedTweets } from './json-to-ast';
+import { articleEmbeddedTweetIds, jsonToAst, jsonToTweetNode } from './json-to-ast';
 
 interface RawEntry {
   content?: {
@@ -51,15 +52,32 @@ export function flattenTweetDetail(raw: unknown): unknown[] {
   return out;
 }
 
+// The ids of the posts embedded in this response's Article body. The article
+// payload names them but carries none of their content, so the caller fetches
+// each one and hands the results back through `tweetDetailToDocument`'s
+// `embeds` (issue #123). Empty for anything that isn't a full Article body.
+export function tweetDetailEmbeddedTweetIds(raw: unknown): string[] {
+  const results = flattenTweetDetail(raw);
+  return results.length === 0 ? [] : articleEmbeddedTweetIds(results[0]);
+}
+
+// The focal tweet as a TweetNode — how an embedded post is mapped once its own
+// TweetDetail comes back.
+export function tweetDetailFocalTweetNode(raw: unknown): TweetNode {
+  const results = flattenTweetDetail(raw);
+  if (results.length === 0) throw new Error('TweetDetail carried no tweets');
+  return jsonToTweetNode(results[0]);
+}
+
 // A focal tweet → its full Document. A multi-tweet self-thread becomes a
 // ThreadNode; a lone tweet (or an Article focal) falls back to jsonToAst, which
 // already handles single tweets and the Article stub/full body.
-export function tweetDetailToDocument(raw: unknown, sourceUrl?: string): Document {
+export function tweetDetailToDocument(raw: unknown, sourceUrl?: string, embeds?: EmbeddedTweets): Document {
   const results = flattenTweetDetail(raw);
   if (results.length === 0) throw new Error('TweetDetail carried no tweets');
 
   // Articles are mapped by jsonToAst (stub today, full body next), not threaded.
-  if (unwrap(results[0]).article) return jsonToAst(results[0], sourceUrl);
+  if (unwrap(results[0]).article) return jsonToAst(results[0], sourceUrl, embeds);
 
   const nodes = results.map((r) => jsonToTweetNode(r));
   const focalHandle = nodes[0].author.handle.toLowerCase();
