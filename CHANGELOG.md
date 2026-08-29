@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Fixed
 
+- **Manual batch now saves videos as files, like Auto and Super**: with local saving on **Media**, a Manual batch wrote each post's video as its thumbnail and stopped there — the same posts run through Auto came out with an `.mp4` and a `▶ Video` link, so the engine you picked silently changed what you got. The batch orchestrator now resolves each post's video the way single export does and rebuilds that item's Markdown around the file. The worker tab still can't ask for it itself — that channel replays your X session and stays closed to page scripts — so the resolution happens in the background, where the batch already runs. (#118)
 - **Article videos now survive a Manual or single export too**: a video in an X Article body reached the export only when the page happened to have its player mounted *and* silent. Otherwise it left as a paragraph reading the video's length — `18:48` — or vanished with no trace, the text running straight from the paragraph before it to the paragraph after. The player is now recognised in every state it renders in, so Manual and single exports keep the video where Auto and Super already did, thumbnail in place and saved as an `.mp4` when local saving is on **Media**. An article video XClipper genuinely can't read now fails the export loudly instead of quietly leaving a hole in it. (#118)
 
 ---

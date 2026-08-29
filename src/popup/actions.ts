@@ -15,8 +15,7 @@ import { recordExport } from '../shared/review-prompt';
 import { buildObsidianUrl } from '../shared/obsidian';
 import { hostMatches } from '../shared/media';
 import { renderMarkdown } from '../ast/render-markdown';
-import { applyVideoUrls } from '../ast/apply-video-urls';
-import { collectMedia, isDownloadableVideo } from '../ast/collect-media';
+import { resolveLocalVideo, type VideoAttachment } from '../shared/local-video';
 import { currentFrontmatterFields, readSingleFormat, applySingleFormat, persistAll, saveLocalEnabled, saveLocalMediaEnabled } from './settings-form';
 import type { BatchFormat } from '../shared/settings';
 import {
@@ -165,7 +164,7 @@ async function extractMarkdown(
     downloadImages,
     inlineStats,
     obsidianFriendly,
-    videoAttachments: downloadImages ? await resolveLocalVideo(data) : undefined,
+    videoAttachments: downloadImages ? await localVideoAttachments(data) : undefined,
     filenameTemplate: txtFilenameTemplate.value.trim(),
     obsidianTagsTemplate: txtObsidianTags.value.trim(),
     frontmatterFields: currentFrontmatterFields(obsidianFriendly),
@@ -174,38 +173,26 @@ async function extractMarkdown(
 
 // Turn this post's videos into local files, when the user asked for Media.
 //
-// The DOM extractor only ever sees a poster, so the MP4 comes from the
-// background's captured X session and gets written back onto the AST; the
-// Markdown is then re-rendered so its [▶ Video] link points at the file we're
-// about to save. Re-rendering is safe because the content script renders with
-// no options — includeVideoLinks is the only difference between the two passes.
+// The Markdown is re-rendered from the filled-in AST so its [▶ Video] link
+// points at the file we're about to save. Re-rendering is safe because the
+// content script renders with no options — includeVideoLinks is the only
+// difference between the two passes.
 //
-// Every failure path (no permission, nothing resolved, no AST on the wire)
-// returns undefined, which leaves the export exactly as it is today — but a
-// post that HAS video and still didn't resolve says so, because silently
+// A post that HAS video and still didn't resolve says so, because silently
 // shipping the thumbnail is the one outcome the user can't tell apart from
 // success until they open the folder.
-async function resolveLocalVideo(
-  data: ExtractedContent
-): Promise<{ renderedUrl: string; downloadUrl: string }[] | undefined> {
+async function localVideoAttachments(data: ExtractedContent): Promise<VideoAttachment[] | undefined> {
   if (!saveLocalMediaEnabled() || !data.body) return undefined;
 
-  // A node still standing on its poster is a video we haven't resolved yet.
-  // None here means nothing to fetch, so skip the round trip entirely.
-  const unresolved = collectMedia(data.body).filter(
-    (m) => (m.kind === 'video' || m.kind === 'gif') && m.url === m.posterUrl
-  );
-  if (unresolved.length === 0) return undefined;
-
-  const response: ResolveVideoUrlsResponse | undefined = await chrome.runtime.sendMessage({
-    action: 'RESOLVE_VIDEO_URLS',
-    tweetId: data.tweetId,
+  const result = await resolveLocalVideo(data.body, data.tweetId, async (tweetId) => {
+    const response: ResolveVideoUrlsResponse | undefined = await chrome.runtime.sendMessage({
+      action: 'RESOLVE_VIDEO_URLS',
+      tweetId,
+    });
+    return response?.urls ?? [];
   });
-
-  const applied = response?.urls?.length
-    ? applyVideoUrls(data.body, new Map(response.urls))
-    : 0;
-  if (applied === 0) {
+  if (result.status === 'none') return undefined;
+  if (result.status === 'unresolved') {
     showStatus(
       chrome.i18n.getMessage('video_unresolved') ||
         'Video kept as a link — reload the post once, then export again.',
@@ -215,10 +202,7 @@ async function resolveLocalVideo(
   }
 
   data.markdown = renderMarkdown(data.body, { includeVideoLinks: true });
-
-  return collectMedia(data.body)
-    .filter(isDownloadableVideo)
-    .map((m) => ({ renderedUrl: m.url, downloadUrl: m.url }));
+  return result.attachments;
 }
 
 function handleExtractionError(err: unknown): void {
