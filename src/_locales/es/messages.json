@@ -459,7 +459,7 @@
     "message": "Mostrar marcadores de etiquetas"
   },
   "opt_save_local_title": {
-    "message": "Desactivado: mantener el contenido como enlaces a X. Imágenes: descargar las imágenes en una carpeta junto al archivo Markdown. Multimedia: descargar también los vídeos en .mp4, mucho más pesados."
+    "message": "Desactivado: mantener los archivos multimedia como enlaces a X. Imágenes: descargar las imágenes en una carpeta junto al archivo Markdown. Multimedia: guardar también los vídeos como archivos .mp4; estos ocupan mucho más espacio."
   },
   "opt_save_local": {
     "message": "Guardar localmente (solo con .md)"

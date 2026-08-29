@@ -459,10 +459,10 @@
     "message": "显示标签占位符"
   },
   "opt_save_local_title": {
-    "message": "关闭：媒体保留为 X 链接。图片：将图片下载到 Markdown 文件旁的文件夹中。媒体：同时将视频保存为 .mp4——体积大得多。"
+    "message": "关闭：媒体保留为 X 链接。图片：将图片下载到与 Markdown 文件同级的文件夹中。媒体：同时将视频保存为 .mp4——体积大得多。"
   },
   "opt_save_local": {
-    "message": "本地保存（仅 .md）"
+    "message": "本地保存（仅适用于 .md）"
   },
   "opt_save_local_off": {
     "message": "关闭"
