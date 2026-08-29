@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Fixed
+
+- **Article videos now survive a Manual or single export too**: a video in an X Article body reached the export only when the page happened to have its player mounted *and* silent. Otherwise it left as a paragraph reading the video's length — `18:48` — or vanished with no trace, the text running straight from the paragraph before it to the paragraph after. The player is now recognised in every state it renders in, so Manual and single exports keep the video where Auto and Super already did, thumbnail in place and saved as an `.mp4` when local saving is on **Media**. An article video XClipper genuinely can't read now fails the export loudly instead of quietly leaving a hole in it. (#118)
+
+---
+
 ## [2.8.1] - 2026-08-29
 
 ### Fixed
