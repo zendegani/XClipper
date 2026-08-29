@@ -25,7 +25,7 @@ import type {
   FastBatchStatusResponse,
 } from '../types/messages';
 import { isExtensionPageSender } from './security';
-import { collectMedia, isDownloadableVideo } from '../ast/collect-media';
+import { videoAttachments } from '../shared/local-video';
 import { jsonToAst } from '../graphql/json-to-ast';
 import { tweetDetailToDocument } from '../graphql/tweet-detail';
 import { getVariables, paginateTimeline, setVariablesParam } from '../graphql/timeline';
@@ -364,22 +364,14 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
     // Expansion can change the canonical id, so track both — see Item.feedId.
     const expandedId = doc.metadata.tweetId;
     const isStub = s.needsExpand && !s.ledger;
-    // Structural: walk the AST for the MP4 rather than parsing the rendered
-    // Markdown back out. renderedUrl is what the renderer wrote into the
-    // [▶ Video] token; downloadUrl is what we fetch — the same today, kept
-    // separate because that is the seam a later phase would widen.
-    const videoAttachments = localVideo
-      ? collectMedia(doc)
-          .filter(isDownloadableVideo)
-          .map((m) => ({ renderedUrl: m.url, downloadUrl: m.url }))
-      : undefined;
+    const attachments = localVideo ? videoAttachments(doc) : undefined;
     const result = postProcess(docToExtracted(
       doc,
       localVideo ? { includeVideoLinks: true } : undefined,
     ), {
       includeMetadata: settings.includeMetadata,
       downloadImages: resolveDownloadImages('download', settings.downloadImages),
-      videoAttachments,
+      videoAttachments: attachments,
       inlineStats: settings.inlineStats,
       obsidianFriendly: settings.obsidianFriendly,
       filenameTemplate: settings.filenameTemplate.trim(),

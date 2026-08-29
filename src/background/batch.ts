@@ -10,14 +10,16 @@
 // or send { action: 'BATCH_START', urls } from any extension page. Cancel
 // with { action: 'BATCH_CONTROL', control: 'cancel' }.
 
+import type { Document } from '../ast/types';
 import type {
   BatchItemResultMessage,
   BatchStartResponse,
   BatchStatusResponse,
 } from '../types/messages';
-import { loadSettings, type BatchFormat, type BatchOutput } from '../shared/settings';
+import { loadSettings, type BatchFormat, type BatchOutput, type Settings } from '../shared/settings';
 import { recordExport } from '../shared/review-prompt';
 import {
+  docToExtracted,
   downloadZipArchive,
   writeCombined,
   writeJsonManifest,
@@ -25,6 +27,9 @@ import {
   zipEntryFromStored,
   type StoredItem,
 } from './batch-sink';
+import { postProcess, resolveDownloadImages } from '../shared/post-process';
+import { resolveLocalVideo } from '../shared/local-video';
+import { resolveVideoUrls } from './resolve-video';
 import {
   isExtensionPageSender,
   isTrustedXContentSender,
@@ -254,6 +259,45 @@ async function dispatchCurrent(job: BatchJob): Promise<void> {
   });
 }
 
+// Fill in this item's videos and rebuild its Markdown around them.
+//
+// The worker tab extracted the post, but it can't ask for the MP4s itself:
+// that channel replays the user's X session and is closed to content scripts
+// by design, so the orchestrator — which is already the background — resolves
+// them here. The item is then re-rendered from the filled-in AST exactly the
+// way Fast Batch renders its own, which is what keeps a Manual batch and an
+// Auto one landing the same files for the same post.
+//
+// Returns undefined when there is nothing to change: local video saving off,
+// no video in the post, or nothing resolved (no permission, a rate limit) —
+// every one of which leaves the worker's own Markdown as the export.
+async function withLocalVideo(
+  doc: Document,
+  settings: Settings
+): Promise<{ markdown: string; images: { url: string; filename: string }[] } | undefined> {
+  if (!settings.saveVideos || !resolveDownloadImages('download', settings.downloadImages)) {
+    return undefined;
+  }
+
+  const resolved = await resolveLocalVideo(doc, doc.metadata.tweetId, async (tweetId) =>
+    [...(await resolveVideoUrls(tweetId))]
+  );
+  if (resolved.status !== 'resolved') return undefined;
+
+  const result = postProcess(docToExtracted(doc, { includeVideoLinks: true }), {
+    includeMetadata: settings.includeMetadata,
+    downloadImages: resolveDownloadImages('download', settings.downloadImages),
+    videoAttachments: resolved.attachments,
+    inlineStats: settings.inlineStats,
+    obsidianFriendly: settings.obsidianFriendly,
+    filenameTemplate: settings.filenameTemplate.trim(),
+    frontmatterFields: settings.obsidianFriendly
+      ? settings.frontmatterFieldsObsidian
+      : settings.frontmatterFields,
+  });
+  return { markdown: result.markdown, images: result.images };
+}
+
 async function handleItemResult(
   msg: BatchItemResultMessage,
   sender: chrome.runtime.MessageSender
@@ -296,20 +340,29 @@ async function handleItemResult(
 
   const { job: advanced, filename } = recordResult(job, outcome);
   if (outcome.success && filename) {
+    const settings = await loadSettings();
     // 'combined' writes nothing per item — the one file is built at finalize.
     // Zip mode also defers to finalize: entries are rebuilt there from the
     // stored docs, so nothing per-item hits the downloads shelf.
     // (msg.doc missing means there's nothing to rebuild from at finalize, so
     // such an item is written loose even in zip mode.)
     if (effectiveOutput(job) !== 'combined' && !(job.zip && msg.doc)) {
+      // Videos reach the disk only once the orchestrator has resolved them —
+      // see withLocalVideo. Its rebuild then replaces the worker's Markdown
+      // and image list; the deferred sinks above never save media, so they
+      // stay on what the worker sent.
+      const withVideo =
+        msg.doc && (job.format ?? 'md') === 'md'
+          ? await withLocalVideo(msg.doc, settings)
+          : undefined;
       await writePerItem(
         advanced.folder,
         job.format ?? 'md',
         filename,
-        msg.markdown as string,
-        msg.images,
+        withVideo?.markdown ?? (msg.markdown as string),
+        withVideo?.images ?? msg.images,
         msg.doc,
-        await loadSettings()
+        settings
       );
     }
     await recordExported(expected);
@@ -332,7 +385,7 @@ async function handleItemResult(
             msg.markdown as string,
             msg.images,
             msg.doc,
-            await loadSettings()
+            settings
           );
         }
       }
