@@ -113,9 +113,6 @@
   "fast_date_range": {
     "message": "Datumsbereich"
   },
-  "fast_date_range_hint": {
-    "message": "Exportiert nur Posts, deren Datum in diesem Bereich liegt - Posts außerhalb werden übersprungen, ohne erweitert zu werden, damit du ältere Posts erreichst, ohne Xs Rate Limit zu treffen."
-  },
   "fast_date_from": {
     "message": "Startdatum"
   },
@@ -331,9 +328,6 @@
   },
   "group_export": {
     "message": "Exporteinstellungen"
-  },
-  "group_more_formats": {
-    "message": "Weitere Formate"
   },
   "beta": {
     "message": "Beta"

@@ -113,9 +113,6 @@
   "fast_date_range": {
     "message": "日付範囲"
   },
-  "fast_date_range_hint": {
-    "message": "日付がこの範囲内の投稿だけをエクスポートします。範囲外の投稿は展開せずにスキップされるため、Xのレート制限に達しにくく古い投稿へ進めます。"
-  },
   "fast_date_from": {
     "message": "開始日"
   },
@@ -331,9 +328,6 @@
   },
   "group_export": {
     "message": "エクスポート設定"
-  },
-  "group_more_formats": {
-    "message": "その他の形式"
   },
   "beta": {
     "message": "ベータ"

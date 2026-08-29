@@ -113,9 +113,6 @@
   "fast_date_range": {
     "message": "Rango de fechas"
   },
-  "fast_date_range_hint": {
-    "message": "Exporta solo publicaciones cuya fecha esté en este rango; las que queden fuera se omiten sin expandirse, para llegar a publicaciones antiguas sin alcanzar el límite de frecuencia de X."
-  },
   "fast_date_from": {
     "message": "Fecha inicial"
   },
@@ -331,9 +328,6 @@
   },
   "group_export": {
     "message": "Ajustes de exportación"
-  },
-  "group_more_formats": {
-    "message": "Más formatos"
   },
   "beta": {
     "message": "Beta"

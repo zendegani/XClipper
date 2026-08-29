@@ -113,9 +113,6 @@
   "fast_date_range": {
     "message": "Plage de dates"
   },
-  "fast_date_range_hint": {
-    "message": "Exportez uniquement les posts dont la date est dans cette plage ; les posts hors plage sont ignorés sans être développés, afin d’atteindre des posts plus anciens sans toucher la limite de débit de X."
-  },
   "fast_date_from": {
     "message": "Date de début"
   },
@@ -331,9 +328,6 @@
   },
   "group_export": {
     "message": "Paramètres d'export"
-  },
-  "group_more_formats": {
-    "message": "Plus de formats"
   },
   "beta": {
     "message": "Bêta"

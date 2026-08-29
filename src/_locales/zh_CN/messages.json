@@ -113,9 +113,6 @@
   "fast_date_range": {
     "message": "日期范围"
   },
-  "fast_date_range_hint": {
-    "message": "仅导出日期在此范围内的帖子；范围外的帖子会跳过且不展开，让你无需触发 X 速率限制也能到达更早的帖子。"
-  },
   "fast_date_from": {
     "message": "开始日期"
   },
@@ -331,9 +328,6 @@
   },
   "group_export": {
     "message": "导出设置"
-  },
-  "group_more_formats": {
-    "message": "更多格式"
   },
   "beta": {
     "message": "Beta"
