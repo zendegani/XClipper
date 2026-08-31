@@ -1,10 +1,8 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 420 96" role="img" aria-label="XClipper">
   <style>
     .x-letter { fill: #0f1419; }
-    .clip-outline { fill: none; stroke: #0f1419; }
     @media (prefers-color-scheme: dark) {
       .x-letter { fill: #e7e9ea; }
-      .clip-outline { stroke: #e7e9ea; }
     }
     .wordmark {
       font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
@@ -28,9 +26,13 @@
         <line x1="47.5" y1="-32" x2="47.5" y2="112" stroke="#dc2626"/>
       </g>
     </g>
-    <rect x="1.25" y="31.9" width="77.5" height="16.2" rx="8.1"
-          class="clip-outline" stroke-width="5.6"
-          transform="rotate(52 40 40)"/>
+    <!-- Same casing-over-core clip as assets/xclipper-mark.svg, scaled to 80px:
+         a wide near-white casing under a narrower black core, so the shape holds
+         on a light or a dark surface without a theme swap. -->
+    <g fill="none" transform="rotate(52 40 40)">
+      <rect x="1.25" y="31.9" width="77.5" height="16.2" rx="8.1" stroke="#F8FAFC" stroke-width="10"/>
+      <rect x="1.25" y="31.9" width="77.5" height="16.2" rx="8.1" stroke="#000000" stroke-width="5"/>
+    </g>
   </g>
 
   <!-- Wordmark text -->
