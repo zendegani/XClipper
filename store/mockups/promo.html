@@ -128,7 +128,13 @@
   .mqp-mode .opt{ flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 13px; font-weight: 700; color: #94a3b8; padding: 8px 0; border-radius: 8px; }
   .mqp-mode .opt.active{ background: #ffffff; color: #0b1220; box-shadow: 0 1px 3px rgba(15,23,42,.12); }
   .mqp-mode .beta{ font-size: 9px; font-weight: 800; color: #b91c1c; background: #fee2e2; border-radius: 999px; padding: 2px 5px; letter-spacing: .04em; text-transform: uppercase; }
-  .mqp-mode-caption{ font-size: 11.5px; color: #475569; line-height: 1.35; }
+  /* Mirrors the popup's outlined .btn-primary — the batch CTA. */
+  .mqp-cta{
+    display: flex; align-items: center; justify-content: center; gap: 8px;
+    height: 44px; border: 1px solid var(--brand-blue); border-radius: 11px;
+    color: var(--brand-blue); font-size: 14px; font-weight: 700; letter-spacing: -.01em;
+  }
+  .mqp-cta svg{ width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
   .mqp-prog{ display: flex; flex-direction: column; gap: 9px; }
   .mqp-prow{ display: flex; align-items: center; gap: 10px; }
@@ -366,7 +372,10 @@
             <div class="opt">Auto<span class="beta">Beta</span></div>
             <div class="opt active">Super<span class="beta">Beta</span></div>
           </div>
-          <div class="mqp-mode-caption">Fetches thousands at once, but saves each post&rsquo;s first tweet only &mdash; threads skipped.</div>
+          <div class="mqp-cta">
+            <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+            Export bookmarks
+          </div>
         </div>
 
         <!-- Super running: Stop but no Pause, and no determinate bar -
