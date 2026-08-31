@@ -209,7 +209,16 @@
 
   /* ── Stage 3: outputs — Batch group (md + 4 half-size icon docs) and a
      detached Single group (Obsidian, PDF) at the end of the line ── */
-  .outputs{ display: flex; align-items: flex-start; gap: 28px; flex-shrink: 0; }
+  .outputs{ display: flex; flex-direction: column; align-items: center; gap: 20px; flex-shrink: 0; }
+  .ogroups{ display: flex; align-items: flex-start; gap: 28px; }
+
+  /* Media saved alongside — sits under BOTH groups because Batch and Single
+     both write it, so it is not a third format group. */
+  .mstrip{ display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .mstrip .ocap{ color: #9fc0dd; }
+  .mrow{ display: flex; align-items: center; gap: 14px; }
+  .ftile{ width: 66px; height: 82px; filter: drop-shadow(0 12px 22px rgba(0,0,0,.42)); }
+  .ftile svg{ display: block; width: 100%; height: 100%; }
   .ogroup{ display: flex; flex-direction: column; align-items: center; gap: 12px; }
   .ocap{ font-size: 11.5px; font-weight: 800; letter-spacing: .15em; text-transform: uppercase; color: #bcd3ea; }
 
@@ -405,6 +414,7 @@
 
       <!-- Stage 3: outputs — Batch group + detached Single group -->
       <div class="outputs">
+        <div class="ogroups">
 
         <!-- Batch-able formats: md (full) + html/json/txt/csv (half-size icons) -->
         <div class="ogroup">
@@ -465,6 +475,37 @@
                 <rect x="22" y="102" width="114" height="7" rx="3" fill="#e2e8f0"/>
                 <text x="84" y="178" text-anchor="middle" font-family="-apple-system, system-ui, sans-serif"
                       font-size="28" font-weight="900" fill="#dc2626" letter-spacing="0.01em">PDF</text>
+              </svg>
+            </div>
+          </div>
+        </div>
+
+        </div>
+
+        <!-- Saved media: written by both Batch and Single, hence centred under both -->
+        <div class="mstrip">
+          <div class="ocap">+ Local media</div>
+          <div class="mrow">
+            <div class="ftile">
+              <svg viewBox="0 0 120 150">
+                <path d="M0 10 Q0 0 10 0 L86 0 L120 34 L120 140 Q120 150 110 150 L10 150 Q0 150 0 140 Z" fill="#2FB396"/>
+                <path d="M86 0 L120 34 L94 34 Q86 34 86 26 Z" fill="#1E8A73"/>
+                <circle cx="41" cy="44" r="10" fill="#fff"/>
+                <path d="M24 84 L56 50 L88 84 Z" fill="#fff"/>
+                <rect x="14" y="94" width="92" height="40" rx="9" fill="#1E8A73"/>
+                <text x="60" y="122" text-anchor="middle" font-family="-apple-system, system-ui, sans-serif"
+                      font-size="26" font-weight="900" fill="#fff" letter-spacing="0.01em">JPG</text>
+              </svg>
+            </div>
+            <div class="ftile">
+              <svg viewBox="0 0 120 150">
+                <path d="M0 10 Q0 0 10 0 L86 0 L120 34 L120 140 Q120 150 110 150 L10 150 Q0 150 0 140 Z" fill="#E8536B"/>
+                <path d="M86 0 L120 34 L94 34 Q86 34 86 26 Z" fill="#C13B52"/>
+                <circle cx="60" cy="58" r="25" fill="none" stroke="#fff" stroke-width="7"/>
+                <path d="M52 45 L77 58 L52 71 Z" fill="#fff"/>
+                <rect x="14" y="94" width="92" height="40" rx="9" fill="#C13B52"/>
+                <text x="60" y="122" text-anchor="middle" font-family="-apple-system, system-ui, sans-serif"
+                      font-size="26" font-weight="900" fill="#fff" letter-spacing="0.01em">MP4</text>
               </svg>
             </div>
           </div>
