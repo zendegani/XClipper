@@ -16,7 +16,7 @@
   <g transform="translate(8 8)">
     <defs>
       <clipPath id="xc-band-wm">
-        <rect x="0" y="6" width="80" height="68"/>
+        <rect x="0" y="5" width="80" height="70"/>
       </clipPath>
     </defs>
     <g clip-path="url(#xc-band-wm)">
