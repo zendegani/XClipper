@@ -276,6 +276,16 @@
   .demo-yaml .img{ color: #fbbf24; }
   .demo-yaml .gap{ height: 4px; }
 
+  /* Terminal left, saved-media glyphs right. .demo-yaml is scaled rather than
+     resized, so its layout box stays 320px wide; the negative margins pull it
+     back to the ~230px it actually paints. */
+  .demo-media{ display: flex; align-items: center; justify-content: center; gap: 16px; }
+  .demo-media .demo-yaml{ margin: 0 -45px; }
+  .media-types{ display: flex; flex-direction: column; align-items: center; gap: 26px; flex-shrink: 0; }
+  .mtype{ display: flex; flex-direction: column; align-items: center; gap: 6px; color: var(--brand-blue); }
+  .mtype svg{ width: 34px; height: 34px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+  .mtype span{ font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; font-weight: 700; color: var(--ink-2); }
+
   /* ───────── Card 5 — Obsidian & PDF Export ───────── */
   .docs{
     flex-shrink: 0;
@@ -539,6 +549,7 @@
       <div class="card">
         <div class="meta">06</div>
         <div class="demo">
+          <div class="demo-media">
           <div class="demo-yaml">
             <div class="bar"><span></span><span></span><span></span></div>
             <div class="code">
@@ -554,6 +565,17 @@
               <p><span class="img">![image](./media/001.jpg)</span></p>
               <p><span class="img">![video](./media/002.mp4)</span></p>
             </div>
+          </div>
+          <div class="media-types">
+            <div class="mtype">
+              <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              <span>.jpg</span>
+            </div>
+            <div class="mtype">
+              <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
+              <span>.mp4</span>
+            </div>
+          </div>
           </div>
         </div>
         <h3>YAML + local media</h3>
