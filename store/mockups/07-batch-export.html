@@ -165,16 +165,21 @@
   .mode .beta { font-size: 9px; font-weight: 800; color: #b91c1c; background: #fee2e2; border-radius: 999px; padding: 2px 5px; letter-spacing: .04em; text-transform: uppercase; }
   .mode-caption { font-size: 11.5px; color: var(--ink-2); line-height: 1.35; }
 
-  .progress { display: flex; flex-direction: column; gap: 9px; }
+  .progress { display: flex; flex-direction: column; gap: 10px; }
+  /* One row, like the popup's .fast-steps (space-between, no wrap) — sized down
+     to fit this 340px mock against the real 416px popup. */
+  .steps { display: flex; align-items: center; justify-content: space-between; gap: 4px; }
+  .step { display: inline-flex; align-items: center; gap: 4px; font-size: 9px; font-weight: 700; color: var(--ink-3); white-space: nowrap; }
+  .step::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #cbd5e1; flex-shrink: 0; }
+  .step.done { color: var(--ink-2); }
+  .step.done::before { background: var(--green); }
+  .step.live { color: var(--brand); }
+  .step.live::before { background: var(--brand); box-shadow: 0 0 0 2.5px rgba(29,155,240,.18); }
   .prow { display: flex; align-items: center; gap: 10px; }
   .ctl { width: 28px; height: 28px; border-radius: 8px; border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; color: var(--ink-2); flex-shrink: 0; }
   .ctl svg { width: 13px; height: 13px; fill: currentColor; }
-  .bar { flex: 1; height: 10px; border-radius: 999px; background: #eef2f7; overflow: hidden; }
-  .bar > i { display: block; height: 100%; width: 62%; border-radius: 999px; background: linear-gradient(90deg, var(--brand), #5cc1ff); }
-  .plabel { display: flex; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-2); font-weight: 600; }
+  .plabel { font-size: 13px; color: var(--ink-2); font-weight: 600; }
   .plabel b { color: var(--ink); }
-  .plabel .chip { display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 800; color: var(--red); background: #fee2e2; border-radius: 999px; padding: 2px 8px; }
-  .plabel .chip svg { width: 11px; height: 11px; fill: var(--red); }
 </style>
 </head>
 <body>
@@ -186,7 +191,7 @@
       <div class="wordmark">X<span style="color: var(--brand);">Clipper</span></div>
     </div>
     <h1>Export hundreds<br>at once — up to<br><span class="hot">10× faster</span></h1>
-    <p>Batch your Bookmarks, Likes, a profile, your timeline, or a hand-picked selection — with live progress, pause &amp; resume.</p>
+    <p>Batch your Bookmarks, Likes, a profile, your timeline, or a hand-picked selection — with live progress and stop anytime.</p>
   </div>
 
   <div class="right-panel">
@@ -235,16 +240,19 @@
           <div class="mode-caption">Fetches through your X session automatically &mdash; no scrolling. Full threads &amp; articles.</div>
         </div>
 
-        <!-- Progress (running) -->
+        <!-- Progress (Auto running). Auto/Super have Stop but no Pause, and no
+             determinate bar — collection is open-ended, so a fraction would be
+             fake. The step lights and live count carry progress, as in the popup. -->
         <div class="progress">
-          <div class="prow">
-            <div class="ctl"><svg viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></div>
-            <div class="ctl"><svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="1.5"/></svg></div>
-            <div class="bar"><i></i></div>
+          <div class="steps">
+            <span class="step done">Reload x.com</span>
+            <span class="step done">Open one tweet</span>
+            <span class="step live">Fetching …</span>
+            <span class="step">Expanding …</span>
           </div>
-          <div class="plabel">
-            <span class="chip"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Auto</span>
-            <span>Bookmarks · <b>74</b> / 120 exported</span>
+          <div class="prow">
+            <div class="ctl"><svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="1.5"/></svg></div>
+            <div class="plabel">Bookmarks · Fetching… <b>1,300</b></div>
           </div>
         </div>
       </div>

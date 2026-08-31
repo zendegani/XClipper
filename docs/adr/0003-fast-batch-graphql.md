@@ -1,7 +1,7 @@
 # ADR 0003 — Fast Batch: acquire tweets via X's internal GraphQL (opt-in)
 
-- Status: **Accepted — implemented for Bookmarks, Profile, and Likes (threads + Article bodies via per-item TweetDetail) with the popup toggle/consent/progress UI. Extended 2026-07-11 with Recent/Resume/Date-range fetch modes + per-mode continuation cursors (see "Pagination modes & cursors" below).**
-- Date: 2026-06-13 (implemented 2026-06-14; pagination modes 2026-07-11)
+- Status: **Accepted — implemented for Bookmarks, Profile, and Likes (threads + Article bodies via per-item TweetDetail). Extended 2026-07-11 with Recent/Resume/Date-range fetch modes + per-mode continuation cursors (see "Pagination modes & cursors"). Amended 2026-08-31: the Standard/Fast toggle + Super Fast toggle became one `Manual | Auto | Super` engine selector, and the bespoke consent dialog became Chrome's own optional-permission prompt (see "Engine selector supersedes the toggles").**
+- Date: 2026-06-13 (implemented 2026-06-14; pagination modes 2026-07-11; engine selector 2026-08-31)
 - Deciders: @zendegani
 - Relates to: ADR 0001 (Content AST), ADR 0002 (Batch export)
 - Supersedes: — (adds an alternate acquisition path; does **not** replace ADR 0002)
@@ -165,6 +165,27 @@ State lives in `src/background/fast-batch.ts`; the keys in `batch-state.ts`.
 | 13 | **Incomplete backlog is retried by id, feed-independent.** Posts a prior rate-limited run left as stubs are completed by a direct `TweetDetail` fetch **by id** at the start of the next run (any mode), not by re-encountering them in the feed. Stubs live in an `_incomplete_rerun_to_complete/` subfolder, un-ledgered and out of the combined/manifest until completed. | Resume and Date range move *past* the stubs' feed positions, and Recent never reaches deep ones — so re-collection can't be relied on to finish them (issue #81 refined). |
 | 14 | **Dedup stores both ids a post can appear under.** Edited tweets, and thread-replies that re-root to the thread's first tweet on expansion, get a different canonical id than the bookmarks feed lists; the ledger records **both** the feed id and the expanded/canonical id. | Storing only the canonical id meant the next run's feed (which lists the other id) never matched, and the post re-exported every run. |
 | 15 | **Super Fast skips thread expansion, trading depth for run size (issue #85).** An opt-in popup toggle sends `expandThreads: false`; with no per-item `TweetDetail` budget to honor, the run cap rises from 150 to `SUPER_FAST_MAX_ITEMS` (3000 — the page budget, ~150 pages × ~20 posts). Threads export as their root post only; **articles are still expanded** (their body only exists via `TweetDetail`) and the incomplete backlog still completes first. | Expansion, not pagination, is what rate-limits a run — one request *per item* vs. one per ~20 items. Measured on a real feed, a no-expand run walked ~48 pages and exported 1012 items in one go (vs. ~7 runs at 150), while its 66 remaining `TweetDetail` calls (backlog + articles) stayed under the limit; the rate-limit stop (#7) remains the safety net for those. |
+
+## Engine selector supersedes the toggles (2026-08-31)
+
+Decisions #1/#2 shipped as a **Standard / Fast ⚡** toggle plus a bespoke
+consent dialog, and #15 added a second, separate **Super Fast** toggle. Two
+independent booleans encoded three mutually exclusive behaviours, so the
+invalid fourth state (Super on, Fast off) had to be defended against, and
+neither toggle said what the other engine would do. The consent dialog also
+duplicated a prompt Chrome shows anyway when an optional permission is
+requested. What shipped instead:
+
+| # | Decision | Rationale |
+|---|---|---|
+| 16 | **One three-way engine selector replaces both toggles.** `type BatchMode = 'manual' \| 'auto' \| 'super'` (`src/popup/fast-batch-ui.ts`), rendered as a `Manual \| Auto \| Super` segmented control with a caption per engine. **Manual** is the ADR 0002 worker-tab path and the default; **Auto** is Fast Batch with thread expansion; **Super** is Fast Batch with `expandThreads: false` (#15's mechanism, unchanged). The old `FAST_MODE_KEY`/`FAST_SUPER_KEY` booleans are migrated to the mode string on read. | Three exclusive engines are one choice, not two booleans — the impossible state stops existing, and each engine's cost is stated in its caption at the moment of choosing. Renaming "Standard" to "Manual" says what the user does (scroll the feed), not merely that it is the older path. |
+| 17 | **Consent is Chrome's own optional-permission prompt.** Picking Auto or Super calls `chrome.permissions.request({permissions:['webRequest'], origins:['*://x.com/*']})`; the `fastBatchConsent` setting is gone. Revoking the permission drops the selector back to Manual. | Chrome's prompt is the trustworthy surface for a permission grant — unspoofable, and revocable in the browser's own UI. Our dialog restated it in a place users have no reason to trust more, and could drift out of sync with the permission's real state. Decision #2's *substance* (informed, deliberate, revocable) is kept; only the surface changed. |
+| 18 | **Auto/Super expose Stop, not pause/resume, and no determinate bar.** Decision #6 assumed the ADR 0002 pause machinery carried over. It does not: collection is open-ended (the total is unknown until the feed ends) and Super streams writes in parallel, so a fraction would be fake. The popup hides the bar and the Pause button for any Fast run (`#view-main.fast-on .batch-bar`), leaving `[■] Bookmarks · Fetching… 1300` plus the step lights. Manual keeps its bar and pause, where the total is known and writes are sequential. | Better to show a true open-ended count than a progress bar that cannot be honest. A rate-limited or stopped run is resumed by re-running (#10, #13), which is the real continuation mechanism here — pause would imply a held in-memory position that the background job does not keep. |
+
+Retroactively, this means #1's "toggle", #2's consent dialog, #6's "pause/resume"
+reuse, and #15's "opt-in popup toggle" name the *shape* of a decision that has
+since changed; the underlying choices they record — two paths kept, informed
+consent, orchestration reuse, and depth-for-volume — all still hold.
 
 ## References
 
