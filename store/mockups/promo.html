@@ -122,28 +122,28 @@
   .mqp-tab svg{ width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
   .mqp-tab.active{ background: var(--brand-blue); border-color: var(--brand-blue); color: #fff; box-shadow: 0 8px 18px -4px rgba(29,155,240,.45); }
 
-  .mqp-fast{
-    display: flex; align-items: center; justify-content: space-between; gap: 10px;
-    padding: 12px 14px; border: 1px solid #fecaca;
-    background: linear-gradient(180deg, #fff7f7, #fff); border-radius: 12px;
-  }
-  .mqp-fast .fl{ display: flex; align-items: center; gap: 9px; }
-  .mqp-fast .fl svg{ width: 18px; height: 18px; fill: var(--brand-red); }
-  .mqp-fast .fl .lbl{ font-size: 15px; font-weight: 700; color: var(--brand-red); }
-  .mqp-fast .fl .beta{ font-size: 10px; font-weight: 800; color: #b91c1c; background: #fee2e2; border-radius: 999px; padding: 2px 7px; letter-spacing: .05em; text-transform: uppercase; }
-  .mqp-toggle{ width: 44px; height: 25px; border-radius: 999px; background: var(--brand-red); position: relative; box-shadow: inset 0 1px 2px rgba(0,0,0,.15); }
-  .mqp-toggle::after{ content: ''; position: absolute; top: 3px; right: 3px; width: 19px; height: 19px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.2); }
+  .mqp-mode-field{ display: flex; flex-direction: column; gap: 7px; }
+  .mqp-mode-label{ font-size: 11px; font-weight: 800; color: #94a3b8; letter-spacing: .06em; text-transform: uppercase; }
+  .mqp-mode{ display: flex; align-items: center; background: #f1f5f9; border-radius: 11px; padding: 4px; gap: 4px; }
+  .mqp-mode .opt{ flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 13px; font-weight: 700; color: #94a3b8; padding: 8px 0; border-radius: 8px; }
+  .mqp-mode .opt.active{ background: #ffffff; color: #0b1220; box-shadow: 0 1px 3px rgba(15,23,42,.12); }
+  .mqp-mode .beta{ font-size: 9px; font-weight: 800; color: #b91c1c; background: #fee2e2; border-radius: 999px; padding: 2px 5px; letter-spacing: .04em; text-transform: uppercase; }
+  .mqp-mode-caption{ font-size: 11.5px; color: #475569; line-height: 1.35; }
 
   .mqp-prog{ display: flex; flex-direction: column; gap: 9px; }
   .mqp-prow{ display: flex; align-items: center; gap: 10px; }
   .mqp-ctl{ width: 28px; height: 28px; border-radius: 8px; border: 1px solid var(--line); display: flex; align-items: center; justify-content: center; color: #475569; flex-shrink: 0; }
   .mqp-ctl svg{ width: 13px; height: 13px; fill: currentColor; }
-  .mqp-bar{ flex: 1; height: 10px; border-radius: 999px; background: #eef2f7; overflow: hidden; }
-  .mqp-bar > i{ display: block; height: 100%; width: 62%; border-radius: 999px; background: linear-gradient(90deg, var(--brand-blue), #5cc1ff); }
-  .mqp-plabel{ display: flex; align-items: center; gap: 8px; font-size: 13px; color: #475569; font-weight: 600; }
+  /* One row, like the popup's .fast-steps (space-between, no wrap). */
+  .mqp-steps{ display: flex; align-items: center; justify-content: space-between; gap: 4px; }
+  .mqp-step{ display: inline-flex; align-items: center; gap: 4px; font-size: 9px; font-weight: 700; color: #94a3b8; white-space: nowrap; }
+  .mqp-step::before{ content: ''; width: 6px; height: 6px; border-radius: 50%; background: #cbd5e1; flex-shrink: 0; }
+  .mqp-step.done{ color: #475569; }
+  .mqp-step.done::before{ background: #10b981; }
+  .mqp-step.live{ color: var(--brand-blue); }
+  .mqp-step.live::before{ background: var(--brand-blue); box-shadow: 0 0 0 2.5px rgba(29,155,240,.18); }
+  .mqp-plabel{ font-size: 13px; color: #475569; font-weight: 600; }
   .mqp-plabel b{ color: #0b1220; }
-  .mqp-plabel .chip{ display: inline-flex; align-items: center; gap: 4px; font-size: 11px; font-weight: 800; color: var(--brand-red); background: #fee2e2; border-radius: 999px; padding: 2px 8px; }
-  .mqp-plabel .chip svg{ width: 11px; height: 11px; fill: var(--brand-red); }
 
   /* "10× faster" badge floating on the popup */
   .mqp-badge{
@@ -331,7 +331,7 @@
         </svg>
       </div>
 
-      <!-- Stage 2: Batch + Fast Batch popup (unchanged) -->
+      <!-- Stage 2: Batch popup, Super engine running -->
       <div class="mqp">
         <div class="mqp-badge">
           <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
@@ -359,23 +359,28 @@
           <div class="mqp-tab" title="Selection"><svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
         </div>
 
-        <div class="mqp-fast">
-          <div class="fl">
-            <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-            <span class="lbl">Fast Batch</span>
+        <div class="mqp-mode-field">
+          <div class="mqp-mode-label">Batch engine</div>
+          <div class="mqp-mode">
+            <div class="opt">Manual</div>
+            <div class="opt">Auto<span class="beta">Beta</span></div>
+            <div class="opt active">Super<span class="beta">Beta</span></div>
           </div>
-          <div class="mqp-toggle"></div>
+          <div class="mqp-mode-caption">Fetches thousands at once, but saves each post&rsquo;s first tweet only &mdash; threads skipped.</div>
         </div>
 
+        <!-- Super running: Stop but no Pause, and no determinate bar -
+             collection is open-ended, so the step lights and live count carry it. -->
         <div class="mqp-prog">
-          <div class="mqp-prow">
-            <div class="mqp-ctl"><svg viewBox="0 0 24 24"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></div>
-            <div class="mqp-ctl"><svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="1.5"/></svg></div>
-            <div class="mqp-bar"><i></i></div>
+          <div class="mqp-steps">
+            <span class="mqp-step done">Reload x.com</span>
+            <span class="mqp-step done">Open one tweet</span>
+            <span class="mqp-step live">Fetching &hellip;</span>
+            <span class="mqp-step">Expanding &hellip;</span>
           </div>
-          <div class="mqp-plabel">
-            <span class="chip"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Fast</span>
-            <span>Bookmarks · <b>74</b> / 120 exported</span>
+          <div class="mqp-prow">
+            <div class="mqp-ctl"><svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="1.5"/></svg></div>
+            <div class="mqp-plabel">Bookmarks · Fetching&hellip; <b>1,300</b></div>
           </div>
         </div>
       </div>

@@ -84,7 +84,7 @@ Right-click anywhere on a tweet — body, image, or timestamp — and pick **Sav
 ### Faster batch engines (opt-in)
 
 <p align="center">
-  <img src="assets/07-batch-export.png" alt="XClipper batch export popup with the Auto engine selected, exporting bookmarks" width="700" />
+  <img src="assets/07-batch-export.png" alt="XClipper batch export popup with the Super engine selected, exporting bookmarks" width="700" />
 </p>
 
 ⚡ A `Manual | Auto | Super` switch picks how a batch job acquires posts. **Manual** renders each post in a worker tab — reliable, no extra permissions, and the default. **Auto** and **Super** are optional engines for **Bookmarks, Profile, and Likes** that instead replay X's own internal API using your existing logged-in session, turning a multi-minute job into a few seconds (~10×). They map the same data into the same Content AST, so every format and setting behaves identically. (Timeline and Selection stay on Manual.)
