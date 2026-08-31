@@ -48,7 +48,7 @@ Most "tweet to markdown" tools run a post through a generic HTML→Markdown conv
 ### Headline
 
 - **Batch export** — Export many posts at once from five sources via an icon tab strip: **Bookmarks**, **Profile** (own posts; reposts skipped), **Likes**, **Timeline** (every post loaded in your home feed), or **Selection** (tick individual tweets with checkboxes on any timeline). Pick the **format** and whether to write **Separate** per-post files, one **Combined** file (`x-compilation-<date>`), or **Both**. Runs in the background (one job at a time) with a live progress bar and **pause / resume / stop** — close and reopen the popup mid-job. A dedup ledger skips already-exported items, and you can keep adding newly-scrolled posts to a running job.
-- **Fast Batch ⚡ (opt-in)** — An optional accelerated mode for **Bookmarks, Profile, and Likes** that fetches posts directly through your logged-in X session's internal API instead of rendering each page — roughly **10× faster** (minutes → seconds), mapped into the same output so every format and setting works identically. No API key, no password, nothing leaves your browser. Off by default; see [the caveats below](#fast-batch-opt-in) before enabling it.
+- **Auto & Super engines ⚡ (opt-in)** — Two optional accelerated engines for **Bookmarks, Profile, and Likes** that fetch posts directly through your logged-in X session's internal API instead of rendering each page — roughly **10× faster** (minutes → seconds), mapped into the same output so every format and setting works identically. No API key, no password, nothing leaves your browser. **Manual** is the default; see [the caveats below](#faster-batch-engines-opt-in) before switching.
 - **Seven export formats** — Save a single post as **Markdown, PDF, HTML, JSON, TXT, or CSV**, or hand it to **Obsidian**. Batch jobs support all of these except PDF. CSV pairs your metadata columns with a `text` column for the post body.
 - **High-fidelity Markdown** — Tweets, nested threads, quote tweets, polls, link cards, and X Articles render cleanly via the AST pipeline (no Turndown), with resolved `t.co` links, inlined emoji, and tidy @mentions.
 - **True PDF export** — Tweets, threads, and articles printed through Chrome's native engine: selectable text, clickable links, embedded images, full Unicode.
@@ -63,7 +63,7 @@ Most "tweet to markdown" tools run a post through a generic HTML→Markdown conv
 - **Customizable filename template** — Placeholders (`{date}`, `{datetime}`, `{handle}`, `{author}`, `{id}`, `{slug}`, `{type}`) with a live preview in Settings.
 - **Single-tweet export** — Grab one tweet without its thread via the context menu or by Shift/Alt-clicking the inline button.
 
-Plus: copy-to-clipboard or download · optional inline engagement-stats row (`💬 284 · 🔁 1.5K · ❤️ 8K · 🔖 253 · 👁 100K`) · 12-language UI (extraction works in any language) · light & dark mode.
+Plus: copy-to-clipboard or download · optional inline engagement-stats row (`💬 284 · 🔁 1.5K · ❤️ 8K · 🔖 253 · 👁 100K`) · 6-language UI (extraction works in any language) · light & dark mode.
 
 ### Inline button — one click on any tweet
 
@@ -81,20 +81,20 @@ The download icon sits next to share on every tweet. One click opens the permali
 
 Right-click anywhere on a tweet — body, image, or timestamp — and pick **Save tweet as Markdown**, **Copy tweet as Markdown**, or **Add tweet to Obsidian**. XClipper figures out which tweet you meant.
 
-### Fast Batch (opt-in)
+### Faster batch engines (opt-in)
 
 <p align="center">
-  <img src="assets/07-batch-export.png" alt="XClipper batch export popup with Fast Batch enabled, exporting bookmarks" width="700" />
+  <img src="assets/07-batch-export.png" alt="XClipper batch export popup with the Auto engine selected, exporting bookmarks" width="700" />
 </p>
 
-⚡ Standard batch renders each post in a worker tab — reliable, no extra permissions, and the default. **Fast Batch** is an optional mode for **Bookmarks, Profile, and Likes** that instead replays X's own internal API using your existing logged-in session, turning a multi-minute job into a few seconds (~10×). It maps the same data into the same Content AST, so every format and setting behaves identically. (Timeline and Selection stay on Standard batch.)
+⚡ A `Manual | Auto | Super` switch picks how a batch job acquires posts. **Manual** renders each post in a worker tab — reliable, no extra permissions, and the default. **Auto** and **Super** are optional engines for **Bookmarks, Profile, and Likes** that instead replay X's own internal API using your existing logged-in session, turning a multi-minute job into a few seconds (~10×). They map the same data into the same Content AST, so every format and setting behaves identically. (Timeline and Selection stay on Manual.)
 
-What to know before turning it on:
+What to know before switching off Manual:
 
-- **It's opt-in and off by default.** Enabling it grants one optional, X.com-only permission (`webRequest`) used to read your session's auth header. There's no API key and no password — and nothing leaves your browser.
-- **Use it judiciously.** Because it calls X's private API directly, large runs can trip X's rate limit (soft-blocking). Fast Batch paces itself and **stops politely** when X pushes back, so you can resume or re-run later.
+- **They're opt-in; Manual is the default.** Picking Auto or Super grants one optional, X.com-only permission (`webRequest`) used to read your session's auth header. There's no API key and no password — and nothing leaves your browser.
+- **Use them judiciously.** Because they call X's private API directly, large runs can trip X's rate limit (soft-blocking). Both engines pace themselves and **stop politely** when X pushes back, so you can resume or re-run later.
 - **Three fetch modes** (a `Recent | Resume | Date range` switch) control what each run pulls. **Recent** grabs your newest items from the top. **Resume** continues a large backfill from where it last stopped, so thousands of bookmarks export across several sessions without re-scanning what's done. **Date range** pulls only posts tweeted within a chosen window, crawling deeper each run on its own cursor (so it doesn't disturb a Resume backfill). A shared dedup history skips already-exported posts across all three; **Reset history** clears it.
-- **Super Fast (skip threads)** — an extra toggle for when you want volume over depth. Fetching each post's thread is the step that hits X's rate limit and caps a normal run at ~150 posts; skipping it raises the budget to ~3000 posts per run, so a whole bookmarks feed exports in a go or two. The cost: a thread exports as its first post only (quotes, media, polls and long-post text still come through, and X Articles are still fetched in full). Posts exported this way count as done — **Reset history** if you later want them re-exported with full threads.
+- **Super trades depth for volume.** Pick it over Auto when you want reach. Fetching each post's thread is the step that hits X's rate limit and caps an Auto run at ~150 posts; skipping it raises the budget to ~3000 posts per run, so a whole bookmarks feed exports in a go or two. The cost: a thread exports as its first post only (quotes, media, polls and long-post text still come through, and X Articles are still fetched in full). Posts exported this way count as done — **Reset history** if you later want them re-exported with full threads.
 - **Two quick setup steps**, shown as step-lights in the popup: reload the page so its feed request is captured, and open any one tweet so threads and articles can be expanded.
 
 ### Settings — tune once, forget about it

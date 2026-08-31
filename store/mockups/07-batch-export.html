@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>XClipper — Batch & Fast Batch Export</title>
+<title>XClipper — Batch Export</title>
 <style>
   :root {
     --bg: #f3f6fc;
@@ -157,19 +157,13 @@
   .tab svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
   .tab.active { background: var(--brand); border-color: var(--brand); color: #fff; box-shadow: 0 8px 18px -4px rgba(29,155,240,.45); }
 
-  .fast {
-    display: flex; align-items: center; justify-content: space-between; gap: 10px;
-    padding: 12px 14px;
-    border: 1px solid #fecaca;
-    background: linear-gradient(180deg, #fff7f7, #fff);
-    border-radius: 12px;
-  }
-  .fast .fl { display: flex; align-items: center; gap: 9px; }
-  .fast .fl svg { width: 18px; height: 18px; fill: var(--red); }
-  .fast .fl .lbl { font-size: 15px; font-weight: 700; color: var(--red); }
-  .fast .fl .beta { font-size: 10px; font-weight: 800; color: #b91c1c; background: #fee2e2; border-radius: 999px; padding: 2px 7px; letter-spacing: .05em; text-transform: uppercase; }
-  .toggle { width: 44px; height: 25px; border-radius: 999px; background: var(--red); position: relative; box-shadow: inset 0 1px 2px rgba(0,0,0,.15); }
-  .toggle::after { content: ''; position: absolute; top: 3px; right: 3px; width: 19px; height: 19px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.2); }
+  .mode-field { display: flex; flex-direction: column; gap: 7px; }
+  .mode-label { font-size: 11px; font-weight: 800; color: var(--ink-3); letter-spacing: .06em; text-transform: uppercase; }
+  .mode { display: flex; align-items: center; background: #f1f5f9; border-radius: 11px; padding: 4px; gap: 4px; }
+  .mode .opt { flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 13px; font-weight: 700; color: var(--ink-3); padding: 8px 0; border-radius: 8px; }
+  .mode .opt.active { background: #ffffff; color: var(--ink); box-shadow: 0 1px 3px rgba(15,23,42,.12); }
+  .mode .beta { font-size: 9px; font-weight: 800; color: #b91c1c; background: #fee2e2; border-radius: 999px; padding: 2px 5px; letter-spacing: .04em; text-transform: uppercase; }
+  .mode-caption { font-size: 11.5px; color: var(--ink-2); line-height: 1.35; }
 
   .progress { display: flex; flex-direction: column; gap: 9px; }
   .prow { display: flex; align-items: center; gap: 10px; }
@@ -230,14 +224,15 @@
           <div class="tab" title="Selection"><svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
         </div>
 
-        <!-- Fast Batch (armed) -->
-        <div class="fast">
-          <div class="fl">
-            <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
-            <span class="lbl">Fast Batch</span>
-            <span class="beta">Beta</span>
+        <!-- Batch engine: Manual | Auto | Super -->
+        <div class="mode-field">
+          <div class="mode-label">Batch engine</div>
+          <div class="mode">
+            <div class="opt">Manual</div>
+            <div class="opt active">Auto<span class="beta">Beta</span></div>
+            <div class="opt">Super<span class="beta">Beta</span></div>
           </div>
-          <div class="toggle"></div>
+          <div class="mode-caption">Fetches through your X session automatically &mdash; no scrolling. Full threads &amp; articles.</div>
         </div>
 
         <!-- Progress (running) -->
@@ -248,7 +243,7 @@
             <div class="bar"><i></i></div>
           </div>
           <div class="plabel">
-            <span class="chip"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Fast</span>
+            <span class="chip"><svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>Auto</span>
             <span>Bookmarks · <b>74</b> / 120 exported</span>
           </div>
         </div>
