@@ -246,45 +246,43 @@
   }
   .mqp-badge svg{ width: 14px; height: 14px; fill: #fff; }
 
-  /* ───────── Card 4 — YAML + images ───────── */
-  .demo-yaml{
-    width: 320px;
-    background: var(--term-bg);
+  /* ───────── Card 6 — YAML + local media ─────────
+     A light "what you get on disk" card: the frontmatter above the rule, the
+     files it writes below it. Light on purpose — a dark slab was the only
+     dark object in the deck and pulled the eye out of reading order. */
+  .demo-files{
+    width: 252px;
+    background: #fff;
+    border: 1px solid var(--line);
     border-radius: 12px;
+    box-shadow: 0 10px 26px -12px rgba(15,23,42,.22);
     overflow: hidden;
-    box-shadow: 0 14px 32px -10px rgba(15,23,42,.32);
-    transform: scale(0.72);
-    transform-origin: center center;
-  }
-  .demo-yaml .bar{
-    height: 22px; background: #0a1020;
-    display: flex; align-items: center; padding: 0 10px; gap: 5px;
-  }
-  .demo-yaml .bar span{ width: 7px; height: 7px; border-radius: 50%; background: #1c2740; }
-  .demo-yaml .code{
-    padding: 10px 14px;
     font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
-    font-size: 11px; line-height: 1.45;
-    color: #cbd5e1;
   }
-  .demo-yaml .code p{ margin: 0; color: #cbd5e1; white-space: nowrap; }
-  .demo-yaml .yr{ color: #475569; }
-  .demo-yaml .k{ color: #94a3b8; }
-  .demo-yaml .s{ color: #fbbf24; }
-  .demo-yaml .n{ color: #f472b6; }
-  .demo-yaml .t{ color: #34d399; }
-  .demo-yaml .img{ color: #fbbf24; }
-  .demo-yaml .gap{ height: 4px; }
+  /* `.card p` sets 14.5px and beats an inherited size, so the code type
+     has to be declared on the p itself, not on the container. */
+  .demo-files p{ margin: 0; white-space: nowrap; font-size: 11.5px; line-height: 1.45; }
+  .demo-files .fm{ padding: 10px 14px; }
+  .demo-files .yr{ color: var(--line-2); }
+  .demo-files .k{ color: #64748b; }
+  .demo-files .s{ color: #b45309; }
+  .demo-files .n{ color: #be185d; }
+  .demo-files .t{ color: #047857; }
 
-  /* Terminal left, saved-media glyphs right. .demo-yaml is scaled rather than
-     resized, so its layout box stays 320px wide; the negative margins pull it
-     back to the ~230px it actually paints. */
-  .demo-media{ display: flex; align-items: center; justify-content: center; gap: 16px; }
-  .demo-media .demo-yaml{ margin: 0 -45px; }
-  .media-types{ display: flex; flex-direction: column; align-items: center; gap: 26px; flex-shrink: 0; }
-  .mtype{ display: flex; flex-direction: column; align-items: center; gap: 6px; color: var(--brand-blue); }
-  .mtype svg{ width: 34px; height: 34px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
-  .mtype span{ font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 11px; font-weight: 700; color: var(--ink-2); }
+  .demo-files .tree{
+    padding: 8px 14px 10px;
+    border-top: 1px solid var(--line);
+    background: #f8fafc;
+    color: var(--ink-2);
+  }
+  .demo-files .tree p{ display: flex; align-items: center; gap: 6px; }
+  .demo-files .tree svg{
+    width: 12px; height: 12px; flex-shrink: 0; fill: none;
+    stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
+  }
+  .demo-files .tree .kid{ padding-left: 14px; color: var(--ink-3); }
+  .demo-files .tree .br{ color: var(--line-2); }
+  .demo-files .ext{ color: var(--brand-blue); font-weight: 700; }
 
   /* ───────── Card 5 — Obsidian & PDF Export ───────── */
   .docs{
@@ -549,33 +547,27 @@
       <div class="card">
         <div class="meta">06</div>
         <div class="demo">
-          <div class="demo-media">
-          <div class="demo-yaml">
-            <div class="bar"><span></span><span></span><span></span></div>
-            <div class="code">
+          <div class="demo-files">
+            <div class="fm">
               <p><span class="yr">---</span></p>
               <p><span class="k">author:</span> <span class="s">"Author"</span></p>
-              <p><span class="k">handle:</span> <span class="s">"@author"</span></p>
-              <p><span class="k">source:</span> <span class="s">https://x.com/…</span></p>
               <p><span class="k">date:</span> <span class="n">2026-06-26</span></p>
               <p><span class="k">likes:</span> <span class="n">682K</span> &nbsp;<span class="k">views:</span> <span class="n">37.3M</span></p>
               <p><span class="k">tags:</span> <span class="t">[clippings, x]</span></p>
               <p><span class="yr">---</span></p>
-              <div class="gap"></div>
-              <p><span class="img">![image](./media/001.jpg)</span></p>
-              <p><span class="img">![video](./media/002.mp4)</span></p>
             </div>
-          </div>
-          <div class="media-types">
-            <div class="mtype">
-              <svg viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
-              <span>.jpg</span>
+            <div class="tree">
+              <p>
+                <svg viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                author-1234567890<span class="ext">.md</span>
+              </p>
+              <p>
+                <svg viewBox="0 0 24 24"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+                author-1234567890/
+              </p>
+              <p class="kid"><span class="br">├</span> GkX9pQvXsAA<span class="ext">.jpg</span></p>
+              <p class="kid"><span class="br">└</span> Ht2mNc4pLbQ<span class="ext">.mp4</span></p>
             </div>
-            <div class="mtype">
-              <svg viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>
-              <span>.mp4</span>
-            </div>
-          </div>
           </div>
         </div>
         <h3>YAML + local media</h3>
