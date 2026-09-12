@@ -35,7 +35,7 @@
     "jsdom": "^30.0.1",
     "puppeteer-core": "^25.10.0",
     "typescript": "^7.0.2",
-    "vitest": "^4.1.11"
+    "vitest": "^5.0.0"
   },
   "allowScripts": {
     "esbuild": false,
