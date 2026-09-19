@@ -157,7 +157,13 @@ export function buildCsvTable(rows: ExtractedContent[], opts: FormatOptions = {}
       .map(csvEscape)
       .join(',')
   );
-  return [header, ...lines].join('\n') + '\n';
+  // Leading UTF-8 BOM (issue #131): a .csv carries no encoding declaration, so
+  // Excel decodes a BOM-less file with the system ANSI codepage and mangles
+  // every non-ASCII character (CJK, accents, emoji) into mojibake. The BOM is
+  // the only in-band signal it honors on a double-click. Every other consumer
+  // (Numbers, Sheets, LibreOffice, pandas, this repo's tests) tolerates it.
+  // CSV only — Markdown/TXT/JSON are read by UTF-8-native tools.
+  return '\uFEFF' + [header, ...lines].join('\n') + '\n';
 }
 
 // Just the post content for the `text` column — no author header or Source/Date
