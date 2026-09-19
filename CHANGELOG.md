@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Fixed
+
+- **CSV exports now open as UTF-8 in Excel**: a post in Japanese, Chinese, Arabic or any language past plain ASCII — or simply one with an emoji in it — came out of a CSV export as mojibake: 主婦 read as ä¸»å©¦, the author column a row of ðŸ. The file was correct UTF-8 all along, but a `.csv` carries no encoding declaration, so Excel falls back to the system's legacy codepage and decodes it wrongly; apps that assume UTF-8 — Numbers, Google Sheets, VS Code — showed the very same file correctly. The CSV now begins with a UTF-8 byte-order mark, the one in-band signal Excel honors on a double-click, so the text arrives as it was written. Markdown, TXT and JSON are unchanged. A CSV exported before this can be recovered without re-running: in Excel, `Data` → `From Text/CSV` with File Origin set to `65001: Unicode (UTF-8)`. (#131)
+
+---
+
 ## [2.8.2] - 2026-08-30
 
 ### Changed

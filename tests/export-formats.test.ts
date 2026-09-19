@@ -49,9 +49,16 @@ describe('markdownToPlainText', () => {
 });
 
 describe('buildCsvRow', () => {
+  // The CSV starts with a UTF-8 BOM (issue #131) — drop it before comparing.
+  const lines = (csv: string): string[] => csv.replace(/^\uFEFF/, '').trimEnd().split('\n');
+
+  it('starts with a UTF-8 BOM so Excel decodes it as UTF-8', () => {
+    expect(buildCsvRow(data, { obsidianFriendly: false }).startsWith('\uFEFF')).toBe(true);
+  });
+
   it('emits the default field set in CSV column order + a row', () => {
     const csv = buildCsvRow(data, { obsidianFriendly: false });
-    const [header, row] = csv.trimEnd().split('\n');
+    const [header, row] = lines(csv);
     expect(header).toBe('date,author,handle,type,likes,reposts,replies,bookmarks,views,source,text');
     const cols = row.split(',');
     expect(cols[1]).toBe('Jane Doe'); // author
@@ -71,12 +78,12 @@ describe('buildCsvRow', () => {
       obsidianFriendly: false,
       frontmatterFields: { likes: false, reposts: false, replies: false, bookmarks: false, views: false },
     });
-    expect(csv.split('\n')[0]).toBe('date,author,handle,type,source,text');
+    expect(lines(csv)[0]).toBe('date,author,handle,type,source,text');
   });
 
   it('with metadata off, keeps only date, source, and text', () => {
     const csv = buildCsvRow(data, { obsidianFriendly: false, includeMetadata: false });
-    const [header, row] = csv.trimEnd().split('\n');
+    const [header, row] = lines(csv);
     expect(header).toBe('date,source,text');
     const cols = row.split(',');
     expect(cols[0]).toBe('2026-01-02T10:00:00.000Z'); // date
@@ -86,7 +93,7 @@ describe('buildCsvRow', () => {
 
   it('uses the handle for author in the Obsidian field set', () => {
     const csv = buildCsvRow(data, { obsidianFriendly: true });
-    const [header, row] = csv.trimEnd().split('\n');
+    const [header, row] = lines(csv);
     const idx = header.split(',').indexOf('author');
     expect(row.split(',')[idx]).toBe('@jane');
   });
