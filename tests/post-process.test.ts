@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { postProcess, buildFilename, applyFilenameTemplate, applyTagsTemplate, DEFAULT_TAGS_TEMPLATE, deriveBasename } from '../src/shared/post-process';
+import { postProcess, buildFilename, applyFilenameTemplate, applyTagsTemplate, DEFAULT_TAGS_TEMPLATE, deriveBasename, markdownOptions } from '../src/shared/post-process';
+import { DEFAULT_SETTINGS } from '../src/shared/settings';
 import type { ExtractedContent } from '../src/types/messages';
 import type { Document } from '../src/ast/types';
 import { collectMedia, isDownloadableVideo } from '../src/ast/collect-media';
@@ -503,5 +504,43 @@ describe('postProcess() filename template', () => {
     });
     expect(threadResult.markdown).toContain('First tweet in thread.');
     expect(threadResult.markdown).toContain('💬 0 · 🔁 2 · ❤️ 10 · 🔖 0 · 👁 100\n---\n\nSecond tweet in thread.');
+  });
+});
+
+describe('markdownOptions()', () => {
+  it('gives every setting that changes the Markdown', () => {
+    const s = {
+      ...DEFAULT_SETTINGS,
+      obsidianFriendly: true,
+      inlineStats: true,
+      obsidianTagsTemplate: ' reading ',
+      filenameTemplate: ' {id} ',
+    };
+    const opts = markdownOptions(s, 'download');
+    expect(opts.includeMetadata).toBe(true);
+    expect(opts.inlineStats).toBe(true);
+    expect(opts.obsidianFriendly).toBe(true);
+    expect(opts.obsidianTagsTemplate).toBe('reading');
+    expect(opts.filenameTemplate).toBe('{id}');
+    expect(opts.frontmatterFields).toBe(s.frontmatterFieldsObsidian);
+  });
+
+  it('uses the default frontmatter map when Obsidian-friendly is off', () => {
+    const opts = markdownOptions(DEFAULT_SETTINGS, 'download');
+    expect(opts.obsidianFriendly).toBe(false);
+    expect(opts.frontmatterFields).toBe(DEFAULT_SETTINGS.frontmatterFields);
+  });
+
+  it('saves images locally only for a download', () => {
+    const s = { ...DEFAULT_SETTINGS, downloadImages: true };
+    expect(markdownOptions(s, 'download').downloadImages).toBe(true);
+    expect(markdownOptions(s, 'copy').downloadImages).toBe(false);
+    expect(markdownOptions(s, 'obsidian').downloadImages).toBe(false);
+  });
+
+  it('forces the Obsidian schema for Add to Obsidian', () => {
+    const opts = markdownOptions(DEFAULT_SETTINGS, 'obsidian');
+    expect(opts.obsidianFriendly).toBe(true);
+    expect(opts.frontmatterFields).toBe(DEFAULT_SETTINGS.frontmatterFieldsObsidian);
   });
 });

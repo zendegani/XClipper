@@ -27,7 +27,7 @@ import {
   type StoredItem,
 } from './batch-sink';
 import { docToExtracted } from '../shared/extracted-content';
-import { postProcess, resolveDownloadImages } from '../shared/post-process';
+import { markdownOptions, postProcess, resolveDownloadImages } from '../shared/post-process';
 import { resolveLocalVideo } from '../shared/local-video';
 import { resolveVideoUrls } from './resolve-video';
 import {
@@ -285,16 +285,8 @@ async function withLocalVideo(
   if (resolved.status !== 'resolved') return undefined;
 
   const result = postProcess(docToExtracted(doc, { includeVideoLinks: true }), {
-    includeMetadata: settings.includeMetadata,
-    downloadImages: resolveDownloadImages('download', settings.downloadImages),
+    ...markdownOptions(settings, 'download'),
     videoAttachments: resolved.attachments,
-    inlineStats: settings.inlineStats,
-    obsidianFriendly: settings.obsidianFriendly,
-    filenameTemplate: settings.filenameTemplate.trim(),
-    obsidianTagsTemplate: settings.obsidianTagsTemplate.trim(),
-    frontmatterFields: settings.obsidianFriendly
-      ? settings.frontmatterFieldsObsidian
-      : settings.frontmatterFields,
   });
   return { markdown: result.markdown, images: result.images };
 }

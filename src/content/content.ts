@@ -1,5 +1,5 @@
 import type { BatchItemResultMessage, DownloadRequest, ExtractResponse } from '../types/messages';
-import { postProcess, resolveDownloadImages, buildFilename } from '../shared/post-process';
+import { postProcess, markdownOptions, buildFilename } from '../shared/post-process';
 import { buildFormatExport, type ExportFormat } from '../shared/export-formats';
 import { loadSettings } from '../shared/settings';
 import { buildObsidianUrl } from '../shared/obsidian';
@@ -136,36 +136,16 @@ async function runAutoExtract(
   if (!article) return;
 
   const settings = await loadSettings();
-  const includeMetadata = settings.includeMetadata;
-  const inlineStats = settings.inlineStats;
-  // Obsidian is the dedicated Obsidian path — force its schema + skip local
-  // image downloads (the deeplink carries Markdown via URL, not a folder).
-  const obsidianFriendly =
-    action === 'obsidian' ? true : settings.obsidianFriendly;
-  const downloadImages =
-    action === 'obsidian' ? false : resolveDownloadImages(action, settings.downloadImages);
   const shouldClose = allowClose && settings.closeTabAfterExport;
 
   // Need engagement data if either renderer wants it.
   const response = await extract({
-    includeMetadata: includeMetadata || inlineStats,
+    includeMetadata: settings.includeMetadata || settings.inlineStats,
     singleTweet,
   });
   if (!response.success || !response.data) return;
 
-  const frontmatterFields = obsidianFriendly
-    ? settings.frontmatterFieldsObsidian
-    : settings.frontmatterFields;
-
-  const result = postProcess(response.data, {
-    includeMetadata,
-    downloadImages,
-    inlineStats,
-    obsidianFriendly,
-    filenameTemplate: settings.filenameTemplate.trim(),
-    obsidianTagsTemplate: settings.obsidianTagsTemplate.trim(),
-    frontmatterFields,
-  });
+  const result = postProcess(response.data, markdownOptions(settings, action));
 
   if (action === 'copy') {
     await copyText(result.markdown);
@@ -393,19 +373,7 @@ async function runBatchExtract(): Promise<void> {
     if (!response.success || !response.data) {
       throw new Error(response.error || 'Extraction failed');
     }
-    // Same option resolution as the auto-extract 'download' flow above.
-    const frontmatterFields = settings.obsidianFriendly
-      ? settings.frontmatterFieldsObsidian
-      : settings.frontmatterFields;
-    const result = postProcess(response.data, {
-      includeMetadata: settings.includeMetadata,
-      downloadImages: resolveDownloadImages('download', settings.downloadImages),
-      inlineStats: settings.inlineStats,
-      obsidianFriendly: settings.obsidianFriendly,
-      filenameTemplate: settings.filenameTemplate.trim(),
-      obsidianTagsTemplate: settings.obsidianTagsTemplate.trim(),
-      frontmatterFields,
-    });
+    const result = postProcess(response.data, markdownOptions(settings, 'download'));
     msg = {
       action: 'BATCH_ITEM_RESULT',
       url: window.location.href,
