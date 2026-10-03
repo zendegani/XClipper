@@ -197,6 +197,7 @@ export function zipEntryFromStored(item: StoredItem, format: BatchFormat, settin
     inlineStats: settings.inlineStats,
     obsidianFriendly: settings.obsidianFriendly,
     filenameTemplate: settings.filenameTemplate.trim(),
+    obsidianTagsTemplate: settings.obsidianTagsTemplate.trim(),
     frontmatterFields: settings.obsidianFriendly ? settings.frontmatterFieldsObsidian : settings.frontmatterFields,
   });
   const file = buildPerItemFile(format, item.filename, result.markdown, item.doc, settings);

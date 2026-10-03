@@ -437,6 +437,7 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
       inlineStats: settings.inlineStats,
       obsidianFriendly: settings.obsidianFriendly,
       filenameTemplate: settings.filenameTemplate.trim(),
+      obsidianTagsTemplate: settings.obsidianTagsTemplate.trim(),
       frontmatterFields,
     });
     if (isStub) {

@@ -163,6 +163,7 @@ async function runAutoExtract(
     inlineStats,
     obsidianFriendly,
     filenameTemplate: settings.filenameTemplate.trim(),
+    obsidianTagsTemplate: settings.obsidianTagsTemplate.trim(),
     frontmatterFields,
   });
 
@@ -402,6 +403,7 @@ async function runBatchExtract(): Promise<void> {
       inlineStats: settings.inlineStats,
       obsidianFriendly: settings.obsidianFriendly,
       filenameTemplate: settings.filenameTemplate.trim(),
+      obsidianTagsTemplate: settings.obsidianTagsTemplate.trim(),
       frontmatterFields,
     });
     msg = {
