@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 330 44" width="330" height="44" role="img" aria-label="Featured on the Chrome Web Store">
+  <style>
+    .pill { fill: #e6f4ea; stroke: #b7dfc3; }
+    .fg { fill: #137333; }
+    .ring { fill: #e6f4ea; stroke: #137333; }
+    @media (prefers-color-scheme: dark) {
+      .pill { fill: #0d2818; stroke: #1e5631; }
+      .fg { fill: #81c995; }
+      .ring { fill: #0d2818; stroke: #81c995; }
+    }
+    .label {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+      font-weight: 600;
+      font-size: 16px;
+    }
+  </style>
+
+  <rect class="pill" x="0.5" y="0.5" width="329" height="43" rx="21.5"/>
+
+  <!-- Award rosette, echoing the Featured mark on the store listing -->
+  <g transform="translate(16 10)">
+    <path class="fg" d="M8.5 13 L7 22.5 L12 20.5 L17 22.5 L15.5 13 Z"/>
+    <circle class="ring" cx="12" cy="9" r="6.5" stroke-width="2"/>
+    <polygon class="fg" points="12,5.6 12.82,7.87 15.23,7.95 13.33,9.43 14,11.75 12,10.4 10,11.75 10.67,9.43 8.77,7.95 11.18,7.87"/>
+  </g>
+
+  <!-- textLength pins the width so the pill fits whichever system font renders it -->
+  <text class="label fg" x="48" y="27.5" textLength="262" lengthAdjust="spacingAndGlyphs">Featured on the Chrome Web Store</text>
+</svg>
