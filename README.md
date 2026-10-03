@@ -1,10 +1,11 @@
+<p align="center">
+  <a href="https://chromewebstore.google.com/detail/xclipper/epmmehilhbpkgcjbcohgkmihlalagkho"><img src="assets/featured-badge.svg" alt="Featured on the Chrome Web Store" height="44" /></a>
+  <a href="https://chromewebstore.google.com/detail/xclipper/epmmehilhbpkgcjbcohgkmihlalagkho"><img src="assets/users-badge.svg" alt="2,000+ users" height="44" /></a>
+</p>
+
 <h1 align="center">
   <img src="assets/xclipper-wordmark.svg" alt="XClipper" height="72" />
 </h1>
-
-<p align="center">
-  <a href="https://chromewebstore.google.com/detail/xclipper/epmmehilhbpkgcjbcohgkmihlalagkho"><img src="assets/featured-badge.svg" alt="Featured on the Chrome Web Store" height="44" /></a>
-</p>
 
 <p align="center"><em>The high-fidelity X / Twitter web clipper — save posts, threads & articles to Markdown, PDF, HTML, JSON, CSV & Obsidian, with images & video saved as local files, one at a time or in batch.</em></p>
 
@@ -17,11 +18,6 @@
 <p align="center">
   <a href="src/manifest.json"><img src="https://img.shields.io/badge/Chrome-Manifest%20V3-4285F4?logo=googlechrome&logoColor=white" alt="Chrome Manifest V3" /></a>
   <a href="src/manifest.json"><img src="https://img.shields.io/badge/Firefox-Manifest%20V3-FF7139?logo=firefoxbrowser&logoColor=white" alt="Firefox Manifest V3" /></a>
-</p>
-
-<p align="center">
-  <a href="https://chromewebstore.google.com/detail/xclipper/epmmehilhbpkgcjbcohgkmihlalagkho"><img src="https://img.shields.io/chrome-web-store/rating/epmmehilhbpkgcjbcohgkmihlalagkho?label=rating" alt="Chrome Web Store rating" /></a>
-  <a href="https://chromewebstore.google.com/detail/xclipper/epmmehilhbpkgcjbcohgkmihlalagkho"><img src="https://img.shields.io/badge/users-1%2C000%2B-blue" alt="1,000+ users" /></a>
 </p>
 
 <p align="center">
