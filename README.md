@@ -16,6 +16,12 @@
 </p>
 
 <p align="center">
+  <a href="https://chromewebstore.google.com/detail/xclipper/epmmehilhbpkgcjbcohgkmihlalagkho"><img src="https://img.shields.io/badge/Chrome%20Web%20Store-Featured-1e8e3e?logo=googlechrome&logoColor=white" alt="Featured on the Chrome Web Store" /></a>
+  <a href="https://chromewebstore.google.com/detail/xclipper/epmmehilhbpkgcjbcohgkmihlalagkho"><img src="https://img.shields.io/chrome-web-store/rating/epmmehilhbpkgcjbcohgkmihlalagkho?label=rating" alt="Chrome Web Store rating" /></a>
+  <a href="https://chromewebstore.google.com/detail/xclipper/epmmehilhbpkgcjbcohgkmihlalagkho"><img src="https://img.shields.io/badge/users-1%2C000%2B-blue" alt="1,000+ users" /></a>
+</p>
+
+<p align="center">
   <a href="https://chromewebstore.google.com/detail/xclipper/epmmehilhbpkgcjbcohgkmihlalagkho"><img src="https://img.shields.io/badge/Install-Chrome%20Web%20Store-4285F4?logo=googlechrome&logoColor=white&style=for-the-badge" alt="Install from the Chrome Web Store" /></a>
 </p>
 
