@@ -291,6 +291,7 @@ async function withLocalVideo(
     inlineStats: settings.inlineStats,
     obsidianFriendly: settings.obsidianFriendly,
     filenameTemplate: settings.filenameTemplate.trim(),
+    obsidianTagsTemplate: settings.obsidianTagsTemplate.trim(),
     frontmatterFields: settings.obsidianFriendly
       ? settings.frontmatterFieldsObsidian
       : settings.frontmatterFields,
