@@ -36,7 +36,7 @@ import {
 import { getVariables, paginateTimeline, setVariablesParam } from '../graphql/timeline';
 import { loadSettings } from '../shared/settings';
 import { docToExtracted } from '../shared/extracted-content';
-import { postProcess, resolveDownloadImages } from '../shared/post-process';
+import { markdownOptions, postProcess, resolveDownloadImages } from '../shared/post-process';
 import { recordExport } from '../shared/review-prompt';
 import {
   buildPerItemFile,
@@ -385,9 +385,6 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
     format === 'md' &&
     settings.saveVideos &&
     resolveDownloadImages('download', settings.downloadImages);
-  const frontmatterFields = settings.obsidianFriendly
-    ? settings.frontmatterFieldsObsidian
-    : settings.frontmatterFields;
 
   const now = new Date();
   const prefix = settings.downloadFolder.trim();
@@ -432,14 +429,8 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
       doc,
       localVideo ? { includeVideoLinks: true } : undefined,
     ), {
-      includeMetadata: settings.includeMetadata,
-      downloadImages: resolveDownloadImages('download', settings.downloadImages),
+      ...markdownOptions(settings, 'download'),
       videoAttachments: attachments,
-      inlineStats: settings.inlineStats,
-      obsidianFriendly: settings.obsidianFriendly,
-      filenameTemplate: settings.filenameTemplate.trim(),
-      obsidianTagsTemplate: settings.obsidianTagsTemplate.trim(),
-      frontmatterFields,
     });
     if (isStub) {
       const filename = uniqueFilename(stubFilenames, result.filename);

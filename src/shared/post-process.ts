@@ -1,5 +1,6 @@
 import type { ExtractedContent, TweetMetadata } from '../types/messages';
 import { isAllowedImageUrl } from './media';
+import type { Settings } from './settings';
 
 export interface PostProcessOptions {
   includeMetadata: boolean;
@@ -144,6 +145,30 @@ export function resolveDownloadImages(
   userToggle: boolean
 ): boolean {
   return action === 'download' && userToggle === true;
+}
+
+// Single source of truth for Settings → postProcess options. Every Markdown
+// export path goes through here so a new setting is wired once, not per call
+// site (#135 was five call sites missing the tags template). Callers spread in
+// only what is specific to their call: videoAttachments, or downloadImages:
+// false in zip mode.
+export function markdownOptions(
+  settings: Settings,
+  intent: 'download' | 'copy' | 'obsidian'
+): PostProcessOptions {
+  // "Add to Obsidian" is *the* Obsidian path — force the Obsidian schema
+  // regardless of the toggle, and leave images as remote URLs: the deeplink
+  // carries Markdown via URL, not a folder of sibling files.
+  const obsidianFriendly = intent === 'obsidian' || settings.obsidianFriendly;
+  return {
+    includeMetadata: settings.includeMetadata,
+    downloadImages: intent === 'obsidian' ? false : resolveDownloadImages(intent, settings.downloadImages),
+    inlineStats: settings.inlineStats,
+    obsidianFriendly,
+    filenameTemplate: settings.filenameTemplate.trim(),
+    obsidianTagsTemplate: settings.obsidianTagsTemplate.trim(),
+    frontmatterFields: obsidianFriendly ? settings.frontmatterFieldsObsidian : settings.frontmatterFields,
+  };
 }
 
 // Strip characters that would break a filename on at least one major FS.

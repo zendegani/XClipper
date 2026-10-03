@@ -9,14 +9,14 @@ import type {
   ExtractedContent,
   ResolveVideoUrlsResponse,
 } from '../types/messages';
-import { postProcess, resolveDownloadImages, buildFilename, type PostProcessResult } from '../shared/post-process';
+import { postProcess, markdownOptions, buildFilename, type PostProcessResult } from '../shared/post-process';
 import { buildFormatExport, type ExportFormat } from '../shared/export-formats';
 import { recordExport } from '../shared/review-prompt';
 import { buildObsidianUrl } from '../shared/obsidian';
 import { hostMatches } from '../shared/media';
 import { renderMarkdown } from '../ast/render-markdown';
 import { resolveLocalVideo, type VideoAttachment } from '../shared/local-video';
-import { currentFrontmatterFields, readSingleFormat, applySingleFormat, persistAll, saveLocalEnabled, saveLocalMediaEnabled } from './settings-form';
+import { currentFrontmatterFields, readSingleFormat, applySingleFormat, persistAll, readSettingsForm, saveLocalMediaEnabled } from './settings-form';
 import type { BatchFormat } from '../shared/settings';
 import {
   btnDownload,
@@ -144,30 +144,14 @@ async function extractContent(includeMetadata: boolean): Promise<ExtractedConten
 async function extractMarkdown(
   forAction: 'download' | 'copy' | 'obsidian' = 'download',
 ): Promise<PostProcessResult> {
-  const includeMetadata = chkMetadata.checked;
-  const inlineStats = chkInlineStats.checked;
-  // "Add to Obsidian" is *the* Obsidian path — force the Obsidian schema
-  // regardless of the toggle (the toggle exists for the Download/Copy
-  // flows where the user may or may not be heading to Obsidian).
-  const obsidianFriendly = forAction === 'obsidian' ? true : chkObsidianFriendly.checked;
-  // Local image folders make no sense for the deeplink — Obsidian receives
-  // markdown via URL, not a filesystem package, so leave images as remote
-  // URLs (Obsidian renders pbs.twimg.com inline fine).
-  const downloadImages =
-    forAction === 'obsidian' ? false : resolveDownloadImages(forAction, saveLocalEnabled());
+  const opts = markdownOptions(readSettingsForm(), forAction);
 
   // Need engagement data if either renderer wants it.
-  const data = await extractContent(includeMetadata || inlineStats);
+  const data = await extractContent(opts.includeMetadata || opts.inlineStats === true);
 
   return postProcess(data, {
-    includeMetadata,
-    downloadImages,
-    inlineStats,
-    obsidianFriendly,
-    videoAttachments: downloadImages ? await localVideoAttachments(data) : undefined,
-    filenameTemplate: txtFilenameTemplate.value.trim(),
-    obsidianTagsTemplate: txtObsidianTags.value.trim(),
-    frontmatterFields: currentFrontmatterFields(obsidianFriendly),
+    ...opts,
+    videoAttachments: opts.downloadImages ? await localVideoAttachments(data) : undefined,
   });
 }
 

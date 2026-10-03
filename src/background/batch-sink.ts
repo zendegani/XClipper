@@ -20,7 +20,7 @@ import {
   type ExportFormat,
   type FormatOptions,
 } from '../shared/export-formats';
-import { postProcess } from '../shared/post-process';
+import { markdownOptions, postProcess } from '../shared/post-process';
 import type { BatchFailure } from './batch-state';
 import { isAllowedImageUrl, sanitizeFilePath } from './security';
 import { buildZip, zipDataUrl, type ZipEntry } from './zip';
@@ -192,13 +192,8 @@ export async function writePerItem(
 // the remote-URL rendering is the correct one.
 export function zipEntryFromStored(item: StoredItem, format: BatchFormat, settings: Settings): ZipEntry {
   const result = postProcess(docToExtracted(item.doc), {
-    includeMetadata: settings.includeMetadata,
+    ...markdownOptions(settings, 'download'),
     downloadImages: false,
-    inlineStats: settings.inlineStats,
-    obsidianFriendly: settings.obsidianFriendly,
-    filenameTemplate: settings.filenameTemplate.trim(),
-    obsidianTagsTemplate: settings.obsidianTagsTemplate.trim(),
-    frontmatterFields: settings.obsidianFriendly ? settings.frontmatterFieldsObsidian : settings.frontmatterFields,
   });
   const file = buildPerItemFile(format, item.filename, result.markdown, item.doc, settings);
   return { name: file.name, content: file.content };

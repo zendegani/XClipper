@@ -10,6 +10,7 @@ import {
   DEFAULT_SETTINGS,
   SECTION_MAX_OPEN,
   type FieldMap,
+  type Settings,
   type BatchFormat,
   type BatchOutput,
 } from '../shared/settings';
@@ -104,8 +105,11 @@ export function applySingleFormat(fmt: BatchFormat): void {
   }
 }
 
-export function persistAll(): void {
-  saveSettings({
+// The form as a Settings object — what persistAll saves, and what the action
+// flows hand to markdownOptions so the popup and the saved-settings paths share
+// one Settings → options mapping.
+export function readSettingsForm(): Settings {
+  return {
     downloadImages: readSaveLocal() !== 'off',
     saveVideos: readSaveLocal() === 'media',
     includeMetadata: chkMetadata.checked,
@@ -127,7 +131,11 @@ export function persistAll(): void {
     frontmatterFields,
     frontmatterFieldsObsidian,
     settingsSectionsOpen,
-  });
+  };
+}
+
+export function persistAll(): void {
+  saveSettings(readSettingsForm());
 }
 
 // ─── Batch format + output (a <select> and a radio "segmented" group) ──
@@ -154,12 +162,6 @@ function readSaveLocal(): SaveLocal {
   if (saveLocalMedia.checked) return 'media';
   if (saveLocalImages.checked) return 'images';
   return 'off';
-}
-
-// Whether to rewrite media links to local paths at all — true for both tiers,
-// since Media implies Images.
-export function saveLocalEnabled(): boolean {
-  return readSaveLocal() !== 'off';
 }
 
 // Media is the tier that also wants the video file itself. Single export can
