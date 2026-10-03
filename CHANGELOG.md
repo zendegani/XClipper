@@ -12,6 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **Custom Obsidian tags now apply to every Markdown export**: the **Tags** template you set in the popup was honored only by the popup's own Download, Copy and Add to Obsidian buttons. The inline button, the right-click menu, and every batch export — Manual, Auto and Super, to a folder or a zip — ignored it and wrote the default `clippings, x, {type}` instead. They now all use your template. If you never changed the Tags field, nothing changes. (#135)
+- **Auto and Super now save videos when Output is Both**: with Format **Markdown**, Output **Both** and Save locally **Media**, the Auto and Super engines skipped the `.mp4` files and linked each post's video on X, while Manual saved them. They now save the videos and link the local files, like Manual and like Output **Separate**. (#136)
 
 ---
 

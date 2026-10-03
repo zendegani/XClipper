@@ -377,10 +377,11 @@ async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatc
   const zip = settings.batchZip && output !== 'combined' && !(settings.downloadImages && format === 'md');
   // Local MP4s ride the per-item Markdown path only: combined and CSV return
   // before writePerItem so they'd discard the download list, and zip is already
-  // mutually exclusive with local media. saveVideos is the Media position of
-  // the popup's save-locally control; every other position stays poster-only.
+  // mutually exclusive with local media. 'both' writes per-item files too, so it
+  // gets them (matching Manual). saveVideos is the Media position of the popup's
+  // save-locally control; every other position stays poster-only.
   const localVideo =
-    output === 'separate' &&
+    output !== 'combined' &&
     format === 'md' &&
     settings.saveVideos &&
     resolveDownloadImages('download', settings.downloadImages);
