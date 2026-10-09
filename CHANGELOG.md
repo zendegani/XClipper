@@ -15,7 +15,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Thousands-of-files warning now fixes itself in one click**: the yellow Auto/Super warning is down to one line with a button that turns on **Zip files**, or picks **Combined** output when saving images or media locally rules out Zip. The warning disappears once either is on.
 - **Batch explanations show only when you need them**: the lines explaining Manual, Auto, Super and Recent, Resume, Date range now appear when you click one of those options and hide again on your next click elsewhere. Hovering an option shows the same explanation. The engine and fetch-mode selectors now share one box, with the red ⓘ for Auto and Super between them.
 - **Batch controls fold away while an export runs**: the engine (Manual, Auto, Super) and fetch mode (Recent, Resume, Date range) can't change mid-run, so during a run both selectors shrink to one line such as "Auto · Resume", and the Zip/Combined warning hides. They come back when the run ends.
-- **Export settings moved to the bottom of the popup**: in both Single and Batch export, the Export settings panel now sits below the export buttons, so the actions you use most are the first thing under the tabs.
+- **Export settings moved below the Single export buttons**: in Single export, the Export settings panel now sits below the export buttons, so the actions you use most are the first thing under the tabs. Batch export keeps it above the batch controls.
 
 ---
 
