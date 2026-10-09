@@ -156,8 +156,8 @@ function applyBatchView(): void {
 
 // Auto/Super save every loaded post as its own file — thousands of downloads
 // unless the user picked Combined output or the zip toggle (a disabled zip
-// toggle counts as off: local images override it). Shown below the engine
-// selector, pushing the fetch-mode segment down while visible; hidden mid-run,
+// toggle counts as off: local images override it). Shown below the engine and
+// fetch-mode box; hidden mid-run,
 // when it's too late to act on. Re-evaluated with the batch view here and on
 // output/zip/format changes in settings-form. Its button applies the fix in
 // place: Zip when available, otherwise Combined (local media blocks Zip).

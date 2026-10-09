@@ -1023,7 +1023,6 @@ body {
  * replaces the old Fast on/off + Super on/off toggles. Full-width so it reads as
  * a primary choice; the fetch-mode segment (.fast-seg) below twins its shape. */
 .batch-mode {
-  flex: 1;
   display: flex;
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
@@ -1066,8 +1065,8 @@ body {
   opacity: 0.7;
 }
 
-/* Field box: groups a segmented control with its caption behind one
- * subtle border, so it's unambiguous which explanation belongs to which toggle.
+/* Field box: groups the engine and fetch-mode controls with their captions
+ * behind one subtle border, so it's unambiguous which explanation belongs to which toggle.
  * The elevated background sets the box off from the segments inside it (which
  * keep their own outline on --bg-primary). */
 .mode-field {
@@ -1100,13 +1099,34 @@ body {
   color: var(--text-secondary);
 }
 
-/* Engine selector + an (i) at its end (Auto/Super only) that carries the
- * deeper "how it works / soft rate limit / re-run after ~15 min" note. It sits
- * on the selector row, so it stays visible while the caption is hidden. */
-.mode-row {
+/* Engine caption + an (i) at its end (Auto/Super only) that carries the deeper
+ * "how it works / soft rate limit / re-run after ~15 min" note. Bottom-aligned
+ * so the (i) sits by the caption's last line, or alone at the row's end while
+ * the caption is hidden. The row drops out when neither is showing (Manual). */
+.mode-caption-row {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
+  justify-content: flex-end;
   gap: 8px;
+}
+
+.mode-caption-row:not(:has(> :not(.hidden))) {
+  display: none;
+}
+
+.mode-caption-row .mode-field-caption {
+  flex: 1;
+}
+
+/* Fetch mode (Auto/Super only) shares the engine's box, below its caption row. */
+.fast-paginate {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.fast-paginate.hidden {
+  display: none;
 }
 
 /* Shown for Auto/Super only — it is the single red mark in the batch view, the
@@ -1156,8 +1176,7 @@ body {
 
 /* Flood warning: Auto/Super with un-zipped per-item output would drop
  * thousands of entries on the downloads shelf. One line with a button that
- * turns on Zip (or Combined). A normal-flow block between the engine selector
- * and the fetch-mode segment, so showing it pushes the latter down. */
+ * turns on Zip (or Combined), below the engine/fetch-mode box. */
 .flood-hint {
   display: flex;
   align-items: center;
