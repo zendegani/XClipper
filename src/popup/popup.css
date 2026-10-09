@@ -135,38 +135,86 @@ body {
  * trigger opens a popover menu of the five formats; the active one is what
  * Copy and Download act on. */
 .export-picker {
+  --hug-moat: 6px;
+  /* How far Copy/Download slide under the trigger: past the gap and the
+   * trigger's corner radius, so the moat below can carve their edges. */
+  --hug-tuck: calc(var(--hug-moat) + 1px + var(--radius));
   display: grid;
   grid-template-columns: 1fr 1fr 1fr;
-  gap: 8px;
+  column-gap: calc(var(--hug-moat) + 1px);
+}
+
+/* "Hug": Copy and Download extend under the trigger, and the trigger paints
+ * a background-colored moat plus a 1px ring around itself (its ::before),
+ * clipped to the row's height. Where the moat crosses Copy/Download it cuts
+ * their inner corners concave and the ring becomes their new border, so both
+ * edges follow the trigger's rounded sides. Padding re-centers their labels. */
+#btn-copy {
+  margin-inline-end: calc(-1 * var(--hug-tuck));
+  padding-inline-end: calc(10px + var(--hug-tuck));
+  width: calc(100% + var(--hug-tuck));
+}
+
+#btn-download {
+  margin-inline-start: calc(-1 * var(--hug-tuck));
+  padding-inline-start: calc(10px + var(--hug-tuck));
+  width: calc(100% + var(--hug-tuck));
+}
+
+/* The ring is static, so a lifting button would come apart from it. */
+.export-picker .btn-action:hover,
+.export-picker .btn-action:active {
+  transform: none;
 }
 
 .btn-fmt-trigger {
+  --ring: var(--accent);
   anchor-name: --fmt-trigger;
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 2px;
   padding: 6px 8px;
-  border: 1px solid var(--accent);
+  border: 1px solid var(--ring);
   border-radius: var(--radius);
-  background: var(--accent-tint);
+  /* Opaque, so the tucked-under Copy/Download edges don't show through. */
+  background: linear-gradient(var(--accent-tint), var(--accent-tint)), var(--bg-primary);
   color: var(--accent);
   font-family: var(--font);
   cursor: pointer;
-  transition:
-    background var(--transition),
-    box-shadow var(--transition);
+}
+
+.btn-fmt-trigger::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  z-index: -1;
+  border-radius: inherit;
+  box-shadow:
+    0 0 0 var(--hug-moat) var(--bg-primary),
+    0 0 0 calc(var(--hug-moat) + 1px) var(--ring);
+  clip-path: polygon(-20px 0, calc(100% + 20px) 0, calc(100% + 20px) 100%, -20px 100%);
+  pointer-events: none;
 }
 
 .btn-fmt-trigger:hover {
-  box-shadow: 0 4px 16px var(--accent-glow);
+  background: linear-gradient(var(--accent-tint), var(--accent-tint)),
+    linear-gradient(var(--accent-tint), var(--accent-tint)), var(--bg-primary);
 }
 
+/* Dim the children and the ring, not the whole button: opacity on the
+ * container would let the tucked-under edges show through. The ring mix
+ * matches Copy/Download's border at their disabled opacity. */
 .btn-fmt-trigger:disabled {
-  opacity: 0.5;
+  --ring: color-mix(in srgb, var(--accent) 50%, var(--bg-primary));
   cursor: not-allowed;
-  box-shadow: none;
+}
+
+.btn-fmt-trigger:disabled > * {
+  opacity: 0.5;
 }
 
 .fmt-trigger-caption {
