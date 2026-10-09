@@ -72,7 +72,8 @@ const FAST_POLL_MS = 800;
 const batchControls = document.querySelector('.batch-controls');
 const batchProgressRow = document.querySelector('.batch-progress-row');
 
-// Always-on caption under the selector: scroll mode + quality for each engine.
+// Caption under the selector (and each segment's tooltip): scroll mode +
+// quality for each engine.
 const MODE_CAPTION: Record<BatchMode, { key: string; text: string }> = {
   manual: { key: 'mode_caption_manual', text: 'You scroll the page; every post you load is saved. Full threads & articles.' },
   auto: { key: 'mode_caption_auto', text: 'Fetches through your X session automatically — no scrolling. Full threads & articles.' },
@@ -268,10 +269,28 @@ export function initFastBatchUi(): void {
     chrome.permissions.contains(ACCESS, (granted) => setBatchMode(granted ? mode : 'manual'));
   });
 
-  // Engine segments. selectMode handles the lock hint + Auto/Super consent.
+  // Engine segments. selectMode handles Auto/Super consent.
   modeManual?.addEventListener('click', () => selectMode('manual'));
   modeAuto?.addEventListener('click', () => selectMode('auto'));
   modeSuper?.addEventListener('click', () => selectMode('super'));
+
+  // Captions explain a choice as it's made: a click on a segment group reveals
+  // its caption, and the next click anywhere else hides it. Hover tooltips
+  // carry the same text for anyone who hasn't clicked yet.
+  const tip = (b: HTMLElement | null, c: { key: string; text: string }): void => {
+    if (b) b.dataset.tooltip = t(c.key, c.text);
+  };
+  tip(modeManual, MODE_CAPTION.manual);
+  tip(modeAuto, MODE_CAPTION.auto);
+  tip(modeSuper, MODE_CAPTION.super);
+  tip(fastPaginateRecent, PAGINATE_CAPTION.recent);
+  tip(fastPaginateResume, PAGINATE_CAPTION.resume);
+  tip(fastPaginateDaterange, PAGINATE_CAPTION.dateRange);
+  document.addEventListener('click', (e) => {
+    const target = e.target as Element;
+    batchModeCaption?.classList.toggle('hidden', !target.closest('.batch-mode'));
+    fastPaginateCaption?.classList.toggle('hidden', !target.closest('.fast-seg'));
+  });
 
   // Date-range filter: restore, persist on change, and clear.
   chrome.storage.local.get([FAST_FROM_KEY, FAST_TO_KEY], (res) => {

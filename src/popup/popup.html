@@ -217,30 +217,30 @@
           </button>
         </div>
         <div id="batch-mode-field" class="mode-field hidden">
-          <div id="batch-mode" class="batch-mode" role="group" aria-label="Batch engine"
-            data-i18n-aria-label="batch_mode">
-            <button type="button" id="mode-manual" class="mode-seg-btn active" data-mode="manual" data-i18n="mode_manual">Manual</button>
-            <button type="button" id="mode-auto" class="mode-seg-btn" data-mode="auto">
-              <span data-i18n="mode_auto">Auto</span><span class="beta-badge" data-i18n="beta">Beta</span>
-            </button>
-            <button type="button" id="mode-super" class="mode-seg-btn" data-mode="super">
-              <span data-i18n="mode_super">Super</span><span class="beta-badge" data-i18n="beta">Beta</span>
-            </button>
-          </div>
-          <div class="mode-caption-row">
-            <p id="batch-mode-caption" class="mode-field-caption"></p>
+          <div class="mode-row">
+            <div id="batch-mode" class="batch-mode" role="group" aria-label="Batch engine"
+              data-i18n-aria-label="batch_mode">
+              <button type="button" id="mode-manual" class="mode-seg-btn active" data-mode="manual" data-i18n="mode_manual">Manual</button>
+              <button type="button" id="mode-auto" class="mode-seg-btn" data-mode="auto">
+                <span data-i18n="mode_auto">Auto</span><span class="beta-badge" data-i18n="beta">Beta</span>
+              </button>
+              <button type="button" id="mode-super" class="mode-seg-btn" data-mode="super">
+                <span data-i18n="mode_super">Super</span><span class="beta-badge" data-i18n="beta">Beta</span>
+              </button>
+            </div>
             <span id="batch-mode-info" class="mode-info hidden" tabindex="0" role="img"
-              aria-label="About Auto & Super" data-i18n-aria-label="batch_mode_info_label"
-              data-tooltip="Auto and Super fetch through your logged-in X session — no API key, no password, nothing leaves your browser. Large runs can hit X's soft rate limit; it stops politely and leaves the rest pending — wait ~15 minutes, then re-run to continue where it left off."
-              data-i18n-tooltip="batch_mode_hint">
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <circle cx="12" cy="12" r="10" />
-                <line x1="12" y1="16" x2="12" y2="12" />
-                <line x1="12" y1="8" x2="12.01" y2="8" />
-              </svg>
+                aria-label="About Auto & Super" data-i18n-aria-label="batch_mode_info_label"
+                data-tooltip="Auto and Super fetch through your logged-in X session — no API key, no password, nothing leaves your browser. Large runs can hit X's soft rate limit; it stops politely and leaves the rest pending — wait ~15 minutes, then re-run to continue where it left off."
+                data-i18n-tooltip="batch_mode_hint">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10" />
+                  <line x1="12" y1="16" x2="12" y2="12" />
+                  <line x1="12" y1="8" x2="12.01" y2="8" />
+                </svg>
             </span>
           </div>
+          <p id="batch-mode-caption" class="mode-field-caption hidden"></p>
         </div>
         <p id="batch-run-summary" class="batch-run-summary hidden"></p>
         <p id="flood-hint" class="flood-hint hidden" data-i18n="flood_hint">
@@ -252,7 +252,7 @@
             <button type="button" id="fast-paginate-resume" class="fast-seg-btn" data-mode="resume" data-i18n="fast_paginate_resume">Resume</button>
             <button type="button" id="fast-paginate-daterange" class="fast-seg-btn" data-mode="dateRange" data-i18n="fast_date_range">Date range</button>
           </div>
-          <p id="fast-paginate-caption" class="mode-field-caption"></p>
+          <p id="fast-paginate-caption" class="mode-field-caption hidden"></p>
           <div id="fast-date-range" class="fast-date-range hidden">
             <input type="date" id="fast-date-from" class="fast-date-input" aria-label="From date" data-i18n-aria-label="fast_date_from" />
             <span class="fast-date-sep">→</span>
