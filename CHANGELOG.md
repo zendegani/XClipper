@@ -11,6 +11,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Changed
 
+- **Format picker folded into one Format button**: Single export showed five format buttons next to Copy and Download. They now live behind one **Format** button between Copy and Download, which shows the active format; click it to pick `.html`, `.json`, `.md`, `.csv` or `.txt`. Your saved format and the files you export are unchanged.
 - **Export settings moved to the bottom of the popup**: in both Single and Batch export, the Export settings panel now sits below the export buttons, so the actions you use most are the first thing under the tabs.
 
 ---

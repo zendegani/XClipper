@@ -53,7 +53,44 @@
 
       <div id="panel-single" class="export-panel">
         <div class="export-picker">
-          <div class="format-grid" role="radiogroup" aria-label="Export format">
+          <button id="btn-copy" class="btn-secondary btn-action" type="button">
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
+              <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+            </svg>
+            <span class="btn-label" data-i18n="btn_copy">Copy</span>
+          </button>
+          <button id="btn-fmt-trigger" class="btn-fmt-trigger" type="button"
+            popovertarget="fmt-menu" aria-haspopup="true">
+            <span class="fmt-trigger-caption" data-i18n="batch_format">Format</span>
+            <span class="fmt-trigger-row">
+              <span id="fmt-trigger-value" class="fmt-trigger-value">
+                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                  stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <rect x="2" y="5" width="20" height="14" rx="2" />
+                  <path d="M6 15V9l3 3 3-3v6" />
+                  <path d="M17 9v6" />
+                  <path d="m14.5 12.5 2.5 2.5 2.5-2.5" />
+                </svg>
+                <span class="btn-label">.md</span>
+              </span>
+              <svg class="fmt-trigger-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+                stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </span>
+          </button>
+          <button id="btn-download" class="btn-primary btn-action" type="button">
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+              stroke-linecap="round" stroke-linejoin="round">
+              <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+              <polyline points="7 10 12 15 17 10" />
+              <line x1="12" y1="15" x2="12" y2="3" />
+            </svg>
+            <span class="btn-label" data-i18n="btn_download">Download</span>
+          </button>
+          <div id="fmt-menu" class="fmt-menu" popover role="radiogroup" aria-label="Export format">
             <button id="btn-fmt-html" class="btn-fmt" type="button" role="radio" aria-checked="false"
               data-format="html" data-tooltip="Styled, self-contained HTML file." data-i18n-tooltip="btn_html_hint">
               <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -64,17 +101,6 @@
               </svg>
               <span class="btn-label">.html</span>
             </button>
-            <button id="btn-fmt-md" class="btn-fmt btn-fmt-md" type="button" role="radio" aria-checked="true"
-              data-format="md" data-tooltip="Markdown — the full formatted export." data-i18n-tooltip="btn_md_hint">
-              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <rect x="2" y="5" width="20" height="14" rx="2" />
-                <path d="M6 15V9l3 3 3-3v6" />
-                <path d="M17 9v6" />
-                <path d="m14.5 12.5 2.5 2.5 2.5-2.5" />
-              </svg>
-              <span class="btn-label">.md</span>
-            </button>
             <button id="btn-fmt-json" class="btn-fmt" type="button" role="radio" aria-checked="false"
               data-format="json" data-tooltip="Raw structured document (AST) as JSON." data-i18n-tooltip="btn_json_hint">
               <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
@@ -84,16 +110,16 @@
               </svg>
               <span class="btn-label">.json</span>
             </button>
-            <button id="btn-fmt-txt" class="btn-fmt" type="button" role="radio" aria-checked="false"
-              data-format="txt" data-tooltip="Plain text with markup stripped." data-i18n-tooltip="btn_txt_hint">
+            <button id="btn-fmt-md" class="btn-fmt" type="button" role="radio" aria-checked="true"
+              data-format="md" data-tooltip="Markdown — the full formatted export." data-i18n-tooltip="btn_md_hint">
               <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                <polyline points="14 2 14 8 20 8" />
-                <line x1="8" y1="13" x2="16" y2="13" />
-                <line x1="8" y1="17" x2="16" y2="17" />
+                <rect x="2" y="5" width="20" height="14" rx="2" />
+                <path d="M6 15V9l3 3 3-3v6" />
+                <path d="M17 9v6" />
+                <path d="m14.5 12.5 2.5 2.5 2.5-2.5" />
               </svg>
-              <span class="btn-label">.txt</span>
+              <span class="btn-label">.md</span>
             </button>
             <button id="btn-fmt-csv" class="btn-fmt" type="button" role="radio" aria-checked="false"
               data-format="csv" data-tooltip="One metadata row using your selected frontmatter fields." data-i18n-tooltip="btn_csv_hint">
@@ -106,25 +132,16 @@
               </svg>
               <span class="btn-label">.csv</span>
             </button>
-          </div>
-
-          <div class="export-actions">
-            <button id="btn-copy" class="btn-secondary btn-action" type="button">
+            <button id="btn-fmt-txt" class="btn-fmt" type="button" role="radio" aria-checked="false"
+              data-format="txt" data-tooltip="Plain text with markup stripped." data-i18n-tooltip="btn_txt_hint">
               <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <rect x="9" y="9" width="13" height="13" rx="2" ry="2" />
-                <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+                stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                <polyline points="14 2 14 8 20 8" />
+                <line x1="8" y1="13" x2="16" y2="13" />
+                <line x1="8" y1="17" x2="16" y2="17" />
               </svg>
-              <span class="btn-label" data-i18n="btn_copy">Copy</span>
-            </button>
-            <button id="btn-download" class="btn-primary btn-action" type="button">
-              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                <polyline points="7 10 12 15 17 10" />
-                <line x1="12" y1="15" x2="12" y2="3" />
-              </svg>
-              <span class="btn-label" data-i18n="btn_download">Download</span>
+              <span class="btn-label">.txt</span>
             </button>
           </div>
         </div>

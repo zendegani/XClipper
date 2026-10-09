@@ -25,6 +25,8 @@ import {
   btnPdf,
   btnObsidian,
   fmtButtons,
+  btnFmtTrigger,
+  fmtMenu,
   statusEl,
   chkMetadata,
   chkInlineStats,
@@ -38,7 +40,7 @@ import {
 // Every button the export flows disable while one of them is running, so a
 // second click can't race an in-flight extraction (the format selectors too,
 // so the target format can't change mid-flight).
-const allExportButtons = [btnDownload, btnCopy, btnPdf, btnObsidian, ...fmtButtons];
+const allExportButtons = [btnDownload, btnCopy, btnPdf, btnObsidian, btnFmtTrigger, ...fmtButtons];
 
 function showStatus(
   message: string,
@@ -222,8 +224,21 @@ export function initActions(): void {
     btn.addEventListener('click', () => {
       applySingleFormat(btn.dataset.format as BatchFormat);
       persistAll();
+      fmtMenu.hidePopover();
     });
   }
+  fmtMenu.addEventListener('toggle', (e) => {
+    if ((e as ToggleEvent).newState === 'open') {
+      fmtButtons.find((b) => b.getAttribute('aria-checked') === 'true')?.focus();
+    }
+  });
+  fmtMenu.addEventListener('keydown', (e) => {
+    const step = { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1 }[e.key];
+    if (!step) return;
+    e.preventDefault();
+    const i = fmtButtons.indexOf(document.activeElement as HTMLButtonElement);
+    fmtButtons[(i + step + fmtButtons.length) % fmtButtons.length].focus();
+  });
 
   // ─── PDF Export Flow ───
   btnPdf.addEventListener('click', async () => {

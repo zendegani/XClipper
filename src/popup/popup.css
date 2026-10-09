@@ -131,38 +131,106 @@ body {
 }
 
 /* ─── Button Group ─────────────────────────────────────────── */
-/* Single-export picker: the format grid on the start side, the Download/Copy
- * actions stacked on the end side. Both columns share full height so the two
- * action buttons line up with the grid. */
+/* Single-export picker: Copy | Format | Download in one row. The Format
+ * trigger opens a popover menu of the five formats; the active one is what
+ * Copy and Download act on. */
 .export-picker {
-  display: flex;
-  gap: 8px;
-  align-items: stretch;
-}
-
-/* Five format selectors. md is a tall button in the center column spanning
- * both rows; html/json/txt/csv sit at the four corners (dice-5 layout). */
-.format-grid {
-  flex: 1 1 auto;
   display: grid;
-  grid-template-columns: 1fr 1.15fr 1fr;
-  grid-template-rows: 1fr 1fr;
-  gap: 6px;
+  grid-template-columns: 1fr 1fr 1fr;
+  gap: 8px;
 }
 
-#btn-fmt-html { grid-column: 1; grid-row: 1; }
-#btn-fmt-json { grid-column: 3; grid-row: 1; }
-#btn-fmt-md   { grid-column: 2; grid-row: 1 / 3; }
-#btn-fmt-txt  { grid-column: 1; grid-row: 2; }
-#btn-fmt-csv  { grid-column: 3; grid-row: 2; }
-
-.btn-fmt {
+.btn-fmt-trigger {
+  anchor-name: --fmt-trigger;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
+  gap: 2px;
+  padding: 6px 8px;
+  border: 1px solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--accent-tint);
+  color: var(--accent);
+  font-family: var(--font);
+  cursor: pointer;
+  transition:
+    background var(--transition),
+    box-shadow var(--transition);
+}
+
+.btn-fmt-trigger:hover {
+  box-shadow: 0 4px 16px var(--accent-glow);
+}
+
+.btn-fmt-trigger:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+.fmt-trigger-caption {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text-secondary);
+}
+
+.fmt-trigger-row,
+.fmt-trigger-value {
+  display: flex;
+  align-items: center;
   gap: 5px;
-  padding: 8px 6px;
-  border: 1px solid var(--text-secondary);
+}
+
+.fmt-trigger-value {
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.fmt-trigger-chevron {
+  width: 12px;
+  height: 12px;
+  transition: rotate var(--transition);
+}
+
+.export-picker:has(.fmt-menu:popover-open) .fmt-trigger-chevron {
+  rotate: 180deg;
+}
+
+/* Top-layer popover pinned under the trigger via CSS anchor positioning,
+ * spanning the picker row minus a small inset as in the design. */
+.fmt-menu {
+  position-anchor: --fmt-trigger;
+  inset: auto 36px auto 36px;
+  top: calc(anchor(bottom) + 6px);
+  width: auto;
+  margin: 0;
+  display: none;
+  gap: 4px;
+  padding: 6px;
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius);
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  box-shadow: 0 8px 28px rgba(0, 0, 0, 0.16);
+  overflow: visible;
+}
+
+.fmt-menu:popover-open {
+  display: flex;
+}
+
+.btn-fmt {
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px 0;
+  border: 1px solid transparent;
   border-radius: var(--radius-sm);
   background: transparent;
   color: var(--text-secondary);
@@ -177,47 +245,24 @@ body {
 }
 
 .btn-fmt .btn-icon {
-  width: 14px;
-  height: 14px;
+  width: 18px;
+  height: 18px;
   color: currentColor;
 }
 
 .btn-fmt:hover {
   background: var(--bg-hover);
   color: var(--text-primary);
-  border-color: var(--text-primary);
 }
 
-/* Selected format: accent outline + tint, matching the Download/Copy buttons
- * below so the active target reads as "wired to" those actions. */
+/* Selected format: accent outline + tint, matching the trigger. */
 .btn-fmt[aria-checked="true"] {
   color: var(--accent);
   border-color: var(--accent);
   background: var(--accent-tint);
 }
 
-/* md is the primary format — larger, stacked icon over label, filling the
- * tall center cell. */
-.btn-fmt-md {
-  flex-direction: column;
-  gap: 6px;
-  font-size: 13px;
-}
-
-.btn-fmt-md .btn-icon {
-  width: 22px;
-  height: 22px;
-}
-
-/* Download + Copy stacked vertically, each filling half the picker height. */
-.export-actions {
-  flex: 0 0 132px;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.export-actions .btn-action {
+.btn-action {
   flex: 1 1 0;
   width: 100%;
 }

@@ -28,6 +28,7 @@ import { attachPlaceholderAutocomplete } from './placeholder-autocomplete';
 import { updateFloodHint } from './fast-batch-ui';
 import {
   fmtButtons,
+  fmtTriggerValue,
   batchFormatControls,
   batchFormatSelect,
   outSeparate,
@@ -101,7 +102,9 @@ export function readSingleFormat(): BatchFormat {
 
 export function applySingleFormat(fmt: BatchFormat): void {
   for (const b of fmtButtons) {
-    b.setAttribute('aria-checked', String(b.dataset.format === fmt));
+    const active = b.dataset.format === fmt;
+    b.setAttribute('aria-checked', String(active));
+    if (active) fmtTriggerValue.replaceChildren(...Array.from(b.children, (n) => n.cloneNode(true)));
   }
 }
 
