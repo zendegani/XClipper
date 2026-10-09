@@ -1155,12 +1155,16 @@ body {
 }
 
 /* Flood warning: Auto/Super with un-zipped per-item output would drop
- * thousands of entries on the downloads shelf — nudge toward the Zip toggle
- * or Combined output. A normal-flow block between the engine selector and
- * the fetch-mode segment, so showing it pushes the latter down. */
+ * thousands of entries on the downloads shelf. One line with a button that
+ * turns on Zip (or Combined). A normal-flow block between the engine selector
+ * and the fetch-mode segment, so showing it pushes the latter down. */
 .flood-hint {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   margin: -2px 0 0;
-  padding: 6px 8px;
+  padding: 5px 5px 5px 8px;
   font-size: 11px;
   line-height: 1.35;
   border-radius: var(--radius-sm);
@@ -1170,6 +1174,21 @@ body {
 
 .flood-hint.hidden {
   display: none;
+}
+
+.flood-fix {
+  flex-shrink: 0;
+  padding: 3px 9px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  background: transparent;
+  color: inherit;
+  font: 600 11px/1.3 var(--font);
+  cursor: pointer;
+}
+
+.flood-fix:hover {
+  background: var(--warning-bg);
 }
 
 /* Fast Batch date-range filter (shown only while Fast is armed). */

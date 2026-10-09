@@ -294,7 +294,13 @@
     "message": "Empaqueta la exportación en un solo .zip — un archivo en vez de un archivo Markdown y una carpeta de multimedia adyacente."
   },
   "flood_hint": {
-    "message": "Esto puede guardar miles de archivos separados a la vez. Activa «Comprimir en ZIP» o elige la salida «Combinado» para obtener una sola descarga."
+    "message": "Guarda un archivo por publicación, quizá miles."
+  },
+  "flood_fix_zip": {
+    "message": "Activar ZIP"
+  },
+  "flood_fix_combined": {
+    "message": "Usar Combinado"
   },
   "batch_bar_selected": {
     "message": "seleccionados"

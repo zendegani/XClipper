@@ -294,7 +294,13 @@
     "message": "Pack the export into a single .zip — one archive instead of a Markdown file plus a sibling media folder."
   },
   "flood_hint": {
-    "message": "This can save thousands of separate files at once. Turn on “Zip files” or pick “Combined” output to get a single download instead."
+    "message": "Saves one file per post, possibly thousands."
+  },
+  "flood_fix_zip": {
+    "message": "Turn on Zip"
+  },
+  "flood_fix_combined": {
+    "message": "Use Combined"
   },
   "batch_bar_selected": {
     "message": "selected"

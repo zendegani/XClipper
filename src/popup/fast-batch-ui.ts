@@ -30,6 +30,7 @@ import {
   modeSuper,
   batchRunSummary,
   floodHint,
+  floodFix,
   outCombined,
   chkZip,
   fastDateRange,
@@ -158,12 +159,16 @@ function applyBatchView(): void {
 // toggle counts as off: local images override it). Shown below the engine
 // selector, pushing the fetch-mode segment down while visible; hidden mid-run,
 // when it's too late to act on. Re-evaluated with the batch view here and on
-// output/zip/format changes in settings-form.
+// output/zip/format changes in settings-form. Its button applies the fix in
+// place: Zip when available, otherwise Combined (local media blocks Zip).
 export function updateFloodHint(): void {
   const zipOn = chkZip.checked && !chkZip.disabled;
   const running = standardJobActive || fastActive;
   const show = inBatchMode && !running && engineMode !== 'manual' && !outCombined.checked && !zipOn;
   floodHint?.classList.toggle('hidden', !show);
+  floodFix.textContent = chkZip.disabled
+    ? t('flood_fix_combined', 'Use Combined')
+    : t('flood_fix_zip', 'Turn on Zip');
 }
 
 // Apply + persist the chosen engine (no permission handling — see selectMode).
@@ -314,6 +319,14 @@ export function initFastBatchUi(): void {
     const m = res[FAST_PAGINATE_KEY];
     setPaginateMode(m === 'resume' || m === 'dateRange' ? m : 'recent');
   });
+  // The change event runs settings-form's own handler: persist, re-sync the
+  // batch toggles, and re-evaluate (and so hide) this hint.
+  floodFix.addEventListener('click', () => {
+    const fix = chkZip.disabled ? outCombined : chkZip;
+    fix.checked = true;
+    fix.dispatchEvent(new Event('change'));
+  });
+
   fastPaginateRecent?.addEventListener('click', () => setPaginateMode('recent'));
   fastPaginateResume?.addEventListener('click', () => setPaginateMode('resume'));
   fastPaginateDaterange?.addEventListener('click', () => setPaginateMode('dateRange'));

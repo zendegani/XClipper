@@ -294,7 +294,13 @@
     "message": "エクスポートを1つの.zipにまとめます—Markdownファイルと同階層のメディアフォルダの代わりに、1つのアーカイブになります。"
   },
   "flood_hint": {
-    "message": "数千件のファイルが一度に保存される可能性があります。「ZIPにまとめる」をオンにするか、出力を「結合」にすると1回のダウンロードで済みます。"
+    "message": "投稿ごとに1ファイル、数千件になることも。"
+  },
+  "flood_fix_zip": {
+    "message": "ZIPをオン"
+  },
+  "flood_fix_combined": {
+    "message": "結合を使う"
   },
   "batch_bar_selected": {
     "message": "選択済み"

@@ -294,7 +294,13 @@
     "message": "将导出内容打包为单个 .zip — 只生成一个压缩包，而不是一个 Markdown 文件加同级媒体文件夹。"
   },
   "flood_hint": {
-    "message": "这可能一次保存数千个单独文件。开启“打包为 ZIP”或选择“合并”输出，即可只下载一个文件。"
+    "message": "每条帖子一个文件，可能多达数千个。"
+  },
+  "flood_fix_zip": {
+    "message": "开启 ZIP"
+  },
+  "flood_fix_combined": {
+    "message": "使用合并"
   },
   "batch_bar_selected": {
     "message": "已选择"
