@@ -107,9 +107,6 @@
   "batch_tab_timeline_fast": {
     "message": "ホームフィードをエクスポートするにはManualに切り替える"
   },
-  "fast_locked": {
-    "message": "エクスポートが実行中です。モードを切り替えるにはキャンセルするか完了を待ってください。"
-  },
   "fast_date_range": {
     "message": "日付範囲"
   },

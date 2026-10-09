@@ -107,9 +107,6 @@
   "batch_tab_timeline_fast": {
     "message": "Switch to Manual to export your home feed"
   },
-  "fast_locked": {
-    "message": "An export is running — cancel or let it finish to switch modes."
-  },
   "fast_date_range": {
     "message": "Date range"
   },

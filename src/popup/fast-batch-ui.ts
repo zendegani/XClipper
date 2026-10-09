@@ -28,7 +28,7 @@ import {
   modeManual,
   modeAuto,
   modeSuper,
-  fastLockedHint,
+  batchRunSummary,
   floodHint,
   outCombined,
   chkZip,
@@ -88,6 +88,19 @@ const PAGINATE_CAPTION: Record<PaginateMode, { key: string; text: string }> = {
 };
 const t = (key: string, fallback: string): string => chrome.i18n.getMessage(key) || fallback;
 
+// Segment labels, reused for the one-line summary that replaces both selectors
+// while a run is active.
+const MODE_LABEL: Record<BatchMode, { key: string; text: string }> = {
+  manual: { key: 'mode_manual', text: 'Manual' },
+  auto: { key: 'mode_auto', text: 'Auto' },
+  super: { key: 'mode_super', text: 'Super' },
+};
+const PAGINATE_LABEL: Record<PaginateMode, { key: string; text: string }> = {
+  recent: { key: 'fast_paginate_recent', text: 'Recent' },
+  resume: { key: 'fast_paginate_resume', text: 'Resume' },
+  dateRange: { key: 'fast_date_range', text: 'Date range' },
+};
+
 let engineMode: BatchMode = 'manual';
 let fastActive = false;
 let inBatchMode = false;
@@ -114,28 +127,41 @@ function notifyChanged(): void {
   window.dispatchEvent(new Event('xclipper-fast-changed'));
 }
 
+// Reconciles the batch view with the engine, fetch mode, and run state.
 // The red recolor follows the ACTIVE session, not the toggle: red while a Fast
 // run is in flight (or idle-and-armed), but blue whenever a Standard job is the
 // active one — so a job started in the other mode never shows the wrong color.
-function applyGlow(): void {
+function applyBatchView(): void {
   const red = inBatchMode && (fastActive || (getFastMode() && !standardJobActive));
   viewMain?.classList.toggle('fast-on', red);
+  // Neither engine nor fetch mode can change mid-run (the sessions must never
+  // overlap), so while either session runs both selectors fold into one line.
+  const running = standardJobActive || fastActive;
+  batchModeField?.classList.toggle('hidden', !inBatchMode || running);
+  batchRunSummary.classList.toggle('hidden', !inBatchMode || !running);
+  batchRunSummary.textContent = [
+    t(MODE_LABEL[engineMode].key, MODE_LABEL[engineMode].text),
+    ...(getFastMode() ? [t(PAGINATE_LABEL[paginateMode].key, PAGINATE_LABEL[paginateMode].text)] : []),
+  ].join(' · ');
   // The fetch-mode segment + step lights are Auto/Super-only — show when armed.
   // The date inputs belong to Date-range fetch mode only.
   const showExtras = getFastMode() && inBatchMode;
-  fastPaginate?.classList.toggle('hidden', !showExtras);
+  fastPaginate?.classList.toggle('hidden', !showExtras || running);
   fastDateRange?.classList.toggle('hidden', !(showExtras && paginateMode === 'dateRange'));
   fastSteps?.classList.toggle('hidden', !showExtras);
+  updateFloodHint();
 }
 
 // Auto/Super save every loaded post as its own file — thousands of downloads
 // unless the user picked Combined output or the zip toggle (a disabled zip
 // toggle counts as off: local images override it). Shown below the engine
-// selector, pushing the fetch-mode segment down while visible. Re-evaluated
-// on engine switches here and on output/zip/format changes in settings-form.
+// selector, pushing the fetch-mode segment down while visible; hidden mid-run,
+// when it's too late to act on. Re-evaluated with the batch view here and on
+// output/zip/format changes in settings-form.
 export function updateFloodHint(): void {
   const zipOn = chkZip.checked && !chkZip.disabled;
-  const show = inBatchMode && engineMode !== 'manual' && !outCombined.checked && !zipOn;
+  const running = standardJobActive || fastActive;
+  const show = inBatchMode && !running && engineMode !== 'manual' && !outCombined.checked && !zipOn;
   floodHint?.classList.toggle('hidden', !show);
 }
 
@@ -150,20 +176,15 @@ function setBatchMode(mode: BatchMode): void {
   // touches the X session, so it has no such caveat.
   batchModeInfo?.classList.toggle('hidden', mode === 'manual');
   chrome.storage.local.set({ [BATCH_MODE_KEY]: mode });
-  applyGlow();
-  updateFloodHint();
+  applyBatchView();
   notifyChanged();
 }
 
-// A user click on an engine segment. Locked mid-run → just show the reason.
-// Manual needs nothing; Auto/Super need the opt-in webRequest permission —
+// A user click on an engine segment. Manual needs nothing; Auto/Super need the opt-in webRequest permission —
 // contains() first to avoid a needless prompt, request() inside this gesture,
 // and a denial falls back to Manual.
 function selectMode(mode: BatchMode): void {
-  if (standardJobActive || fastActive) {
-    showLockHint();
-    return;
-  }
+  if (standardJobActive || fastActive) return;
   if (mode === 'manual') {
     setBatchMode('manual');
     return;
@@ -187,7 +208,7 @@ function setPaginateMode(mode: PaginateMode): void {
   fastPaginateDaterange?.classList.toggle('active', mode === 'dateRange');
   if (fastPaginateCaption) fastPaginateCaption.textContent = t(PAGINATE_CAPTION[mode].key, PAGINATE_CAPTION[mode].text);
   chrome.storage.local.set({ [FAST_PAGINATE_KEY]: mode });
-  applyGlow(); // reveal/hide the date inputs for the new mode
+  applyBatchView(); // reveal/hide the date inputs for the new mode
 }
 
 // Step lights when idle: Page/Tweet show readiness (what to do before Export);
@@ -216,39 +237,17 @@ function stepsFromProgress(p: FastBatchProgress): void {
   setStep(fastStepExpand, phase.startsWith('Expanding') ? 'active' : phase.startsWith('Writing') ? 'done' : 'pending');
 }
 
-// Lock the toggle (can't switch modes mid-export) while either session runs.
-// The "why" hint is NOT shown just because something's running — only when the
-// user actually tries to flip the locked toggle (see the click handler).
-function updateToggleLock(): void {
-  const locked = standardJobActive || fastActive;
-  batchMode?.classList.toggle('locked', locked);
-  // aria-disabled (not the `disabled` attribute) so a locked click still fires
-  // and can surface the "why" hint via selectMode.
-  for (const b of [modeManual, modeAuto, modeSuper]) b?.setAttribute('aria-disabled', String(locked));
-  if (!locked) fastLockedHint?.classList.add('hidden'); // clear once unlocked
-}
-
-// Reveal the locked reason only on an actual attempt to toggle while locked.
-function showLockHint(): void {
-  if (inBatchMode) fastLockedHint?.classList.remove('hidden');
-}
-
 // Called by batch-ui as the Standard job starts/stops.
 export function setStandardJobActive(active: boolean): void {
   standardJobActive = active;
-  updateToggleLock();
-  applyGlow();
+  applyBatchView();
 }
 
 // Called by mode.ts when the Single/Batch tab flips: the selector + glow only
 // make sense in Batch mode.
 export function syncFastBatchMode(single: boolean): void {
   inBatchMode = !single;
-  batchModeField?.classList.toggle('hidden', single);
-  if (single) fastLockedHint?.classList.add('hidden');
-  updateToggleLock();
-  applyGlow();
-  updateFloodHint();
+  applyBatchView();
 }
 
 export function initFastBatchUi(): void {
@@ -329,8 +328,7 @@ export async function startFastExport(
     return;
   }
   fastActive = true;
-  updateToggleLock();
-  applyGlow();
+  applyBatchView();
   startPolling();
 }
 
@@ -375,8 +373,7 @@ async function poll(): Promise<void> {
   if (progress.status !== 'running') {
     stopPolling();
     fastActive = false;
-    updateToggleLock(); // unlock the toggle now the run is done
-    applyGlow();
+    applyBatchView(); // unfold the selectors now the run is done
     notifyChanged(); // batch-ui re-enables the export button
   }
 }
@@ -437,8 +434,7 @@ export async function resumeFastIfActive(): Promise<boolean> {
   }
   if (p?.status !== 'running') return false;
   fastActive = true;
-  updateToggleLock();
-  applyGlow();
+  applyBatchView();
   startPolling();
   return true;
 }

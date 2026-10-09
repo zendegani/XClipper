@@ -107,9 +107,6 @@
   "batch_tab_timeline_fast": {
     "message": "Passez en mode Manuel pour exporter votre fil d’accueil"
   },
-  "fast_locked": {
-    "message": "Un export est en cours ; annulez-le ou laissez-le finir pour changer de mode."
-  },
   "fast_date_range": {
     "message": "Plage de dates"
   },

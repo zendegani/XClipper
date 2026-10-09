@@ -107,9 +107,6 @@
   "batch_tab_timeline_fast": {
     "message": "Cambia a Manual para exportar tu feed de inicio"
   },
-  "fast_locked": {
-    "message": "Hay una exportación en curso; cancélala o deja que termine para cambiar de modo."
-  },
   "fast_date_range": {
     "message": "Rango de fechas"
   },

@@ -107,9 +107,6 @@
   "batch_tab_timeline_fast": {
     "message": "Zu „Manuell“ wechseln, um deinen Home-Feed zu exportieren"
   },
-  "fast_locked": {
-    "message": "Ein Export läuft - brich ihn ab oder warte auf das Ende, um den Modus zu wechseln."
-  },
   "fast_date_range": {
     "message": "Datumsbereich"
   },

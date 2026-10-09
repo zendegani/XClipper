@@ -107,9 +107,6 @@
   "batch_tab_timeline_fast": {
     "message": "切换到手动模式以导出主页信息流"
   },
-  "fast_locked": {
-    "message": "导出正在运行；请取消或等待完成后再切换模式。"
-  },
   "fast_date_range": {
     "message": "日期范围"
   },

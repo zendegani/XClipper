@@ -1066,16 +1066,6 @@ body {
   opacity: 0.7;
 }
 
-/* Locked (an export is running) — can't switch engines mid-run. */
-.batch-mode.locked .mode-seg-btn {
-  cursor: not-allowed;
-  opacity: 0.55;
-}
-
-.batch-mode.locked .mode-seg-btn.active {
-  opacity: 1;
-}
-
 /* Field box: groups a segmented control with its always-on caption behind one
  * subtle border, so it's unambiguous which explanation belongs to which toggle.
  * The elevated background sets the box off from the segments inside it (which
@@ -1152,15 +1142,15 @@ body {
   transform: translateX(0) translateY(0);
 }
 
-.fast-locked-hint {
-  margin: -2px 0 0;
+/* Replaces the engine + fetch-mode selectors while a run is active. */
+.batch-run-summary {
   padding: 0 2px;
-  font-size: 11px;
-  line-height: 1.35;
-  color: var(--error);
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-secondary);
 }
 
-.fast-locked-hint.hidden {
+.batch-run-summary.hidden {
   display: none;
 }
 
