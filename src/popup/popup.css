@@ -406,6 +406,13 @@ body {
   align-items: center;
 }
 
+/* Both single-export rows share one height. The two-line Format trigger sets
+ * the top row's natural height, so PDF/Obsidian grow to match it. */
+.export-picker > button,
+.action-row .btn-action {
+  min-height: 46px;
+}
+
 .btn-pdf {
   background: transparent;
   color: var(--pdf);
