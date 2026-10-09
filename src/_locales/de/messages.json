@@ -294,13 +294,13 @@
     "message": "Packt den Export in eine einzige .zip - ein Archiv statt einer Markdown-Datei plus danebenliegendem Medienordner."
   },
   "flood_hint": {
-    "message": "Speichert eine Datei pro Beitrag, evtl. Tausende."
+    "message": "Tausende Downloads möglich. Als eine Datei:"
   },
   "flood_fix_zip": {
-    "message": "Zip aktivieren"
+    "message": "ZIP aktivieren"
   },
   "flood_fix_combined": {
-    "message": "Kombiniert nutzen"
+    "message": "Kombinieren"
   },
   "batch_bar_selected": {
     "message": "ausgewählt"

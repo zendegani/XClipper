@@ -294,7 +294,7 @@
     "message": "Pack the export into a single .zip — one archive instead of a Markdown file plus a sibling media folder."
   },
   "flood_hint": {
-    "message": "Saves one file per post, possibly thousands."
+    "message": "May start thousands of downloads. Save as one:"
   },
   "flood_fix_zip": {
     "message": "Turn on Zip"

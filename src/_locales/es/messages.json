@@ -294,7 +294,7 @@
     "message": "Empaqueta la exportación en un solo .zip — un archivo en vez de un archivo Markdown y una carpeta de multimedia adyacente."
   },
   "flood_hint": {
-    "message": "Guarda un archivo por publicación, quizá miles."
+    "message": "Hasta miles de descargas. En un solo archivo:"
   },
   "flood_fix_zip": {
     "message": "Activar ZIP"
