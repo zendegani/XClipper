@@ -51,116 +51,6 @@
           aria-selected="false"><span data-i18n="group_batch">Batch export</span></button>
       </div>
 
-
-      <div class="options">
-        <details id="export-settings" class="option-group" open>
-          <summary class="option-group-summary">
-            <span class="option-group-label" data-i18n="group_export">Export settings</span>
-            <svg class="option-group-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor"
-              stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <polyline points="6 9 12 15 18 9" />
-            </svg>
-          </summary>
-          <div class="batch-field save-local-field" id="save-local-field"
-            data-tooltip="Off: link to media on X. Images: save images next to the markdown file. Media: save videos as .mp4 too — these are much larger."
-            data-i18n-tooltip="opt_save_local_title">
-            <span class="toggle-text">
-              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
-                <circle cx="8.5" cy="8.5" r="1.5" />
-                <polyline points="21 15 16 10 5 21" />
-              </svg>
-              <span data-i18n="opt_save_local">Save locally (only with .md)</span>
-            </span>
-            <div class="segmented" role="radiogroup" aria-label="Save locally">
-              <input type="radio" name="save-local" id="save-local-off" value="off" class="seg-input" />
-              <label for="save-local-off" class="seg-label" data-i18n="opt_save_local_off">Off</label>
-              <input type="radio" name="save-local" id="save-local-images" value="images" class="seg-input" />
-              <label for="save-local-images" class="seg-label" data-i18n="opt_save_local_images">Images</label>
-              <input type="radio" name="save-local" id="save-local-media" value="media" class="seg-input" />
-              <label for="save-local-media" class="seg-label" data-i18n="opt_save_local_media">Media</label>
-            </div>
-          </div>
-          <label class="toggle-label" data-tooltip="Render likes, reposts, replies, bookmarks, and views as a row in the Markdown body" data-i18n-tooltip="opt_inline_stats_title">
-            <span class="toggle-text">
-              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
-              </svg>
-              <span data-i18n="opt_inline_stats">Show engagement stats inline</span>
-            </span>
-            <input type="checkbox" id="chk-inline-stats" class="toggle-input" />
-            <span class="toggle-switch"></span>
-          </label>
-          <label class="toggle-label" data-tooltip="Add likes, reposts, views as YAML frontmatter" data-i18n-tooltip="opt_metadata_title">
-            <span class="toggle-text">
-              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
-              </svg>
-              <span data-i18n="opt_metadata">Include metadata</span>
-            </span>
-            <input type="checkbox" id="chk-include-metadata" class="toggle-input" />
-            <span class="toggle-switch"></span>
-          </label>
-          <label class="toggle-label" id="zip-toggle"
-            data-tooltip="Pack the export into a single .zip. In Batch, one download instead of thousands; in Single, one archive instead of a Markdown file plus a media folder."
-            data-i18n-tooltip="opt_zip_title">
-            <span class="toggle-text">
-              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="21 8 21 21 3 21 3 8" />
-                <rect x="1" y="3" width="22" height="5" />
-                <line x1="10" y1="12" x2="14" y2="12" />
-              </svg>
-              <span data-i18n="opt_zip">Zip files (one download)</span>
-            </span>
-            <input type="checkbox" id="chk-zip" class="toggle-input" />
-            <span class="toggle-switch"></span>
-          </label>
-          <div id="batch-format-controls" class="batch-format-controls hidden">
-          <label class="toggle-label" data-tooltip="When batch-exporting a profile, include reposts too. Off = the profile owner's own posts only." data-i18n-tooltip="opt_include_reposts_title">
-            <span class="toggle-text">
-              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
-                stroke-linecap="round" stroke-linejoin="round">
-                <polyline points="17 1 21 5 17 9" />
-                <path d="M3 11V9a4 4 0 0 1 4-4h14" />
-                <polyline points="7 23 3 19 7 15" />
-                <path d="M21 13v2a4 4 0 0 1-4 4H3" />
-              </svg>
-              <span data-i18n="opt_include_reposts">Include reposts (profiles)</span>
-            </span>
-            <input type="checkbox" id="chk-include-reposts" class="toggle-input" />
-            <span class="toggle-switch"></span>
-          </label>
-          <label class="batch-field">
-            <span class="batch-field-label" data-i18n="batch_format">Format</span>
-            <select id="batch-format" class="batch-select">
-              <option value="md">Markdown (.md)</option>
-              <option value="txt">Text (.txt)</option>
-              <option value="html">HTML (.html)</option>
-              <option value="json">JSON (.json)</option>
-              <option value="csv">CSV (.csv)</option>
-            </select>
-          </label>
-          <div class="batch-field">
-            <span class="batch-field-label" data-i18n="batch_output">Output</span>
-            <div class="segmented" role="radiogroup" aria-label="Output"
-              data-tooltip="Separate: one file per post. Both: per-post files plus one combined file. Combined: just one file."
-              data-i18n-tooltip="batch_output_hint">
-              <input type="radio" name="batch-output" id="out-separate" value="separate" class="seg-input" />
-              <label for="out-separate" class="seg-label" data-i18n="batch_out_separate">Separate</label>
-              <input type="radio" name="batch-output" id="out-both" value="both" class="seg-input" />
-              <label for="out-both" class="seg-label" data-i18n="batch_out_both">Both</label>
-              <input type="radio" name="batch-output" id="out-combined" value="combined" class="seg-input" />
-              <label for="out-combined" class="seg-label" data-i18n="batch_out_combined">Combined</label>
-            </div>
-          </div>
-        </div>
-        </details>
-      </div>
-
       <div id="panel-single" class="export-panel">
         <div class="export-picker">
           <div class="format-grid" role="radiogroup" aria-label="Export format">
@@ -429,6 +319,115 @@
       </div>
 
       <div id="status" class="status hidden"></div>
+
+      <div class="options">
+        <details id="export-settings" class="option-group" open>
+          <summary class="option-group-summary">
+            <span class="option-group-label" data-i18n="group_export">Export settings</span>
+            <svg class="option-group-chevron" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+              stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <polyline points="6 9 12 15 18 9" />
+            </svg>
+          </summary>
+          <div class="batch-field save-local-field" id="save-local-field"
+            data-tooltip="Off: link to media on X. Images: save images next to the markdown file. Media: save videos as .mp4 too — these are much larger."
+            data-i18n-tooltip="opt_save_local_title">
+            <span class="toggle-text">
+              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+                <circle cx="8.5" cy="8.5" r="1.5" />
+                <polyline points="21 15 16 10 5 21" />
+              </svg>
+              <span data-i18n="opt_save_local">Save locally (only with .md)</span>
+            </span>
+            <div class="segmented" role="radiogroup" aria-label="Save locally">
+              <input type="radio" name="save-local" id="save-local-off" value="off" class="seg-input" />
+              <label for="save-local-off" class="seg-label" data-i18n="opt_save_local_off">Off</label>
+              <input type="radio" name="save-local" id="save-local-images" value="images" class="seg-input" />
+              <label for="save-local-images" class="seg-label" data-i18n="opt_save_local_images">Images</label>
+              <input type="radio" name="save-local" id="save-local-media" value="media" class="seg-input" />
+              <label for="save-local-media" class="seg-label" data-i18n="opt_save_local_media">Media</label>
+            </div>
+          </div>
+          <label class="toggle-label" data-tooltip="Render likes, reposts, replies, bookmarks, and views as a row in the Markdown body" data-i18n-tooltip="opt_inline_stats_title">
+            <span class="toggle-text">
+              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+              </svg>
+              <span data-i18n="opt_inline_stats">Show engagement stats inline</span>
+            </span>
+            <input type="checkbox" id="chk-inline-stats" class="toggle-input" />
+            <span class="toggle-switch"></span>
+          </label>
+          <label class="toggle-label" data-tooltip="Add likes, reposts, views as YAML frontmatter" data-i18n-tooltip="opt_metadata_title">
+            <span class="toggle-text">
+              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+              </svg>
+              <span data-i18n="opt_metadata">Include metadata</span>
+            </span>
+            <input type="checkbox" id="chk-include-metadata" class="toggle-input" />
+            <span class="toggle-switch"></span>
+          </label>
+          <label class="toggle-label" id="zip-toggle"
+            data-tooltip="Pack the export into a single .zip. In Batch, one download instead of thousands; in Single, one archive instead of a Markdown file plus a media folder."
+            data-i18n-tooltip="opt_zip_title">
+            <span class="toggle-text">
+              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="21 8 21 21 3 21 3 8" />
+                <rect x="1" y="3" width="22" height="5" />
+                <line x1="10" y1="12" x2="14" y2="12" />
+              </svg>
+              <span data-i18n="opt_zip">Zip files (one download)</span>
+            </span>
+            <input type="checkbox" id="chk-zip" class="toggle-input" />
+            <span class="toggle-switch"></span>
+          </label>
+          <div id="batch-format-controls" class="batch-format-controls hidden">
+          <label class="toggle-label" data-tooltip="When batch-exporting a profile, include reposts too. Off = the profile owner's own posts only." data-i18n-tooltip="opt_include_reposts_title">
+            <span class="toggle-text">
+              <svg class="toggle-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="17 1 21 5 17 9" />
+                <path d="M3 11V9a4 4 0 0 1 4-4h14" />
+                <polyline points="7 23 3 19 7 15" />
+                <path d="M21 13v2a4 4 0 0 1-4 4H3" />
+              </svg>
+              <span data-i18n="opt_include_reposts">Include reposts (profiles)</span>
+            </span>
+            <input type="checkbox" id="chk-include-reposts" class="toggle-input" />
+            <span class="toggle-switch"></span>
+          </label>
+          <label class="batch-field">
+            <span class="batch-field-label" data-i18n="batch_format">Format</span>
+            <select id="batch-format" class="batch-select">
+              <option value="md">Markdown (.md)</option>
+              <option value="txt">Text (.txt)</option>
+              <option value="html">HTML (.html)</option>
+              <option value="json">JSON (.json)</option>
+              <option value="csv">CSV (.csv)</option>
+            </select>
+          </label>
+          <div class="batch-field">
+            <span class="batch-field-label" data-i18n="batch_output">Output</span>
+            <div class="segmented" role="radiogroup" aria-label="Output"
+              data-tooltip="Separate: one file per post. Both: per-post files plus one combined file. Combined: just one file."
+              data-i18n-tooltip="batch_output_hint">
+              <input type="radio" name="batch-output" id="out-separate" value="separate" class="seg-input" />
+              <label for="out-separate" class="seg-label" data-i18n="batch_out_separate">Separate</label>
+              <input type="radio" name="batch-output" id="out-both" value="both" class="seg-input" />
+              <label for="out-both" class="seg-label" data-i18n="batch_out_both">Both</label>
+              <input type="radio" name="batch-output" id="out-combined" value="combined" class="seg-input" />
+              <label for="out-combined" class="seg-label" data-i18n="batch_out_combined">Combined</label>
+            </div>
+          </div>
+        </div>
+        </details>
+      </div>
     </main>
 
     <main class="popup-main hidden" id="view-settings">

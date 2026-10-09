@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Changed
+
+- **Export settings moved to the bottom of the popup**: in both Single and Batch export, the Export settings panel now sits below the export buttons, so the actions you use most are the first thing under the tabs.
+
+---
+
 ## [2.8.4] - 2026-10-03
 
 ### Fixed
