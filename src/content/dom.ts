@@ -60,6 +60,36 @@ export function getTweetStatusId(article: Element): string {
   return textEl?.textContent?.trim().slice(0, 80) || Math.random().toString();
 }
 
+// The thread author's run of posts around an anchor, in page order: their
+// posts directly above it and their continuation below, bounded by another
+// author's post on either side. Not simply the top of the page — for a reply,
+// X lists the posts it replies to first (issue #153). `ended` is set once a
+// post after the run was seen, i.e. the thread is complete. Tombstones
+// (hidden / deleted posts) resolve to "unknown" and are skipped, not treated
+// as a boundary. Empty when no anchor is on the page.
+export function threadRun(
+  articles: Element[],
+  handle: string,
+  isAnchor: (article: Element) => boolean
+): { run: Element[]; ended: boolean } {
+  const bare = (h: string) => h.replace(/^@/, '').toLowerCase();
+  const target = bare(handle);
+  let run: Element[] = [];
+  let anchored = false;
+  for (const article of articles) {
+    const h = extractAuthorFromArticle(article).handle;
+    if (h === 'unknown') continue;
+    if (bare(h) !== target) {
+      if (anchored) return { run, ended: true };
+      run = [];
+      continue;
+    }
+    run.push(article);
+    if (isAnchor(article)) anchored = true;
+  }
+  return { run: anchored ? run : [], ended: false };
+}
+
 export function cleanContentClone(container: Element): Element {
   const clone = container.cloneNode(true) as Element;
 

@@ -4,6 +4,7 @@ import {
   extractTweetId,
   getTweetStatusId,
   isArticlePage,
+  threadRun,
 } from '../dom';
 import { extractEngagementMetadata, isPromotedArticle } from '../tweet';
 import { stripHandlePrefix, extractDateFromArticle } from './shared';
@@ -26,24 +27,16 @@ export function domToAst(opts: { singleTweet?: boolean } = {}): Document {
   if (allArticles.length === 0) {
     throw new Error('domToAst: no <article> found');
   }
-  // Rehydrated articles (from tweet.ts → rehydrateMissingArticles) carry
-  // thread order in their host's child order. Pin them ahead of the live
-  // cells while keeping each group's relative order (Array.sort is stable
-  // in modern V8). Tweet-id sorting was tempting but breaks here: replies
-  // can have ids that fall *between* thread tweet ids (e.g. trq212's
-  // "thank you!" reply was Mar 21, between thread tweets posted Mar 21
-  // and Mar 22+), so an id sort interleaves them and the boundary break
-  // stops mid-thread.
-  allArticles.sort((a, b) => {
-    const aR = a.closest('[data-xclipper-rehydrate-host]') ? 0 : 1;
-    const bR = b.closest('[data-xclipper-rehydrate-host]') ? 0 : 1;
-    return aR - bR;
-  });
+  // When loadThreadIntoDom ran, its off-screen host holds the whole thread in
+  // order, regardless of what X's virtualized timeline still has mounted, so
+  // it alone is the source. Mixing in the live page would let a post above
+  // the thread (the same author's older post a reply answers) join it.
+  const hosted = allArticles.filter((a) => a.closest('[data-xclipper-rehydrate-host]'));
+  const articles = hosted.length > 0 ? hosted : allArticles;
 
-  const rootAuthor = stripHandlePrefix(extractAuthorFromArticle(allArticles[0]));
-  const threadArticles = opts.singleTweet
-    ? [focusedArticle(allArticles)]
-    : collectSameAuthorArticles(allArticles, rootAuthor.handle);
+  const focal = focusedArticle(articles);
+  const threadArticles = opts.singleTweet ? [focal] : collectThread(articles, focal);
+  const rootAuthor = stripHandlePrefix(extractAuthorFromArticle(threadArticles[0]));
 
   const tweetId = extractTweetId();
   const sourceUrl = `https://x.com${window.location.pathname.replace(/\/$/, '')}`;
@@ -76,21 +69,15 @@ function focusedArticle(articles: Element[]): Element {
   return articles.find((a) => getTweetStatusId(a) === tweetId) || articles[0];
 }
 
-function collectSameAuthorArticles(articles: Element[], rootHandle: string): Element[] {
+function collectThread(articles: Element[], focal: Element): Element[] {
+  const { handle } = extractAuthorFromArticle(focal);
+  const { run } = threadRun(articles, handle, (a) => a === focal);
+  if (run.length === 0) return [focal]; // a tombstone focal has no author to run on
   const seen = new Set<string>();
-  const out: Element[] = [];
-  const target = rootHandle.toLowerCase();
-  for (const article of articles) {
-    const a = extractAuthorFromArticle(article);
-    const handle = (a.handle.startsWith('@') ? a.handle.slice(1) : a.handle).toLowerCase();
-    // Tombstones (hidden / deleted replies) resolve to "unknown" — skip but
-    // don't treat them as the reply boundary.
-    if (handle === 'unknown') continue;
-    if (handle !== target) break;
-    const sid = getTweetStatusId(article);
-    if (seen.has(sid)) continue;
+  return run.filter((a) => {
+    const sid = getTweetStatusId(a);
+    if (seen.has(sid)) return false;
     seen.add(sid);
-    out.push(article);
-  }
-  return out;
+    return true;
+  });
 }
