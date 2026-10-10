@@ -131,6 +131,38 @@ describe('jsonToAst — metadata', () => {
     expect(md).not.toContain('https://kaggle.com/c');
   });
 
+  // #152: X hides the card's t.co only when it ends the text. Mid-sentence the
+  // page shows it, so dropping it would delete a word.
+  it('keeps the card t.co as a link when it sits mid-text', () => {
+    const card = {
+      legacy: {
+        name: 'summary_large_image',
+        binding_values: [
+          { key: 'card_url', value: { string_value: 'https://t.co/CARD' } },
+          { key: 'title', value: { string_value: 'Example' } },
+        ],
+      },
+    };
+    const node = jsonToTweetNode(
+      tweet(
+        {
+          full_text: 'via https://t.co/CARD and more.',
+          entities: {
+            urls: [
+              { url: 'https://t.co/CARD', expanded_url: 'https://example.com', display_url: 'example.com', indices: [4, 21] },
+            ],
+          },
+        },
+        { card }
+      )
+    );
+    expect(node.text).toEqual([
+      { type: 'text', value: 'via ' },
+      { type: 'link', url: 'https://example.com', children: [{ type: 'text', value: 'example.com' }] },
+      { type: 'text', value: ' and more.' },
+    ]);
+  });
+
   it('records the card domain without the www. the page omits', () => {
     const card = {
       legacy: {

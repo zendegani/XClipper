@@ -773,8 +773,8 @@ interface Span {
 }
 
 interface InlineOptions {
-  // Skip the t.co the link card already renders — X hides it in the page, so
-  // keeping it would show the same destination twice (#126).
+  // Skip the t.co the link card already renders when it ends the text — X
+  // hides it in the page, so keeping it would show the destination twice (#126).
   cardUrl?: string;
   // display_text_range[0]: everything before it is a reply's leading @mentions,
   // which X renders as reply context rather than as the tweet's text.
@@ -785,9 +785,12 @@ function buildInline(text: string, entities: RawEntities, opts: InlineOptions = 
   const cp = Array.from(text);
   const spans: Span[] = [];
   // card_url is the t.co in some payloads and the destination in others, so
-  // compare against both forms of the entity.
-  const isCardUrl = (u: RawUrlEntity): boolean =>
-    !!opts.cardUrl && (u.url === opts.cardUrl || u.expanded_url === opts.cardUrl);
+  // compare against both forms of the entity. X hides it only when it ends the
+  // text; mid-sentence the page shows it as a link (#152).
+  const isTrailingCardUrl = (u: RawUrlEntity, end: number): boolean =>
+    !!opts.cardUrl &&
+    (u.url === opts.cardUrl || u.expanded_url === opts.cardUrl) &&
+    cp.slice(end).join('').trim() === '';
 
   for (const u of entities.urls ?? []) {
     if (!u.indices) continue;
@@ -795,7 +798,7 @@ function buildInline(text: string, entities: RawEntities, opts: InlineOptions = 
     spans.push({
       start: u.indices[0],
       end: u.indices[1],
-      node: isCardUrl(u)
+      node: isTrailingCardUrl(u, u.indices[1])
         ? null
         : { type: 'link', url, children: [{ type: 'text', value: u.display_url ?? url }] },
     });
