@@ -92,7 +92,7 @@ beforeEach(() => {
     if (url.includes('/Bookmarks')) return bookmarksPage(['1', '2', '3']);
     throw new Error('not found'); // TweetDetail: the root tweet stays the final answer
   });
-  vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
+  vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval', 'setTimeout', 'clearTimeout'] });
 });
 
 afterEach(() => {
@@ -114,5 +114,22 @@ describe('runFastBatchExport — long downloads', () => {
     getPlatformInfo.mockClear();
     await vi.advanceTimersByTimeAsync(65_000);
     expect(getPlatformInfo).not.toHaveBeenCalled();
+  });
+});
+
+describe('runFastBatchExport — a run cut off mid-write', () => {
+  // The run never finishes (Chrome kills the worker), so only what was saved
+  // while it ran survives. Posts whose files landed must be in the ledger; the
+  // one still downloading must not be, so the next run redoes it.
+  it.each([
+    ['Auto (threads expanded, written at the end)', true],
+    ['Super (streamed while the feed is read)', false],
+  ])('%s saves the posts already on disk', async (_name, expandThreads) => {
+    const write = hangWrite(3);
+    void runFastBatchExport({ expandThreads });
+    await write.started;
+
+    await vi.advanceTimersByTimeAsync(10_000);
+    expect(store[EXPORTED_LEDGER_KEY]).toEqual(['1', '2']);
   });
 });

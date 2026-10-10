@@ -312,6 +312,10 @@ const INCOMPLETE_CAP = 2000;
 // resets that timer; ping it for as long as a run is in flight.
 const KEEPALIVE_MS = 20_000;
 
+// How long a finished post waits before the ledger is saved mid-run (#148).
+// Short enough that a cut-off run loses at most a few seconds of work.
+const PROGRESS_SAVE_MS = 2_000;
+
 export async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatchResult | null> {
   const keepAlive = setInterval(() => void chrome.runtime.getPlatformInfo(), KEEPALIVE_MS);
   try {
@@ -427,10 +431,31 @@ async function exportFastBatch(opts: FastBatchOptions = {}): Promise<FastBatchRe
   const nextIncomplete = new Set(prevIncomplete);
   let incomplete = 0;
 
-  // Write one collected item. All shared-state mutation (filename dedup, items,
-  // ledger, nextIncomplete) happens SYNCHRONOUSLY before the returned download
-  // promise, so streamed writes fired back-to-back in the collect loop can't
-  // race each other on that state — only the download itself is async.
+  // Save the ledger while the run goes, not only at the end: a run cut off
+  // mid-write (worker shutdown, extension reload, crash) would otherwise lose
+  // it all, and every later run re-exports what this one wrote (#148). A post
+  // only counts once its files are on disk (markDone), and saves are debounced
+  // so a Super run doesn't rewrite a 5000-id array per post. Zip and Combined
+  // put nothing on disk until the end, so they keep the end-of-run save only.
+  const saveProgress = (): Promise<void> =>
+    chrome.storage.local.set({
+      [EXPORTED_LEDGER_KEY]: ledgerArr,
+      [INCOMPLETE_LEDGER_KEY]: [...nextIncomplete].slice(-INCOMPLETE_CAP),
+    });
+  const saveAsWeGo = output !== 'combined' && !zip;
+  let saveTimer: ReturnType<typeof setTimeout> | undefined;
+  const scheduleSave = (): void => {
+    saveTimer ??= setTimeout(() => {
+      saveTimer = undefined;
+      void saveProgress();
+    }, PROGRESS_SAVE_MS);
+  };
+
+  // Write one collected item. Filename dedup, items and stub bookkeeping happen
+  // SYNCHRONOUSLY before the returned download promise, so streamed writes fired
+  // back-to-back in the collect loop can't race each other on that state. The
+  // ledger waits for the download (markDone), so it never names a post whose
+  // file isn't on disk yet.
   const writeOne = (s: Item): Promise<void> => {
     const { doc, feedId } = s;
     // Expansion can change the canonical id, so track both — see Item.feedId.
@@ -463,21 +488,28 @@ async function exportFastBatch(opts: FastBatchOptions = {}): Promise<FastBatchRe
     const filename = uniqueFilename(usedFilenames, result.filename);
     usedFilenames.push(filename.toLowerCase());
     items.push({ url: doc.metadata.sourceUrl, filename, doc });
-    // Ledger BOTH ids the post can appear under, so the next run's feed dedups
-    // it whichever id it presents (the feed id, or the canonical id).
-    if (s.ledger) {
-      if (feedId) ledgerArr = appendToLedger(ledgerArr, feedId);
-      if (expandedId && expandedId !== feedId) ledgerArr = appendToLedger(ledgerArr, expandedId);
+    const markDone = (): void => {
+      // Ledger BOTH ids the post can appear under, so the next run's feed dedups
+      // it whichever id it presents (the feed id, or the canonical id).
+      if (s.ledger) {
+        if (feedId) ledgerArr = appendToLedger(ledgerArr, feedId);
+        if (expandedId && expandedId !== feedId) ledgerArr = appendToLedger(ledgerArr, expandedId);
+      }
+      if (feedId) nextIncomplete.delete(feedId);
+      if (expandedId) nextIncomplete.delete(expandedId);
+      if (saveAsWeGo) scheduleSave();
+    };
+    if (output === 'combined') {
+      markDone();
+      return Promise.resolve();
     }
-    if (feedId) nextIncomplete.delete(feedId);
-    if (expandedId) nextIncomplete.delete(expandedId);
-    if (output === 'combined') return Promise.resolve();
     if (zip) {
       const file = buildPerItemFile(format, filename, result.markdown, doc, settings);
       zipEntries.push({ name: file.name, content: file.content });
+      markDone();
       return Promise.resolve();
     }
-    return writePerItem(folder, format, filename, result.markdown, result.images, doc, settings);
+    return writePerItem(folder, format, filename, result.markdown, result.images, doc, settings).then(markDone);
   };
 
   // Super Fast pipeline: with expansion off, a non-article root is
@@ -708,15 +740,14 @@ async function exportFastBatch(opts: FastBatchOptions = {}): Promise<FastBatchRe
     if (output === 'both' || output === 'combined') {
       await writeCombined(folder, format, items.map((i) => i.doc), settings);
     }
-    await chrome.storage.local.set({ [EXPORTED_LEDGER_KEY]: ledgerArr });
     void recordExport();
   }
   // Backlog items that came back deleted/protected are gone — stop tracking them.
   for (const id of gaveUp) nextIncomplete.delete(id);
   // Persisted regardless of items.length (an all-stub run still owes a re-run).
-  await chrome.storage.local.set({
-    [INCOMPLETE_LEDGER_KEY]: [...nextIncomplete].slice(-INCOMPLETE_CAP),
-  });
+  // A pending mid-run save would only repeat older state, so drop it.
+  clearTimeout(saveTimer);
+  await saveProgress();
   const cancelled = cancelRequested;
   // Remember where to continue next time (Resume and Date range keep separate
   // cursors). Skip on cancel — a cancelled run may have paginated past items it
