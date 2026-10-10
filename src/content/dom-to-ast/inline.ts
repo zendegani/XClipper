@@ -122,14 +122,23 @@ function anchorToInline(a: Element): EntityNode | LinkNode | null {
     };
   }
 
-  // External link
+  // External link. X labels a t.co link with aria-hidden spans and lets CSS
+  // decide which show: the scheme and, for a link it shortens, the rest of the
+  // URL are hidden, and the closing "…" is shown. So the URL is the full text
+  // minus that "…", and the label skips the hidden parts (#158).
+  const isTco = /^https?:\/\/t\.co\//.test(href);
   const children: InlineNode[] = [];
   for (const child of a.childNodes) {
-    walkInline(child, null, children);
+    const hidden =
+      isTco &&
+      child.nodeType === 1 &&
+      (child as Element).getAttribute('aria-hidden') === 'true' &&
+      child.textContent !== '…';
+    if (!hidden) walkInline(child, null, children);
   }
   return {
     type: 'link',
-    url: resolveExternalUrl(href, text),
+    url: resolveExternalUrl(href, isTco ? text.replace(/…$/, '') : text),
     children: mergeAdjacentText(children),
   };
 }
