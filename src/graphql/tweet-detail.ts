@@ -110,13 +110,16 @@ export function tweetDetailToDocument(
 
   if (thread.length <= 1) return jsonToAst(results[focal], sourceUrl);
 
+  // The id (and so the file name) is the requested post's, like `sourceUrl` and
+  // the DOM path; author, date, and engagement are the thread's start (#157).
   const root = thread[0];
+  const requested = nodes[focal];
   return {
     version: 1,
     metadata: {
       type: 'thread',
-      sourceUrl: sourceUrl ?? `https://x.com/${root.author.handle}/status/${root.tweetId}`,
-      tweetId: root.tweetId,
+      sourceUrl: sourceUrl ?? `https://x.com/${requested.author.handle}/status/${requested.tweetId}`,
+      tweetId: requested.tweetId,
       author: root.author,
       date: root.date,
       ...(root.engagement ? { engagement: root.engagement } : {}),

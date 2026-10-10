@@ -557,7 +557,7 @@ async function exportFastBatch(opts: FastBatchOptions = {}): Promise<FastBatchRe
     ledger: boolean;
     // The id the FEED presented for this item — what next run's dedup check
     // uses. Expansion can replace doc.metadata.tweetId with a different
-    // canonical id (edited tweets, re-rooted thread replies), so we must ledger
+    // canonical id (edited tweets), so we must ledger
     // this one too or the post re-exports every run.
     feedId: string;
     // Set once the Super Fast pipeline already streamed this item to disk during
