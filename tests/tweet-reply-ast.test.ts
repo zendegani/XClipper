@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { JSDOM } from 'jsdom';
 import { domToAst } from '../src/content/dom-to-ast';
+import { extractTweetAsync } from '../src/content/tweet';
 import type { Document, ThreadNode, TweetNode } from '../src/ast/types';
 
 // A reply's permalink lists the posts it replies to above it, then the reply,
@@ -70,3 +71,17 @@ describe('domToAst() on a reply permalink', () => {
   }
 });
 
+// The full Manual path: loadThreadIntoDom captures the thread into an
+// off-screen host, which domToAst then reads ahead of the live page.
+describe('extractTweetAsync() on a reply permalink', () => {
+  for (const c of cases) {
+    it(c.name, async () => {
+      loadPage(c.focal, c.posts);
+      const res = await extractTweetAsync();
+      const doc = res.body as Document;
+      expect(doc.metadata.type).toBe(c.type);
+      expect(doc.metadata.author.handle).toBe(c.author);
+      expect(ids(doc)).toEqual(c.tweets);
+    });
+  }
+});

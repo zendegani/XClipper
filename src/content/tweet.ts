@@ -4,7 +4,9 @@ import { docToExtracted } from '../shared/extracted-content';
 import {
   delay,
   extractAuthorFromArticle,
+  extractTweetId,
   getTweetStatusId,
+  threadRun,
 } from './dom';
 
 /**
@@ -103,10 +105,12 @@ export function isPromotedArticle(article: Element): boolean {
  * To capture a full thread we:
  *   1. Walk UP: repeatedly scrollTo(0) until the DOM stops growing above —
  *      this coaxes X into hydrating ancestors all the way to the thread root.
- *   2. Pick the topmost non-promoted article as the thread author.
- *   3. Walk DOWN, collecting same-author tweets (deduped by status id) until
- *      a different-author tweet appears (start of the reply section), or
- *      scrolling yields nothing new (thread complete).
+ *   2. Take the thread author from the requested post — not the topmost one,
+ *      which for a reply is the post it replies to.
+ *   3. Walk DOWN, collecting that author's run of tweets around the requested
+ *      post (deduped by status id) until a different-author tweet appears
+ *      (start of the reply section), or scrolling yields nothing new (thread
+ *      complete).
  *
  * When `singleTweet` is set, the walk is skipped and only the focused article
  * (the one whose status id matches the page url) is extracted.
@@ -170,8 +174,17 @@ async function loadThreadIntoDom(): Promise<Element | null> {
     await delay(250);
   }
 
+  // The thread author is the requested post's, not the topmost post's: for a
+  // reply, the posts it replies to sit above it (issue #153). Found before
+  // the upward walk, which can unmount it under a long chain of those.
+  const focalId = extractTweetId();
+  const focal = Array.from(document.querySelectorAll('article[role="article"]'))
+    .find((a) => !isPromotedArticle(a) && getTweetStatusId(a) === focalId);
+  if (!focal) return null;
+  const threadAuthor = extractAuthorFromArticle(focal);
+
   // Upward walk: coax X into loading any ancestors above the focused tweet.
-  // No capture yet — we don't know the thread author until ancestors settle.
+  // No capture yet — the author's earlier posts in the thread are among them.
   const MAX_UP_STEPS = 30;
   // Ancestors render with the conversation view rather than streaming in lazily,
   // so a short idle cap confirms "nothing more above" quickly; a genuinely long
@@ -189,54 +202,38 @@ async function loadThreadIntoDom(): Promise<Element | null> {
   // detached from the DOM. We snapshot each thread article via cloneNode
   // during the walk and re-attach any that are missing at the end, so
   // domToAst sees the whole thread regardless of viewport state.
-  const firstArticle = Array.from(document.querySelectorAll('article[role="article"]'))
-    .find((a) => !isPromotedArticle(a));
-  if (!firstArticle) return null;
-  const threadAuthor = extractAuthorFromArticle(firstArticle);
+  //
+  // First capture — the thread around the requested post, bounded by other
+  // authors' posts so reply-section tweets by the author (e.g. "thank you!
+  // means a lot" in response to a comment) don't pollute the captured set.
+  captureArticles(captured, threadAuthor.handle, focalId);
 
-  // First capture — thread root + nearby tweets currently in DOM, bounded
-  // by the same-author boundary so reply-section tweets by the author
-  // (e.g. "thank you! means a lot" in response to a comment) don't pollute
-  // the captured set.
-  captureArticles(captured, threadAuthor.handle);
-
-  const seen = new Set<string>();
   let threadDone = false;
   const SCROLL_STEP = Math.max(window.innerHeight * 0.6, 400);
   const MAX_STEPS = 60;
 
   for (let step = 0; step < MAX_STEPS && !threadDone; step++) {
-    const articles = document.querySelectorAll('article[role="article"]');
-    const sizeBefore = seen.size;
-    for (const article of articles) {
-      if (isPromotedArticle(article)) continue;
-      const a = extractAuthorFromArticle(article);
-      if (a.handle === 'unknown') continue;
-      if (a.handle.toLowerCase() !== threadAuthor.handle.toLowerCase()) {
-        threadDone = true;
-        break;
-      }
-      seen.add(getTweetStatusId(article));
-    }
-    captureArticles(captured, threadAuthor.handle);
+    const articleCount = document.querySelectorAll('article[role="article"]').length;
+    const sizeBefore = captured.size;
+    threadDone = captureArticles(captured, threadAuthor.handle, focalId);
     if (threadDone) break;
 
     const atBottom =
       window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 50;
-    if (atBottom && seen.size === sizeBefore) break;
+    if (atBottom && captured.size === sizeBefore) break;
     const beforeHeight = document.documentElement.scrollHeight;
     window.scrollBy({ top: SCROLL_STEP, behavior: 'instant' });
     // Continue the instant the next thread tweet mounts, but still allow the
     // full 400 ms when it streams in slowly — same ceiling as before, so a slow
     // render never truncates the thread.
-    await waitForGrowth(articles.length, beforeHeight, 400);
+    await waitForGrowth(articleCount, beforeHeight, 400);
   }
 
   // Final pass: capture at bottom, scroll-back-to-top + settle + capture.
-  captureArticles(captured, threadAuthor.handle);
+  captureArticles(captured, threadAuthor.handle, focalId);
   window.scrollTo({ top: 0, behavior: 'instant' });
   await delay(250);
-  captureArticles(captured, threadAuthor.handle);
+  captureArticles(captured, threadAuthor.handle, focalId);
   return rehydrateMissingArticles(captured, threadAuthor.handle);
 }
 
@@ -264,15 +261,18 @@ function hydrationScore(article: Element): number {
 // Snapshot helpers. We use cloneNode rather than outerHTML so X.com-specific
 // markup (article cards, link cards, etc.) round-trips without parsing, and
 // so there's no HTML-string injection path. Clones are detached; originals
-// stay live. Captures STOP at the first non-author article — the comment
-// boundary — so reply-section tweets by the author aren't swept in.
-function captureArticles(store: Map<string, Element>, authorHandle: string): void {
-  const target = authorHandle.toLowerCase();
-  for (const article of document.querySelectorAll('article[role="article"]')) {
-    if (isPromotedArticle(article)) continue;
-    const a = extractAuthorFromArticle(article);
-    if (a.handle === 'unknown') continue;
-    if (a.handle.toLowerCase() !== target) break; // boundary
+// stay live. Captures only the thread run around the requested post — or
+// around a post captured earlier, once scrolling has unmounted the requested
+// one — so reply-section tweets by the author aren't swept in. Returns
+// whether the run's end (the comment boundary) is on the page.
+function captureArticles(store: Map<string, Element>, authorHandle: string, focalId: string): boolean {
+  const live = Array.from(document.querySelectorAll('article[role="article"]'))
+    .filter((a) => !isPromotedArticle(a));
+  const { run, ended } = threadRun(live, authorHandle, (a) => {
+    const id = getTweetStatusId(a);
+    return id === focalId || store.has(id);
+  });
+  for (const article of run) {
     const id = getTweetStatusId(article);
     if (!id) continue;
     const existing = store.get(id);
@@ -292,6 +292,7 @@ function captureArticles(store: Map<string, Element>, authorHandle: string): voi
     }
     store.set(id, article.cloneNode(true) as Element);
   }
+  return ended;
 }
 
 // Inject ALL captured thread articles into an off-screen host so domToAst
