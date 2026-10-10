@@ -13,6 +13,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Auto and Super runs no longer stop during long video downloads**: with Save locally set to **Media**, a video that took more than about 30 seconds to download made Chrome shut down the run's background worker. The run stopped partway through with no error, and never wrote `data.json`. The run now keeps the worker awake until it finishes. (#117)
 - **Cut-off Auto and Super runs no longer re-download the same posts**: a run saved its progress only at the very end. If it was cut off, the "already exported" count stayed the same, and every re-run downloaded the same posts again. Progress is now saved within a couple of seconds of each post's files finishing, so the next run picks up where the last one stopped. Posts from runs that were cut off before this fix are exported once more on the next run. (#148)
+- **Bookmarked replies now export the reply, not the post it answers**: Auto and Super exported the post a bookmarked reply was answering, under the reply's link, and left out the reply's own text. Posts embedded in an Article had the same problem when the embedded post was a reply, and single export with Save locally set to **Media** saved the parent's videos in place of the reply's. Replies exported before this fix are still marked as exported. To get them again, delete those files and click **Reset history** before the next run. (#150)
 
 ---
 
