@@ -740,13 +740,19 @@ function fromCard(card?: RawCard): CardResult {
     }
     return { kind: 'poll', poll: { type: 'poll', choices } };
   }
-  if (/summary/.test(name)) {
+  // A video link (YouTube) arrives as a `player` card with the same fields,
+  // except that its image sits under player_image_* (#160).
+  if (/summary/.test(name) || name === 'player') {
     const title = get('title');
     if (!title) return undefined;
     const link: LinkCardNode = { type: 'linkCard', url: get('card_url') ?? '', title };
     const description = get('description');
     if (description) link.description = description;
-    const image = get('thumbnail_image_large') ?? get('thumbnail_image') ?? get('photo_image_full_size_large');
+    const image =
+      get('thumbnail_image_large') ??
+      get('thumbnail_image') ??
+      get('photo_image_full_size_large') ??
+      get('player_image_large');
     // X sizes card thumbnails per layout (name=800x320_1); the DOM path
     // normalizes to name=large, so do the same here (#126).
     if (image) link.imageUrl = image.replace(/([?&]name=)\w+/, '$1large');

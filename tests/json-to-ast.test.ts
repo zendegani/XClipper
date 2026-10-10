@@ -163,6 +163,48 @@ describe('jsonToAst — metadata', () => {
     ]);
   });
 
+  // #160: X sends a video link (YouTube) as a `player` card, with the summary
+  // cards' fields except its image key. Modeled on a real capture.
+  it('maps a player card to a link card and drops its trailing t.co', () => {
+    const card = {
+      legacy: {
+        name: 'player',
+        binding_values: [
+          { key: 'card_url', value: { string_value: 'https://t.co/CARD' } },
+          { key: 'title', value: { string_value: 'A Video' } },
+          { key: 'description', value: { string_value: 'About the video' } },
+          { key: 'domain', value: { string_value: 'www.example.com' } },
+          {
+            key: 'player_image_large',
+            value: { image_value: { url: 'https://pbs.twimg.com/card_img/1/x?format=jpg&name=800x320_1' } },
+          },
+        ],
+      },
+    };
+    const node = jsonToTweetNode(
+      tweet(
+        {
+          full_text: 'Watch: https://t.co/CARD',
+          entities: {
+            urls: [
+              { url: 'https://t.co/CARD', expanded_url: 'https://www.example.com/watch?v=abc', display_url: 'example.com/watch?v=abc', indices: [7, 24] },
+            ],
+          },
+        },
+        { card }
+      )
+    );
+    expect(node.linkCard).toEqual({
+      type: 'linkCard',
+      url: 'https://t.co/CARD',
+      title: 'A Video',
+      description: 'About the video',
+      imageUrl: 'https://pbs.twimg.com/card_img/1/x?format=jpg&name=large',
+      domain: 'example.com',
+    });
+    expect(node.text).toEqual([{ type: 'text', value: 'Watch:' }]);
+  });
+
   it('records the card domain without the www. the page omits', () => {
     const card = {
       legacy: {
