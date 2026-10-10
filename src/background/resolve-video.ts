@@ -40,7 +40,7 @@ export async function resolveVideoUrls(tweetId: string): Promise<Map<string, str
     vars.focalTweetId = tweetId;
     delete vars.cursor;
     const json = await authedFetchJson(setVariablesParam(template, JSON.stringify(vars)));
-    const doc = tweetDetailToDocument(json);
+    const doc = tweetDetailToDocument(json, tweetId);
 
     const map = new Map<string, string>();
     for (const media of collectMedia(doc)) {

@@ -131,7 +131,7 @@ async function fetchTweetDetailDoc(id: string, sourceUrl?: string): Promise<Twee
   const json = await fetchTweetDetailJson(id);
   if (json === null) return null;
   const { embeds, rateLimited } = await fetchEmbeddedTweets(json);
-  return { doc: tweetDetailToDocument(json, sourceUrl, embeds), incomplete: rateLimited };
+  return { doc: tweetDetailToDocument(json, id, sourceUrl, embeds), incomplete: rateLimited };
 }
 
 // Most TweetDetail embeds an article can name. An article with embedded posts is

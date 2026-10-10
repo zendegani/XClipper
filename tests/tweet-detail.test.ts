@@ -51,7 +51,7 @@ describe('flattenTweetDetail', () => {
 
 describe('tweetDetailToDocument', () => {
   it('builds a ThreadNode from the author run, stopping at the reply boundary', () => {
-    const doc = tweetDetailToDocument(tweetDetail([mk('1', 'alice', 'first'), mk('2', 'alice', 'second'), mk('3', 'bob', 'a reply')]));
+    const doc = tweetDetailToDocument(tweetDetail([mk('1', 'alice', 'first'), mk('2', 'alice', 'second'), mk('3', 'bob', 'a reply')]), '1');
     expect(doc.metadata.type).toBe('thread');
     expect(doc.metadata.tweetId).toBe('1');
     const body = doc.body as ThreadNode;
@@ -60,9 +60,51 @@ describe('tweetDetailToDocument', () => {
   });
 
   it('falls back to a single tweet when the author posted no continuation', () => {
-    const doc = tweetDetailToDocument(tweetDetail([mk('1', 'alice', 'lone'), mk('2', 'bob', 'reply')]));
+    const doc = tweetDetailToDocument(tweetDetail([mk('1', 'alice', 'lone'), mk('2', 'bob', 'reply')]), '1');
     expect(doc.metadata.type).toBe('tweet');
     expect(doc.metadata.tweetId).toBe('1');
+  });
+
+  // For a reply, X lists the posts it replies to before it (issue #150).
+  it('exports the requested reply, not the post it replies to', () => {
+    const raw = tweetDetail([mk('1', 'alice', 'parent'), mk('2', 'bob', 'the reply'), mk('3', 'carol', 'a reply to bob')]);
+    const doc = tweetDetailToDocument(raw, '2');
+    expect(doc.metadata.type).toBe('tweet');
+    expect(doc.metadata.tweetId).toBe('2');
+    expect(doc.metadata.author.handle).toBe('bob');
+    expect(renderMarkdown(doc)).toContain('the reply');
+  });
+
+  it('roots a mid-thread request at the thread start', () => {
+    const raw = tweetDetail([mk('1', 'alice', 'first'), mk('2', 'alice', 'second'), mk('3', 'alice', 'third')]);
+    const doc = tweetDetailToDocument(raw, '2');
+    expect(doc.metadata.type).toBe('thread');
+    expect(doc.metadata.tweetId).toBe('1');
+    expect(ids((doc.body as ThreadNode).tweets)).toEqual(['1', '2', '3']);
+  });
+
+  it('stops walking back at another author, even when the thread author posted earlier', () => {
+    const raw = tweetDetail([mk('1', 'alice', 'old post'), mk('2', 'bob', 'reply'), mk('3', 'alice', 'new post')]);
+    const doc = tweetDetailToDocument(raw, '3');
+    expect(doc.metadata.type).toBe('tweet');
+    expect(doc.metadata.tweetId).toBe('3');
+  });
+
+  it('keeps a reply\'s own video, for local download', () => {
+    const video = {
+      type: 'video',
+      media_url_https: 'https://pbs.twimg.com/ext_tw_video_thumb/5/pu/img/poster.jpg',
+      video_info: { variants: [{ content_type: 'video/mp4', bitrate: 832000, url: 'https://video.twimg.com/ext_tw_video/5/pu/vid/640x360/a.mp4' }] },
+    };
+    const reply = { ...mk('2', 'bob', 'watch this'), legacy: { ...mk('2', 'bob', 'watch this').legacy, extended_entities: { media: [video] } } };
+    const doc = tweetDetailToDocument(tweetDetail([mk('1', 'alice', 'parent'), reply]), '2');
+    expect(collectMedia(doc).filter(isDownloadableVideo).map((m) => m.url)).toEqual([
+      'https://video.twimg.com/ext_tw_video/5/pu/vid/640x360/a.mp4',
+    ]);
+  });
+
+  it('throws when the response does not carry the requested post', () => {
+    expect(() => tweetDetailToDocument(tweetDetail([mk('1', 'alice', 'other')]), '9')).toThrow(/9/);
   });
 });
 
@@ -103,7 +145,7 @@ describe('embedded posts in an Article body', () => {
 
     // Un-fetched, the embed sits between the two paragraphs it separates —
     // where it used to leave a hole.
-    const md = renderMarkdown(tweetDetailToDocument(raw));
+    const md = renderMarkdown(tweetDetailToDocument(raw, '2076690611399176506'));
     expect(md).toContain(
       'Example on how you can sell your product with this mechanics:\n\n> [Embedded post on X](https://x.com/i/status/2071293386724982947)\n\nHis tweet got 765'
     );
@@ -115,6 +157,7 @@ describe('embedded posts in an Article body', () => {
 
     const doc = tweetDetailToDocument(
       tweetDetail([articleWithEmbed('777')]),
+      '1',
       undefined,
       new Map([['777', embedded]])
     );
@@ -129,7 +172,7 @@ describe('tweetDetailToDocument — captured article video', () => {
   const raw = JSON.parse(
     readFileSync('tests/fixtures/graphql/tweetdetail-2059312764448051555-video.min.json', 'utf8')
   );
-  const doc = tweetDetailToDocument(raw);
+  const doc = tweetDetailToDocument(raw, '2059312764448051555');
   const body = doc.body as ArticleNode;
   // The 720p rung, not the 1080p one the fixture also carries — see the cap in
   // bestVariant.
@@ -148,13 +191,12 @@ describe('tweetDetailToDocument — captured article video', () => {
 });
 
 // Real captured TweetDetail (git-ignored under tests/_local/, absent in CI → skips).
-const threadPath = ['tests/_local/threaddetail-response.json', 'tests/_local/thread-response.json'].find((p) =>
-  existsSync(p)
-);
+// The id is the capture's focal post, which the mapper now needs by name.
+const threadPath = ['tests/_local/threaddetail-response.json'].find((p) => existsSync(p));
 
 describe.skipIf(!threadPath)('tweetDetailToDocument — real captured thread', () => {
   // Guarded: skipIf still runs this body, so don't read a missing file in CI.
-  const doc = threadPath ? tweetDetailToDocument(JSON.parse(readFileSync(threadPath, 'utf8'))) : null;
+  const doc = threadPath ? tweetDetailToDocument(JSON.parse(readFileSync(threadPath, 'utf8')), '2059282561545666610') : null;
 
   it('expands the captured self-thread into a multi-tweet ThreadNode', () => {
     if (!doc) return;
@@ -174,7 +216,7 @@ const articlePath = ['tests/_local/article.json'].find((p) => existsSync(p));
 
 describe.skipIf(!articlePath)('tweetDetailToDocument — real captured article', () => {
   // Guarded: skipIf still runs this body, so don't read a missing file in CI.
-  const doc = articlePath ? tweetDetailToDocument(JSON.parse(readFileSync(articlePath, 'utf8'))) : null;
+  const doc = articlePath ? tweetDetailToDocument(JSON.parse(readFileSync(articlePath, 'utf8')), '2061907337154367865') : null;
   const body = doc?.body as ArticleNode | undefined;
 
   it('maps the article body from Draft.js content_state', () => {
