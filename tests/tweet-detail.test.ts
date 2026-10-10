@@ -129,8 +129,20 @@ describe('embedded posts in an Article body', () => {
   });
 
   it('reports the ids the article body embeds', () => {
-    expect(tweetDetailEmbeddedTweetIds(tweetDetail([articleWithEmbed('777')]))).toEqual(['777']);
-    expect(tweetDetailEmbeddedTweetIds(tweetDetail([mk('1', 'alice', 'plain')]))).toEqual([]);
+    expect(tweetDetailEmbeddedTweetIds(tweetDetail([articleWithEmbed('777')]), '1')).toEqual(['777']);
+    expect(tweetDetailEmbeddedTweetIds(tweetDetail([mk('1', 'alice', 'plain')]), '1')).toEqual([]);
+  });
+
+  it('reads the embeds of a requested article that is itself a reply', () => {
+    const raw = tweetDetail([mk('5', 'bob', 'parent'), articleWithEmbed('777')]);
+    expect(tweetDetailEmbeddedTweetIds(raw, '1')).toEqual(['777']);
+  });
+
+  it('maps an embedded post that is a reply to that post, not its parent', () => {
+    const raw = tweetDetail([mk('5', 'bob', 'parent'), mk('777', 'carol', 'the embedded reply')]);
+    const embedded = tweetDetailFocalTweetNode(raw, '777');
+    expect(embedded.tweetId).toBe('777');
+    expect(embedded.author.handle).toBe('carol');
   });
 
   // Minimized from a real public TweetDetail capture for status
@@ -141,7 +153,7 @@ describe('embedded posts in an Article body', () => {
     const raw = JSON.parse(
       readFileSync('tests/fixtures/graphql/tweetdetail-2076690611399176506-embedded-tweet.min.json', 'utf8')
     );
-    expect(tweetDetailEmbeddedTweetIds(raw)).toEqual(['2071293386724982947']);
+    expect(tweetDetailEmbeddedTweetIds(raw, '2076690611399176506')).toEqual(['2071293386724982947']);
 
     // Un-fetched, the embed sits between the two paragraphs it separates —
     // where it used to leave a hole.
@@ -152,7 +164,7 @@ describe('embedded posts in an Article body', () => {
   });
 
   it('maps an embedded post fetch to the TweetNode the article body needs', () => {
-    const embedded = tweetDetailFocalTweetNode(tweetDetail([mk('777', 'bob', 'the embedded post')]));
+    const embedded = tweetDetailFocalTweetNode(tweetDetail([mk('777', 'bob', 'the embedded post')]), '777');
     expect(embedded.tweetId).toBe('777');
 
     const doc = tweetDetailToDocument(

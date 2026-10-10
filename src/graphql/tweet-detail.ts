@@ -53,23 +53,6 @@ export function flattenTweetDetail(raw: unknown): unknown[] {
   return out;
 }
 
-// The ids of the posts embedded in this response's Article body. The article
-// payload names them but carries none of their content, so the caller fetches
-// each one and hands the results back through `tweetDetailToDocument`'s
-// `embeds` (issue #123). Empty for anything that isn't a full Article body.
-export function tweetDetailEmbeddedTweetIds(raw: unknown): string[] {
-  const results = flattenTweetDetail(raw);
-  return results.length === 0 ? [] : articleEmbeddedTweetIds(results[0]);
-}
-
-// The focal tweet as a TweetNode — how an embedded post is mapped once its own
-// TweetDetail comes back.
-export function tweetDetailFocalTweetNode(raw: unknown): TweetNode {
-  const results = flattenTweetDetail(raw);
-  if (results.length === 0) throw new Error('TweetDetail carried no tweets');
-  return jsonToTweetNode(results[0]);
-}
-
 // Where the requested post sits in the flattened conversation. Not always
 // first: for a reply, X lists the posts it replies to before it (issue #150).
 // Throws rather than guess — exporting some other post as this one is worse
@@ -78,6 +61,23 @@ function focalIndex(results: unknown[], focalId: string): number {
   const i = results.findIndex((r) => unwrap(r).rest_id === focalId);
   if (i < 0) throw new Error(`TweetDetail did not carry the requested post ${focalId}`);
   return i;
+}
+
+// The ids of the posts embedded in this response's Article body. The article
+// payload names them but carries none of their content, so the caller fetches
+// each one and hands the results back through `tweetDetailToDocument`'s
+// `embeds` (issue #123). Empty for anything that isn't a full Article body.
+export function tweetDetailEmbeddedTweetIds(raw: unknown, focalId: string): string[] {
+  const results = flattenTweetDetail(raw);
+  return results.length === 0 ? [] : articleEmbeddedTweetIds(results[focalIndex(results, focalId)]);
+}
+
+// The focal tweet as a TweetNode — how an embedded post is mapped once its own
+// TweetDetail comes back.
+export function tweetDetailFocalTweetNode(raw: unknown, focalId: string): TweetNode {
+  const results = flattenTweetDetail(raw);
+  if (results.length === 0) throw new Error('TweetDetail carried no tweets');
+  return jsonToTweetNode(results[focalIndex(results, focalId)]);
 }
 
 // The requested tweet → its full Document. A multi-tweet self-thread becomes a

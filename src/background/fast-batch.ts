@@ -130,7 +130,7 @@ interface TweetDetailFetch {
 async function fetchTweetDetailDoc(id: string, sourceUrl?: string): Promise<TweetDetailFetch | null> {
   const json = await fetchTweetDetailJson(id);
   if (json === null) return null;
-  const { embeds, rateLimited } = await fetchEmbeddedTweets(json);
+  const { embeds, rateLimited } = await fetchEmbeddedTweets(json, id);
   return { doc: tweetDetailToDocument(json, id, sourceUrl, embeds), incomplete: rateLimited };
 }
 
@@ -148,16 +148,17 @@ const MAX_ARTICLE_EMBEDS = 8;
 // the link IS the final answer, while a rate limit is temporary and must leave
 // the article un-ledgered for a re-run.
 async function fetchEmbeddedTweets(
-  json: unknown
+  json: unknown,
+  articleId: string
 ): Promise<{ embeds?: EmbeddedTweets; rateLimited: boolean }> {
-  const ids = tweetDetailEmbeddedTweetIds(json).slice(0, MAX_ARTICLE_EMBEDS);
+  const ids = tweetDetailEmbeddedTweetIds(json, articleId).slice(0, MAX_ARTICLE_EMBEDS);
   if (ids.length === 0) return { rateLimited: false };
   const embeds = new Map<string, TweetNode>();
   let rateLimited = false;
   for (const id of ids) {
     try {
       const embedJson = await fetchTweetDetailJson(id);
-      if (embedJson) embeds.set(id, tweetDetailFocalTweetNode(embedJson));
+      if (embedJson) embeds.set(id, tweetDetailFocalTweetNode(embedJson, id));
     } catch (err) {
       if (classify(err) === 'rate-limit') {
         // Stop asking for the rest — they'd fail too, and each try digs the
