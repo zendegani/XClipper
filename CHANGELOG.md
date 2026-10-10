@@ -17,6 +17,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Manual exports a bookmarked reply, not the post it answers**: Manual batch export, and exporting a reply from its own page, saved the post the reply was answering under the reply's link. A reply to the author's own older post, with someone else's post in between, came out as that older post. The export now has the reply, along with any posts the same author added right before or after it. (#153)
 - **Auto and Super keep a link that sits mid-sentence**: when a post's link-card URL appeared in the middle of its text, Auto and Super deleted it, leaving a gap such as "via  and more." The link now stays in the text, as in Manual. A link at the very end of a post is still left out, since the card below already shows it. (#152)
 - **Auto and Super name a thread after the post you saved**: when you saved a later post in an author's own thread, Auto and Super named the file after the thread's first post, while its `source:` and Manual's file name used the post you saved. The file name now uses the post you saved, so both engines produce the same file. Threads already exported keep their old names and are not exported again. (#157)
+- **Manual saves working links when X shortens them**: for a long link that X shows cut off, such as `example.com/watch?v=abc…`, Manual saved a URL ending in `…`, which didn't open the page, and a label with the part X hides. The URL is now the full link and the label matches what the page shows, as in Auto. (#158)
 
 ---
 
