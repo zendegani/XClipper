@@ -9,9 +9,9 @@
 // batch settings — so Fast Batch produces the same files as Standard batch, just
 // far faster. Only acquisition differs.
 //
-// This module is impure (webRequest, fetch, permissions) and therefore not
-// unit-tested — its pure dependencies (parse/paginate/map/sinks) are. Verify it
-// live:
+// This module is impure (webRequest, fetch, permissions). Its pure dependencies
+// (parse/paginate/map/sinks) are unit-tested; tests/fast-batch.test.ts drives
+// the run loop with the session and sinks mocked. Verify it live:
 //   1) chrome://extensions → XClipper → service worker (Inspect)
 //   2) await xclipperFastBatch()      // grants permission, then EXPORTS bookmarks
 // If it says no request was captured, open https://x.com/i/history, scroll
@@ -306,6 +306,21 @@ const INCOMPLETE_SUBFOLDER = '_incomplete_rerun_to_complete';
 // only guards against a pathological run of rate limits growing it unbounded.
 const INCOMPLETE_CAP = 2000;
 
+// Chrome shuts an MV3 service worker down after ~30 s with no extension event
+// or API call. A long video download sends neither (downloads.onChanged skips
+// byte progress), so the run would die mid-write (#117). Calling a cheap API
+// resets that timer; ping it for as long as a run is in flight.
+const KEEPALIVE_MS = 20_000;
+
+export async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatchResult | null> {
+  const keepAlive = setInterval(() => void chrome.runtime.getPlatformInfo(), KEEPALIVE_MS);
+  try {
+    return await exportFastBatch(opts);
+  } finally {
+    clearInterval(keepAlive);
+  }
+}
+
 // Phase-A trigger (no UI yet, like ADR 0002 batch): fetch the bookmarks
 // timeline via GraphQL, map each tweet to the AST, expand Articles/threads via
 // per-item TweetDetail, then postProcess + write through the SHARED sinks
@@ -313,7 +328,7 @@ const INCOMPLETE_CAP = 2000;
 // Honors the dedup ledger and the hard item cap. Console:
 //   await xclipperFastBatch()                       // full (threads + articles)
 //   await xclipperFastBatch({ expandThreads: false }) // fastest, root-only
-async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatchResult | null> {
+async function exportFastBatch(opts: FastBatchOptions = {}): Promise<FastBatchResult | null> {
   const expandThreads = opts.expandThreads ?? true;
   const maxItems = opts.maxItems ?? (expandThreads ? FAST_BATCH_MAX_ITEMS : SUPER_FAST_MAX_ITEMS);
   const source = opts.source ?? 'bookmarks';

@@ -1,0 +1,118 @@
+import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
+import { DEFAULT_SETTINGS } from '../src/shared/settings';
+import { EXPORTED_LEDGER_KEY } from '../src/background/batch-state';
+
+// The run loop with X's session, settings, and the download sink mocked out:
+// enough to drive a bookmarks run end to end and hold one download open the
+// way a multi-minute video does in Chrome.
+
+vi.mock('../src/background/x-session', () => ({
+  templates: {
+    Bookmarks: 'https://x.com/i/api/graphql/q/Bookmarks?variables=%7B%7D',
+    TweetDetail: 'https://x.com/i/api/graphql/q/TweetDetail?variables=%7B%7D',
+  },
+  authedFetchJson: vi.fn(),
+  classify: () => 'permanent',
+  GraphqlError: class extends Error {},
+  hasAccess: async () => true,
+  requestFastBatchAccess: async () => true,
+  restoreSession: async () => {},
+  startCapturing: () => {},
+}));
+
+vi.mock('../src/shared/settings', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../src/shared/settings')>();
+  return { ...actual, loadSettings: async () => ({ ...actual.DEFAULT_SETTINGS }) };
+});
+
+vi.mock('../src/shared/review-prompt', () => ({ recordExport: async () => {} }));
+
+vi.mock('../src/background/batch-sink', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../src/background/batch-sink')>();
+  return {
+    ...actual,
+    writePerItem: vi.fn(),
+    writeJsonManifest: vi.fn(async () => {}),
+    writeCombined: vi.fn(async () => {}),
+    downloadZipArchive: vi.fn(async () => {}),
+  };
+});
+
+const { authedFetchJson } = await import('../src/background/x-session');
+const { writePerItem } = await import('../src/background/batch-sink');
+const { runFastBatchExport } = await import('../src/background/fast-batch');
+
+function tweet(id: string) {
+  return {
+    rest_id: id,
+    core: { user_results: { result: { legacy: { name: 'Bob', screen_name: 'bob' } } } },
+    legacy: { id_str: id, created_at: 'Wed Oct 10 20:19:24 +0000 2018', full_text: `post ${id}`, entities: {} },
+  };
+}
+
+function bookmarksPage(ids: string[]) {
+  const entries = ids.map((id) => ({
+    entryId: `tweet-${id}`,
+    content: {
+      entryType: 'TimelineTimelineItem',
+      itemContent: { itemType: 'TimelineTweet', tweet_results: { result: tweet(id) } },
+    },
+  }));
+  return { data: { bookmark_timeline_v2: { timeline: { instructions: [{ type: 'TimelineAddEntries', entries }] } } } };
+}
+
+let store: Record<string, unknown>;
+let getPlatformInfo: ReturnType<typeof vi.fn>;
+
+// Writes resolve except the `hangAt`-th (1-based), which never finishes, the
+// way a long video download looks to the run. Resolves `started` when it begins.
+function hangWrite(hangAt: number): { started: Promise<void>; release: () => void } {
+  let release = (): void => {};
+  let signal = (): void => {};
+  const started = new Promise<void>((r) => (signal = r));
+  let calls = 0;
+  vi.mocked(writePerItem).mockImplementation(() => {
+    if (++calls !== hangAt) return Promise.resolve();
+    signal();
+    return new Promise<void>((r) => (release = r));
+  });
+  return { started, release: () => release() };
+}
+
+beforeEach(() => {
+  store = {};
+  getPlatformInfo = vi.fn(async () => ({}));
+  const chromeGlobal = (globalThis as unknown as { chrome: Record<string, Record<string, unknown>> }).chrome;
+  chromeGlobal.runtime.getPlatformInfo = getPlatformInfo;
+  chromeGlobal.storage.local = {
+    get: async (key: string) => (key in store ? { [key]: store[key] } : {}),
+    set: async (items: Record<string, unknown>) => void Object.assign(store, items),
+  };
+  vi.mocked(authedFetchJson).mockImplementation(async (url: string) => {
+    if (url.includes('/Bookmarks')) return bookmarksPage(['1', '2', '3']);
+    throw new Error('not found'); // TweetDetail: the root tweet stays the final answer
+  });
+  vi.useFakeTimers({ toFake: ['setInterval', 'clearInterval'] });
+});
+
+afterEach(() => {
+  vi.useRealTimers();
+  vi.mocked(writePerItem).mockReset();
+});
+
+describe('runFastBatchExport — long downloads', () => {
+  it('keeps calling an extension API while a download runs, and stops when the run ends', async () => {
+    const write = hangWrite(1);
+    const run = runFastBatchExport();
+    await write.started;
+
+    await vi.advanceTimersByTimeAsync(65_000);
+    expect(getPlatformInfo.mock.calls.length).toBeGreaterThanOrEqual(3);
+
+    write.release();
+    await run;
+    getPlatformInfo.mockClear();
+    await vi.advanceTimersByTimeAsync(65_000);
+    expect(getPlatformInfo).not.toHaveBeenCalled();
+  });
+});
