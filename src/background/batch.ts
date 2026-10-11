@@ -44,7 +44,7 @@ import {
   resumeJob,
   statusIdOf,
 } from './batch-state';
-import { EXPORTED_LEDGER_KEY, appendToLedger } from '../shared/export-ledger';
+import { loadExported, recordExported } from '../shared/export-ledger';
 
 const JOB_KEY = 'xclipper_batch_job';
 // Per-item AST payloads for the JSON sink, keyed by item index. Stored
@@ -81,19 +81,6 @@ async function loadJob(): Promise<BatchJob | null> {
 
 async function saveJob(job: BatchJob): Promise<void> {
   await chrome.storage.session.set({ [JOB_KEY]: job });
-}
-
-async function loadLedger(): Promise<string[]> {
-  const result = await chrome.storage.local.get(EXPORTED_LEDGER_KEY);
-  const raw = result[EXPORTED_LEDGER_KEY];
-  return Array.isArray(raw) ? raw.filter((v): v is string => typeof v === 'string') : [];
-}
-
-async function recordExported(url: string): Promise<void> {
-  const id = statusIdOf(url);
-  if (!id) return;
-  const ledger = await loadLedger();
-  await chrome.storage.local.set({ [EXPORTED_LEDGER_KEY]: appendToLedger(ledger, id) });
 }
 
 const JOB_ORIGINS = ['bookmarks', 'profile', 'selection', 'likes', 'timeline'] as const;
@@ -143,7 +130,7 @@ export async function startBatch(
   }
   // Skip anything a previous job already exported, so re-running on a longer
   // scroll of the same list only picks up the new items.
-  const ledger = new Set(await loadLedger());
+  const ledger = new Set(await loadExported());
   const fresh = job.urls.filter((u) => {
     const id = statusIdOf(u);
     return !id || !ledger.has(id);
@@ -182,7 +169,7 @@ export async function appendBatch(rawUrls: unknown): Promise<BatchStartResponse>
     return { success: false, error: 'urls must be an array of status permalinks' };
   }
   const urls = rawUrls.filter((u): u is string => typeof u === 'string');
-  const exportedIds = new Set(await loadLedger());
+  const exportedIds = new Set(await loadExported());
   const { job: next, added } = appendUrls(job, urls, exportedIds);
   if (added === 0) return { success: false, error: 'Nothing new to add' };
   await saveJob(next);
@@ -315,7 +302,8 @@ async function handleItemResult(
     // Zip mode also defers to finalize: entries are rebuilt there from the
     // stored docs, so nothing per-item hits the downloads shelf.
     if (plan.output !== 'combined' && !plan.zip) await writeFiles(advanced.folder, files);
-    await recordExported(expected);
+    const id = statusIdOf(expected);
+    if (id) await recordExported(id);
     try {
       await chrome.storage.session.set({
         [DOC_KEY_PREFIX + job.nextIndex]: { url: expected, filename, doc },
