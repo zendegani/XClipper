@@ -107,14 +107,18 @@ export function tweetDetailToDocument(
   let end = focal + 1;
   while (end < nodes.length && byAuthor(nodes[end])) end++;
   const thread = nodes.slice(start, end);
+  // Everything X lists above the thread is what it answers, up to the
+  // conversation's first post (issue #154).
+  const context = nodes.slice(0, start);
+  const withContext = (doc: Document): Document => (context.length > 0 ? { ...doc, context } : doc);
 
-  if (thread.length <= 1) return jsonToAst(results[focal], sourceUrl);
+  if (thread.length <= 1) return withContext(jsonToAst(results[focal], sourceUrl));
 
   // The id (and so the file name) is the requested post's, like `sourceUrl` and
   // the DOM path; author, date, and engagement are the thread's start (#157).
   const root = thread[0];
   const requested = nodes[focal];
-  return {
+  return withContext({
     version: 1,
     metadata: {
       type: 'thread',
@@ -125,5 +129,5 @@ export function tweetDetailToDocument(
       ...(root.engagement ? { engagement: root.engagement } : {}),
     },
     body: { type: 'thread', tweets: thread },
-  };
+  });
 }

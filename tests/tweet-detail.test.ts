@@ -106,6 +106,32 @@ describe('tweetDetailToDocument', () => {
     ]);
   });
 
+  // The posts above the thread are what the reply answers (issue #154).
+  it('carries the posts a reply answers as context, oldest first', () => {
+    const raw = tweetDetail([mk('1', 'alice', 'root'), mk('2', 'carol', 'parent'), mk('3', 'bob', 'the reply'), mk('4', 'dave', 'a reply to bob')]);
+    const doc = tweetDetailToDocument(raw, '3');
+    expect(ids(doc.context ?? [])).toEqual(['1', '2']);
+    expect(doc.metadata.author.handle).toBe('bob');
+    expect(doc.metadata.tweetId).toBe('3');
+  });
+
+  it('carries the posts above a self-thread as its context', () => {
+    const raw = tweetDetail([mk('1', 'bob', 'question'), mk('2', 'alice', 'first'), mk('3', 'alice', 'second'), mk('4', 'alice', 'third')]);
+    const doc = tweetDetailToDocument(raw, '3');
+    expect(ids(doc.context ?? [])).toEqual(['1']);
+    expect(ids((doc.body as ThreadNode).tweets)).toEqual(['2', '3', '4']);
+  });
+
+  it('keeps the author\'s own older post as context when someone else sits between', () => {
+    const raw = tweetDetail([mk('1', 'alice', 'old post'), mk('2', 'bob', 'reply'), mk('3', 'alice', 'new post')]);
+    expect(ids(tweetDetailToDocument(raw, '3').context ?? [])).toEqual(['1', '2']);
+  });
+
+  it('adds no context to a post that answers nothing', () => {
+    const doc = tweetDetailToDocument(tweetDetail([mk('1', 'alice', 'lone'), mk('2', 'bob', 'reply')]), '1');
+    expect('context' in doc).toBe(false);
+  });
+
   it('throws when the response does not carry the requested post', () => {
     expect(() => tweetDetailToDocument(tweetDetail([mk('1', 'alice', 'other')]), '9')).toThrow(/9/);
   });
