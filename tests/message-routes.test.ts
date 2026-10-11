@@ -19,6 +19,10 @@ vi.mock('../src/background/fast-batch', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../src/background/fast-batch')>();
   return { ...actual, initFastBatch: () => {} };
 });
+vi.mock('../src/background/single-zip', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../src/background/single-zip')>();
+  return { ...actual, buildSingleZipEntries: vi.fn(actual.buildSingleZipEntries) };
+});
 
 const runtime = (globalThis as unknown as { chrome: { runtime: Record<string, unknown> } }).chrome
   .runtime;
@@ -27,6 +31,7 @@ runtime.onStartup = { addListener: () => {} };
 
 await import('../src/background/background');
 const { dispatch } = await import('../src/background/router');
+const { buildSingleZipEntries } = await import('../src/background/single-zip');
 
 describe('background message routes', () => {
   // A change to this table changes who may do what. Review it as a security
@@ -56,6 +61,22 @@ describe('background message routes', () => {
     const msg = { action: 'PDF_PRINT_REQUEST', html: '<p>x</p>', filenameBase: 'x' };
     expect(dispatch(routes, msg, sender, respond)).toBe(false);
     expect(respond).not.toHaveBeenCalled();
+  });
+
+  it('sends the error when a zip download fails', async () => {
+    vi.mocked(buildSingleZipEntries).mockRejectedValueOnce(new Error('zip failed'));
+    const logError = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const respond = vi.fn();
+    const sender = {
+      id: 'test-extension',
+      url: 'chrome-extension://test-extension/popup.html',
+    } as chrome.runtime.MessageSender;
+    const msg = { action: 'DOWNLOAD_MD', content: '# x', filename: 'x.md', zip: true };
+    expect(dispatch(routes, msg, sender, respond)).toBe(true);
+    await vi.waitFor(() =>
+      expect(respond).toHaveBeenCalledWith({ success: false, error: 'zip failed' })
+    );
+    logError.mockRestore();
   });
 
   // A listener outside the router would skip the trust check.

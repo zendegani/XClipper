@@ -246,78 +246,67 @@ async function printPdf(message: PdfPrintRequest): Promise<PdfPrintResponse> {
   }
 }
 
-function downloadMd(message: DownloadRequest): Promise<DownloadResponse> {
+// Resolves, never rejects: a download that Chrome refuses is an expected
+// { success: false } answer, not a handler failure for the router to log.
+function startDownload(options: chrome.downloads.DownloadOptions): Promise<DownloadResponse> {
   return new Promise((resolve) => {
-    // Prepend the user-configured subfolder before sanitization so the
-    // existing `..` / leading-slash / illegal-char stripping in
-    // `sanitizeFilePath` applies to the combined path too.
-    loadDownloadFolder().then(async (folder) => {
-      const prefix = folder ? folder + '/' : '';
-
-      // Zip mode: the media goes inside the archive rather than beside it, so
-      // the bytes are fetched here instead of handed to chrome.downloads.
-      if (message.zip) {
-        const entries = await buildSingleZipEntries(
-          message.content,
-          message.filename,
-          message.images,
-          fetchMediaBytes
-        );
-        chrome.downloads.download(
-          {
-            url: zipDataUrl(buildZip(entries)),
-            filename: sanitizeFilePath(prefix + zipFilenameFor(message.filename)),
-            saveAs: false,
-          },
-          (downloadId) => {
-            if (chrome.runtime.lastError) {
-              resolve({ success: false, error: chrome.runtime.lastError.message });
-            } else {
-              resolve({ success: true, downloadId });
-            }
-          }
-        );
-        return;
+    chrome.downloads.download(options, (downloadId) => {
+      if (chrome.runtime.lastError) {
+        resolve({ success: false, error: chrome.runtime.lastError.message });
+      } else {
+        resolve({ success: true, downloadId });
       }
-
-      // First download any required images
-      if (message.images && message.images.length > 0) {
-        for (const img of message.images) {
-          if (!img || typeof img.url !== 'string' || !isAllowedImageUrl(img.url)) {
-            continue;
-          }
-
-          chrome.downloads.download({
-            url: img.url,
-            filename: sanitizeFilePath(prefix + img.filename),
-            saveAs: false,
-          });
-        }
-      }
-
-      const mime = message.mime || 'text/markdown';
-      const dataUrl =
-        `data:${mime};charset=utf-8,` +
-        encodeURIComponent(message.content);
-
-      chrome.downloads.download(
-        {
-          url: dataUrl,
-          filename: sanitizeFilePath(prefix + message.filename),
-          saveAs: false,
-        },
-        (downloadId) => {
-          if (chrome.runtime.lastError) {
-            resolve({
-              success: false,
-              error: chrome.runtime.lastError.message,
-            });
-          } else {
-            resolve({ success: true, downloadId });
-          }
-        }
-      );
     });
+  });
+}
+
+async function downloadMd(message: DownloadRequest): Promise<DownloadResponse> {
+  // Prepend the user-configured subfolder before sanitization so the
+  // existing `..` / leading-slash / illegal-char stripping in
+  // `sanitizeFilePath` applies to the combined path too.
+  const folder = await loadDownloadFolder();
+  const prefix = folder ? folder + '/' : '';
+
+  // Zip mode: the media goes inside the archive rather than beside it, so
+  // the bytes are fetched here instead of handed to chrome.downloads.
+  if (message.zip) {
+    const entries = await buildSingleZipEntries(
+      message.content,
+      message.filename,
+      message.images,
+      fetchMediaBytes
+    );
+    return startDownload({
+      url: zipDataUrl(buildZip(entries)),
+      filename: sanitizeFilePath(prefix + zipFilenameFor(message.filename)),
+      saveAs: false,
+    });
+  }
+
+  // First download any required images
+  if (message.images && message.images.length > 0) {
+    for (const img of message.images) {
+      if (!img || typeof img.url !== 'string' || !isAllowedImageUrl(img.url)) {
+        continue;
+      }
+
+      chrome.downloads.download({
+        url: img.url,
+        filename: sanitizeFilePath(prefix + img.filename),
+        saveAs: false,
+      });
+    }
+  }
+
+  const mime = message.mime || 'text/markdown';
+  const dataUrl =
+    `data:${mime};charset=utf-8,` +
+    encodeURIComponent(message.content);
+
+  return startDownload({
+    url: dataUrl,
+    filename: sanitizeFilePath(prefix + message.filename),
+    saveAs: false,
   });
 }
 
