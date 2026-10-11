@@ -12,7 +12,7 @@ import { renderDigest } from '../ast/render-digest';
 import { renderMarkdown } from '../ast/render-markdown';
 import { docToExtracted } from '../shared/extracted-content';
 import { renderPdfHtmlMany } from '../ast/render-pdf-html';
-import type { BatchFormat, Settings } from '../shared/settings';
+import type { BatchFormat, BatchOutput, Settings } from '../shared/settings';
 import {
   buildFormatExport,
   buildCsvTable,
@@ -20,7 +20,12 @@ import {
   type ExportFormat,
   type FormatOptions,
 } from '../shared/export-formats';
-import { markdownOptions, postProcess } from '../shared/post-process';
+import {
+  markdownOptions,
+  postProcess,
+  resolveDownloadImages,
+  type PostProcessOptions,
+} from '../shared/post-process';
 import type { BatchFailure } from './batch-state';
 import { isAllowedImageUrl, sanitizeFilePath } from './security';
 import { buildZip, zipDataUrl, type ZipEntry } from './zip';
@@ -43,6 +48,38 @@ export interface JobMeta {
   status: string;
   completed: number;
   failures: BatchFailure[];
+}
+
+// Every output decision for one batch run, made once from the settings at its
+// start. All engines plan through here, so Manual and Auto/Super can't drift
+// apart on which files a run writes (#136). JSON-serializable: a Manual job
+// keeps it in storage so a service-worker restart resumes with the same plan.
+export interface BatchPlan {
+  format: BatchFormat;
+  // CSV is metadata-only — a per-item CSV is a one-row file — so a CSV run is
+  // always one combined file, whatever grouping the user picked.
+  output: BatchOutput;
+  // Pack the per-item files into one archive. Local images turn it off for
+  // Markdown: image bytes can't be fetched into the zip.
+  zip: boolean;
+  // Save each post's MP4s next to its Markdown. Only a per-item Markdown file
+  // links them; saveVideos is the Media position of the save-locally control.
+  localVideo: boolean;
+  markdown: PostProcessOptions;
+  formatOptions: FormatOptions;
+}
+
+export function planBatch(settings: Settings, format: BatchFormat, output: BatchOutput): BatchPlan {
+  const out = format === 'csv' ? 'combined' : output;
+  const localImages = resolveDownloadImages('download', settings.downloadImages);
+  return {
+    format,
+    output: out,
+    zip: settings.batchZip && out !== 'combined' && !(localImages && format === 'md'),
+    localVideo: out !== 'combined' && format === 'md' && settings.saveVideos && localImages,
+    markdown: markdownOptions(settings, 'download'),
+    formatOptions: formatOptionsFrom(settings),
+  };
 }
 
 export function formatOptionsFrom(s: Settings): FormatOptions {
