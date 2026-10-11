@@ -48,12 +48,12 @@ import {
 } from './batch-sink';
 import { batchFolderName, uniqueFilename } from './batch-state';
 import {
-  EXPORTED_LEDGER_KEY,
-  INCOMPLETE_CAP,
-  INCOMPLETE_LEDGER_KEY,
   RESUME_CURSOR_KEY,
   DATE_CURSOR_KEY,
   appendToLedger,
+  loadExported,
+  loadIncomplete,
+  saveLedgers,
 } from '../shared/export-ledger';
 import {
   authedFetchJson,
@@ -188,18 +188,6 @@ async function mapLimit<T>(items: T[], limit: number, fn: (item: T) => Promise<v
 function isRepost(raw: unknown): boolean {
   const t = (raw as { tweet?: unknown }).tweet ?? raw;
   return !!(t as { legacy?: { retweeted_status_result?: unknown } }).legacy?.retweeted_status_result;
-}
-
-async function loadLedger(): Promise<string[]> {
-  const r = await chrome.storage.local.get(EXPORTED_LEDGER_KEY);
-  const raw = r[EXPORTED_LEDGER_KEY];
-  return Array.isArray(raw) ? raw.filter((v): v is string => typeof v === 'string') : [];
-}
-
-async function loadIncomplete(): Promise<string[]> {
-  const r = await chrome.storage.local.get(INCOMPLETE_LEDGER_KEY);
-  const raw = r[INCOMPLETE_LEDGER_KEY];
-  return Array.isArray(raw) ? raw.filter((v): v is string => typeof v === 'string') : [];
 }
 
 export interface FastBatchResult {
@@ -391,7 +379,7 @@ async function exportFastBatch(opts: FastBatchOptions = {}): Promise<FastBatchRe
   const prefix = settings.downloadFolder.trim();
   const folder = (prefix ? `${prefix}/` : '') + batchFolderName(now);
 
-  const ledger = new Set(await loadLedger());
+  const ledger = new Set(await loadExported());
   let ledgerArr = [...ledger];
   // Ids a previous rate-limited run left incomplete — retried by direct
   // TweetDetail fetch below (feed-independent, so Recent/Resume both finish them).
@@ -419,11 +407,7 @@ async function exportFastBatch(opts: FastBatchOptions = {}): Promise<FastBatchRe
   // only counts once its files are on disk (markDone), and saves are debounced
   // so a Super run doesn't rewrite a 5000-id array per post. Zip and Combined
   // put nothing on disk until the end, so they keep the end-of-run save only.
-  const saveProgress = (): Promise<void> =>
-    chrome.storage.local.set({
-      [EXPORTED_LEDGER_KEY]: ledgerArr,
-      [INCOMPLETE_LEDGER_KEY]: [...nextIncomplete].slice(-INCOMPLETE_CAP),
-    });
+  const saveProgress = (): Promise<void> => saveLedgers(ledgerArr, [...nextIncomplete]);
   const saveAsWeGo = output !== 'combined' && !zip;
   let saveTimer: ReturnType<typeof setTimeout> | undefined;
   const scheduleSave = (): void => {
