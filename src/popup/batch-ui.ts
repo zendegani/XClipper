@@ -21,12 +21,7 @@ import { loadSettings } from '../shared/settings';
 import { pageSourceOfPath, type XPage } from '../shared/x-routes';
 // Pure module (no chrome.* at import time) — safe to share with the popup.
 import { statusIdOf } from '../background/batch-state';
-import {
-  EXPORTED_LEDGER_KEY,
-  INCOMPLETE_LEDGER_KEY,
-  RESUME_CURSOR_KEY,
-  DATE_CURSOR_KEY,
-} from '../shared/export-ledger';
+import { loadExported, resetHistory } from '../shared/export-ledger';
 import {
   batchBarFill,
   batchDedupRow,
@@ -146,15 +141,6 @@ async function harvest(): Promise<HarvestResult> {
   }
 }
 
-async function loadLedgerSet(): Promise<Set<string>> {
-  return new Promise((resolve) => {
-    chrome.storage.local.get(EXPORTED_LEDGER_KEY, (result) => {
-      const raw = result[EXPORTED_LEDGER_KEY];
-      resolve(new Set(Array.isArray(raw) ? raw.filter((v) => typeof v === 'string') : []));
-    });
-  });
-}
-
 function setButton(label: string, enabled: boolean, tooltip: string): void {
   btnBatchLabel.textContent = label;
   if (jobIsActive && !appendable) {
@@ -213,7 +199,7 @@ async function refreshFastIdle(): Promise<void> {
   // bookmarks / profile / likes — Fast paginates from the top via cursor (no
   // harvested collection), so "Reset queue" is always greyed; "Reset history"
   // greys when the ledger is empty.
-  const ledger = await loadLedgerSet();
+  const ledger = new Set(await loadExported());
   btnBatchResetQueue.disabled = true;
   btnBatchReset.disabled = ledger.size === 0;
   batchDedupText.textContent =
@@ -335,7 +321,7 @@ async function renderOnSourceButton(urls: string[], handle: string | undefined):
   appendable = onSameSourceJob;
 
   const queued = onSameSourceJob ? new Set(lastJob?.queuedIds ?? []) : undefined;
-  const ledger = await loadLedgerSet();
+  const ledger = new Set(await loadExported());
   const fresh = urls.filter((u) => {
     const id = statusIdOf(u);
     return !id || (!ledger.has(id) && !queued?.has(id));
@@ -632,10 +618,7 @@ export async function initBatchUi(): Promise<void> {
     if (resuming) startJobPolling();
   });
   btnBatchReset.addEventListener('click', () => {
-    chrome.storage.local.remove(
-      [EXPORTED_LEDGER_KEY, INCOMPLETE_LEDGER_KEY, RESUME_CURSOR_KEY, DATE_CURSOR_KEY],
-      () => void refreshIdleUi()
-    );
+    void resetHistory().then(refreshIdleUi);
   });
   btnBatchResetQueue.addEventListener('click', () => void resetQueue());
   (Object.keys(TAB_BUTTONS) as BatchTab[]).forEach((tab) => {
