@@ -1,4 +1,4 @@
-import type { BatchItemResultMessage, DownloadRequest, ExtractResponse } from '../types/messages';
+import type { BatchItemResultMessage, DownloadRequest, DownloadResponse, ExtractResponse } from '../types/messages';
 import { postProcess, markdownOptions, buildFilename } from '../shared/post-process';
 import { buildFormatExport, type ExportFormat } from '../shared/export-formats';
 import { loadSettings } from '../shared/settings';
@@ -108,6 +108,17 @@ async function copyText(text: string): Promise<void> {
   }
 }
 
+// Returns the error to show, or null when Chrome started the download.
+async function sendDownload(msg: DownloadRequest): Promise<string | null> {
+  const response = await new Promise<DownloadResponse | undefined>((resolve) => {
+    chrome.runtime.sendMessage(msg, (r?: DownloadResponse) => {
+      resolve(chrome.runtime.lastError ? undefined : r);
+    });
+  });
+  if (response?.success) return null;
+  return response?.error || chrome.i18n.getMessage('download_failed') || 'Download failed.';
+}
+
 let autoExtractInFlight = false;
 
 async function autoExtract(
@@ -171,9 +182,12 @@ async function runAutoExtract(
       filename: result.filename,
       images: result.images.length > 0 ? result.images : undefined,
     };
-    await new Promise<void>((resolve) => {
-      chrome.runtime.sendMessage(downloadMsg, () => resolve());
-    });
+    // On failure, keep the tab open so the user can read the error.
+    const error = await sendDownload(downloadMsg);
+    if (error) {
+      showInPlaceToast(error);
+      return;
+    }
     void recordExport();
   }
 
@@ -275,9 +289,11 @@ async function runAutoExtractFormat(
       filename,
       mime: exported.mime,
     };
-    await new Promise<void>((resolve) => {
-      chrome.runtime.sendMessage(downloadMsg, () => resolve());
-    });
+    const error = await sendDownload(downloadMsg);
+    if (error) {
+      showInPlaceToast(error);
+      return;
+    }
   }
   void recordExport();
 
