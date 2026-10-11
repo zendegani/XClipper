@@ -45,6 +45,29 @@ describe('dispatch()', () => {
     await vi.waitFor(() => expect(respond).toHaveBeenCalledWith({ ok: 'later' }));
   });
 
+  it('sends an error response when an async handler rejects', async () => {
+    const logError = vi.spyOn(console, 'error').mockImplementation(() => {});
+    const table: Routes = {
+      BATCH_ITEM_RESULT: {
+        trust: ['x-content'],
+        handle: async () => {
+          throw new Error('storage failed');
+        },
+      },
+    };
+    const { keepOpen, respond } = send(ASYNC, xContent, table);
+    expect(keepOpen).toBe(true);
+    await vi.waitFor(() =>
+      expect(respond).toHaveBeenCalledWith({ success: false, error: 'storage failed' })
+    );
+    expect(logError).toHaveBeenCalledWith(
+      '[xclipper bg]',
+      'BATCH_ITEM_RESULT failed:',
+      expect.any(Error)
+    );
+    logError.mockRestore();
+  });
+
   it('sends no response when the handler returns undefined', () => {
     const { keepOpen, respond } = send(SILENT, xContent);
     expect(keepOpen).toBe(false);

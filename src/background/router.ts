@@ -15,7 +15,8 @@ type Action = MessageRequest['action'];
 export interface Route<M> {
   trust: readonly [Trust, ...Trust[]];
   // The return value is the response; undefined sends none. A promise keeps
-  // the channel open until it resolves.
+  // the channel open until it settles. A rejected promise sends
+  // { success: false, error }.
   handle: (msg: M, sender: chrome.runtime.MessageSender) => unknown;
 }
 
@@ -47,7 +48,10 @@ export function dispatch(
 
   const result = route.handle(msg, sender);
   if (result instanceof Promise) {
-    void result.then(sendResponse);
+    result.then(sendResponse, (err: unknown) => {
+      console.error('[xclipper bg]', `${action} failed:`, err);
+      sendResponse({ success: false, error: err instanceof Error ? err.message : String(err) });
+    });
     return true;
   }
   if (result !== undefined) sendResponse(result);
