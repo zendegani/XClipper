@@ -25,7 +25,9 @@ import {
   postProcess,
   resolveDownloadImages,
   type PostProcessOptions,
+  type PostProcessResult,
 } from '../shared/post-process';
+import { videoAttachments } from '../shared/local-video';
 import type { BatchFailure } from './batch-state';
 import { isAllowedImageUrl, sanitizeFilePath } from './security';
 import { buildZip, zipDataUrl, type ZipEntry } from './zip';
@@ -80,6 +82,38 @@ export function planBatch(settings: Settings, format: BatchFormat, output: Batch
     markdown: markdownOptions(settings, 'download'),
     formatOptions: formatOptionsFrom(settings),
   };
+}
+
+// A file a batch writes, relative to the run folder: text it carries itself,
+// or a remote image/video Chrome fetches.
+export type OutFile = { path: string; content: string; mime: string } | { path: string; url: string };
+
+// The one place a batch post's Markdown is made, for every engine. Its file
+// name comes from here too, before the caller de-duplicates it. Videos must
+// already carry their MP4s (Fast Batch maps them; Manual resolves them first).
+export function renderItem(doc: Document, plan: BatchPlan): PostProcessResult {
+  return postProcess(docToExtracted(doc, plan.localVideo ? { includeVideoLinks: true } : undefined), {
+    ...plan.markdown,
+    videoAttachments: plan.localVideo ? videoAttachments(doc) : undefined,
+  });
+}
+
+// One post's files under its de-duplicated name. Markdown brings its local
+// images and videos; other formats are derived from the AST and carry none.
+export function itemFiles(
+  doc: Document,
+  rendered: Pick<PostProcessResult, 'markdown' | 'images'>,
+  filename: string,
+  plan: BatchPlan
+): OutFile[] {
+  if (plan.format === 'md') {
+    return [
+      ...rendered.images.map((img) => ({ path: img.filename, url: img.url })),
+      { path: filename, content: rendered.markdown, mime: 'text/markdown' },
+    ];
+  }
+  const built = buildFormatExport(plan.format as ExportFormat, docToExtracted(doc), plan.formatOptions);
+  return [{ path: filename.replace(/\.md$/i, '') + '.' + built.ext, content: built.content, mime: built.mime }];
 }
 
 export function formatOptionsFrom(s: Settings): FormatOptions {
@@ -186,6 +220,18 @@ export async function downloadItem(
   }
   writes.push(downloadData(folder, filename, markdown, 'text/markdown'));
   await Promise.all(writes);
+}
+
+// Download one post's files into the run folder. Resolves once all of them
+// are written (or failed), so callers get backpressure.
+export async function writeFiles(folder: string, files: OutFile[]): Promise<void> {
+  await Promise.all(
+    files.map((f) => {
+      if ('content' in f) return downloadData(folder, f.path, f.content, f.mime);
+      if (!isAllowedImageUrl(f.url)) return undefined;
+      return downloadThrottled({ url: f.url, filename: sanitizeFilePath(`${folder}/${f.path}`), saveAs: false });
+    })
+  );
 }
 
 // One item's file (name + content) in the chosen format — the piece of the
