@@ -1,0 +1,95 @@
+import { describe, it, expect, beforeEach } from 'vitest';
+import {
+  DATE_CURSOR_KEY,
+  EXPORTED_LEDGER_KEY,
+  INCOMPLETE_CAP,
+  INCOMPLETE_LEDGER_KEY,
+  LEDGER_CAP,
+  RESUME_CURSOR_KEY,
+  appendToLedger,
+  loadExported,
+  loadIncomplete,
+  recordExported,
+  resetHistory,
+  saveLedgers,
+} from '../src/shared/export-ledger';
+
+let store: Record<string, unknown>;
+
+beforeEach(() => {
+  store = {};
+  const chromeGlobal = (globalThis as unknown as { chrome: Record<string, Record<string, unknown>> }).chrome;
+  chromeGlobal.storage.local = {
+    get: async (key: string) => (key in store ? { [key]: store[key] } : {}),
+    set: async (items: Record<string, unknown>) => void Object.assign(store, items),
+    remove: async (keys: string[]) => keys.forEach((k) => delete store[k]),
+  };
+});
+
+describe('appendToLedger', () => {
+  it('appends new ids and skips duplicates', () => {
+    const one = appendToLedger([], '1');
+    expect(one).toEqual(['1']);
+    expect(appendToLedger(one, '1')).toBe(one);
+    expect(appendToLedger(one, '2')).toEqual(['1', '2']);
+  });
+
+  it('drops the oldest entries past the cap', () => {
+    const full = Array.from({ length: LEDGER_CAP }, (_, i) => String(i));
+    const next = appendToLedger(full, 'newest');
+    expect(next).toHaveLength(LEDGER_CAP);
+    expect(next[0]).toBe('1');
+    expect(next[next.length - 1]).toBe('newest');
+  });
+});
+
+describe('loadExported / loadIncomplete', () => {
+  it('returns an empty list when nothing is stored', async () => {
+    expect(await loadExported()).toEqual([]);
+    expect(await loadIncomplete()).toEqual([]);
+  });
+
+  it('drops values that are not strings', async () => {
+    store[EXPORTED_LEDGER_KEY] = ['1', 2, null, '3'];
+    store[INCOMPLETE_LEDGER_KEY] = [4, '5'];
+    expect(await loadExported()).toEqual(['1', '3']);
+    expect(await loadIncomplete()).toEqual(['5']);
+  });
+
+  it('ignores a stored value that is not a list', async () => {
+    store[EXPORTED_LEDGER_KEY] = { 1: true };
+    expect(await loadExported()).toEqual([]);
+  });
+});
+
+describe('recordExported', () => {
+  it('adds the id once, after the ids already stored', async () => {
+    store[EXPORTED_LEDGER_KEY] = ['1'];
+    await recordExported('2');
+    await recordExported('2');
+    expect(store[EXPORTED_LEDGER_KEY]).toEqual(['1', '2']);
+  });
+});
+
+describe('saveLedgers', () => {
+  it('writes both lists and keeps only the newest incomplete ids', async () => {
+    const incomplete = Array.from({ length: INCOMPLETE_CAP + 1 }, (_, i) => String(i));
+    await saveLedgers(['1', '2'], incomplete);
+    expect(store[EXPORTED_LEDGER_KEY]).toEqual(['1', '2']);
+    expect(store[INCOMPLETE_LEDGER_KEY]).toEqual(incomplete.slice(1));
+  });
+});
+
+describe('resetHistory', () => {
+  it('removes the ledgers and both Fast Batch cursors', async () => {
+    store = {
+      [EXPORTED_LEDGER_KEY]: ['1'],
+      [INCOMPLETE_LEDGER_KEY]: ['2'],
+      [RESUME_CURSOR_KEY]: { bookmarks: 'c' },
+      [DATE_CURSOR_KEY]: { bookmarks: { cursor: 'c', from: '', to: '' } },
+      other: 'kept',
+    };
+    await resetHistory();
+    expect(store).toEqual({ other: 'kept' });
+  });
+});

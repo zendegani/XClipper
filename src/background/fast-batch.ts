@@ -46,15 +46,15 @@ import {
   type OutFile,
   type StoredItem,
 } from './batch-sink';
+import { batchFolderName, uniqueFilename } from './batch-state';
 import {
   EXPORTED_LEDGER_KEY,
+  INCOMPLETE_CAP,
   INCOMPLETE_LEDGER_KEY,
   RESUME_CURSOR_KEY,
   DATE_CURSOR_KEY,
   appendToLedger,
-  batchFolderName,
-  uniqueFilename,
-} from './batch-state';
+} from '../shared/export-ledger';
 import {
   authedFetchJson,
   classify,
@@ -301,10 +301,6 @@ const RESUME_PAGE_DELAY_MS = 250;
 // keeps them from masquerading as complete exports (issue #81). Named to signal
 // both the state and the fix.
 const INCOMPLETE_SUBFOLDER = '_incomplete_rerun_to_complete';
-
-// Cap on the persisted incomplete-id list; it drains as items complete, so this
-// only guards against a pathological run of rate limits growing it unbounded.
-const INCOMPLETE_CAP = 2000;
 
 // Chrome shuts an MV3 service worker down after ~30 s with no extension event
 // or API call. A long video download sends neither (downloads.onChanged skips

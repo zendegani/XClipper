@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import { DEFAULT_SETTINGS } from '../src/shared/settings';
-import { EXPORTED_LEDGER_KEY } from '../src/background/batch-state';
+import { EXPORTED_LEDGER_KEY } from '../src/shared/export-ledger';
 
 // The run loop with X's session, settings, and the download sink mocked out:
 // enough to drive a bookmarks run end to end and hold one download open the

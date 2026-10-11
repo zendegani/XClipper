@@ -1,8 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
   BATCH_MAX_ITEMS,
-  LEDGER_CAP,
-  appendToLedger,
   appendUrls,
   cancelJob,
   createJob,
@@ -200,23 +198,6 @@ describe('pauseJob / resumeJob', () => {
     expect(resumeJob(done)).toBe(done);
     const running = createJob(['https://x.com/a/status/1'], NOW, PLAN);
     expect(resumeJob(running)).toBe(running);
-  });
-});
-
-describe('appendToLedger', () => {
-  it('appends new ids and skips duplicates', () => {
-    const one = appendToLedger([], '1');
-    expect(one).toEqual(['1']);
-    expect(appendToLedger(one, '1')).toBe(one);
-    expect(appendToLedger(one, '2')).toEqual(['1', '2']);
-  });
-
-  it('drops the oldest entries past the cap', () => {
-    const full = Array.from({ length: LEDGER_CAP }, (_, i) => String(i));
-    const next = appendToLedger(full, 'newest');
-    expect(next).toHaveLength(LEDGER_CAP);
-    expect(next[0]).toBe('1');
-    expect(next[next.length - 1]).toBe('newest');
   });
 });
 

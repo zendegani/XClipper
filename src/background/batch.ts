@@ -35,8 +35,6 @@ import {
 } from './security';
 import {
   type BatchJob,
-  EXPORTED_LEDGER_KEY,
-  appendToLedger,
   appendUrls,
   cancelJob,
   createJob,
@@ -46,6 +44,7 @@ import {
   resumeJob,
   statusIdOf,
 } from './batch-state';
+import { EXPORTED_LEDGER_KEY, appendToLedger } from '../shared/export-ledger';
 
 const JOB_KEY = 'xclipper_batch_job';
 // Per-item AST payloads for the JSON sink, keyed by item index. Stored

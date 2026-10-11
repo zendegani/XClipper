@@ -20,13 +20,13 @@ import { hostMatches } from '../shared/media';
 import { loadSettings } from '../shared/settings';
 import { pageSourceOfPath, type XPage } from '../shared/x-routes';
 // Pure module (no chrome.* at import time) — safe to share with the popup.
+import { statusIdOf } from '../background/batch-state';
 import {
   EXPORTED_LEDGER_KEY,
   INCOMPLETE_LEDGER_KEY,
   RESUME_CURSOR_KEY,
   DATE_CURSOR_KEY,
-  statusIdOf,
-} from '../background/batch-state';
+} from '../shared/export-ledger';
 import {
   batchBarFill,
   batchDedupRow,
