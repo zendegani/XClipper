@@ -1,3 +1,4 @@
+import { readdirSync, readFileSync } from 'node:fs';
 import { describe, expect, it, vi } from 'vitest';
 import type { Routes } from '../src/background/router';
 
@@ -55,5 +56,14 @@ describe('background message routes', () => {
     const msg = { action: 'PDF_PRINT_REQUEST', html: '<p>x</p>', filenameBase: 'x' };
     expect(dispatch(routes, msg, sender, respond)).toBe(false);
     expect(respond).not.toHaveBeenCalled();
+  });
+
+  // A listener outside the router would skip the trust check.
+  it('has no onMessage listener in the background other than the router', () => {
+    const dir = 'src/background';
+    const listeners = readdirSync(dir).filter((f) =>
+      readFileSync(`${dir}/${f}`, 'utf8').includes('onMessage.addListener')
+    );
+    expect(listeners).toEqual(['router.ts']);
   });
 });
