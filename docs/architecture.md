@@ -42,6 +42,8 @@ What gets extracted and how the nodes nest. Full field-level contract in
 flowchart TD
   Doc["Document"] --> Meta["metadata<br/>(author, date, url, engagement)"]
   Doc --> Body{"body"}
+  Doc -. optional .-> Context["context: TweetNode[]<br/>(posts a reply answers)"]
+  Context --> Tweet
   Body --> Tweet["TweetNode"]
   Body --> Thread["ThreadNode"]
   Body --> Article["ArticleNode"]

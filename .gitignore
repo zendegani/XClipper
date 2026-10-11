@@ -51,3 +51,4 @@ screenshots/
 
 .mcp.json
 .codegraph/*
+.vitest/*

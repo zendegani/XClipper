@@ -308,9 +308,10 @@ function keepSnapshot(store: Map<string, Element>, article: Element): void {
   store.set(id, article.cloneNode(true) as Element);
 }
 
-// Inject ALL captured thread articles into an off-screen host so domToAst
-// has a guaranteed-ordered, virtualization-independent source for the
-// thread. Order is `store`'s insertion order — established by the bounded
+// Inject ALL captured thread articles, after the posts they answer
+// (`context`), into an off-screen host so domToAst has a guaranteed-ordered,
+// virtualization-independent source for the thread and its context. Thread
+// order is `store`'s insertion order — established by the bounded
 // downward walk (which sees tweets in thread/chronological order as X
 // loads them on scroll). domToAst sorts rehydrated articles ahead of live
 // ones; same-id live duplicates get dropped via id dedup in

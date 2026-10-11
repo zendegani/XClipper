@@ -75,6 +75,8 @@ The extension recognizes three content types:
 - **Thread** (`type: thread`): a single-author chain. Collection starts at the focused tweet, walks subsequent same-author posts down the page, and stops at the first post by a different author (the reply boundary). The extractor does not follow conversation links or pull in replies.
 - **Article** (`type: article`): an X long-form Article ("Note"), with structured headings, lists, and code blocks.
 
+A reply of any type also carries the posts it answers as context (`Document.context`): every post above the thread, up to the conversation's first post, by any author. They are quoted above the post and never change its author, date, or file name (issue #154). Replies *to* the post are still left out.
+
 Widening any of these scopes (for example, including replies in a thread) is a behavior change. Open an issue to discuss before sending a PR.
 
 ## Frontmatter
