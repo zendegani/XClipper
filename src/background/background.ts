@@ -9,7 +9,7 @@ import type {
 import { isAllowedImageUrl, sanitizeFilePath } from './security';
 import { listen } from './router';
 import { batchRoutes, initBatch } from './batch';
-import { initFastBatch } from './fast-batch';
+import { fastBatchRoutes, initFastBatch } from './fast-batch';
 import { normalizeStatusUrl } from './batch-state';
 import { buildSingleZipEntries, zipFilenameFor } from './single-zip';
 import { buildZip, zipDataUrl } from './zip';
@@ -329,6 +329,7 @@ function downloadMd(message: DownloadRequest): Promise<DownloadResponse> {
 
 listen({
   ...batchRoutes,
+  ...fastBatchRoutes,
   XCLIPPER_CTX_URL: { trust: ['x-content'], handle: rememberContextUrl },
   // Single export asks for a post's MP4 URLs before saving media locally. Only
   // the popup may ask: this replays the user's captured X session, so it stays

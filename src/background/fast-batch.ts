@@ -20,11 +20,13 @@
 import type { Document, TweetNode } from '../ast/types';
 import type {
   FastBatchProgress,
+  FastBatchReadyRequest,
   FastBatchReadyResponse,
+  FastBatchStartRequest,
   FastBatchStartResponse,
   FastBatchStatusResponse,
 } from '../types/messages';
-import { isExtensionPageSender } from './security';
+import type { Routes } from './router';
 import type { EmbeddedTweets } from '../graphql/json-to-ast';
 import { jsonToAst, repliesToAnotherAuthor } from '../graphql/json-to-ast';
 import {
@@ -754,66 +756,43 @@ export function initFastBatch(): void {
   // Phase-A triggers (see header).
   (globalThis as Record<string, unknown>).xclipperFastBatch = runFastBatchExport;
   (globalThis as Record<string, unknown>).xclipperDumpTweetDetail = dumpTweetDetail;
-
-  // Popup → background controls (FAST_BATCH_*). Only extension pages may drive
-  // these, same as the Standard batch messages.
-  chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-    if (!msg || typeof msg !== 'object') return false;
-    const action = (msg as { action?: string }).action;
-    if (
-      action !== 'FAST_BATCH_START' &&
-      action !== 'FAST_BATCH_STATUS' &&
-      action !== 'FAST_BATCH_CANCEL' &&
-      action !== 'FAST_BATCH_READY'
-    ) {
-      return false;
-    }
-    if (!isExtensionPageSender(sender, chrome.runtime.id)) {
-      sendResponse({});
-      return false;
-    }
-    if (action === 'FAST_BATCH_STATUS') {
-      sendResponse({ progress } satisfies FastBatchStatusResponse);
-      return false;
-    }
-    if (action === 'FAST_BATCH_READY') {
-      const src = (msg as { source?: FastSource }).source ?? 'bookmarks';
-      void (async () => {
-        await restoreSession(); // templates may live in session storage after a SW restart
-        sendResponse({
-          feed: !!feedTemplate(src),
-          tweetDetail: !!templates.TweetDetail,
-        } satisfies FastBatchReadyResponse);
-      })();
-      return true; // async sendResponse
-    }
-    if (action === 'FAST_BATCH_CANCEL') {
-      cancelRequested = true;
-      sendResponse({});
-      return false;
-    }
-    // FAST_BATCH_START
-    if (progress.status === 'running') {
-      sendResponse({ success: false, error: 'A Fast Batch run is already in progress.' } satisfies FastBatchStartResponse);
-      return false;
-    }
-    const m = msg as {
-      source?: FastSource;
-      handle?: string;
-      fromDate?: string;
-      toDate?: string;
-      expandThreads?: boolean;
-      paginate?: 'recent' | 'resume' | 'dateRange';
-    };
-    void runFastBatchExport({
-      ...(m.source ? { source: m.source } : {}),
-      ...(m.handle ? { handle: m.handle } : {}),
-      ...(m.fromDate ? { fromDate: m.fromDate } : {}),
-      ...(m.toDate ? { toDate: m.toDate } : {}),
-      ...(m.expandThreads === undefined ? {} : { expandThreads: m.expandThreads }),
-      ...(m.paginate ? { paginate: m.paginate } : {}),
-    });
-    sendResponse({ success: true } satisfies FastBatchStartResponse);
-    return false;
-  });
 }
+
+function startFastBatch(m: FastBatchStartRequest): FastBatchStartResponse {
+  if (progress.status === 'running') {
+    return { success: false, error: 'A Fast Batch run is already in progress.' };
+  }
+  void runFastBatchExport({
+    ...(m.source ? { source: m.source } : {}),
+    ...(m.handle ? { handle: m.handle } : {}),
+    ...(m.fromDate ? { fromDate: m.fromDate } : {}),
+    ...(m.toDate ? { toDate: m.toDate } : {}),
+    ...(m.expandThreads === undefined ? {} : { expandThreads: m.expandThreads }),
+    ...(m.paginate ? { paginate: m.paginate } : {}),
+  });
+  return { success: true };
+}
+
+async function fastBatchReady(msg: FastBatchReadyRequest): Promise<FastBatchReadyResponse> {
+  await restoreSession(); // templates may live in session storage after a SW restart
+  const src = msg.source ?? 'bookmarks';
+  return { feed: !!feedTemplate(src), tweetDetail: !!templates.TweetDetail };
+}
+
+// Popup → background controls. Only extension pages may drive these, same as
+// the Standard batch messages.
+export const fastBatchRoutes: Routes = {
+  FAST_BATCH_START: { trust: ['extension-page'], handle: startFastBatch },
+  FAST_BATCH_STATUS: {
+    trust: ['extension-page'],
+    handle: (): FastBatchStatusResponse => ({ progress }),
+  },
+  FAST_BATCH_CANCEL: {
+    trust: ['extension-page'],
+    handle: () => {
+      cancelRequested = true;
+      return {};
+    },
+  },
+  FAST_BATCH_READY: { trust: ['extension-page'], handle: fastBatchReady },
+};
