@@ -1,5 +1,6 @@
 import type {
   AutoExtractRequest,
+  ContextUrlRequest,
   DownloadRequest,
   ResolveVideoUrlsRequest,
   ResolveVideoUrlsResponse,
@@ -179,7 +180,7 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
   chrome.tabs.create({ url: appendMarker(target, action, single) });
 });
 
-function rememberContextUrl(msg: { url?: unknown }): void {
+function rememberContextUrl(msg: ContextUrlRequest): void {
   lastContextUrl = typeof msg.url === 'string' ? msg.url : null;
 }
 

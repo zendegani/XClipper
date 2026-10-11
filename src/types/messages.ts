@@ -297,11 +297,13 @@ export interface FastBatchStatusResponse {
 export type MessageRequest =
   | ExtractRequest
   | DownloadRequest
+  | ResolveVideoUrlsRequest
   | ExportPdfRequest
   | PdfPrintRequest
   | AutoExtractRequest
   | ContextUrlRequest
   | BatchStartRequest
+  | BatchAppendRequest
   | BatchControlRequest
   | BatchStatusRequest
   | HarvestRequest
