@@ -229,6 +229,9 @@ export async function updateFastSteps(source: 'bookmarks' | 'profile' | 'likes')
   } catch {
     return;
   }
+  // A failed handler sends { success: false, error }, not a readiness answer.
+  // Keep the steps as they are rather than tell the user to reload the page.
+  if (typeof r?.feed !== 'boolean') return;
   setStep(fastStepPage, r?.feed ? 'ready' : 'missing', r?.feed ? '' : 'Reload this page so its feed request is captured');
   setStep(fastStepTweet, r?.tweetDetail ? 'ready' : 'missing', r?.tweetDetail ? '' : 'Open any one tweet so threads & articles can be expanded');
   setStep(fastStepFetch, 'pending');
