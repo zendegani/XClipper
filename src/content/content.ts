@@ -233,7 +233,10 @@ async function runAutoExtract(
 
   // In-place runs (inline button / context menu on the current page) get a
   // brief toast since there's no popup UI or new tab to provide feedback.
-  if (!allowClose && video.status === 'unresolved') {
+  // A video that stays a link gets a toast in both flows, and the tab stays
+  // open so the user can read it.
+  const videoUnresolved = video.status === 'unresolved';
+  if (videoUnresolved) {
     showInPlaceToast(
       chrome.i18n.getMessage('video_unresolved') ||
         'Video kept as a link — reload the post once, then export again.'
@@ -254,7 +257,7 @@ async function runAutoExtract(
   // an OS-level "Open Obsidian.app?" prompt that the user must confirm. Closing
   // the tab here would dismiss that prompt before they can answer it, so the
   // close-after-export toggle is intentionally skipped for this action.
-  if (shouldClose && action !== 'obsidian') {
+  if (shouldClose && action !== 'obsidian' && !videoUnresolved) {
     await delay(400);
     window.close();
   }
