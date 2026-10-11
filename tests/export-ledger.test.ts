@@ -7,11 +7,15 @@ import {
   LEDGER_CAP,
   RESUME_CURSOR_KEY,
   appendToLedger,
+  loadDateCursors,
   loadExported,
   loadIncomplete,
+  loadResumeCursors,
   recordExported,
   resetHistory,
+  saveDateCursors,
   saveLedgers,
+  saveResumeCursors,
 } from '../src/shared/export-ledger';
 
 let store: Record<string, unknown>;
@@ -84,6 +88,54 @@ describe('saveLedgers', () => {
     await saveLedgers(exported, incomplete);
     expect(store[EXPORTED_LEDGER_KEY]).toEqual(exported.slice(1));
     expect(store[INCOMPLETE_LEDGER_KEY]).toEqual(incomplete.slice(1));
+  });
+});
+
+describe('loadResumeCursors / saveResumeCursors', () => {
+  it('returns no cursors when nothing is stored', async () => {
+    expect(await loadResumeCursors()).toEqual({});
+  });
+
+  it('reads back the cursors it saved', async () => {
+    await saveResumeCursors({ bookmarks: 'c1', likes: 'c2' });
+    expect(await loadResumeCursors()).toEqual({ bookmarks: 'c1', likes: 'c2' });
+  });
+
+  it('drops resume cursors that are not strings', async () => {
+    store[RESUME_CURSOR_KEY] = { bookmarks: 'c1', likes: 2, profile: null };
+    expect(await loadResumeCursors()).toEqual({ bookmarks: 'c1' });
+  });
+
+  it('ignores a stored value that is not an object', async () => {
+    store[RESUME_CURSOR_KEY] = ['c1'];
+    expect(await loadResumeCursors()).toEqual({});
+  });
+});
+
+describe('loadDateCursors / saveDateCursors', () => {
+  const scan = { cursor: 'c1', from: '2026-01-01', to: '2026-02-01' };
+
+  it('returns no cursors when nothing is stored', async () => {
+    expect(await loadDateCursors()).toEqual({});
+  });
+
+  it('reads back the cursors it saved', async () => {
+    await saveDateCursors({ bookmarks: scan });
+    expect(await loadDateCursors()).toEqual({ bookmarks: scan });
+  });
+
+  it('drops date cursors with the wrong shape', async () => {
+    store[DATE_CURSOR_KEY] = {
+      bookmarks: scan,
+      likes: 'c2',
+      profile: { cursor: 'c3', from: 1, to: '' },
+    };
+    expect(await loadDateCursors()).toEqual({ bookmarks: scan });
+  });
+
+  it('ignores a stored value that is not an object', async () => {
+    store[DATE_CURSOR_KEY] = [scan];
+    expect(await loadDateCursors()).toEqual({});
   });
 });
 

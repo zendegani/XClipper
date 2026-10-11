@@ -61,6 +61,45 @@ export async function saveLedgers(exported: string[], incomplete: string[]): Pro
   });
 }
 
+// Keyed by Fast Batch source ('bookmarks' | 'profile' | 'likes'). The keys stay
+// plain strings so this shared module needs nothing from src/background/.
+export type ResumeCursors = Partial<Record<string, string>>;
+type DateCursor = { cursor: string; from: string; to: string };
+export type DateCursors = Partial<Record<string, DateCursor>>;
+
+// Storage holds whatever an older build or a manual edit left there, so keep
+// only the entries with the right shape, as loadIds does for the ledgers.
+async function loadCursors<T>(key: string, keep: (v: unknown) => v is T): Promise<Record<string, T>> {
+  const raw = (await chrome.storage.local.get(key))[key];
+  if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {};
+  return Object.fromEntries(Object.entries(raw).filter((e): e is [string, T] => keep(e[1])));
+}
+
+const isString = (v: unknown): v is string => typeof v === 'string';
+
+const isDateCursor = (v: unknown): v is DateCursor =>
+  !!v &&
+  typeof v === 'object' &&
+  isString((v as DateCursor).cursor) &&
+  isString((v as DateCursor).from) &&
+  isString((v as DateCursor).to);
+
+export function loadResumeCursors(): Promise<ResumeCursors> {
+  return loadCursors(RESUME_CURSOR_KEY, isString);
+}
+
+export async function saveResumeCursors(cursors: ResumeCursors): Promise<void> {
+  await chrome.storage.local.set({ [RESUME_CURSOR_KEY]: cursors });
+}
+
+export function loadDateCursors(): Promise<DateCursors> {
+  return loadCursors(DATE_CURSOR_KEY, isDateCursor);
+}
+
+export async function saveDateCursors(cursors: DateCursors): Promise<void> {
+  await chrome.storage.local.set({ [DATE_CURSOR_KEY]: cursors });
+}
+
 export async function resetHistory(): Promise<void> {
   await chrome.storage.local.remove([
     EXPORTED_LEDGER_KEY,
