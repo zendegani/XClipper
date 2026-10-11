@@ -208,10 +208,8 @@ export interface BatchItemResultMessage {
   action: 'BATCH_ITEM_RESULT';
   url: string;
   success: boolean;
-  markdown?: string;
-  filename?: string;
-  images?: { url: string; filename: string }[];
-  // The item's AST, carried for the per-job JSON sink (ADR 0002 #11).
+  // The item's AST. The background renders every file from it (batch-sink.ts
+  // renderItem), the same way for every engine, and keeps it for data.json.
   doc?: import('../ast/types').Document;
   error?: string;
   // Set when the worker landed on a login or rate-limit wall instead of the

@@ -284,8 +284,11 @@ export function zipEntryFromStored(item: StoredItem, format: BatchFormat, settin
 
 // Zip sink: every per-item file in one archive — a single download instead of
 // one shelf entry per post. data.json and the combined file stay separate
-// (they're one download each already).
-export async function downloadZipArchive(folder: string, entries: ZipEntry[]): Promise<void> {
+// (they're one download each already). Only text files go in: a zip plan never
+// saves media locally (planBatch), since image and video bytes can't be
+// fetched into the archive.
+export async function downloadZipArchive(folder: string, files: OutFile[]): Promise<void> {
+  const entries: ZipEntry[] = files.flatMap((f) => ('content' in f ? [{ name: f.path, content: f.content }] : []));
   if (entries.length === 0) return;
   const d = new Date();
   const stamp =
@@ -320,13 +323,8 @@ export async function writeJsonManifest(folder: string, meta: JobMeta, items: St
 // Combined sink: one file for the whole batch in the chosen format —
 // x-compilation-<date>.<ext>. Written when output is 'both'/'combined' (and
 // always for CSV, which has no per-item form).
-export async function writeCombined(
-  folder: string,
-  format: BatchFormat,
-  docs: Document[],
-  settings: Settings
-): Promise<void> {
-  const built = buildCombined(format, docs, formatOptionsFrom(settings));
+export async function writeCombined(folder: string, plan: BatchPlan, docs: Document[]): Promise<void> {
+  const built = buildCombined(plan.format, docs, plan.formatOptions);
   const d = new Date();
   const stamp =
     `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}` + String(d.getDate()).padStart(2, '0');

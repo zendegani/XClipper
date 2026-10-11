@@ -15,8 +15,11 @@ import {
   uniqueFilename,
   type BatchJob,
 } from '../src/background/batch-state';
+import { planBatch } from '../src/background/batch-sink';
+import { DEFAULT_SETTINGS } from '../src/shared/settings';
 
 const NOW = new Date(2026, 5, 11, 14, 30, 52);
+const PLAN = planBatch(DEFAULT_SETTINGS, 'md', 'separate');
 
 describe('normalizeStatusUrl', () => {
   it('strips sub-paths beyond /status/<id>', () => {
@@ -57,7 +60,8 @@ describe('createJob', () => {
         'https://x.com/b/status/2',
         'https://x.com/not-a-status',
       ],
-      NOW
+      NOW,
+      PLAN
     );
     expect(job.urls).toEqual(['https://x.com/a/status/1', 'https://x.com/b/status/2']);
     expect(job.failures).toEqual([
@@ -72,18 +76,18 @@ describe('createJob', () => {
       { length: BATCH_MAX_ITEMS + 50 },
       (_, i) => `https://x.com/u/status/${i + 1}`
     );
-    const job = createJob(urls, NOW);
+    const job = createJob(urls, NOW, PLAN);
     expect(job.urls).toHaveLength(BATCH_MAX_ITEMS);
   });
 
   it('derives the folder name from the start time', () => {
-    expect(createJob([], NOW).folder).toBe('xclipper-batch-20260611-143052');
+    expect(createJob([], NOW, PLAN).folder).toBe('xclipper-batch-20260611-143052');
   });
 });
 
 describe('recordResult', () => {
   const twoItemJob = (): BatchJob =>
-    createJob(['https://x.com/a/status/1', 'https://x.com/b/status/2'], NOW);
+    createJob(['https://x.com/a/status/1', 'https://x.com/b/status/2'], NOW, PLAN);
 
   it('advances on success and returns the filename to write', () => {
     const { job, filename } = recordResult(twoItemJob(), {
@@ -130,7 +134,8 @@ describe('recordResult', () => {
   it('counts consecutive failures and resets the run on success', () => {
     const job = createJob(
       ['https://x.com/a/status/1', 'https://x.com/b/status/2', 'https://x.com/c/status/3'],
-      NOW
+      NOW,
+      PLAN
     );
     const f1 = recordResult(job, { success: false, error: 'Timed out' });
     expect(f1.job.consecutiveFailures).toBe(1);
@@ -144,7 +149,7 @@ describe('recordResult', () => {
 describe('cancelJob', () => {
   it('stops the job and clears timers', () => {
     const job = cancelJob({
-      ...createJob(['https://x.com/a/status/1'], NOW),
+      ...createJob(['https://x.com/a/status/1'], NOW, PLAN),
       awaitingResult: true,
       deadline: 123,
       nextDispatchAt: 456,
@@ -159,7 +164,7 @@ describe('cancelJob', () => {
 describe('pauseJob / resumeJob', () => {
   it('pauses a running job, clearing the in-flight item state', () => {
     const job = pauseJob({
-      ...createJob(['https://x.com/a/status/1'], NOW),
+      ...createJob(['https://x.com/a/status/1'], NOW, PLAN),
       awaitingResult: true,
       deadline: 123,
       nextDispatchAt: 456,
@@ -171,7 +176,7 @@ describe('pauseJob / resumeJob', () => {
   });
 
   it('resumes a paused job at the same item', () => {
-    const paused = pauseJob(createJob(['https://x.com/a/status/1'], NOW));
+    const paused = pauseJob(createJob(['https://x.com/a/status/1'], NOW, PLAN));
     const resumed = resumeJob(paused);
     expect(resumed.status).toBe('running');
     expect(resumed.nextIndex).toBe(0);
@@ -180,7 +185,7 @@ describe('pauseJob / resumeJob', () => {
 
   it('clears the auto-pause reason and failure run on resume', () => {
     const paused = {
-      ...pauseJob(createJob(['https://x.com/a/status/1'], NOW)),
+      ...pauseJob(createJob(['https://x.com/a/status/1'], NOW, PLAN)),
       pauseReason: 'X is rate-limiting',
       consecutiveFailures: 5,
     };
@@ -190,10 +195,10 @@ describe('pauseJob / resumeJob', () => {
   });
 
   it('does not pause/resume jobs in other states', () => {
-    const done = cancelJob(createJob(['https://x.com/a/status/1'], NOW));
+    const done = cancelJob(createJob(['https://x.com/a/status/1'], NOW, PLAN));
     expect(pauseJob(done)).toBe(done);
     expect(resumeJob(done)).toBe(done);
-    const running = createJob(['https://x.com/a/status/1'], NOW);
+    const running = createJob(['https://x.com/a/status/1'], NOW, PLAN);
     expect(resumeJob(running)).toBe(running);
   });
 });
@@ -234,14 +239,14 @@ describe('appendUrls', () => {
   const u = (id: string) => `https://x.com/user/status/${id}`;
 
   it('appends new normalized items not already queued', () => {
-    const job = createJob([u('1'), u('2')], NOW);
+    const job = createJob([u('1'), u('2')], NOW, PLAN);
     const { job: next, added } = appendUrls(job, [u('3'), u('4')], new Set());
     expect(added).toBe(2);
     expect(next.urls).toEqual([u('1'), u('2'), u('3'), u('4')]);
   });
 
   it('skips items already in the queue (by status id) and exported ids', () => {
-    const job = createJob([u('1'), u('2')], NOW);
+    const job = createJob([u('1'), u('2')], NOW, PLAN);
     const { job: next, added } = appendUrls(
       job,
       [u('2'), u('3'), u('4')],
@@ -252,7 +257,7 @@ describe('appendUrls', () => {
   });
 
   it('skips non-status urls and dedupes within the additions', () => {
-    const job = createJob([u('1')], NOW);
+    const job = createJob([u('1')], NOW, PLAN);
     const { job: next, added } = appendUrls(
       job,
       ['not a url', u('2'), u('2')],
@@ -263,7 +268,7 @@ describe('appendUrls', () => {
   });
 
   it('returns the job unchanged when nothing is new', () => {
-    const job = createJob([u('1')], NOW);
+    const job = createJob([u('1')], NOW, PLAN);
     const result = appendUrls(job, [u('1')], new Set());
     expect(result.added).toBe(0);
     expect(result.job).toBe(job);
@@ -271,14 +276,14 @@ describe('appendUrls', () => {
 
   it('respects the hard item cap', () => {
     const many = Array.from({ length: BATCH_MAX_ITEMS }, (_, i) => u(`${i}`));
-    const job = createJob(many, NOW);
+    const job = createJob(many, NOW, PLAN);
     const result = appendUrls(job, [u('9001'), u('9002')], new Set());
     expect(result.added).toBe(0);
     expect(result.job.urls).toHaveLength(BATCH_MAX_ITEMS);
   });
 
   it('is a no-op once the job is no longer running or paused', () => {
-    const done = cancelJob(createJob([u('1')], NOW));
+    const done = cancelJob(createJob([u('1')], NOW, PLAN));
     const result = appendUrls(done, [u('2')], new Set());
     expect(result.added).toBe(0);
     expect(result.job).toBe(done);

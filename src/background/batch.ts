@@ -10,24 +10,23 @@
 // or send { action: 'BATCH_START', urls } from any extension page. Cancel
 // with { action: 'BATCH_CONTROL', control: 'cancel' }.
 
-import type { Document } from '../ast/types';
 import type {
   BatchItemResultMessage,
   BatchStartResponse,
   BatchStatusResponse,
 } from '../types/messages';
-import { loadSettings, type BatchFormat, type BatchOutput, type Settings } from '../shared/settings';
+import { loadSettings, type BatchFormat, type BatchOutput } from '../shared/settings';
 import { recordExport } from '../shared/review-prompt';
 import {
   downloadZipArchive,
+  itemFiles,
+  planBatch,
+  renderItem,
   writeCombined,
+  writeFiles,
   writeJsonManifest,
-  writePerItem,
-  zipEntryFromStored,
   type StoredItem,
 } from './batch-sink';
-import { docToExtracted } from '../shared/extracted-content';
-import { markdownOptions, postProcess, resolveDownloadImages } from '../shared/post-process';
 import { resolveLocalVideo } from '../shared/local-video';
 import { resolveVideoUrls } from './resolve-video';
 import {
@@ -117,15 +116,8 @@ function coerceOutput(raw: unknown): BatchOutput {
   return JOB_OUTPUTS.includes(raw as BatchOutput) ? (raw as BatchOutput) : 'separate';
 }
 
-// CSV is metadata-only — a per-item CSV is a one-row file, so the whole job is
-// always one combined CSV regardless of the stored grouping.
-function effectiveOutput(job: BatchJob): BatchOutput {
-  if (job.format === 'csv') return 'combined';
-  return job.output ?? 'separate';
-}
-
-// Format conversion + all sink writers now live in batch-sink.ts, shared with
-// Fast Batch — only acquisition differs between the two batch paths.
+// Output rules + all sink writers live in batch-sink.ts, shared with Fast
+// Batch — only acquisition differs between the two batch paths.
 
 export async function startBatch(
   rawUrls: unknown,
@@ -143,7 +135,10 @@ export async function startBatch(
   }
 
   const urls = rawUrls.filter((u): u is string => typeof u === 'string');
-  let job = createJob(urls, new Date());
+  // Snapshot every output decision once so the whole job lands in one shape
+  // even if a setting changes mid-run (Fast Batch does the same per run).
+  const settings = await loadSettings();
+  let job = createJob(urls, new Date(), planBatch(settings, format, output));
   if (job.urls.length === 0) {
     return { success: false, error: 'No valid x.com status URLs given' };
   }
@@ -163,18 +158,12 @@ export async function startBatch(
   job = {
     ...job,
     urls: fresh,
-    format,
-    output,
     ...(origin ? { origin } : {}),
     ...(origin === 'profile' && handle ? { handle } : {}),
   };
-  // Snapshot the user's download subfolder once so the whole job lands in one
-  // place even if the setting changes mid-run. Same for the zip choice — local
-  // images override it off (image bytes can't be fetched into the archive).
-  const settings = await loadSettings();
+  // The download subfolder is part of the same snapshot.
   const prefix = settings.downloadFolder.trim();
   if (prefix) job = { ...job, folder: `${prefix}/${job.folder}` };
-  if (settings.batchZip && !(settings.downloadImages && format === 'md')) job = { ...job, zip: true };
 
   log(`job ${job.id}: ${job.urls.length} item(s) → ${job.folder}/`);
   chrome.alarms.create(WATCHDOG_ALARM, { periodInMinutes: 0.5 });
@@ -259,38 +248,6 @@ async function dispatchCurrent(job: BatchJob): Promise<void> {
   });
 }
 
-// Fill in this item's videos and rebuild its Markdown around them.
-//
-// The worker tab extracted the post, but it can't ask for the MP4s itself:
-// that channel replays the user's X session and is closed to content scripts
-// by design, so the orchestrator — which is already the background — resolves
-// them here. The item is then re-rendered from the filled-in AST exactly the
-// way Fast Batch renders its own, which is what keeps a Manual batch and an
-// Auto one landing the same files for the same post.
-//
-// Returns undefined when there is nothing to change: local video saving off,
-// no video in the post, or nothing resolved (no permission, a rate limit) —
-// every one of which leaves the worker's own Markdown as the export.
-async function withLocalVideo(
-  doc: Document,
-  settings: Settings
-): Promise<{ markdown: string; images: { url: string; filename: string }[] } | undefined> {
-  if (!settings.saveVideos || !resolveDownloadImages('download', settings.downloadImages)) {
-    return undefined;
-  }
-
-  const resolved = await resolveLocalVideo(doc, doc.metadata.tweetId, async (tweetId) =>
-    [...(await resolveVideoUrls(tweetId))]
-  );
-  if (resolved.status !== 'resolved') return undefined;
-
-  const result = postProcess(docToExtracted(doc, { includeVideoLinks: true }), {
-    ...markdownOptions(settings, 'download'),
-    videoAttachments: resolved.attachments,
-  });
-  return { markdown: result.markdown, images: result.images };
-}
-
 async function handleItemResult(
   msg: BatchItemResultMessage,
   sender: chrome.runtime.MessageSender
@@ -326,62 +283,51 @@ async function handleItemResult(
     );
   }
 
-  const outcome =
-    msg.success && typeof msg.markdown === 'string' && typeof msg.filename === 'string'
-      ? { success: true as const, filename: msg.filename }
-      : { success: false as const, error: msg.error || 'Extraction failed' };
+  const { plan } = job;
+  const doc = msg.success ? msg.doc : undefined;
+  // The worker tab extracted the post, but it can't ask for the MP4s itself:
+  // that channel replays the user's X session and is closed to content scripts
+  // by design, so the orchestrator — which is already the background — fills
+  // them into the AST here. Nothing resolved (no permission, a rate limit)
+  // leaves the poster and the remote link.
+  //
+  // A post that can't render is recorded as failed now: the worker no longer
+  // renders, so nothing else catches it before the item timeout.
+  let rendered: ReturnType<typeof renderItem> | undefined;
+  let error = msg.error || 'Extraction failed';
+  if (doc) {
+    try {
+      if (plan.localVideo) {
+        await resolveLocalVideo(doc, doc.metadata.tweetId, async (tweetId) => [...(await resolveVideoUrls(tweetId))]);
+      }
+      rendered = renderItem(doc, plan);
+    } catch (err) {
+      error = err instanceof Error ? err.message : String(err);
+    }
+  }
+  const outcome = rendered
+    ? { success: true as const, filename: rendered.filename }
+    : { success: false as const, error };
 
   const { job: advanced, filename } = recordResult(job, outcome);
-  if (outcome.success && filename) {
-    const settings = await loadSettings();
+  if (doc && rendered && filename) {
+    const files = itemFiles(doc, rendered, filename, plan);
     // 'combined' writes nothing per item — the one file is built at finalize.
     // Zip mode also defers to finalize: entries are rebuilt there from the
     // stored docs, so nothing per-item hits the downloads shelf.
-    // (msg.doc missing means there's nothing to rebuild from at finalize, so
-    // such an item is written loose even in zip mode.)
-    if (effectiveOutput(job) !== 'combined' && !(job.zip && msg.doc)) {
-      // Videos reach the disk only once the orchestrator has resolved them —
-      // see withLocalVideo. Its rebuild then replaces the worker's Markdown
-      // and image list; the deferred sinks above never save media, so they
-      // stay on what the worker sent.
-      const withVideo =
-        msg.doc && (job.format ?? 'md') === 'md'
-          ? await withLocalVideo(msg.doc, settings)
-          : undefined;
-      await writePerItem(
-        advanced.folder,
-        job.format ?? 'md',
-        filename,
-        withVideo?.markdown ?? (msg.markdown as string),
-        withVideo?.images ?? msg.images,
-        msg.doc,
-        settings
-      );
-    }
+    if (plan.output !== 'combined' && !plan.zip) await writeFiles(advanced.folder, files);
     await recordExported(expected);
-    if (msg.doc) {
-      try {
-        await chrome.storage.session.set({
-          [DOC_KEY_PREFIX + job.nextIndex]: { url: expected, filename, doc: msg.doc },
-        });
-      } catch (err) {
-        // storage.session quota (~10 MB) — the .md files are already on disk,
-        // so a huge batch just loses this item from data.json. In zip mode the
-        // stored doc IS the file, so fall back to a loose per-item download
-        // rather than silently dropping the post from the export.
-        log(`doc not kept for data.json (${expected}):`, err);
-        if (job.zip && effectiveOutput(job) !== 'combined') {
-          await writePerItem(
-            advanced.folder,
-            job.format ?? 'md',
-            filename,
-            msg.markdown as string,
-            msg.images,
-            msg.doc,
-            settings
-          );
-        }
-      }
+    try {
+      await chrome.storage.session.set({
+        [DOC_KEY_PREFIX + job.nextIndex]: { url: expected, filename, doc },
+      });
+    } catch (err) {
+      // storage.session quota (~10 MB) — the .md files are already on disk,
+      // so a huge batch just loses this item from data.json. In zip mode the
+      // stored doc IS the file, so fall back to a loose per-item download
+      // rather than silently dropping the post from the export.
+      log(`doc not kept for data.json (${expected}):`, err);
+      if (plan.zip) await writeFiles(advanced.folder, files);
     }
   } else if (!outcome.success) {
     log(`item failed: ${expected} — ${outcome.error}`);
@@ -466,15 +412,14 @@ async function finalize(job: BatchJob): Promise<void> {
         { jobId: job.id, status: job.status, completed: job.completed, failures: job.failures },
         items
       );
-      const out = effectiveOutput(job);
-      const settings = await loadSettings();
-      if (out === 'both' || out === 'combined') {
-        await writeCombined(job.folder, job.format ?? 'md', items.map((i) => i.doc), settings);
+      const { plan } = job;
+      if (plan.output === 'both' || plan.output === 'combined') {
+        await writeCombined(job.folder, plan, items.map((i) => i.doc));
       }
-      if (job.zip && out !== 'combined') {
+      if (plan.zip) {
         await downloadZipArchive(
           job.folder,
-          items.map((i) => zipEntryFromStored(i, job.format ?? 'md', settings))
+          items.flatMap((i) => itemFiles(i.doc, renderItem(i.doc, plan), i.filename, plan))
         );
       }
     }

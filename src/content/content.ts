@@ -373,14 +373,10 @@ async function runBatchExtract(): Promise<void> {
     if (!response.success || !response.data) {
       throw new Error(response.error || 'Extraction failed');
     }
-    const result = postProcess(response.data, markdownOptions(settings, 'download'));
     msg = {
       action: 'BATCH_ITEM_RESULT',
       url: window.location.href,
       success: true,
-      markdown: result.markdown,
-      filename: result.filename,
-      images: result.images.length > 0 ? result.images : undefined,
       doc: response.data.body,
       timings: { waitMs, extractMs },
     };

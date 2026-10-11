@@ -2,6 +2,8 @@
 // effects live in batch.ts; keeping the transitions pure makes them
 // unit-testable without extension API mocks.
 
+import type { BatchPlan } from './batch-sink';
+
 export interface BatchFailure {
   url: string;
   error: string;
@@ -15,12 +17,10 @@ export interface BatchJob {
   // Profile owner's handle (only when origin === 'profile'); lets the popup
   // offer "add to queue" on the same profile but not a different one.
   handle?: string;
-  // File format + grouping snapshotted at job start (default 'md'/'separate').
-  format?: 'md' | 'txt' | 'html' | 'json' | 'csv';
-  output?: 'separate' | 'both' | 'combined';
-  // Pack per-item files into one .zip at finalize (snapshotted at job start;
-  // already resolved against the local-images setting, which disables it).
-  zip?: boolean;
+  // Every output decision (format, grouping, zip, local media, Markdown
+  // options), snapshotted at job start so a settings change mid-run can't split
+  // one export across two shapes.
+  plan: BatchPlan;
   // Normalized, deduped status permalinks.
   urls: string[];
   // Index of the item currently being processed (or next to dispatch).
@@ -95,7 +95,7 @@ export function statusIdOf(url: string): string | null {
   return m ? m[1] : null;
 }
 
-export function createJob(rawUrls: string[], now: Date): BatchJob {
+export function createJob(rawUrls: string[], now: Date, plan: BatchPlan): BatchJob {
   const failures: BatchFailure[] = [];
   const seen = new Set<string>();
   const urls: string[] = [];
@@ -115,6 +115,7 @@ export function createJob(rawUrls: string[], now: Date): BatchJob {
     urls: urls.slice(0, BATCH_MAX_ITEMS),
     nextIndex: 0,
     folder: batchFolderName(now),
+    plan,
     awaitingResult: false,
     completed: 0,
     failures,

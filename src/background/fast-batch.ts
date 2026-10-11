@@ -46,7 +46,6 @@ import {
   type OutFile,
   type StoredItem,
 } from './batch-sink';
-import type { ZipEntry } from './zip';
 import {
   EXPORTED_LEDGER_KEY,
   INCOMPLETE_LEDGER_KEY,
@@ -412,10 +411,7 @@ async function exportFastBatch(opts: FastBatchOptions = {}): Promise<FastBatchRe
   const items: StoredItem[] = [];
   // Zip mode: per-item files accumulate here instead of downloading, then land
   // as one archive after the write phase.
-  const zipEntries: ZipEntry[] = [];
-  const addToZip = (files: OutFile[], dir = ''): void => {
-    for (const f of files) if ('content' in f) zipEntries.push({ name: dir + f.path, content: f.content });
-  };
+  const zipFiles: OutFile[] = [];
   // Carry incomplete-id memory forward: drop ids that completed this run, add
   // ids still written as stubs — so next run expands the leftovers first.
   const nextIncomplete = new Set(prevIncomplete);
@@ -463,7 +459,7 @@ async function exportFastBatch(opts: FastBatchOptions = {}): Promise<FastBatchRe
       if (output === 'combined') return Promise.resolve();
       const files = itemFiles(doc, result, filename, plan);
       if (zip) {
-        addToZip(files, `${INCOMPLETE_SUBFOLDER}/`);
+        zipFiles.push(...files.map((f) => ({ ...f, path: `${INCOMPLETE_SUBFOLDER}/${f.path}` })));
         return Promise.resolve();
       }
       return writeFiles(`${folder}/${INCOMPLETE_SUBFOLDER}`, files);
@@ -488,7 +484,7 @@ async function exportFastBatch(opts: FastBatchOptions = {}): Promise<FastBatchRe
     }
     const files = itemFiles(doc, result, filename, plan);
     if (zip) {
-      addToZip(files);
+      zipFiles.push(...files);
       markDone();
       return Promise.resolve();
     }
@@ -715,7 +711,7 @@ async function exportFastBatch(opts: FastBatchOptions = {}): Promise<FastBatchRe
   // every file is on disk before we write the manifest and finalize.
   await Promise.all(streamedWrites);
   // Zip mode: everything writeOne collected (stubs included) as one archive.
-  if (zip) await downloadZipArchive(folder, zipEntries);
+  if (zip) await downloadZipArchive(folder, zipFiles);
 
   if (items.length > 0) {
     await writeJsonManifest(
@@ -724,7 +720,7 @@ async function exportFastBatch(opts: FastBatchOptions = {}): Promise<FastBatchRe
       items
     );
     if (output === 'both' || output === 'combined') {
-      await writeCombined(folder, format, items.map((i) => i.doc), settings);
+      await writeCombined(folder, plan, items.map((i) => i.doc));
     }
     void recordExport();
   }
