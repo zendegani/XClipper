@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Added
+
+- **Saved replies include the posts they answer**: a reply on its own often makes no sense, so an exported reply now starts with the posts it answers, under "In reply to", all the way up to the conversation's first post. Then comes a rule, then the reply exactly as before. In a long conversation you see the first post and the last two, with a link to the reply on X for the rest. The file's author, date, name, and stats are still the reply's. This works in Manual, Auto, and Super, and in Markdown, PDF, and HTML. With Save locally, images in those posts are saved, but their videos stay links. Super now also fetches each reply to someone else, which uses some of its rate limit. Replies you already exported keep their old files. (#154)
+
+---
+
 ## [2.8.6] - 2026-10-10
 
 ### Fixed

@@ -18,11 +18,14 @@ Breaking shape changes require bumping `version`. Additive changes (new optional
 interface Document {
   version: 1;
   metadata: DocumentMetadata;
+  context?: TweetNode[];   // the posts a reply answers, oldest first
   body: TweetNode | ThreadNode | ArticleNode;
 }
 ```
 
 `metadata` and `body` are separated deliberately. `metadata` carries facts about the source post (author, URL, date, engagement counts). `body` is the content tree. They evolve independently.
+
+`context` holds the posts a reply answers: every post above the author's thread, up to the conversation's first post, by any author. It is absent when there are none. The post itself stays the subject: `metadata`, the file name, and the frontmatter are always the post's, never the context's. It sits on `Document`, not `TweetNode`, so quoted and embedded posts never carry context of their own. Renderers quote it above the post, showing the first post and the last two parents when there are more than four, with a link to the post's page for the rest. Its media is left out of `collectMedia`, so with Save locally its images are saved (as in a quoted post) and its videos stay remote links. (Issue #154.)
 
 ## Metadata
 
