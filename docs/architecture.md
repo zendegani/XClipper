@@ -140,8 +140,9 @@ flowchart LR
   Content -->|DOWNLOAD_MD / PDF_PRINT_REQUEST| BG["background.ts<br/>downloads · print · context menus"]
 ```
 
-`background.ts` is the privileged hub: it owns `chrome.downloads` (with sender
-validation + path sanitization), the context menus, the PDF print tab, and the
+`background.ts` is the privileged hub: it owns the message route table (each
+action with its trusted senders, checked by `router.ts` before the handler
+runs), `chrome.downloads` (with path sanitization), the context menus, the PDF print tab, and the
 one-time `tweet2md → xclipper` settings migration. `shared/` holds logic both the
 popup and content script need (`post-process`, `settings`, `media`, `obsidian`).
 

@@ -101,7 +101,7 @@ Not suitable for frontmatter:
 
 - Manifest permissions are minimal (`activeTab`, `contextMenus`, `downloads`, `storage`) and host-scoped to x.com. Adding a permission needs a concrete justification, an issue, and a PRIVACY.md update.
 - No remote script loading, no remote runtime dependencies, no `eval` or string-based timers. MV3's default CSP enforces most of this anyway.
-- The background's `DOWNLOAD_MD` listener validates message senders; don't bypass that check.
+- All background messages go through `src/background/router.ts`, which checks the sender of each action against its trust rule. Add a new action as a row in the route table, not as a separate listener.
 
 ## Issue approval before a PR
 

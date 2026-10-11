@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Manual batch keeps its starting settings for the whole run**: changing a setting such as the file name template or the Obsidian frontmatter while a Manual batch runs no longer changes the files exported after that point. Auto and Super already worked this way. Change your settings before you start a batch. (#138)
 
+### Security
+
+- **PDF print requests now check the sender**: the background now accepts a PDF print request only from XClipper's script on x.com. Before, it did not check the sender. All background messages now go through one sender check, so a new message type cannot skip it. (#141)
+
 ---
 
 ## [2.8.6] - 2026-10-10
