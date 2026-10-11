@@ -225,6 +225,16 @@ Combined digest renderer (`Document[] → string`), other formats as demanded.
   failure; as a backstop for walls the in-page check misses, a run of
   `FAILURE_PAUSE_THRESHOLD` (5) consecutive failures also auto-pauses. Resume
   clears the reason and the failure run and re-dispatches the paused item.
+- **2026-10-11 (one set of output rules, #138):** the worker now reports only
+  the AST; the background renders each item (amends #10 — still per item, as
+  it completes). The output rules (CSV is combined, zip on/off, local video)
+  and the per-item render had been written once per engine, and the copies
+  drifted (#136). They now live in `batch-sink.ts` for Manual, Auto and Super
+  alike: `planBatch` makes every output decision once at job start (kept in
+  `BatchJob`, so a worker restart resumes with the same plan, and a settings
+  change mid-run no longer splits one export), `renderItem` is the one place a
+  post's Markdown is made, `itemFiles` lists its files, and `writeFiles` is the
+  only step that downloads them.
 
 ## References
 

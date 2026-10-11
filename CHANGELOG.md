@@ -13,6 +13,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Saved replies include the posts they answer**: a reply on its own often makes no sense, so an exported reply now starts with the posts it answers, under "In reply to", all the way up to the conversation's first post. Then comes a rule, then the reply exactly as before. In a long conversation you see the first post and the last two, with a link to the reply on X for the rest. The file's author, date, name, and stats are still the reply's. This works in Manual, Auto, and Super, and in Markdown, PDF, and HTML. Super skips a later post in an author's own thread, as before, so that post comes without context there. With Save locally, images in those posts are saved, but their videos stay links. Super now also fetches each reply to someone else, which uses some of its rate limit, and exports it with any posts its author added right after it, as Auto does. Replies you already exported keep their old files. (#154)
 
+### Changed
+
+- **Manual batch keeps its starting settings for the whole run**: changing a setting such as the file name template or the Obsidian frontmatter while a Manual batch runs no longer changes the files exported after that point. Auto and Super already worked this way. Change your settings before you start a batch. (#138)
+
 ---
 
 ## [2.8.6] - 2026-10-10

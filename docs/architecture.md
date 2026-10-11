@@ -171,7 +171,7 @@ flowchart LR
     Queue -->|"navigate + #xclipper=batch"| Worker
     Worker -->|"BATCH_ITEM_RESULT"| Queue
   end
-  Worker -.->|"domToAst → Document → renderMarkdown → postProcess"| Worker
+  Worker -.->|"domToAst → Document"| Worker
   Queue --> Folder["folder of per-item .md"]
   Queue --> Json["per-job data.json (AST)"]
   Queue --> Digest["opt-in digest.md"]
@@ -185,7 +185,7 @@ orchestrator, and every renderer, is reused unchanged:
 | **Source adapter** | scroll a list page, collect `a[href*="/status/"]` + light metadata | `injector.js` (already on all of x.com); depends only on status-link hrefs, so it survives X markup churn |
 | **Orchestrator** | sequential job queue, throttle, pause/resume/stop, per-item failure recording | the background — the only context that survives popup close and owns tabs/windows |
 | **Worker window** | navigate to each permalink, extract on load, report the result | the `#xclipper=` auto-extract hash, plus `domToAst` and every renderer unchanged |
-| **Sink** | write per-item `.md`, a per-job `data.json`, and an opt-in `digest.md` | `postProcess` per item; `renderDigest(docs)` joins already-rendered documents |
+| **Sink** | write per-item `.md`, a per-job `data.json`, and an opt-in `digest.md` | `batch-sink.ts`, shared with Fast Batch: `planBatch` decides the output once per job, `renderItem` (`postProcess`) renders each item from its AST; `renderDigest(docs)` joins already-rendered documents |
 
 ### Positions taken (see ADR 0002 for the full table)
 
