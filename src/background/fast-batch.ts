@@ -25,7 +25,6 @@ import type {
   FastBatchStatusResponse,
 } from '../types/messages';
 import { isExtensionPageSender } from './security';
-import { videoAttachments } from '../shared/local-video';
 import type { EmbeddedTweets } from '../graphql/json-to-ast';
 import { jsonToAst, repliesToAnotherAuthor } from '../graphql/json-to-ast';
 import {
@@ -35,15 +34,16 @@ import {
 } from '../graphql/tweet-detail';
 import { getVariables, paginateTimeline, setVariablesParam } from '../graphql/timeline';
 import { loadSettings } from '../shared/settings';
-import { docToExtracted } from '../shared/extracted-content';
-import { markdownOptions, postProcess, resolveDownloadImages } from '../shared/post-process';
 import { recordExport } from '../shared/review-prompt';
 import {
-  buildPerItemFile,
   downloadZipArchive,
+  itemFiles,
+  planBatch,
+  renderItem,
   writeCombined,
+  writeFiles,
   writeJsonManifest,
-  writePerItem,
+  type OutFile,
   type StoredItem,
 } from './batch-sink';
 import type { ZipEntry } from './zip';
@@ -388,23 +388,9 @@ async function exportFastBatch(opts: FastBatchOptions = {}): Promise<FastBatchRe
   const settings = await loadSettings();
   // Profile: drop reposts unless the user opted to include them (matches Standard).
   const skipReposts = source === 'profile' && !settings.includeReposts;
-  const format = settings.batchFormat ?? 'md';
-  // CSV is metadata-only — always one combined file (mirrors Standard batch).
-  const output = format === 'csv' ? 'combined' : settings.batchOutput ?? 'separate';
-  // Pack per-item files into one archive instead of loose downloads. Local
-  // images override it off — image bytes can't be fetched into the zip —
-  // but images only ever download for Markdown, so only 'md' blocks.
-  const zip = settings.batchZip && output !== 'combined' && !(settings.downloadImages && format === 'md');
-  // Local MP4s ride the per-item Markdown path only: combined and CSV return
-  // before writePerItem so they'd discard the download list, and zip is already
-  // mutually exclusive with local media. 'both' writes per-item files too, so it
-  // gets them (matching Manual). saveVideos is the Media position of the popup's
-  // save-locally control; every other position stays poster-only.
-  const localVideo =
-    output !== 'combined' &&
-    format === 'md' &&
-    settings.saveVideos &&
-    resolveDownloadImages('download', settings.downloadImages);
+  // The same output rules Manual follows (batch-sink.ts planBatch).
+  const plan = planBatch(settings, settings.batchFormat ?? 'md', settings.batchOutput ?? 'separate');
+  const { format, output, zip } = plan;
 
   const now = new Date();
   const prefix = settings.downloadFolder.trim();
@@ -427,6 +413,9 @@ async function exportFastBatch(opts: FastBatchOptions = {}): Promise<FastBatchRe
   // Zip mode: per-item files accumulate here instead of downloading, then land
   // as one archive after the write phase.
   const zipEntries: ZipEntry[] = [];
+  const addToZip = (files: OutFile[], dir = ''): void => {
+    for (const f of files) if ('content' in f) zipEntries.push({ name: dir + f.path, content: f.content });
+  };
   // Carry incomplete-id memory forward: drop ids that completed this run, add
   // ids still written as stubs — so next run expands the leftovers first.
   const nextIncomplete = new Set(prevIncomplete);
@@ -465,26 +454,19 @@ async function exportFastBatch(opts: FastBatchOptions = {}): Promise<FastBatchRe
     // post X rate-limited us out of). Quarantine it so it can't pass for a
     // complete export, and so the next run knows to redo it.
     const isStub = !s.ledger;
-    const attachments = localVideo ? videoAttachments(doc) : undefined;
-    const result = postProcess(docToExtracted(
-      doc,
-      localVideo ? { includeVideoLinks: true } : undefined,
-    ), {
-      ...markdownOptions(settings, 'download'),
-      videoAttachments: attachments,
-    });
+    const result = renderItem(doc, plan);
     if (isStub) {
       const filename = uniqueFilename(stubFilenames, result.filename);
       stubFilenames.push(filename.toLowerCase());
       if (feedId) nextIncomplete.add(feedId);
       incomplete++;
       if (output === 'combined') return Promise.resolve();
+      const files = itemFiles(doc, result, filename, plan);
       if (zip) {
-        const file = buildPerItemFile(format, filename, result.markdown, doc, settings);
-        zipEntries.push({ name: `${INCOMPLETE_SUBFOLDER}/${file.name}`, content: file.content });
+        addToZip(files, `${INCOMPLETE_SUBFOLDER}/`);
         return Promise.resolve();
       }
-      return writePerItem(`${folder}/${INCOMPLETE_SUBFOLDER}`, format, filename, result.markdown, result.images, doc, settings);
+      return writeFiles(`${folder}/${INCOMPLETE_SUBFOLDER}`, files);
     }
     const filename = uniqueFilename(usedFilenames, result.filename);
     usedFilenames.push(filename.toLowerCase());
@@ -504,13 +486,13 @@ async function exportFastBatch(opts: FastBatchOptions = {}): Promise<FastBatchRe
       markDone();
       return Promise.resolve();
     }
+    const files = itemFiles(doc, result, filename, plan);
     if (zip) {
-      const file = buildPerItemFile(format, filename, result.markdown, doc, settings);
-      zipEntries.push({ name: file.name, content: file.content });
+      addToZip(files);
       markDone();
       return Promise.resolve();
     }
-    return writePerItem(folder, format, filename, result.markdown, result.images, doc, settings).then(markDone);
+    return writeFiles(folder, files).then(markDone);
   };
 
   // Super Fast pipeline: with expansion off, a non-article root is

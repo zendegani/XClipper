@@ -31,7 +31,7 @@ vi.mock('../src/background/batch-sink', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../src/background/batch-sink')>();
   return {
     ...actual,
-    writePerItem: vi.fn(),
+    writeFiles: vi.fn(),
     writeJsonManifest: vi.fn(async () => {}),
     writeCombined: vi.fn(async () => {}),
     downloadZipArchive: vi.fn(async () => {}),
@@ -39,7 +39,7 @@ vi.mock('../src/background/batch-sink', async (importOriginal) => {
 });
 
 const { authedFetchJson } = await import('../src/background/x-session');
-const { writePerItem } = await import('../src/background/batch-sink');
+const { writeFiles } = await import('../src/background/batch-sink');
 const { runFastBatchExport } = await import('../src/background/fast-batch');
 
 function tweet(id: string) {
@@ -71,7 +71,7 @@ function hangWrite(hangAt: number): { started: Promise<void>; release: () => voi
   let signal = (): void => {};
   const started = new Promise<void>((r) => (signal = r));
   let calls = 0;
-  vi.mocked(writePerItem).mockImplementation(() => {
+  vi.mocked(writeFiles).mockImplementation(() => {
     if (++calls !== hangAt) return Promise.resolve();
     signal();
     return new Promise<void>((r) => (release = r));
@@ -97,7 +97,7 @@ beforeEach(() => {
 
 afterEach(() => {
   vi.useRealTimers();
-  vi.mocked(writePerItem).mockReset();
+  vi.mocked(writeFiles).mockReset();
 });
 
 describe('runFastBatchExport — long downloads', () => {
