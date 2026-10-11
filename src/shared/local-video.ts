@@ -4,10 +4,10 @@
 // (ADR 0003) — the MP4 variant list lives in X's own GraphQL payload. Both DOM
 // export paths need the same three steps around that fetch (is there anything
 // unresolved / fill it in / say what to download), but they reach the fetch
-// differently: the popup asks the background over a message, while the batch
-// orchestrator IS the background and calls it directly. That channel is
-// deliberately closed to content scripts — it replays the user's X session —
-// so the resolver is a parameter rather than something this module picks.
+// differently: the popup and the in-page download ask the background over a
+// message, while the batch orchestrator IS the background and calls it
+// directly. So the resolver is a parameter rather than something this module
+// picks.
 //
 // Failure is ordinary, not exceptional: no permission, no request template
 // observed yet, a rate limit, a post X streams with no downloadable file. All

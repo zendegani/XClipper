@@ -1,7 +1,16 @@
-import type { BatchItemResultMessage, DownloadRequest, DownloadResponse, ExtractResponse } from '../types/messages';
+import type {
+  BatchItemResultMessage,
+  DownloadRequest,
+  DownloadResponse,
+  ExtractedContent,
+  ExtractResponse,
+  ResolveVideoUrlsResponse,
+} from '../types/messages';
 import { postProcess, markdownOptions, buildFilename } from '../shared/post-process';
+import { renderMarkdown } from '../ast/render-markdown';
+import { resolveLocalVideo, type VideoAttachment } from '../shared/local-video';
 import { buildFormatExport, type ExportFormat } from '../shared/export-formats';
-import { loadSettings } from '../shared/settings';
+import { loadSettings, type Settings } from '../shared/settings';
 import { buildObsidianUrl } from '../shared/obsidian';
 import { recordExport } from '../shared/review-prompt';
 import { delay, isArticlePage } from './dom';
@@ -119,6 +128,30 @@ async function sendDownload(msg: DownloadRequest): Promise<string | null> {
   return response?.error || chrome.i18n.getMessage('download_failed') || 'Download failed.';
 }
 
+// Same as the popup's localVideoAttachments: when the user picked Media, save
+// this post's videos next to the Markdown. Returns 'unresolved' when the post
+// has a video that stays a link, so the caller can tell the user.
+async function localVideo(
+  data: ExtractedContent,
+  settings: Settings
+): Promise<VideoAttachment[] | 'unresolved' | undefined> {
+  if (!settings.saveVideos || !data.body) return undefined;
+
+  const result = await resolveLocalVideo(data.body, data.tweetId, (tweetId) =>
+    new Promise((resolve) => {
+      chrome.runtime.sendMessage(
+        { action: 'RESOLVE_VIDEO_URLS', tweetId },
+        (r?: ResolveVideoUrlsResponse) => resolve(chrome.runtime.lastError ? [] : r?.urls ?? [])
+      );
+    })
+  );
+  if (result.status === 'none') return undefined;
+  if (result.status === 'unresolved') return 'unresolved';
+
+  data.markdown = renderMarkdown(data.body, { includeVideoLinks: true });
+  return result.attachments;
+}
+
 let autoExtractInFlight = false;
 
 async function autoExtract(
@@ -156,7 +189,12 @@ async function runAutoExtract(
   });
   if (!response.success || !response.data) return;
 
-  const result = postProcess(response.data, markdownOptions(settings, action));
+  const mdOptions = markdownOptions(settings, action);
+  const video = mdOptions.downloadImages ? await localVideo(response.data, settings) : undefined;
+  const result = postProcess(response.data, {
+    ...mdOptions,
+    videoAttachments: Array.isArray(video) ? video : undefined,
+  });
 
   if (action === 'copy') {
     await copyText(result.markdown);
@@ -193,7 +231,12 @@ async function runAutoExtract(
 
   // In-place runs (inline button / context menu on the current page) get a
   // brief toast since there's no popup UI or new tab to provide feedback.
-  if (!allowClose) {
+  if (!allowClose && video === 'unresolved') {
+    showInPlaceToast(
+      chrome.i18n.getMessage('video_unresolved') ||
+        'Video kept as a link — reload the post once, then export again.'
+    );
+  } else if (!allowClose) {
     const key =
       action === 'copy' ? 'copied'
       : action === 'obsidian' ? 'obsidian_opened'
