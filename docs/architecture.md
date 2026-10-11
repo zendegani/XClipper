@@ -142,9 +142,10 @@ flowchart LR
 
 `background.ts` is the privileged hub: it owns the message route table (each
 action with its trusted senders, checked by `router.ts` before the handler
-runs), `chrome.downloads` (with path sanitization), the context menus, the PDF print tab, and the
-one-time `tweet2md → xclipper` settings migration. `shared/` holds logic both the
-popup and content script need (`post-process`, `settings`, `media`, `obsidian`).
+runs), `chrome.downloads` (with path sanitization), the context menus, the PDF
+print tab, and the one-time `tweet2md → xclipper` settings migration. `shared/`
+holds logic both the popup and content script need (`post-process`, `settings`,
+`media`, `obsidian`).
 
 ## Batch export (shipped in v2.1.0)
 
