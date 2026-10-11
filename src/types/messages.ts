@@ -47,6 +47,12 @@ export interface DownloadRequest {
   mime?: string;
 }
 
+export interface DownloadResponse {
+  success: boolean;
+  downloadId?: number;
+  error?: string;
+}
+
 // Single export, local-media saving only: ask the background to resolve this
 // post's MP4 URLs through the captured X session, since the DOM only exposes
 // posters. Answered with an empty list whenever that isn't possible — see

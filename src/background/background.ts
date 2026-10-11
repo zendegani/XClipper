@@ -2,6 +2,7 @@ import type {
   AutoExtractRequest,
   ContextUrlRequest,
   DownloadRequest,
+  DownloadResponse,
   ResolveVideoUrlsRequest,
   ResolveVideoUrlsResponse,
   PdfPrintRequest,
@@ -245,14 +246,8 @@ async function printPdf(message: PdfPrintRequest): Promise<PdfPrintResponse> {
   }
 }
 
-interface DownloadResponse {
-  success: boolean;
-  downloadId?: number;
-  error?: string;
-}
-
 function downloadMd(message: DownloadRequest): Promise<DownloadResponse> {
-  return new Promise((sendResponse) => {
+  return new Promise((resolve) => {
     // Prepend the user-configured subfolder before sanitization so the
     // existing `..` / leading-slash / illegal-char stripping in
     // `sanitizeFilePath` applies to the combined path too.
@@ -276,9 +271,9 @@ function downloadMd(message: DownloadRequest): Promise<DownloadResponse> {
           },
           (downloadId) => {
             if (chrome.runtime.lastError) {
-              sendResponse({ success: false, error: chrome.runtime.lastError.message });
+              resolve({ success: false, error: chrome.runtime.lastError.message });
             } else {
-              sendResponse({ success: true, downloadId });
+              resolve({ success: true, downloadId });
             }
           }
         );
@@ -313,12 +308,12 @@ function downloadMd(message: DownloadRequest): Promise<DownloadResponse> {
         },
         (downloadId) => {
           if (chrome.runtime.lastError) {
-            sendResponse({
+            resolve({
               success: false,
               error: chrome.runtime.lastError.message,
             });
           } else {
-            sendResponse({ success: true, downloadId });
+            resolve({ success: true, downloadId });
           }
         }
       );
