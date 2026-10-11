@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { articleEmbeddedTweetIds, jsonToAst, jsonToTweetNode } from '../src/graphql/json-to-ast';
+import { articleEmbeddedTweetIds, jsonToAst, jsonToTweetNode, repliesToAnotherAuthor } from '../src/graphql/json-to-ast';
 import { renderMarkdown } from '../src/ast/render-markdown';
 import { isDownloadableVideo } from '../src/ast/collect-media';
 
@@ -994,5 +994,26 @@ describe('jsonToTweetNode — cards', () => {
       imageUrl: 'https://pbs.twimg.com/thumb.jpg',
       domain: 'example.com',
     });
+  });
+});
+
+// Super fetches TweetDetail only for these, to bring the posts they answer
+// (issue #154); a reply to oneself is a thread continuation, which Super skips.
+describe('repliesToAnotherAuthor', () => {
+  it('is true for a reply to someone else', () => {
+    expect(repliesToAnotherAuthor(tweet({ in_reply_to_status_id_str: '9', in_reply_to_screen_name: 'alice' }))).toBe(true);
+  });
+
+  it('is false for a reply to the author\'s own post, whatever the case', () => {
+    expect(repliesToAnotherAuthor(tweet({ in_reply_to_status_id_str: '9', in_reply_to_screen_name: 'Bob' }))).toBe(false);
+  });
+
+  it('is false for a post that answers nothing', () => {
+    expect(repliesToAnotherAuthor(tweet())).toBe(false);
+  });
+
+  it('sees through a TweetWithVisibilityResults wrapper', () => {
+    const inner = tweet({ in_reply_to_status_id_str: '9', in_reply_to_screen_name: 'alice' });
+    expect(repliesToAnotherAuthor({ __typename: 'TweetWithVisibilityResults', tweet: inner })).toBe(true);
   });
 });

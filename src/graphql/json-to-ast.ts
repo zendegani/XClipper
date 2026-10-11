@@ -100,6 +100,8 @@ interface RawLegacy {
   // excludes a reply's leading @mentions and (usually) a trailing media/card
   // t.co. Used to keep the GraphQL path showing what the page shows (#126).
   display_text_range?: number[];
+  in_reply_to_status_id_str?: string;
+  in_reply_to_screen_name?: string;
 }
 
 interface RawTweet {
@@ -618,6 +620,14 @@ export function jsonToTweetNode(raw: unknown): TweetNode {
   if (quoted) node.quotedTweet = jsonToTweetNode(quoted);
 
   return node;
+}
+
+// A reply to someone else's post, whose meaning depends on the posts above it
+// (issue #154). A reply to the author's own post continues their thread.
+export function repliesToAnotherAuthor(raw: unknown): boolean {
+  const t = unwrap(raw);
+  if (!t.legacy?.in_reply_to_status_id_str) return false;
+  return (t.legacy.in_reply_to_screen_name ?? '').toLowerCase() !== author(t).handle.toLowerCase();
 }
 
 // ─── Helpers ────────────────────────────────────────────────────────

@@ -27,7 +27,7 @@ import type {
 import { isExtensionPageSender } from './security';
 import { videoAttachments } from '../shared/local-video';
 import type { EmbeddedTweets } from '../graphql/json-to-ast';
-import { jsonToAst } from '../graphql/json-to-ast';
+import { jsonToAst, repliesToAnotherAuthor } from '../graphql/json-to-ast';
 import {
   tweetDetailEmbeddedTweetIds,
   tweetDetailFocalTweetNode,
@@ -592,7 +592,9 @@ async function exportFastBatch(opts: FastBatchOptions = {}): Promise<FastBatchRe
           continue;
         }
         if (id && prevIncomplete.has(id)) continue; // retried by id below — don't double-collect
-        const needsExpand = doc.metadata.type === 'article' || expandThreads;
+        // Super still fetches a reply to someone else: the posts it answers
+        // only come with TweetDetail (issue #154).
+        const needsExpand = doc.metadata.type === 'article' || expandThreads || repliesToAnotherAuthor(raw);
         const item: Item = { doc, needsExpand, ledger: !needsExpand, feedId: id };
         selected.push(item);
         // Stream complete (non-article) roots to disk as they arrive, so their
@@ -668,9 +670,10 @@ async function exportFastBatch(opts: FastBatchOptions = {}): Promise<FastBatchRe
     return null;
   } else if (toExpand.length > 0) {
     // Super (expandThreads off) still expands articles — their body needs the
-    // TweetDetail fetch — so name only what this run actually expands.
+    // TweetDetail fetch — and replies to others, for the posts they answer.
+    // Name only what this run actually expands.
     setProgress({
-      phase: expandThreads ? 'Expanding threads & articles…' : 'Expanding articles…',
+      phase: expandThreads ? 'Expanding threads & articles…' : 'Expanding articles & replies…',
       total: toExpand.length,
       done: 0,
     });
