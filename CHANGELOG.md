@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 - **Manual batch keeps its starting settings for the whole run**: changing a setting such as the file name template or the Obsidian frontmatter while a Manual batch runs no longer changes the files exported after that point. Auto and Super already worked this way. Change your settings before you start a batch. (#138)
 
+### Fixed
+
+- **Failed downloads now show the real error**: when a download failed in the background, for example while it built a zip file, the popup did not get the error. It waited, then showed only "Download failed." Now the popup shows the error that occurred. The XClipper button on a post and the right-click **Download tweet as …** items showed "Downloaded!" also when the download failed. Now they show the error and keep the tab open. All async background messages now send a response when they fail. (#167)
+
 ### Security
 
 - **PDF print requests now check the sender**: the background now accepts a PDF print request only from XClipper's script on x.com. Before, it did not check the sender. All background messages now go through one sender check, so a new message type cannot skip it. (#141)
