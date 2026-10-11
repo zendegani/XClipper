@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { resolve, join } from 'node:path';
 import { renderPdfHtml } from '../src/ast/render-pdf-html';
-import type { Document } from '../src/ast/types';
+import type { Document, TweetNode } from '../src/ast/types';
 
 // Smoke test: verifies the PDF HTML renderer produces well-formed output
 // covering tweets, threads, polls, link cards, and articles. We do not run
@@ -133,5 +133,48 @@ describe('renderPdfHtml', () => {
 
     const htmlDefault = renderPdfHtml(doc);
     expect(htmlDefault).not.toContain('class="engagement"');
+  });
+});
+
+describe('renderPdfHtml reply context', () => {
+  const post = (id: string, handle: string, text: string): TweetNode => ({
+    type: 'tweet',
+    author: { name: `${handle} name`, handle },
+    date: '2026-01-01T00:00:00.000Z',
+    tweetId: id,
+    text: [{ type: 'text', value: text }],
+    media: [],
+  });
+  const replyDoc = (context: TweetNode[]): Document => ({
+    version: 1,
+    metadata: {
+      type: 'tweet',
+      sourceUrl: 'https://x.com/bob/status/9',
+      tweetId: '9',
+      author: { name: 'bob name', handle: 'bob' },
+      date: '2026-01-01T00:00:00.000Z',
+    },
+    context,
+    body: post('9', 'bob', 'the reply'),
+  });
+
+  it('puts the posts a reply answers above its card', () => {
+    const html = renderPdfHtml(replyDoc([post('1', 'alice', 'options for what?')]));
+    expect(html).toContain('class="reply-context"');
+    expect(html).toContain('In reply to');
+    expect(html.indexOf('options for what?')).toBeLessThan(html.indexOf('the reply'));
+  });
+
+  it('folds a long chain like the Markdown does', () => {
+    const html = renderPdfHtml(replyDoc(['1', '2', '3', '4', '5'].map((id) => post(id, `u${id}`, `post ${id}`))));
+    expect(html).toContain('post 1');
+    expect(html).toContain('… 2 more posts');
+    expect(html).not.toContain('post 2');
+    expect(html).not.toContain('post 3');
+    expect(html).toContain('post 5');
+  });
+
+  it('adds nothing for a post that is not a reply', () => {
+    expect(renderPdfHtml(replyDoc([]))).not.toContain('class="reply-context"');
   });
 });

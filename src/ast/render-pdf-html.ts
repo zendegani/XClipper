@@ -13,6 +13,7 @@ import type {
   TableNode,
   TableRowNode,
 } from './types';
+import { foldContext } from './render-markdown';
 
 export interface RenderPdfHtmlOptions {
   // 'twitter' (default): X-styled cards. 'document': clean prose layout.
@@ -63,9 +64,21 @@ function tweetTitle(meta: DocumentMetadata): string {
 // ─── Top-level body ─────────────────────────────────────────────────
 
 function renderBody(doc: Document, opts: RenderPdfHtmlOptions = {}): string {
-  if (doc.body.type === 'tweet') return renderTweetCard(doc.body, doc.metadata, opts);
-  if (doc.body.type === 'thread') return renderThread(doc.body, doc.metadata, opts);
+  if (doc.body.type === 'tweet') return renderContext(doc) + renderTweetCard(doc.body, doc.metadata, opts);
+  if (doc.body.type === 'thread') return renderContext(doc) + renderThread(doc.body, doc.metadata, opts);
   return renderArticle(doc.body, doc.metadata, opts);
+}
+
+// The posts a reply answers (issue #154), as quoted cards above it, folded
+// the same way as the Markdown.
+function renderContext(doc: Document): string {
+  if (!doc.context?.length) return '';
+  const { head, hidden, tail } = foldContext(doc.context);
+  const more = hidden > 0
+    ? `<a class="context-more" href="${escapeAttr(doc.metadata.sourceUrl)}">… ${hidden} more posts</a>`
+    : '';
+  const cards = [...head.map(renderQuotedTweet), more, ...tail.map(renderQuotedTweet)].join('');
+  return `<section class="reply-context"><div class="context-label">In reply to</div>${cards}</section>`;
 }
 
 function renderThread(thread: ThreadNode, meta: DocumentMetadata, opts: RenderPdfHtmlOptions = {}): string {
@@ -326,6 +339,10 @@ const STYLES = `
 .xclipper-root{max-width:600px;margin:0 auto;padding:16px;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",system-ui,sans-serif;color:#0f1419;background:#fff;-webkit-font-smoothing:antialiased;line-height:1.4}
 .tweet-card{border:1px solid #eff3f4;border-radius:16px;padding:16px;margin-bottom:16px;background:#fff;line-height:1.4}
 .tweet-card.is-quote{border-color:#cfd9de;background:#f7f9f9;margin-top:12px;margin-bottom:0}
+.reply-context{margin-bottom:16px}
+.reply-context .tweet-card.is-quote:first-of-type{margin-top:0}
+.context-label{font-size:13px;color:#536471;margin-bottom:8px}
+.context-more{display:block;margin-top:12px;font-size:13px;color:#536471;text-decoration:none}
 .tweet-head{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px}
 .avatar{width:48px;height:48px;border-radius:50%;flex:0 0 48px;object-fit:cover;background:#1d9bf0;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:20px}
 .avatar-placeholder{font-family:inherit}
