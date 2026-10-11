@@ -616,7 +616,7 @@ export async function initBatchUi(): Promise<void> {
     if (resuming) startJobPolling();
   });
   btnBatchReset.addEventListener('click', () => {
-    void resetHistory().then(refreshIdleUi);
+    void resetHistory().finally(refreshIdleUi);
   });
   btnBatchResetQueue.addEventListener('click', () => void resetQueue());
   (Object.keys(TAB_BUTTONS) as BatchTab[]).forEach((tab) => {

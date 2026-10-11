@@ -72,10 +72,17 @@ describe('recordExported', () => {
 });
 
 describe('saveLedgers', () => {
-  it('writes both lists and keeps only the newest incomplete ids', async () => {
-    const incomplete = Array.from({ length: INCOMPLETE_CAP + 1 }, (_, i) => String(i));
-    await saveLedgers(['1', '2'], incomplete);
+  it('writes both lists', async () => {
+    await saveLedgers(['1', '2'], ['3']);
     expect(store[EXPORTED_LEDGER_KEY]).toEqual(['1', '2']);
+    expect(store[INCOMPLETE_LEDGER_KEY]).toEqual(['3']);
+  });
+
+  it('keeps only the newest ids of each list', async () => {
+    const exported = Array.from({ length: LEDGER_CAP + 1 }, (_, i) => String(i));
+    const incomplete = Array.from({ length: INCOMPLETE_CAP + 1 }, (_, i) => String(i));
+    await saveLedgers(exported, incomplete);
+    expect(store[EXPORTED_LEDGER_KEY]).toEqual(exported.slice(1));
     expect(store[INCOMPLETE_LEDGER_KEY]).toEqual(incomplete.slice(1));
   });
 });
