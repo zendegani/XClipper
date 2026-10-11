@@ -57,7 +57,7 @@ chrome.runtime.onMessage.addListener((_message, _sender, sendResponse) => {
     );
     return true;
   }
-  return true;
+  return false;
 });
 
 async function runPdfExport(): Promise<void> {
