@@ -40,7 +40,7 @@ describe('background message routes', () => {
     const trust = Object.fromEntries(Object.entries(routes).map(([a, r]) => [a, r.trust]));
     expect(trust).toEqual({
       XCLIPPER_CTX_URL: ['x-content'],
-      RESOLVE_VIDEO_URLS: ['extension-page'],
+      RESOLVE_VIDEO_URLS: ['extension-page', 'x-content'],
       PDF_PRINT_REQUEST: ['x-content'],
       DOWNLOAD_MD: ['x-content', 'extension-page'],
       BATCH_START: ['extension-page', 'x-content'],
