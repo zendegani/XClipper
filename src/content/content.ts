@@ -8,7 +8,7 @@ import type {
 } from '../types/messages';
 import { postProcess, markdownOptions, buildFilename } from '../shared/post-process';
 import { renderMarkdown } from '../ast/render-markdown';
-import { resolveLocalVideo, type VideoAttachment } from '../shared/local-video';
+import { resolveLocalVideo, type LocalVideoResult } from '../shared/local-video';
 import { buildFormatExport, type ExportFormat } from '../shared/export-formats';
 import { loadSettings, type Settings } from '../shared/settings';
 import { buildObsidianUrl } from '../shared/obsidian';
@@ -128,14 +128,15 @@ async function sendDownload(msg: DownloadRequest): Promise<string | null> {
   return response?.error || chrome.i18n.getMessage('download_failed') || 'Download failed.';
 }
 
-// Same as the popup's localVideoAttachments: when the user picked Media, save
-// this post's videos next to the Markdown. Returns 'unresolved' when the post
-// has a video that stays a link, so the caller can tell the user.
-async function localVideo(
+// Same as the popup's localVideoAttachments: when the user picked Media, get
+// the MP4 URLs of this post's videos, so they are saved next to the Markdown.
+// On success, it re-renders data.markdown so the [▶ Video] link points at the
+// local file.
+async function resolvePostVideo(
   data: ExtractedContent,
   settings: Settings
-): Promise<VideoAttachment[] | 'unresolved' | undefined> {
-  if (!settings.saveVideos || !data.body) return undefined;
+): Promise<LocalVideoResult> {
+  if (!settings.saveVideos || !data.body) return { status: 'none' };
 
   const result = await resolveLocalVideo(data.body, data.tweetId, (tweetId) =>
     new Promise((resolve) => {
@@ -145,11 +146,10 @@ async function localVideo(
       );
     })
   );
-  if (result.status === 'none') return undefined;
-  if (result.status === 'unresolved') return 'unresolved';
-
-  data.markdown = renderMarkdown(data.body, { includeVideoLinks: true });
-  return result.attachments;
+  if (result.status === 'resolved') {
+    data.markdown = renderMarkdown(data.body, { includeVideoLinks: true });
+  }
+  return result;
 }
 
 let autoExtractInFlight = false;
@@ -190,10 +190,12 @@ async function runAutoExtract(
   if (!response.success || !response.data) return;
 
   const mdOptions = markdownOptions(settings, action);
-  const video = mdOptions.downloadImages ? await localVideo(response.data, settings) : undefined;
+  const video: LocalVideoResult = mdOptions.downloadImages
+    ? await resolvePostVideo(response.data, settings)
+    : { status: 'none' };
   const result = postProcess(response.data, {
     ...mdOptions,
-    videoAttachments: Array.isArray(video) ? video : undefined,
+    videoAttachments: video.status === 'resolved' ? video.attachments : undefined,
   });
 
   if (action === 'copy') {
@@ -231,7 +233,7 @@ async function runAutoExtract(
 
   // In-place runs (inline button / context menu on the current page) get a
   // brief toast since there's no popup UI or new tab to provide feedback.
-  if (!allowClose && video === 'unresolved') {
+  if (!allowClose && video.status === 'unresolved') {
     showInPlaceToast(
       chrome.i18n.getMessage('video_unresolved') ||
         'Video kept as a link — reload the post once, then export again.'
