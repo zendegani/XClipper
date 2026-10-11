@@ -1,9 +1,8 @@
 // The export ledger: which posts past batch runs already exported, persisted in
 // chrome.storage.local. Both batch engines read and write it, and the popup
 // reads it for the "(N new)" count — so the ledger's stored format lives here
-// once. It also names every key Reset history clears; Fast Batch still reads
-// and writes the two cursors itself. No chrome.* at import time, so the popup
-// can import it.
+// once, with the two Fast Batch cursors: every key Reset history clears. No
+// chrome.* at import time, so the popup can import it.
 
 // Status ids already exported. Batch runs skip these so re-running on a longer
 // scroll of the same bookmarks doesn't duplicate files.

@@ -48,12 +48,14 @@ import {
 } from './batch-sink';
 import { batchFolderName, uniqueFilename } from './batch-state';
 import {
-  RESUME_CURSOR_KEY,
-  DATE_CURSOR_KEY,
   appendToLedger,
+  loadDateCursors,
   loadExported,
   loadIncomplete,
+  loadResumeCursors,
+  saveDateCursors,
   saveLedgers,
+  saveResumeCursors,
 } from '../shared/export-ledger';
 import {
   authedFetchJson,
@@ -211,24 +213,6 @@ const SOURCE_CONFIG: Record<FastSource, { ops: string[]; label: string }> = {
 // The captured request for a source's feed, or undefined if none was seen yet.
 const feedTemplate = (source: FastSource): string | undefined =>
   SOURCE_CONFIG[source].ops.map((op) => templates[op]).find(Boolean);
-
-// Resume-mode frontier per source (issue #83): the cursor where the last Resume
-// run stopped consuming, so the next continues from there.
-type ResumeCursors = Partial<Record<FastSource, string>>;
-async function loadResumeCursors(): Promise<ResumeCursors> {
-  const r = await chrome.storage.local.get(RESUME_CURSOR_KEY);
-  const raw = r[RESUME_CURSOR_KEY];
-  return raw && typeof raw === 'object' ? (raw as ResumeCursors) : {};
-}
-
-// Date-range mode's own continuation cursor, tagged with the window it scanned
-// so a changed window starts over (issue #83). Separate from ResumeCursors.
-type DateCursors = Partial<Record<FastSource, { cursor: string; from: string; to: string }>>;
-async function loadDateCursors(): Promise<DateCursors> {
-  const r = await chrome.storage.local.get(DATE_CURSOR_KEY);
-  const raw = r[DATE_CURSOR_KEY];
-  return raw && typeof raw === 'object' ? (raw as DateCursors) : {};
-}
 
 export interface FastBatchOptions {
   source?: FastSource;
@@ -717,10 +701,10 @@ async function exportFastBatch(opts: FastBatchOptions = {}): Promise<FastBatchRe
   if (!cancelled && frontier) {
     if (paginate === 'resume') {
       resumeCursors[source] = frontier;
-      await chrome.storage.local.set({ [RESUME_CURSOR_KEY]: resumeCursors });
+      await saveResumeCursors(resumeCursors);
     } else if (paginate === 'dateRange') {
       dateCursors[source] = { cursor: frontier, from: dateWindow.from, to: dateWindow.to };
-      await chrome.storage.local.set({ [DATE_CURSOR_KEY]: dateCursors });
+      await saveDateCursors(dateCursors);
     }
   }
   log(
