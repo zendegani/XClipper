@@ -14,8 +14,6 @@ vi.mock('../src/shared/settings', async (importOriginal) => {
 vi.mock('../src/shared/review-prompt', () => ({ recordExport: async () => {} }));
 vi.mock('../src/background/resolve-video', () => ({ resolveVideoUrls: async () => new Map() }));
 
-type Listener = (msg: unknown, sender: unknown, respond: (r: unknown) => void) => unknown;
-const messageListeners: Listener[] = [];
 const alarmListeners: ((alarm: { name: string }) => void)[] = [];
 let downloads: { filename: string; url: string }[] = [];
 let session: Record<string, unknown> = {};
@@ -37,10 +35,6 @@ function storageArea(get: () => Record<string, unknown>) {
 
 const chromeGlobal = (globalThis as unknown as { chrome: Record<string, unknown> }).chrome;
 Object.assign(chromeGlobal, {
-  runtime: {
-    ...(chromeGlobal.runtime as object),
-    onMessage: { addListener: (fn: Listener) => messageListeners.push(fn) },
-  },
   storage: {
     ...(chromeGlobal.storage as object),
     local: storageArea(() => local),
@@ -68,7 +62,8 @@ Object.assign(chromeGlobal, {
 type ChangeListener = (delta: { id: number; state: { current: string } }) => void;
 const changeListeners = new Set<ChangeListener>();
 
-const { initBatch, startBatch } = await import('../src/background/batch');
+const { batchRoutes, initBatch, startBatch } = await import('../src/background/batch');
+const { dispatch } = await import('../src/background/router');
 initBatch();
 
 function post(id: string, text: string): Document {
@@ -84,7 +79,7 @@ function post(id: string, text: string): Document {
 // What the worker tab sends once it has extracted a post: the AST, nothing else.
 async function workerReports(doc: Document): Promise<void> {
   const msg = { action: 'BATCH_ITEM_RESULT', url: doc.metadata.sourceUrl, success: true, doc };
-  for (const l of messageListeners) l(msg, { tab: { id: 7 }, url: doc.metadata.sourceUrl }, () => {});
+  dispatch(batchRoutes, msg, { tab: { id: 7 }, url: doc.metadata.sourceUrl }, () => {});
   await vi.advanceTimersByTimeAsync(2_000);
   for (const l of alarmListeners) l({ name: 'xclipper-batch-watchdog' });
   await vi.advanceTimersByTimeAsync(0);

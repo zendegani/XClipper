@@ -11,7 +11,10 @@
 // with { action: 'BATCH_CONTROL', control: 'cancel' }.
 
 import type {
+  BatchAppendRequest,
+  BatchControlRequest,
   BatchItemResultMessage,
+  BatchStartRequest,
   BatchStartResponse,
   BatchStatusResponse,
 } from '../types/messages';
@@ -29,10 +32,7 @@ import {
 } from './batch-sink';
 import { resolveLocalVideo } from '../shared/local-video';
 import { resolveVideoUrls } from './resolve-video';
-import {
-  isExtensionPageSender,
-  isTrustedXContentSender,
-} from './security';
+import type { Routes } from './router';
 import {
   type BatchJob,
   appendUrls,
@@ -240,7 +240,7 @@ async function handleItemResult(
 ): Promise<void> {
   const job = await loadJob();
   if (!job || job.status !== 'running' || !job.awaitingResult) return;
-  if (!isTrustedXContentSender(sender) || sender.tab?.id !== job.workerTabId) return;
+  if (sender.tab?.id !== job.workerTabId) return;
 
   // Drop late/duplicate reports from a previous navigation of the worker tab
   // (e.g. an item that already timed out finally finishing).
@@ -435,105 +435,80 @@ async function finalize(job: BatchJob): Promise<void> {
   }
 }
 
-export function initBatch(): void {
-  chrome.runtime.onMessage.addListener((msg, sender, sendResponse) => {
-    if (!msg) return false;
-    if (msg.action === 'BATCH_START') {
-      // Extension pages (popup), plus our own injector content script on
-      // x.com — selection mode starts batches from the page (Phase C).
-      if (
-        !isExtensionPageSender(sender, chrome.runtime.id) &&
-        !isTrustedXContentSender(sender)
-      ) {
-        sendResponse({ success: false, error: 'Untrusted sender' });
-        return false;
+async function controlBatch(msg: BatchControlRequest): Promise<{ success: true }> {
+  const job = await loadJob();
+  if (msg.control === 'cancel') {
+    if (job && (job.status === 'running' || job.status === 'paused')) {
+      await finalize(cancelJob(job));
+    }
+  } else if (msg.control === 'pause') {
+    if (job?.status === 'running') {
+      await saveJob(pauseJob(job));
+      log('job paused');
+    }
+  } else if (msg.control === 'resume') {
+    if (job?.status === 'paused') {
+      const resumed = resumeJob(job);
+      log('job resumed');
+      // Re-dispatch the item that was in flight when paused.
+      await dispatchCurrent(resumed);
+    }
+  }
+  return { success: true };
+}
+
+async function batchStatus(): Promise<BatchStatusResponse> {
+  const job = await loadJob();
+  return job
+    ? {
+        job: {
+          id: job.id,
+          status: job.status,
+          ...(job.origin ? { origin: job.origin } : {}),
+          ...(job.handle ? { handle: job.handle } : {}),
+          total: job.urls.length,
+          completed: job.completed,
+          failed: job.failures.length,
+          folder: job.folder,
+          queuedIds: job.urls
+            .map((u) => statusIdOf(u))
+            .filter((id): id is string => id !== null),
+          ...(job.pauseReason ? { pauseReason: job.pauseReason } : {}),
+        },
       }
-      const handle = typeof msg.handle === 'string' ? msg.handle : undefined;
+    : {};
+}
+
+// BATCH_START and BATCH_APPEND also accept our injector content script on
+// x.com: selection mode starts batches from the page (Phase C).
+export const batchRoutes: Routes = {
+  BATCH_START: {
+    trust: ['extension-page', 'x-content'],
+    handle: (msg: BatchStartRequest) =>
       startBatch(
         msg.urls,
         coerceOrigin(msg.origin),
-        handle,
+        typeof msg.handle === 'string' ? msg.handle : undefined,
         coerceFormat(msg.format),
         coerceOutput(msg.output)
-      ).then(sendResponse);
-      return true; // async sendResponse
-    }
-    if (msg.action === 'BATCH_APPEND') {
-      if (
-        !isExtensionPageSender(sender, chrome.runtime.id) &&
-        !isTrustedXContentSender(sender)
-      ) {
-        sendResponse({ success: false, error: 'Untrusted sender' });
-        return false;
-      }
-      appendBatch(msg.urls).then(sendResponse);
-      return true; // async sendResponse
-    }
-    if (msg.action === 'BATCH_CONTROL') {
-      if (!isExtensionPageSender(sender, chrome.runtime.id)) {
-        sendResponse({ success: false, error: 'Untrusted sender' });
-        return false;
-      }
-      void (async () => {
-        const job = await loadJob();
-        if (msg.control === 'cancel') {
-          if (job && (job.status === 'running' || job.status === 'paused')) {
-            await finalize(cancelJob(job));
-          }
-        } else if (msg.control === 'pause') {
-          if (job?.status === 'running') {
-            await saveJob(pauseJob(job));
-            log('job paused');
-          }
-        } else if (msg.control === 'resume') {
-          if (job?.status === 'paused') {
-            const resumed = resumeJob(job);
-            log('job resumed');
-            // Re-dispatch the item that was in flight when paused.
-            await dispatchCurrent(resumed);
-          }
-        }
-        sendResponse({ success: true });
-      })();
-      return true; // async sendResponse
-    }
-    if (msg.action === 'BATCH_STATUS') {
-      if (!isExtensionPageSender(sender, chrome.runtime.id)) {
-        sendResponse({});
-        return false;
-      }
-      void (async () => {
-        const job = await loadJob();
-        const resp: BatchStatusResponse = job
-          ? {
-              job: {
-                id: job.id,
-                status: job.status,
-                ...(job.origin ? { origin: job.origin } : {}),
-                ...(job.handle ? { handle: job.handle } : {}),
-                total: job.urls.length,
-                completed: job.completed,
-                failed: job.failures.length,
-                folder: job.folder,
-                queuedIds: job.urls
-                  .map((u) => statusIdOf(u))
-                  .filter((id): id is string => id !== null),
-                ...(job.pauseReason ? { pauseReason: job.pauseReason } : {}),
-              },
-            }
-          : {};
-        sendResponse(resp);
-      })();
-      return true; // async sendResponse
-    }
-    if (msg.action === 'BATCH_ITEM_RESULT') {
-      void handleItemResult(msg as BatchItemResultMessage, sender);
-      sendResponse({ ok: true });
-      return false;
-    }
-    return false;
-  });
+      ),
+  },
+  BATCH_APPEND: {
+    trust: ['extension-page', 'x-content'],
+    handle: (msg: BatchAppendRequest) => appendBatch(msg.urls),
+  },
+  BATCH_CONTROL: { trust: ['extension-page'], handle: controlBatch },
+  BATCH_STATUS: { trust: ['extension-page'], handle: batchStatus },
+  BATCH_ITEM_RESULT: {
+    trust: ['x-content'],
+    handle: (msg: BatchItemResultMessage, sender) => {
+      void handleItemResult(msg, sender);
+      return { ok: true };
+    },
+  },
+};
 
+export function initBatch(): void {
   chrome.tabs.onRemoved.addListener((tabId) => {
     void (async () => {
       const job = await loadJob();

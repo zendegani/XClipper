@@ -8,7 +8,7 @@ import type {
 } from '../types/messages';
 import { isAllowedImageUrl, sanitizeFilePath } from './security';
 import { listen } from './router';
-import { initBatch } from './batch';
+import { batchRoutes, initBatch } from './batch';
 import { initFastBatch } from './fast-batch';
 import { normalizeStatusUrl } from './batch-state';
 import { buildSingleZipEntries, zipFilenameFor } from './single-zip';
@@ -91,7 +91,8 @@ function registerContextMenus(): void {
 chrome.runtime.onInstalled.addListener(registerContextMenus);
 chrome.runtime.onStartup.addListener(registerContextMenus);
 
-// Batch export orchestrator (ADR 0002) — registers its own listeners.
+// Batch export orchestrator (ADR 0002) — registers its tab and alarm listeners.
+// Its message routes join the table at the end of this file.
 initBatch();
 
 // Fast Batch (ADR 0003) — opt-in GraphQL acquisition; arms auth capture only
@@ -327,6 +328,7 @@ function downloadMd(message: DownloadRequest): Promise<DownloadResponse> {
 // ─── Message routes ─────────────────────────────────────────────────
 
 listen({
+  ...batchRoutes,
   XCLIPPER_CTX_URL: { trust: ['x-content'], handle: rememberContextUrl },
   // Single export asks for a post's MP4 URLs before saving media locally. Only
   // the popup may ask: this replays the user's captured X session, so it stays
