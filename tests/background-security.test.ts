@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import {
   isAllowedImageUrl,
-  isTrustedDownloadSender,
+  isExtensionPageSender,
   isTrustedXContentSender,
   sanitizeFilePath,
 } from '../src/background/security';
@@ -84,23 +84,10 @@ describe('isTrustedXContentSender()', () => {
   });
 });
 
-describe('isTrustedDownloadSender()', () => {
-  it('accepts trusted X content-script senders', () => {
+describe('isExtensionPageSender()', () => {
+  it('accepts pages of this extension', () => {
     expect(
-      isTrustedDownloadSender(
-        sender({
-          id: EXTENSION_ID,
-          url: 'https://x.com/example/status/123',
-          origin: 'https://x.com',
-        }),
-        EXTENSION_ID
-      )
-    ).toBe(true);
-  });
-
-  it('accepts trusted extension-page senders', () => {
-    expect(
-      isTrustedDownloadSender(
+      isExtensionPageSender(
         sender({
           id: EXTENSION_ID,
           url: `chrome-extension://${EXTENSION_ID}/popup.html`,
@@ -111,14 +98,13 @@ describe('isTrustedDownloadSender()', () => {
     ).toBe(true);
   });
 
-  it('rejects same-extension content-script senders on unrelated pages', () => {
+  it('rejects this extension\'s content script on x.com', () => {
     expect(
-      isTrustedDownloadSender(
+      isExtensionPageSender(
         sender({
           id: EXTENSION_ID,
-          url: 'https://example.com/page',
-          origin: 'https://example.com',
-          tab: { url: 'https://example.com/page' } as chrome.tabs.Tab,
+          url: 'https://x.com/example/status/123',
+          origin: 'https://x.com',
         }),
         EXTENSION_ID
       )
@@ -127,7 +113,7 @@ describe('isTrustedDownloadSender()', () => {
 
   it('rejects other extension IDs and missing sender identity', () => {
     expect(
-      isTrustedDownloadSender(
+      isExtensionPageSender(
         sender({
           id: 'otherextensionidotherextensionid',
           url: 'chrome-extension://otherextensionidotherextensionid/popup.html',
@@ -137,7 +123,7 @@ describe('isTrustedDownloadSender()', () => {
       )
     ).toBe(false);
 
-    expect(isTrustedDownloadSender(sender({}), EXTENSION_ID)).toBe(false);
+    expect(isExtensionPageSender(sender({}), EXTENSION_ID)).toBe(false);
   });
 });
 

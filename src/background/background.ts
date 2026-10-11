@@ -2,16 +2,12 @@ import type {
   AutoExtractRequest,
   DownloadRequest,
   ResolveVideoUrlsRequest,
+  ResolveVideoUrlsResponse,
   PdfPrintRequest,
   PdfPrintResponse,
 } from '../types/messages';
-import {
-  isAllowedImageUrl,
-  isExtensionPageSender,
-  isTrustedDownloadSender,
-  isTrustedXContentSender,
-  sanitizeFilePath,
-} from './security';
+import { isAllowedImageUrl, sanitizeFilePath } from './security';
+import { listen } from './router';
 import { initBatch } from './batch';
 import { initFastBatch } from './fast-batch';
 import { normalizeStatusUrl } from './batch-state';
@@ -182,13 +178,9 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
   chrome.tabs.create({ url: appendMarker(target, action, single) });
 });
 
-chrome.runtime.onMessage.addListener((msg, sender, _sendResponse) => {
-  if (!msg || msg.action !== 'XCLIPPER_CTX_URL') return false;
-  if (!isTrustedXContentSender(sender)) return false;
-
+function rememberContextUrl(msg: { url?: unknown }): void {
   lastContextUrl = typeof msg.url === 'string' ? msg.url : null;
-  return false;
-});
+}
 
 // ─── Download handler ───────────────────────────────────────────────
 
@@ -203,21 +195,6 @@ function loadDownloadFolder(): Promise<string> {
     });
   });
 }
-
-// Single export asks for a post's MP4 URLs before saving media locally. Only
-// the popup may ask: this replays the user's captured X session, so it stays
-// off the content-script surface.
-chrome.runtime.onMessage.addListener(
-  (message: ResolveVideoUrlsRequest, sender, sendResponse) => {
-    if (!message || message.action !== 'RESOLVE_VIDEO_URLS') return false;
-    if (!isExtensionPageSender(sender, chrome.runtime.id)) {
-      sendResponse({ urls: [] });
-      return false;
-    }
-    resolveVideoUrls(message.tweetId).then((map) => sendResponse({ urls: [...map] }));
-    return true; // keep channel open for async sendResponse
-  }
-);
 
 // Media bytes for the single-export archive. Returns null instead of throwing:
 // one expired media URL must not cost the user the whole export, so the caller
@@ -247,38 +224,33 @@ const PRINT_STORAGE_PREFIX = 'xclipper_print_';
 
 const bgLog = (...args: unknown[]): void => console.log('[xclipper bg]', ...args);
 
-chrome.runtime.onMessage.addListener((message: PdfPrintRequest, _sender, sendResponse) => {
-  if (!message || message.action !== 'PDF_PRINT_REQUEST') return false;
+async function printPdf(message: PdfPrintRequest): Promise<PdfPrintResponse> {
   bgLog('PDF_PRINT_REQUEST received, html length =', message.html.length);
-  (async (): Promise<PdfPrintResponse> => {
-    try {
-      // crypto.randomUUID is available in MV3 service workers.
-      const key = crypto.randomUUID();
-      const storageKey = PRINT_STORAGE_PREFIX + key;
-      await chrome.storage.session.set({
-        [storageKey]: { html: message.html, filenameBase: message.filenameBase },
-      });
-      const url = chrome.runtime.getURL(`print.html?key=${encodeURIComponent(key)}`);
-      await chrome.tabs.create({ url, active: true });
-      bgLog('print tab opened:', url);
-      return { success: true };
-    } catch (err) {
-      bgLog('print flow error:', err);
-      return { success: false, error: err instanceof Error ? err.message : String(err) };
-    }
-  })().then(sendResponse);
-  return true; // async
-});
+  try {
+    // crypto.randomUUID is available in MV3 service workers.
+    const key = crypto.randomUUID();
+    const storageKey = PRINT_STORAGE_PREFIX + key;
+    await chrome.storage.session.set({
+      [storageKey]: { html: message.html, filenameBase: message.filenameBase },
+    });
+    const url = chrome.runtime.getURL(`print.html?key=${encodeURIComponent(key)}`);
+    await chrome.tabs.create({ url, active: true });
+    bgLog('print tab opened:', url);
+    return { success: true };
+  } catch (err) {
+    bgLog('print flow error:', err);
+    return { success: false, error: err instanceof Error ? err.message : String(err) };
+  }
+}
 
-chrome.runtime.onMessage.addListener(
-  (message: DownloadRequest, sender, sendResponse) => {
-    if (!message || message.action !== 'DOWNLOAD_MD') return false;
+interface DownloadResponse {
+  success: boolean;
+  downloadId?: number;
+  error?: string;
+}
 
-    if (!isTrustedDownloadSender(sender, chrome.runtime.id)) {
-      sendResponse({ success: false, error: 'Untrusted sender' });
-      return false;
-    }
-
+function downloadMd(message: DownloadRequest): Promise<DownloadResponse> {
+  return new Promise((sendResponse) => {
     // Prepend the user-configured subfolder before sanitization so the
     // existing `..` / leading-slash / illegal-char stripping in
     // `sanitizeFilePath` applies to the combined path too.
@@ -349,7 +321,23 @@ chrome.runtime.onMessage.addListener(
         }
       );
     });
+  });
+}
 
-    return true; // keep channel open for async sendResponse
-  }
-);
+// ─── Message routes ─────────────────────────────────────────────────
+
+listen({
+  XCLIPPER_CTX_URL: { trust: ['x-content'], handle: rememberContextUrl },
+  // Single export asks for a post's MP4 URLs before saving media locally. Only
+  // the popup may ask: this replays the user's captured X session, so it stays
+  // off the content-script surface.
+  RESOLVE_VIDEO_URLS: {
+    trust: ['extension-page'],
+    handle: async (message: ResolveVideoUrlsRequest): Promise<ResolveVideoUrlsResponse> => ({
+      urls: [...(await resolveVideoUrls(message.tweetId))],
+    }),
+  },
+  // The HTML goes into an extension page, so only our content script may send it.
+  PDF_PRINT_REQUEST: { trust: ['x-content'], handle: printPdf },
+  DOWNLOAD_MD: { trust: ['x-content', 'extension-page'], handle: downloadMd },
+});

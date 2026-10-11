@@ -45,13 +45,6 @@ export function isTrustedXContentSender(
   return !sender.url && !sender.origin && isHttpsXUrl(sender.tab?.url);
 }
 
-export function isTrustedDownloadSender(
-  sender: chrome.runtime.MessageSender,
-  extensionId: string
-): boolean {
-  return isTrustedXContentSender(sender) || isExtensionPageSender(sender, extensionId);
-}
-
 function sanitizePathSegment(segment: string): string {
   return segment
     .replace(/[<>:"|?*\x00-\x1f]/g, '_')
