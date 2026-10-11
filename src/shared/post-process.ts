@@ -73,8 +73,9 @@ export function isoToDateOnly(iso: string): string {
 // Pull a short, plain-text preview from the markdown body. Drops the
 // author H1, frontmatter, blockquotes, list bullets, link/image syntax,
 // and emoji-prefixed UI lines so the description reads like prose.
-export function buildDescription(markdown: string): string {
-  let body = markdown.replace(/^---[\s\S]*?---\s*/m, '');
+export function buildDescription(markdown: string, data: ExtractedContent): string {
+  let body = markdown.slice(skipContext(data, markdown));
+  body = body.replace(/^---[\s\S]*?---\s*/m, '');
   body = body.replace(/^# .*$/m, '');
   const lines = body.split('\n');
   const kept: string[] = [];
@@ -214,8 +215,8 @@ function previewForSlug(data: ExtractedContent): string {
 }
 
 // renderMarkdown puts a reply's context (issue #154) above the post and closes
-// it with the first rule. The slug and thread stats are about the post, so
-// they start past that rule.
+// it with the first rule. The description, slug, and thread stats are about
+// the post, so they start past that rule.
 function skipContext(data: ExtractedContent, md: string, from = 0): number {
   if (!data.body?.context?.length) return from;
   const rule = md.indexOf('\n---\n', from);
@@ -354,7 +355,7 @@ export function postProcess(
       if (includeField('created')) lines.push(`created: ${todayISODate()}`);
       if (includeField('type')) lines.push(`type: ${data.type}`);
       if (includeField('description')) {
-        const desc = buildDescription(finalMarkdown);
+        const desc = buildDescription(finalMarkdown, data);
         if (desc) lines.push(`description: ${yamlEscape(desc)}`);
       }
       if (includeField('tags')) {

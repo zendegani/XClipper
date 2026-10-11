@@ -199,7 +199,7 @@ function fieldValue(key: string, data: ExtractedContent, opts: FormatOptions): s
     case 'type':
       return data.type;
     case 'description':
-      return buildDescription(data.markdown);
+      return buildDescription(data.markdown, data);
     case 'tags': {
       const template = (opts.obsidianTagsTemplate ?? '').trim() || DEFAULT_TAGS_TEMPLATE;
       return applyTagsTemplate(template, data).join(' ');

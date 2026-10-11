@@ -575,6 +575,15 @@ describe('postProcess() reply context', () => {
     expect(slug(replyThread())).toMatch(/^get-a-thinkpad/);
   });
 
+  it('describes the reply, not the posts it answers', () => {
+    const { markdown } = postProcess(replyThread(), {
+      includeMetadata: true,
+      downloadImages: false,
+      obsidianFriendly: true,
+    });
+    expect(markdown).toContain('description: "Get a ThinkPad Or a Framework"');
+  });
+
   it('puts thread stats after the first post of the thread, not after the context', () => {
     const { markdown } = postProcess(replyThread(), {
       includeMetadata: false,
