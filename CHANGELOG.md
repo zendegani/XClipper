@@ -20,10 +20,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **Failed downloads now show the real error**: when a download failed in the background, for example while it built a zip file, the popup did not get the error. It waited, then showed only "Download failed." Now the popup shows the error that occurred. The XClipper button on a post and the right-click **Download tweet as …** items showed "Downloaded!" also when the download failed. Now they show the error and keep the tab open. All async background messages now send a response when they fail. (#167)
+- **Post button and right-click menu now save videos**: when **Save locally** is **Media**, the XClipper button on a post and the right-click **Download tweet as Markdown** item now save the `.mp4` file next to the Markdown, as the popup's **Download** button does. Before, they saved only the images, and the video stayed a link. If XClipper cannot get the video, the video stays a link and a message tells you to reload the post and export again. (#170)
 
 ### Security
 
 - **PDF print requests now check the sender**: the background now accepts a PDF print request only from XClipper's script on x.com. Before, it did not check the sender. All background messages now go through one sender check, so a new message type cannot skip it. (#141)
+- **XClipper's script on x.com can now ask for video links**: the background now gives video links to XClipper's script on x.com, not only to the popup. The post button and the right-click menu need this to save videos. The request uses your X session, and only XClipper's script on x.com passes the sender check. (#170)
 
 ---
 
