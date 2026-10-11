@@ -316,11 +316,11 @@ listen({
   ...batchRoutes,
   ...fastBatchRoutes,
   XCLIPPER_CTX_URL: { trust: ['x-content'], handle: rememberContextUrl },
-  // Single export asks for a post's MP4 URLs before saving media locally: the
-  // popup, and the in-page download (the post's button and the right-click
-  // menu). This replays the user's captured X session, so only this extension's
-  // own pages and its content script on x.com may ask — the same session the
-  // page already has.
+  // Single export asks for a post's MP4 URLs before it saves media locally.
+  // The popup asks, and so does the in-page download (the post's button and
+  // the right-click menu). This replays the user's captured X session. Only
+  // this extension's own pages and its content script on x.com may ask, and
+  // that page already has the same session.
   RESOLVE_VIDEO_URLS: {
     trust: ['extension-page', 'x-content'],
     handle: async (message: ResolveVideoUrlsRequest): Promise<ResolveVideoUrlsResponse> => ({
