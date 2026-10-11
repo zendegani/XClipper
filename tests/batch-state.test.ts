@@ -9,7 +9,6 @@ import {
   pauseJob,
   recordResult,
   resumeJob,
-  statusIdOf,
   uniqueFilename,
   type BatchJob,
 } from '../src/background/batch-state';
@@ -39,13 +38,6 @@ describe('normalizeStatusUrl', () => {
     expect(normalizeStatusUrl('https://x.com/user')).toBeNull();
     expect(normalizeStatusUrl('https://example.com/user/status/123')).toBeNull();
     expect(normalizeStatusUrl('not a url')).toBeNull();
-  });
-});
-
-describe('statusIdOf', () => {
-  it('extracts the numeric status id', () => {
-    expect(statusIdOf('https://x.com/a/status/42#xclipper=batch')).toBe('42');
-    expect(statusIdOf('https://x.com/a')).toBeNull();
   });
 });
 

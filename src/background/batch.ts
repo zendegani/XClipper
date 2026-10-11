@@ -42,8 +42,8 @@ import {
   pauseJob,
   recordResult,
   resumeJob,
-  statusIdOf,
 } from './batch-state';
+import { statusIdOf } from '../shared/x-routes';
 import { loadExported, recordExported } from '../shared/export-ledger';
 
 const JOB_KEY = 'xclipper_batch_job';

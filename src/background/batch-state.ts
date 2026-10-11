@@ -3,6 +3,7 @@
 // unit-testable without extension API mocks.
 
 import type { BatchPlan } from './batch-sink';
+import { statusIdOf } from '../shared/x-routes';
 
 export interface BatchFailure {
   url: string;
@@ -58,11 +59,6 @@ export const BATCH_MAX_ITEMS = 200;
 // query/hash, so the worker tab always loads the canonical permalink.
 export function normalizeStatusUrl(url: string): string | null {
   const m = url.match(/^(https?:\/\/(?:www\.)?x\.com\/[^/]+\/status\/\d+)/);
-  return m ? m[1] : null;
-}
-
-export function statusIdOf(url: string): string | null {
-  const m = url.match(/\/status\/(\d+)/);
   return m ? m[1] : null;
 }
 

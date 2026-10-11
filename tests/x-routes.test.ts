@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { pageSourceOfPath } from '../src/shared/x-routes';
+import { pageSourceOfPath, statusIdOf } from '../src/shared/x-routes';
 
 // The route table these cover is the one X broke when it moved Bookmarks and
 // Likes under the History hub: both batch sources went quiet, with no error to
@@ -102,5 +102,12 @@ describe('pageSourceOfPath() — profiles and timeline', () => {
     '/',
   ])('returns null for %s', (path) => {
     expect(pageSourceOfPath(path)).toBeNull();
+  });
+});
+
+describe('statusIdOf', () => {
+  it('extracts the numeric status id', () => {
+    expect(statusIdOf('https://x.com/a/status/42#xclipper=batch')).toBe('42');
+    expect(statusIdOf('https://x.com/a')).toBeNull();
   });
 });

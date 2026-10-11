@@ -18,9 +18,7 @@ import type {
 } from '../types/messages';
 import { hostMatches } from '../shared/media';
 import { loadSettings } from '../shared/settings';
-import { pageSourceOfPath, type XPage } from '../shared/x-routes';
-// Pure module (no chrome.* at import time) — safe to share with the popup.
-import { statusIdOf } from '../background/batch-state';
+import { pageSourceOfPath, statusIdOf, type XPage } from '../shared/x-routes';
 import { loadExported, resetHistory } from '../shared/export-ledger';
 import {
   batchBarFill,

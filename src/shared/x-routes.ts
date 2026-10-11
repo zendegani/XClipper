@@ -64,3 +64,9 @@ export function pageSourceOfPath(pathname: string): XPage | null {
   }
   return null;
 }
+
+// The numeric post id in a status permalink, wherever the path goes after it.
+export function statusIdOf(url: string): string | null {
+  const m = url.match(/\/status\/(\d+)/);
+  return m ? m[1] : null;
+}
