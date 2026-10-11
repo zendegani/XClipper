@@ -40,6 +40,7 @@ const cases = [
     type: 'tweet',
     author: 'bob',
     tweets: ['2'],
+    context: ['1'],
   },
   {
     name: 'roots a mid-thread request at the thread start',
@@ -48,6 +49,7 @@ const cases = [
     type: 'thread',
     author: 'alice',
     tweets: ['1', '2', '3'],
+    context: [],
   },
   {
     name: 'stops walking back at another author, even when the thread author posted earlier',
@@ -56,8 +58,21 @@ const cases = [
     type: 'thread',
     author: 'alice',
     tweets: ['3', '4'],
+    context: ['1', '2'],
+  },
+  {
+    name: 'takes the posts above a self-thread as its context',
+    focal: { id: '3', handle: 'alice' },
+    posts: [post('1', 'bob', 'question'), post('2', 'alice', 'first'), post('3', 'alice', 'second'), post('4', 'carol', 'reply')],
+    type: 'thread',
+    author: 'alice',
+    tweets: ['2', '3'],
+    context: ['1'],
   },
 ];
+
+// The posts a reply answers (issue #154); none for a post that answers nothing.
+const contextIds = (doc: Document) => (doc.context ?? []).map((t) => t.tweetId);
 
 describe('domToAst() on a reply permalink', () => {
   for (const c of cases) {
@@ -67,8 +82,21 @@ describe('domToAst() on a reply permalink', () => {
       expect(doc.metadata.type).toBe(c.type);
       expect(doc.metadata.author.handle).toBe(c.author);
       expect(ids(doc)).toEqual(c.tweets);
+      expect(contextIds(doc)).toEqual(c.context);
     });
   }
+
+  it('keeps the context of a single-post export', () => {
+    loadPage({ id: '3', handle: 'bob' }, [post('1', 'alice', 'root'), post('2', 'carol', 'parent'), post('3', 'bob', 'the reply')]);
+    const doc = domToAst({ singleTweet: true });
+    expect(ids(doc)).toEqual(['3']);
+    expect(contextIds(doc)).toEqual(['1', '2']);
+  });
+
+  it('adds no context key to a post that answers nothing', () => {
+    loadPage({ id: '1', handle: 'alice' }, [post('1', 'alice', 'lone'), post('2', 'bob', 'reply')]);
+    expect('context' in domToAst()).toBe(false);
+  });
 });
 
 // The full Manual path: loadThreadIntoDom captures the thread into an
@@ -82,6 +110,7 @@ describe('extractTweetAsync() on a reply permalink', () => {
       expect(doc.metadata.type).toBe(c.type);
       expect(doc.metadata.author.handle).toBe(c.author);
       expect(ids(doc)).toEqual(c.tweets);
+      expect(contextIds(doc)).toEqual(c.context);
     });
   }
 });

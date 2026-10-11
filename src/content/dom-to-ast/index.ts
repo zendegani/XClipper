@@ -35,7 +35,8 @@ export function domToAst(opts: { singleTweet?: boolean } = {}): Document {
   const articles = hosted.length > 0 ? hosted : allArticles;
 
   const focal = focusedArticle(articles);
-  const threadArticles = opts.singleTweet ? [focal] : collectThread(articles, focal);
+  const run = collectThread(articles, focal);
+  const threadArticles = opts.singleTweet ? [focal] : run;
   const rootAuthor = stripHandlePrefix(extractAuthorFromArticle(threadArticles[0]));
 
   const tweetId = extractTweetId();
@@ -45,6 +46,13 @@ export function domToAst(opts: { singleTweet?: boolean } = {}): Document {
 
   const tweets = threadArticles.map((a) => articleToTweetNode(a));
   const isThread = tweets.length > 1;
+  // Every post above the author's thread is what it answers, up to the
+  // conversation's first post (issue #154) — even for a single post, whose own
+  // thread isn't context. Tombstones have no author to show.
+  const context = articles
+    .slice(0, articles.indexOf(run[0]))
+    .filter((a) => extractAuthorFromArticle(a).handle !== 'unknown')
+    .map((a) => articleToTweetNode(a));
 
   const body: TweetNode | ThreadNode = isThread
     ? { type: 'thread', tweets }
@@ -60,6 +68,7 @@ export function domToAst(opts: { singleTweet?: boolean } = {}): Document {
       date: rootDate,
       ...(engagement ? { engagement } : {}),
     },
+    ...(context.length > 0 ? { context } : {}),
     body,
   };
 }

@@ -158,6 +158,8 @@ async function loadThreadIntoDom(): Promise<Element | null> {
   // Fresh map per extraction — keeps memory bounded in long X.com SPA
   // sessions where the user navigates between threads.
   const captured: Map<string, Element> = new Map();
+  // The posts above the thread, which it answers (issue #154).
+  const context: Map<string, Element> = new Map();
 
   // A freshly navigated permalink may show only the focal tweet while the
   // conversation timeline streams in; walking immediately would conclude
@@ -206,7 +208,7 @@ async function loadThreadIntoDom(): Promise<Element | null> {
   // First capture — the thread around the requested post, bounded by other
   // authors' posts so reply-section tweets by the author (e.g. "thank you!
   // means a lot" in response to a comment) don't pollute the captured set.
-  captureArticles(captured, threadAuthor.handle, focalId);
+  captureArticles(captured, context, threadAuthor.handle, focalId);
 
   let threadDone = false;
   const SCROLL_STEP = Math.max(window.innerHeight * 0.6, 400);
@@ -215,7 +217,7 @@ async function loadThreadIntoDom(): Promise<Element | null> {
   for (let step = 0; step < MAX_STEPS && !threadDone; step++) {
     const articleCount = document.querySelectorAll('article[role="article"]').length;
     const sizeBefore = captured.size;
-    threadDone = captureArticles(captured, threadAuthor.handle, focalId);
+    threadDone = captureArticles(captured, context, threadAuthor.handle, focalId);
     if (threadDone) break;
 
     const atBottom =
@@ -230,11 +232,11 @@ async function loadThreadIntoDom(): Promise<Element | null> {
   }
 
   // Final pass: capture at bottom, scroll-back-to-top + settle + capture.
-  captureArticles(captured, threadAuthor.handle, focalId);
+  captureArticles(captured, context, threadAuthor.handle, focalId);
   window.scrollTo({ top: 0, behavior: 'instant' });
   await delay(250);
-  captureArticles(captured, threadAuthor.handle, focalId);
-  return rehydrateMissingArticles(captured, threadAuthor.handle);
+  captureArticles(captured, context, threadAuthor.handle, focalId);
+  return rehydrateMissingArticles(captured, context, threadAuthor.handle);
 }
 
 // X shows a [role="progressbar"] spinner while a timeline streams in. Note a
@@ -263,36 +265,47 @@ function hydrationScore(article: Element): number {
 // so there's no HTML-string injection path. Clones are detached; originals
 // stay live. Captures only the thread run around the requested post — or
 // around a post captured earlier, once scrolling has unmounted the requested
-// one — so reply-section tweets by the author aren't swept in. Returns
-// whether the run's end (the comment boundary) is on the page.
-function captureArticles(store: Map<string, Element>, authorHandle: string, focalId: string): boolean {
+// one — so reply-section tweets by the author aren't swept in, plus the posts
+// above that run into `context`. Returns whether the run's end (the comment
+// boundary) is on the page.
+function captureArticles(
+  store: Map<string, Element>,
+  context: Map<string, Element>,
+  authorHandle: string,
+  focalId: string
+): boolean {
   const live = Array.from(document.querySelectorAll('article[role="article"]'))
     .filter((a) => !isPromotedArticle(a));
   const { run, ended } = threadRun(live, authorHandle, (a) => {
     const id = getTweetStatusId(a);
     return id === focalId || store.has(id);
   });
-  for (const article of run) {
-    const id = getTweetStatusId(article);
-    if (!id) continue;
-    const existing = store.get(id);
-    if (existing) {
-      // Re-capture only if this pass sees a better-hydrated version.
-      // Map.set on an existing key keeps insertion order, so thread order
-      // is preserved.
-      const oldScore = hydrationScore(existing);
-      const newScore = hydrationScore(article);
-      if (
-        newScore < oldScore ||
-        (newScore === oldScore &&
-          (article.textContent || '').length <= (existing.textContent || '').length)
-      ) {
-        continue;
-      }
-    }
-    store.set(id, article.cloneNode(true) as Element);
+  for (const article of run) keepSnapshot(store, article);
+  if (run.length > 0) {
+    for (const article of live.slice(0, live.indexOf(run[0]))) keepSnapshot(context, article);
   }
   return ended;
+}
+
+function keepSnapshot(store: Map<string, Element>, article: Element): void {
+  const id = getTweetStatusId(article);
+  if (!id) return;
+  const existing = store.get(id);
+  if (existing) {
+    // Re-capture only if this pass sees a better-hydrated version.
+    // Map.set on an existing key keeps insertion order, so thread order
+    // is preserved.
+    const oldScore = hydrationScore(existing);
+    const newScore = hydrationScore(article);
+    if (
+      newScore < oldScore ||
+      (newScore === oldScore &&
+        (article.textContent || '').length <= (existing.textContent || '').length)
+    ) {
+      return;
+    }
+  }
+  store.set(id, article.cloneNode(true) as Element);
 }
 
 // Inject ALL captured thread articles into an off-screen host so domToAst
@@ -308,6 +321,7 @@ function captureArticles(store: Map<string, Element>, authorHandle: string, foca
 // Returns the host so the caller can remove it after extraction.
 function rehydrateMissingArticles(
   store: Map<string, Element>,
+  context: Map<string, Element>,
   authorHandle: string,
 ): Element | null {
   if (store.size === 0) return null;
@@ -320,6 +334,14 @@ function rehydrateMissingArticles(
       'visibility:hidden;pointer-events:none;overflow:hidden;',
   );
 
+  // The context goes first, oldest first, so domToAst finds it above the
+  // thread. Sorted by id rather than capture order: ids grow with time, and a
+  // pass that scrolled past the top may have captured a later post first.
+  const byAge = (a: string, b: string) => a.length - b.length || (a < b ? -1 : 1);
+  for (const id of [...context.keys()].sort(byAge)) {
+    host.appendChild(rehydratedCell(id, context.get(id)!));
+  }
+
   // Iterate the Map in insertion order — JS Map preserves it. captureArticles'
   // boundary break ensures only thread tweets land here, so the order is the
   // walk's chronological encounter order = thread order.
@@ -328,13 +350,7 @@ function rehydrateMissingArticles(
     // Sanity: re-verify the snapshot still parses as same-author.
     const a = extractAuthorFromArticle(snapshot);
     if (a.handle.toLowerCase() !== target) continue;
-    const cell = document.createElement('div');
-    cell.setAttribute('data-testid', 'cellInnerDiv');
-    cell.setAttribute('data-xclipper-rehydrated', id);
-    // cloneNode again so the stored snapshot stays usable if rehydrate
-    // runs more than once during the page's lifetime.
-    cell.appendChild(snapshot.cloneNode(true));
-    host.appendChild(cell);
+    host.appendChild(rehydratedCell(id, snapshot));
   }
 
   // Attach as last body child — domToAst's rehydrated-first sort handles
@@ -343,4 +359,12 @@ function rehydrateMissingArticles(
   return host;
 }
 
-
+function rehydratedCell(id: string, snapshot: Element): Element {
+  const cell = document.createElement('div');
+  cell.setAttribute('data-testid', 'cellInnerDiv');
+  cell.setAttribute('data-xclipper-rehydrated', id);
+  // cloneNode again so the stored snapshot stays usable if rehydrate
+  // runs more than once during the page's lifetime.
+  cell.appendChild(snapshot.cloneNode(true));
+  return cell;
+}
