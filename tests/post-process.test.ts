@@ -544,3 +544,43 @@ describe('markdownOptions()', () => {
     expect(opts.frontmatterFields).toBe(DEFAULT_SETTINGS.frontmatterFieldsObsidian);
   });
 });
+
+describe('postProcess() reply context', () => {
+  const post = (id: string, handle: string, text: string) => ({
+    type: 'tweet' as const,
+    author: { name: handle, handle },
+    date: '2026-05-11T00:00:00.000Z',
+    tweetId: id,
+    text: [{ type: 'text' as const, value: text }],
+    media: [],
+  });
+  const replyThread = (context = [post('1', 'alice', 'Which laptop should I buy')]): ExtractedContent => docToExtracted({
+    version: 1,
+    metadata: {
+      type: 'thread',
+      sourceUrl: 'https://x.com/bob/status/2',
+      tweetId: '2',
+      author: { name: 'bob', handle: 'bob' },
+      date: '2026-05-11T00:00:00.000Z',
+      engagement: { likes: 10 },
+    },
+    ...(context.length ? { context } : {}),
+    body: { type: 'thread', tweets: [post('2', 'bob', 'Get a ThinkPad'), post('3', 'bob', 'Or a Framework')] },
+  });
+
+  it('names a {slug} file after the reply, not the post it answers', () => {
+    const slug = (data: ExtractedContent) =>
+      postProcess(data, { includeMetadata: false, downloadImages: false, filenameTemplate: '{slug}' }).filename;
+    expect(slug(replyThread())).toBe(slug(replyThread([])));
+    expect(slug(replyThread())).toMatch(/^get-a-thinkpad/);
+  });
+
+  it('puts thread stats after the first post of the thread, not after the context', () => {
+    const { markdown } = postProcess(replyThread(), {
+      includeMetadata: false,
+      downloadImages: false,
+      inlineStats: true,
+    });
+    expect(markdown).toContain('> Which laptop should I buy\n\n---\n\nGet a ThinkPad\n\n\n❤️ 10\n---\n\nOr a Framework');
+  });
+});

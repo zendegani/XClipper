@@ -203,13 +203,23 @@ function isoToDateTime(iso: string): string {
 // the tweet body.
 function previewForSlug(data: ExtractedContent): string {
   if (data.type === 'article' && data.title) return data.title;
-  let body = data.markdown.replace(/^---[\s\S]*?---\s*/m, '');
+  let body = data.markdown.slice(skipContext(data, data.markdown));
+  body = body.replace(/^---[\s\S]*?---\s*/m, '');
   body = body.replace(/^# .*$/m, '');
   body = body.replace(/!\[[^\]]*\]\([^)]+\)/g, '');
   body = body.replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
   body = body.replace(/^[>\s-]+/gm, '');
   body = body.replace(/[*_`]/g, '');
   return body.replace(/\s+/g, ' ').trim();
+}
+
+// renderMarkdown puts a reply's context (issue #154) above the post and closes
+// it with the first rule. The slug and thread stats are about the post, so
+// they start past that rule.
+function skipContext(data: ExtractedContent, md: string, from = 0): number {
+  if (!data.body?.context?.length) return from;
+  const rule = md.indexOf('\n---\n', from);
+  return rule < 0 ? from : rule + 4;
 }
 
 const FILENAME_MAX_CHARS = 120;
@@ -384,7 +394,7 @@ export function postProcess(
         const fmEnd = finalMarkdown.startsWith('---')
           ? finalMarkdown.indexOf('---', finalMarkdown.indexOf('\n') + 1)
           : -1;
-        const searchStart = fmEnd >= 0 ? fmEnd + 3 : 0;
+        const searchStart = skipContext(data, finalMarkdown, fmEnd >= 0 ? fmEnd + 3 : 0);
         const sepIdx = finalMarkdown.indexOf('\n---\n', searchStart);
         if (sepIdx >= 0) {
           finalMarkdown =
