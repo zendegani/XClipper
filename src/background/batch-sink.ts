@@ -1,11 +1,12 @@
-// Shared batch sink + format helpers (ADR 0002 #11, generalized for ADR 0003).
+// Shared batch output (ADR 0002 #11, generalized for ADR 0003): the rules,
+// the render, and the writers for every engine — only acquisition differs.
 //
-// The AST is the source of truth: given a folder and the per-item Documents,
-// these write the per-item files, the per-job data.json, and the one combined
-// file in the chosen format. They are parameterized by `folder` (not by a
-// BatchJob), so BOTH the DOM worker-tab batch (batch.ts) and the GraphQL Fast
-// Batch (fast-batch.ts) reuse exactly the same writers — only acquisition
-// differs.
+// planBatch decides what a run writes, renderItem and itemFiles turn one
+// post's AST into its files (pure, so the rules are testable without chrome),
+// and the write* functions are the only side effects: the per-item files, the
+// per-job data.json, and the one combined file. They take a `folder`, not a
+// BatchJob, so the DOM worker-tab batch (batch.ts) and the GraphQL Fast Batch
+// (fast-batch.ts) share them unchanged.
 
 import type { Document } from '../ast/types';
 import { renderDigest } from '../ast/render-digest';
@@ -80,7 +81,13 @@ export function planBatch(settings: Settings, format: BatchFormat, output: Batch
     zip: settings.batchZip && out !== 'combined' && !(localImages && format === 'md'),
     localVideo: out !== 'combined' && format === 'md' && settings.saveVideos && localImages,
     markdown: markdownOptions(settings, 'download'),
-    formatOptions: formatOptionsFrom(settings),
+    formatOptions: {
+      includeEngagement: settings.inlineStats,
+      obsidianFriendly: settings.obsidianFriendly,
+      frontmatterFields: settings.obsidianFriendly ? settings.frontmatterFieldsObsidian : settings.frontmatterFields,
+      obsidianTagsTemplate: settings.obsidianTagsTemplate,
+      includeMetadata: settings.includeMetadata,
+    },
   };
 }
 
@@ -114,16 +121,6 @@ export function itemFiles(
   }
   const built = buildFormatExport(plan.format as ExportFormat, docToExtracted(doc), plan.formatOptions);
   return [{ path: filename.replace(/\.md$/i, '') + '.' + built.ext, content: built.content, mime: built.mime }];
-}
-
-export function formatOptionsFrom(s: Settings): FormatOptions {
-  return {
-    includeEngagement: s.inlineStats,
-    obsidianFriendly: s.obsidianFriendly,
-    frontmatterFields: s.obsidianFriendly ? s.frontmatterFieldsObsidian : s.frontmatterFields,
-    obsidianTagsTemplate: s.obsidianTagsTemplate,
-    includeMetadata: s.includeMetadata,
-  };
 }
 
 // One combined file for the whole batch in the chosen format.
@@ -198,30 +195,6 @@ export async function downloadData(folder: string, filename: string, content: st
   });
 }
 
-// Folder sink (ADR 0002 #11): the item's Markdown plus any local images, all
-// under the job's downloads subfolder. Image paths already embed the item's own
-// media dir; Chrome uniquifies any residual conflict.
-export async function downloadItem(
-  folder: string,
-  filename: string,
-  markdown: string,
-  images?: { url: string; filename: string }[]
-): Promise<void> {
-  const writes: Promise<void>[] = [];
-  for (const img of images ?? []) {
-    if (!img || typeof img.url !== 'string' || !isAllowedImageUrl(img.url)) continue;
-    writes.push(
-      downloadThrottled({
-        url: img.url,
-        filename: sanitizeFilePath(`${folder}/${img.filename}`),
-        saveAs: false,
-      })
-    );
-  }
-  writes.push(downloadData(folder, filename, markdown, 'text/markdown'));
-  await Promise.all(writes);
-}
-
 // Download one post's files into the run folder. Resolves once all of them
 // are written (or failed), so callers get backpressure.
 export async function writeFiles(folder: string, files: OutFile[]): Promise<void> {
@@ -232,54 +205,6 @@ export async function writeFiles(folder: string, files: OutFile[]): Promise<void
       return downloadThrottled({ url: f.url, filename: sanitizeFilePath(`${folder}/${f.path}`), saveAs: false });
     })
   );
-}
-
-// One item's file (name + content) in the chosen format — the piece of the
-// per-item write that both sinks share: writePerItem downloads it, the zip
-// sink packs it into the archive instead.
-export function buildPerItemFile(
-  format: BatchFormat,
-  filename: string,
-  markdown: string,
-  doc: Document | undefined,
-  settings: Settings
-): { name: string; content: string; mime: string } {
-  if (format === 'md' || !doc) return { name: filename, content: markdown, mime: 'text/markdown' };
-  const built = buildFormatExport(format as ExportFormat, docToExtracted(doc), formatOptionsFrom(settings));
-  return { name: filename.replace(/\.md$/i, '') + '.' + built.ext, content: built.content, mime: built.mime };
-}
-
-// Write one item's file in the chosen format. Markdown is the postProcessed
-// output (+ local images); other formats are derived from the AST. Images only
-// attach to Markdown. CSV never reaches this (it's always combined).
-export async function writePerItem(
-  folder: string,
-  format: BatchFormat,
-  filename: string,
-  markdown: string,
-  images: { url: string; filename: string }[] | undefined,
-  doc: Document | undefined,
-  settings: Settings
-): Promise<void> {
-  if (format === 'md' || !doc) {
-    await downloadItem(folder, filename, markdown, images);
-    return;
-  }
-  const file = buildPerItemFile(format, filename, markdown, doc, settings);
-  await downloadData(folder, file.name, file.content, file.mime);
-}
-
-// Rebuild a stored item as a zip entry. Markdown is re-derived from the AST
-// through the same postProcess pipeline the live write path uses (mirroring
-// the content script's options); local images are always off in zip mode, so
-// the remote-URL rendering is the correct one.
-export function zipEntryFromStored(item: StoredItem, format: BatchFormat, settings: Settings): ZipEntry {
-  const result = postProcess(docToExtracted(item.doc), {
-    ...markdownOptions(settings, 'download'),
-    downloadImages: false,
-  });
-  const file = buildPerItemFile(format, item.filename, result.markdown, item.doc, settings);
-  return { name: file.name, content: file.content };
 }
 
 // Zip sink: every per-item file in one archive — a single download instead of

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { zipEntryFromStored } from '../src/background/batch-sink';
+import { planBatch, renderItem } from '../src/background/batch-sink';
 import { buildFormatExport } from '../src/shared/export-formats';
 import { docToExtracted } from '../src/shared/extracted-content';
 import { DEFAULT_SETTINGS } from '../src/shared/settings';
@@ -31,8 +31,8 @@ describe('custom Obsidian tags template', () => {
     expect(csv.content).toContain('reading');
   });
 
-  it('batch Markdown (zip path) uses it', () => {
-    const entry = zipEntryFromStored({ url: doc.metadata.sourceUrl, filename: 'a.md', doc }, 'md', settings);
-    expect(entry.content).toContain('tags: [reading, notionhq]');
+  it('batch Markdown uses it', () => {
+    const { markdown } = renderItem(doc, planBatch(settings, 'md', 'separate'));
+    expect(markdown).toContain('tags: [reading, notionhq]');
   });
 });
