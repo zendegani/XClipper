@@ -148,7 +148,7 @@ its whole page budget re-scanning already-exported items and returned fewer
 (eventually zero) new ones — a large feed (thousands of bookmarks) became
 unreachable, and the run got slower while doing it. Three **fetch modes** (a
 `Recent | Resume | Date range` switch in the popup) replace the single top-scan.
-State lives in `src/background/fast-batch.ts`; the keys in `batch-state.ts`.
+State lives in `src/background/fast-batch.ts`; the keys in `src/shared/export-ledger.ts`.
 
 | Mode | Start point | Page window | Cursor | Date filter |
 |---|---|---|---|---|

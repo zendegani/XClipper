@@ -206,7 +206,8 @@ orchestrator, and every renderer, is reused unchanged:
   memory, so large batches stay bounded and partial output survives a crash.
 - **A dedup ledger** of exported status ids (`chrome.storage.local`, capped at
   5000) lets the popup count "(N new)" and skip already-exported items; a Reset
-  control clears it.
+  control clears it. All ledger reads and writes go through
+  `src/shared/export-ledger.ts`.
 
 State lives in `src/background/batch.ts` and `batch-state.ts`; the harvest and
 selection message contracts are in `src/types/messages.ts`.
