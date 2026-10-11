@@ -29,8 +29,8 @@ export interface MarkdownRenderOptions {
 export function renderMarkdown(doc: Document, options: MarkdownRenderOptions = {}): string {
   const { body, metadata } = doc;
   const parts: string[] =
-    body.type === 'tweet'   ? renderTweetDocument(body, metadata, options) :
-    body.type === 'thread'  ? renderThreadDocument(body, metadata, options) :
+    body.type === 'tweet'   ? renderTweetDocument(body, metadata, doc.context, options) :
+    body.type === 'thread'  ? renderThreadDocument(body, metadata, doc.context, options) :
     /* article */             renderArticleDocument(body, metadata, options);
 
   parts.push('', '---', '', `> Source: ${metadata.sourceUrl}`, `> Date: ${metadata.date}`);
@@ -58,12 +58,41 @@ function tweetHeader(meta: DocumentMetadata): string {
   return `# ${meta.author.name} (@${meta.author.handle})`;
 }
 
-function renderTweetDocument(
-  tweet: TweetNode,
+// The posts a reply answers (issue #154): the conversation's first post and
+// the last few parents. A chain longer than that folds its middle away; the
+// post's own page on X shows all of it. Shared with the PDF renderer.
+const CONTEXT_TAIL = 2;
+export function foldContext(context: TweetNode[]): { head: TweetNode[]; hidden: number; tail: TweetNode[] } {
+  if (context.length <= CONTEXT_TAIL + 2) return { head: context, hidden: 0, tail: [] };
+  return {
+    head: context.slice(0, 1),
+    hidden: context.length - 1 - CONTEXT_TAIL,
+    tail: context.slice(-CONTEXT_TAIL),
+  };
+}
+
+// Each context post is its own blockquote, as a quoted post renders, then a
+// rule before the post itself.
+function renderContext(
+  context: TweetNode[] | undefined,
   meta: DocumentMetadata,
   options: MarkdownRenderOptions,
 ): string[] {
-  const parts: string[] = [tweetHeader(meta), ''];
+  if (!context?.length) return [];
+  const { head, hidden, tail } = foldContext(context);
+  const quote = (t: TweetNode) => renderQuotedTweetBlock(t, options).replace(/^\n+/, '');
+  const blocks = head.map(quote);
+  if (hidden > 0) blocks.push(`*[… ${hidden} more posts](${meta.sourceUrl})*`, ...tail.map(quote));
+  return ['*In reply to:*', '', blocks.join('\n\n'), '', '---', ''];
+}
+
+function renderTweetDocument(
+  tweet: TweetNode,
+  meta: DocumentMetadata,
+  context: TweetNode[] | undefined,
+  options: MarkdownRenderOptions,
+): string[] {
+  const parts: string[] = [tweetHeader(meta), '', ...renderContext(context, meta, options)];
   appendTweetBody(parts, tweet, options);
   return parts;
 }
@@ -71,9 +100,10 @@ function renderTweetDocument(
 function renderThreadDocument(
   thread: ThreadNode,
   meta: DocumentMetadata,
+  context: TweetNode[] | undefined,
   options: MarkdownRenderOptions,
 ): string[] {
-  const parts: string[] = [tweetHeader(meta), ''];
+  const parts: string[] = [tweetHeader(meta), '', ...renderContext(context, meta, options)];
   thread.tweets.forEach((tweet, idx) => {
     if (idx > 0) parts.push('', '---', '');
     appendTweetBody(parts, tweet, options);

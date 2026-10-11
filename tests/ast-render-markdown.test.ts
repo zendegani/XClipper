@@ -6,7 +6,7 @@ import { domToAst } from '../src/content/dom-to-ast';
 import { renderMarkdown, renderMarkdownBody } from '../src/ast/render-markdown';
 import { postProcess } from '../src/shared/post-process';
 import type { ExtractedContent, TweetMetadata } from '../src/types/messages';
-import type { Document, InlineNode, MediaItem } from '../src/ast/types';
+import type { Document, InlineNode, MediaItem, TweetNode } from '../src/ast/types';
 
 // Phase 3 parity test: AST extractor → AST → renderMarkdown → postProcess,
 // compared against the existing .md fixture. Diffs here are either renderer
@@ -362,5 +362,68 @@ describe('video media rendering', () => {
     const rendered = renderMarkdownBody(article, { includeVideoLinks: true });
     expect(rendered).toBe(`[▶ Video](${mp4})`);
     expect(rendered).not.toContain('![');
+  });
+});
+
+describe('reply context', () => {
+  const post = (id: string, handle: string, text: string): TweetNode => ({
+    type: 'tweet',
+    author: { name: `${handle} name`, handle },
+    date: '2026-01-01T00:00:00.000Z',
+    tweetId: id,
+    text: [{ type: 'text', value: text }],
+    media: [],
+  });
+  const replyDoc = (context: TweetNode[]): Document => ({
+    version: 1,
+    metadata: {
+      type: 'tweet',
+      sourceUrl: 'https://x.com/bob/status/9',
+      tweetId: '9',
+      author: { name: 'bob name', handle: 'bob' },
+      date: '2026-01-01T00:00:00.000Z',
+    },
+    context,
+    body: post('9', 'bob', 'the reply'),
+  });
+
+  it('quotes the posts a reply answers above it, then the reply as before', () => {
+    expect(renderMarkdown(replyDoc([post('1', 'alice', 'options for what?')]))).toBe([
+      '# bob name (@bob)',
+      '',
+      '*In reply to:*',
+      '',
+      '> **alice name (@alice)**',
+      '> ',
+      '> options for what?',
+      '',
+      '---',
+      '',
+      'the reply',
+      '',
+      '---',
+      '',
+      '> Source: https://x.com/bob/status/9',
+      '> Date: 2026-01-01T00:00:00.000Z',
+    ].join('\n'));
+  });
+
+  it('folds a long chain into the first post, a link, and the last two parents', () => {
+    const chain = ['1', '2', '3', '4', '5'].map((id) => post(id, `u${id}`, `post ${id}`));
+    const md = renderMarkdown(replyDoc(chain));
+    expect(md).toContain('> post 1\n\n*[… 2 more posts](https://x.com/bob/status/9)*\n\n> **u4 name (@u4)**');
+    expect(md).toContain('> post 5\n\n---\n\nthe reply');
+    expect(md).not.toContain('post 2');
+    expect(md).not.toContain('post 3');
+  });
+
+  it('shows a chain of four in full', () => {
+    const md = renderMarkdown(replyDoc(['1', '2', '3', '4'].map((id) => post(id, `u${id}`, `post ${id}`))));
+    for (const id of ['1', '2', '3', '4']) expect(md).toContain(`> post ${id}`);
+    expect(md).not.toContain('more posts');
+  });
+
+  it('leaves the CSV body to the reply alone', () => {
+    expect(renderMarkdownBody(replyDoc([post('1', 'alice', 'parent')]))).toBe('the reply');
   });
 });

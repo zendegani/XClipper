@@ -4,6 +4,10 @@
 export interface Document {
   version: 1;
   metadata: DocumentMetadata;
+  // The posts a reply answers, oldest first, up to the conversation's first
+  // post. On the Document, not TweetNode, so quoted and embedded posts don't
+  // carry context of their own (issue #154). Absent when there is none.
+  context?: TweetNode[];
   body: TweetNode | ThreadNode | ArticleNode;
 }
 
