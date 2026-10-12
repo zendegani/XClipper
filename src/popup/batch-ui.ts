@@ -87,6 +87,10 @@ const OPEN_URLS: Partial<Record<BatchTab, string>> = {
 };
 
 let activeTab: BatchTab = 'bookmarks';
+// The last tab shown, persisted. A page that isn't a source (a tweet opened for
+// Auto's readiness step) keeps it, so the action button can't silently swap
+// to another ready source between steps.
+const LAST_TAB_KEY = 'batchTab';
 // One job at a time (the background enforces this — one worker window,
 // politeness throttle toward X). Tabs stay browsable mid-job; this flag
 // just keeps the start button disabled everywhere while a job runs, except
@@ -383,6 +387,7 @@ function applyFastTabGating(): void {
 
 function setActiveTab(tab: BatchTab): void {
   activeTab = tab;
+  void chrome.storage.local.set({ [LAST_TAB_KEY]: tab });
   (Object.keys(TAB_BUTTONS) as BatchTab[]).forEach((k) => {
     TAB_BUTTONS[k].classList.toggle('active', k === tab);
     TAB_ICONS[k].classList.toggle('hidden', k !== tab);
@@ -644,9 +649,14 @@ export async function initBatchUi(): Promise<void> {
   // Land on the running job's origin tab (so its progress is visible), else the
   // tab matching the current page. The injector reports the source; if it can't
   // (page not reloaded after an extension update), fall back to the URL so we
-  // still focus e.g. Bookmarks. Selection is the last resort (any x.com page).
+  // still focus e.g. Bookmarks. Any other page (a tweet, say) keeps the last
+  // tab; Selection is the first-run default on x.com.
   const { source } = await harvest();
-  setActiveTab(activeJob?.origin ?? source ?? sourceFromUrl(tab?.url) ?? (pageIsX ? 'selection' : 'bookmarks'));
+  const { [LAST_TAB_KEY]: saved } = await chrome.storage.local.get(LAST_TAB_KEY);
+  const lastTab = typeof saved === 'string' && saved in TAB_BUTTONS ? (saved as BatchTab) : null;
+  setActiveTab(
+    activeJob?.origin ?? source ?? sourceFromUrl(tab?.url) ?? lastTab ?? (pageIsX ? 'selection' : 'bookmarks')
+  );
   applyFastTabGating(); // reflect Fast state if it was restored armed
 }
 
