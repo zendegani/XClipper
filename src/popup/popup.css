@@ -1167,12 +1167,14 @@ body {
   transform: translateX(0) translateY(0);
 }
 
-/* Replaces the engine + fetch-mode selectors while a run is active. */
+/* Replaces the engine + fetch-mode selectors while a run is active. Centered
+ * and in the accent color so it reads as those buttons, collapsed. */
 .batch-run-summary {
   padding: 0 2px;
   font-size: 12px;
-  font-weight: 600;
-  color: var(--text-secondary);
+  font-weight: 700;
+  text-align: center;
+  color: var(--batch);
 }
 
 .batch-run-summary.hidden {
