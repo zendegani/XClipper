@@ -39,7 +39,7 @@ export function setExportMode(single: boolean, persist = true): void {
     if (single) exportOptions.parentElement?.append(exportOptions);
     else panelBatch?.before(exportOptions);
   }
-  // Fast Batch bar + red glow ride with the mode too (batch-only).
+  // Fast Batch controls ride with the mode too (batch-only).
   syncFastBatchMode(single);
   // The format-gated toggle disabling depends on mode, so re-sync after the
   // batch controls' visibility flips.

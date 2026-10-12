@@ -172,8 +172,9 @@ function hideDedupAndResets(): void {
 async function refreshIdleUi(): Promise<void> {
   appendable = false;
   openTarget = undefined;
-  // Fast Batch (armed via the red toggle) overrides per-page gating: it fetches
-  // through the GraphQL session, so it doesn't need the source page loaded.
+  // Fast Batch (armed via the Auto/Super engine) overrides per-page gating: it
+  // fetches through the GraphQL session, so it doesn't need the source page
+  // loaded.
   if (getFastMode()) {
     await refreshFastIdle();
     return;

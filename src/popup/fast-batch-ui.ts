@@ -2,9 +2,9 @@
 // Super) chooses the acquisition path: Auto and Super run through the GraphQL
 // session (this module); Manual routes to the Standard worker-tab batch. Picking
 // Auto/Super grants consent (the optional webRequest permission, requestable only
-// from a click gesture) and turns the export area red; the Bookmarks/Profile/Likes
-// Export button then routes to startFastExport. Progress is polled from the
-// background (FAST_BATCH_STATUS) and rendered into the shared batch status line.
+// from a click gesture); the Bookmarks/Profile/Likes Export button then routes
+// to startFastExport. Progress is polled from the background (FAST_BATCH_STATUS)
+// and rendered into the shared batch status line.
 //
 // Decoupled from batch-ui via DOM events: this module never imports batch-ui
 // (batch-ui imports the small query helpers here), so there's no cycle.
@@ -130,12 +130,13 @@ function notifyChanged(): void {
 }
 
 // Reconciles the batch view with the engine, fetch mode, and run state.
-// The red recolor follows the ACTIVE session, not the toggle: red while a Fast
-// run is in flight (or idle-and-armed), but blue whenever a Standard job is the
-// active one — so a job started in the other mode never shows the wrong color.
+// `fast-on` (Fast's progress layout: no bar, Stop and status on one row)
+// follows the ACTIVE session, not the toggle: on while a Fast run is in flight
+// (or idle-and-armed), off whenever a Standard job is the active one — so a job
+// started in the other mode never gets the wrong layout.
 function applyBatchView(): void {
-  const red = inBatchMode && (fastActive || (getFastMode() && !standardJobActive));
-  viewMain?.classList.toggle('fast-on', red);
+  const fastLayout = inBatchMode && (fastActive || (getFastMode() && !standardJobActive));
+  viewMain?.classList.toggle('fast-on', fastLayout);
   // Neither engine nor fetch mode can change mid-run (the sessions must never
   // overlap), so while either session runs both selectors fold into one line.
   const running = standardJobActive || fastActive;
