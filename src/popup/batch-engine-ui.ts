@@ -1,7 +1,7 @@
-// Batch engine selector and GraphQL run presentation (ADR 0003). Manual | Auto |
-// Super chooses the acquisition path: Auto and Super run through the GraphQL
-// session; Manual routes to DOM acquisition in a worker window. Picking
-// Auto/Super grants consent (the optional webRequest permission, requestable only
+// Batch engine selector and GraphQL run presentation (ADR 0003). Scroll | Auto Full |
+// Auto Fast chooses the acquisition path: Auto Full and Auto Fast run through the GraphQL
+// session; Scroll routes to DOM acquisition in a worker window. Picking
+// Auto Full/Auto Fast grants consent (the optional webRequest permission, requestable only
 // from a click gesture); the Bookmarks/Profile/Likes Export button then routes
 // to startGraphqlExport. Progress is polled from the background (FAST_BATCH_STATUS)
 // and rendered into the shared batch status line.
@@ -76,9 +76,9 @@ const batchProgressRow = document.querySelector('.batch-progress-row');
 // Caption under the selector (and each segment's tooltip): scroll mode +
 // quality for each engine.
 const ENGINE_CAPTION: Record<BatchEngine, { key: string; text: string }> = {
-  manual: { key: 'mode_caption_manual', text: 'You scroll the page; every post you load is saved. Full threads & articles.' },
-  auto: { key: 'mode_caption_auto', text: 'Fetches through your X session automatically — no scrolling. Full threads & articles.' },
-  super: { key: 'mode_caption_super', text: "Fetches thousands at once, but saves each post's first tweet only — threads skipped." },
+  manual: { key: 'mode_caption_manual', text: 'You scroll and choose what loads. Saves full threads and articles.' },
+  auto: { key: 'mode_caption_auto', text: 'No scrolling. Fetches posts with full threads and articles.' },
+  super: { key: 'mode_caption_super', text: 'No scrolling. Skips thread expansion for larger, faster exports. Articles and replies to others still expand.' },
 };
 
 // Caption under the fetch-mode segment, explaining the picked option.
@@ -92,9 +92,9 @@ const t = (key: string, fallback: string): string => chrome.i18n.getMessage(key)
 // Segment labels, reused for the one-line summary that replaces both selectors
 // while a run is active.
 const ENGINE_LABEL: Record<BatchEngine, { key: string; text: string }> = {
-  manual: { key: 'mode_manual', text: 'Manual' },
-  auto: { key: 'mode_auto', text: 'Auto' },
-  super: { key: 'mode_super', text: 'Super' },
+  manual: { key: 'mode_manual', text: 'Scroll' },
+  auto: { key: 'mode_auto', text: 'Auto Full' },
+  super: { key: 'mode_super', text: 'Auto Fast' },
 };
 const FETCH_MODE_LABEL: Record<FetchMode, { key: string; text: string }> = {
   recent: { key: 'fast_paginate_recent', text: 'Recent' },
@@ -108,7 +108,7 @@ let inBatchMode = false;
 // 'recent' (top), 'resume' (continue from saved cursor), or 'dateRange' (deep
 // scan for a tweet-date window, without moving the resume cursor) — #83.
 let fetchMode: FetchMode = 'recent';
-// True while a Manual (worker-tab) batch job is running/paused — reported by
+// True while a Scroll (worker-tab) batch job is running/paused — reported by
 // batch-ui. We lock the selector whenever EITHER session is active so the two
 // can't overlap and the selector can never disagree with the running session.
 let manualJobActive = false;
@@ -129,7 +129,7 @@ function notifyChanged(): void {
 
 // Reconciles the batch view with the engine, fetch mode, and run state.
 // The retained `fast-on` CSS hook follows the active acquisition path:
-// Auto/Super use counts and Stop; Manual uses a progress bar and pause/resume.
+// Auto Full/Auto Fast use counts and Stop; Scroll uses a progress bar and pause/resume.
 function applyBatchView(): void {
   const graphqlLayout = inBatchMode && (graphqlRunActive || (usesGraphqlEngine() && !manualJobActive));
   viewMain?.classList.toggle('fast-on', graphqlLayout);
@@ -142,7 +142,7 @@ function applyBatchView(): void {
     t(ENGINE_LABEL[batchEngine].key, ENGINE_LABEL[batchEngine].text),
     ...(usesGraphqlEngine() ? [t(FETCH_MODE_LABEL[fetchMode].key, FETCH_MODE_LABEL[fetchMode].text)] : []),
   ].join(' · ');
-  // The fetch-mode segment + step lights are Auto/Super-only — show when armed.
+  // The fetch-mode segment + step lights are Auto Full/Auto Fast-only — show when armed.
   // The date inputs belong to Date-range fetch mode only.
   const showExtras = usesGraphqlEngine() && inBatchMode;
   fetchModeSelector?.classList.toggle('hidden', !showExtras || running);
@@ -151,7 +151,7 @@ function applyBatchView(): void {
   updateFloodHint();
 }
 
-// Auto/Super save every loaded post as its own file — thousands of downloads
+// Auto Full/Auto Fast save every loaded post as its own file — thousands of downloads
 // unless the user picked Combined output or the zip toggle (a disabled zip
 // toggle counts as off: local images override it). Shown below the engine and
 // fetch-mode box; hidden mid-run,
@@ -175,7 +175,7 @@ function setBatchEngine(engine: BatchEngine): void {
   engineAuto?.classList.toggle('active', engine === 'auto');
   engineSuper?.classList.toggle('active', engine === 'super');
   if (batchEngineCaption) batchEngineCaption.textContent = t(ENGINE_CAPTION[engine].key, ENGINE_CAPTION[engine].text);
-  // The feed rate-limit / re-run note applies to Auto/Super; Manual acquires
+  // The feed rate-limit / re-run note applies to Auto Full/Auto Fast; Scroll acquires
   // posts through the DOM rather than replaying the source feed.
   batchEngineInfo?.classList.toggle('hidden', engine === 'manual');
   chrome.storage.local.set({ [BATCH_ENGINE_KEY]: engine });
@@ -183,9 +183,9 @@ function setBatchEngine(engine: BatchEngine): void {
   notifyChanged();
 }
 
-// A user click on an engine segment. Manual needs nothing; Auto/Super need the opt-in webRequest permission —
+// A user click on an engine segment. Scroll needs nothing; Auto Full/Auto Fast need the opt-in webRequest permission —
 // contains() first to avoid a needless prompt, request() inside this gesture,
-// and a denial falls back to Manual.
+// and a denial falls back to Scroll.
 function selectEngine(engine: BatchEngine): void {
   if (manualJobActive || graphqlRunActive) return;
   if (engine === 'manual') {
@@ -255,7 +255,7 @@ function stepsFromProgress(p: GraphqlBatchProgress): void {
   setStep(graphqlStepExpand, phase.startsWith('Expanding') ? 'active' : phase.startsWith('Writing') ? 'done' : 'pending');
 }
 
-// Called by batch-ui as the Manual job starts/stops.
+// Called by batch-ui as the Scroll job starts/stops.
 export function setManualJobActive(active: boolean): void {
   manualJobActive = active;
   applyBatchView();
@@ -271,8 +271,8 @@ export function syncBatchEngineVisibility(single: boolean): void {
 export function initBatchEngineUi(): void {
   if (!batchEngineSelector) return;
 
-  // Restore the saved engine, migrating the old two-flag GraphQL/Super state.
-  // Auto/Super only stick if the webRequest permission is still granted (the
+  // Restore the saved engine, migrating the old two-flag GraphQL/Auto Fast state.
+  // Auto Full/Auto Fast only stick if the webRequest permission is still granted (the
   // user could have revoked it in chrome://extensions).
   chrome.storage.local.get([BATCH_ENGINE_KEY, LEGACY_FAST_MODE_KEY, LEGACY_SUPER_MODE_KEY], (res) => {
     let engine: BatchEngine = 'manual';
@@ -286,7 +286,7 @@ export function initBatchEngineUi(): void {
     chrome.permissions.contains(ACCESS, (granted) => setBatchEngine(granted ? engine : 'manual'));
   });
 
-  // Engine segments. selectEngine handles Auto/Super consent.
+  // Engine segments. selectEngine handles Auto Full/Auto Fast consent.
   engineManual?.addEventListener('click', () => selectEngine('manual'));
   engineAuto?.addEventListener('click', () => selectEngine('auto'));
   engineSuper?.addEventListener('click', () => selectEngine('super'));
@@ -356,7 +356,7 @@ export async function startGraphqlExport(
   let fromDate = dateMode ? fetchDateFrom?.value || undefined : undefined;
   let toDate = dateMode ? fetchDateTo?.value || undefined : undefined;
   if (fromDate && toDate && fromDate > toDate) [fromDate, toDate] = [toDate, fromDate];
-  // Auto expands threads + articles (correctness over raw speed); Super trades
+  // Auto Full expands threads + articles (correctness over raw speed); Auto Fast trades
   // thread expansion for a much larger per-run item budget (#85).
   const resp = (await chrome.runtime.sendMessage({
     action: 'FAST_BATCH_START',
@@ -368,7 +368,7 @@ export async function startGraphqlExport(
     paginate: fetchMode,
   })) as GraphqlBatchStartResponse | undefined;
   if (!resp?.success) {
-    showProgress(resp?.error || 'Could not start Auto/Super export.');
+    showProgress(resp?.error || 'Could not start Auto Full/Auto Fast export.');
     return;
   }
   graphqlRunActive = true;
@@ -438,10 +438,10 @@ function render(p: GraphqlBatchProgress): void {
   batchProgressRow?.classList.toggle('hidden', p.status === 'error');
   batchControls?.classList.toggle('hidden', !running);
   btnBatchCancel.classList.toggle('hidden', !running);
-  btnBatchPause.classList.add('hidden'); // Auto/Super have no pause
+  btnBatchPause.classList.add('hidden'); // Auto Full/Auto Fast have no pause
 
-  // No determinate bar for Auto/Super (hidden via #view-main.fast-on .batch-bar):
-  // collection is open-ended and Super streams writes in parallel, so a
+  // No determinate bar for Auto Full/Auto Fast (hidden via #view-main.fast-on .batch-bar):
+  // collection is open-ended and Auto Fast streams writes in parallel, so a
   // fraction would be fake. The count text + step lights carry progress instead.
   if (running) stepsFromProgress(p);
 
@@ -459,7 +459,7 @@ function render(p: GraphqlBatchProgress): void {
     const limited = p.rateLimited ? ' · rate-limited — re-run for the rest' : '';
     batchProgressText.textContent = `${prefix}${label} — ${p.exported} exported${skipped}${limited}`;
   } else if (p.status === 'error') {
-    batchProgressText.textContent = p.error || 'Auto/Super export failed';
+    batchProgressText.textContent = p.error || 'Auto Full/Auto Fast export failed';
   }
 }
 

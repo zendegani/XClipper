@@ -1,11 +1,11 @@
-// GraphQL acquisition for the Auto and Super batch engines (ADR 0003).
+// GraphQL acquisition for the Auto Full and Auto Fast batch engines (ADR 0003).
 //
 // We never ask for a password or a paid API key. With the opt-in `webRequest`
 // permission granted, we observe the auth headers the browser ALREADY sends on
 // your own x.com GraphQL requests, then replay the timeline endpoint ourselves —
 // paginating by cursor (timeline.ts), mapping each tweet to the AST (jsonToAst),
 // then writing through the SHARED batch sinks (batch-sink.ts) with the user's
-// batch settings. Manual uses DOM acquisition; all three engines share output.
+// batch settings. Scroll uses DOM acquisition; all three engines share output.
 //
 // This module is impure (webRequest, fetch, permissions). Its pure dependencies
 // (parse/paginate/map/sinks) are unit-tested; tests/graphql-batch.test.ts drives
@@ -72,8 +72,8 @@ import {
 
 const log = (...args: unknown[]): void => console.log('[xclipper fast-batch]', ...args);
 
-// Polled progress for the popup (Auto/Super have no per-item worker tab, so they
-// can't reuse the Manual batch job model). Cancel is cooperative — the run
+// Polled progress for the popup (Auto Full/Auto Fast have no per-item worker tab, so they
+// can't reuse the Scroll batch job model). Cancel is cooperative — the run
 // loops check the flag at phase boundaries.
 let progress: GraphqlBatchProgress = {
   status: 'idle',
@@ -217,14 +217,14 @@ const feedTemplate = (source: GraphqlBatchSource): string | undefined =>
 export interface GraphqlBatchOptions {
   source?: GraphqlBatchSource;
   // Profile owner's handle — reposts (author ≠ handle) are skipped, matching
-  // Manual profile export.
+  // Scroll profile export.
   handle?: string;
   // YYYY-MM-DD bounds on the tweet date; out-of-range items are skipped before
   // expansion, so a tighter range avoids X's TweetDetail rate limit.
   fromDate?: string;
   toDate?: string;
   maxItems?: number;
-  // Auto expands self-threads (default); false selects Super. Both still fetch
+  // Auto Full expands self-threads (default); false selects Auto Fast. Both still fetch
   // TweetDetail for articles and replies to other authors.
   expandThreads?: boolean;
   // Fetch mode (issue #83): 'recent' paginates from the top; 'resume' continues
@@ -240,15 +240,15 @@ export interface GraphqlBatchOptions {
 // went wrong"). Gentle + stop-on-rate-limit protects the session.
 const TWEET_DETAIL_CONCURRENCY = 3;
 
-// Items collected per Auto run. Deliberately matched to the ~150-call
-// TweetDetail budget above (not the Manual batch's 200): if collection
+// Items collected per Auto Full run. Deliberately matched to the ~150-call
+// TweetDetail budget above (not the Scroll batch's 200): if collection
 // exceeds the expansion budget, every run leaves the overflow as un-expanded
 // stubs, and since the next run completes that backlog FIRST, the leftover
 // compounds upward each run. Sizing the run to the budget means a run expands
 // everything it collects — no growing backlog.
 const AUTO_MAX_ITEMS = 150;
 
-// Super (#85) skips self-thread expansion, raising the collection cap. Articles
+// Auto Fast (#85) skips self-thread expansion, raising the collection cap. Articles
 // and replies to other authors still need TweetDetail and can hit its rate limit.
 const SUPER_MAX_ITEMS = 3000;
 
@@ -296,8 +296,8 @@ export async function runGraphqlBatchExport(opts: GraphqlBatchOptions = {}): Pro
 // per-item TweetDetail, then postProcess + write through the SHARED sinks
 // (per-item files / combined / data.json) using the user's batch settings.
 // Honors the dedup ledger and the hard item cap. Console:
-//   await xclipperFastBatch()                       // Auto
-//   await xclipperFastBatch({ expandThreads: false }) // Super (articles/replies still expand)
+//   await xclipperFastBatch()                       // Auto Full
+//   await xclipperFastBatch({ expandThreads: false }) // Auto Fast (articles/replies still expand)
 async function exportGraphqlBatch(opts: GraphqlBatchOptions = {}): Promise<GraphqlBatchResult | null> {
   const expandThreads = opts.expandThreads ?? true;
   const maxItems = opts.maxItems ?? (expandThreads ? AUTO_MAX_ITEMS : SUPER_MAX_ITEMS);
@@ -325,12 +325,12 @@ async function exportGraphqlBatch(opts: GraphqlBatchOptions = {}): Promise<Graph
     error: undefined,
   });
   if (!(await requestGraphqlAccess())) {
-    log('permission denied — Auto/Super need the optional webRequest access');
-    setProgress({ status: 'error', error: 'Permission denied — select Auto or Super first.' });
+    log('permission denied — Auto Full/Auto Fast need the optional webRequest access');
+    setProgress({ status: 'error', error: 'Permission denied — select Auto Full or Auto Fast first.' });
     return null;
   }
   await restoreSession(); // reload captured auth/templates if the SW restarted
-  // Auto/Super replays two captured requests: the source feed (bookmarks /
+  // Auto Full/Auto Fast replays two captured requests: the source feed (bookmarks /
   // profile / likes), and (to expand threads/articles) TweetDetail. After an
   // extension reload neither has been seen yet. Check BOTH up front (before
   // paginating) and give one plain hint — the user does it once, then it works.
@@ -351,9 +351,9 @@ async function exportGraphqlBatch(opts: GraphqlBatchOptions = {}): Promise<Graph
   }
 
   const settings = await loadSettings();
-  // Profile: drop reposts unless the user opted to include them (matches Manual).
+  // Profile: drop reposts unless the user opted to include them (matches Scroll).
   const skipReposts = source === 'profile' && !settings.includeReposts;
-  // The same output rules Manual follows (batch-sink.ts planBatch).
+  // The same output rules Scroll follows (batch-sink.ts planBatch).
   const plan = planBatch(settings, settings.batchFormat ?? 'md', settings.batchOutput ?? 'separate');
   const { format, output, zip } = plan;
 
@@ -387,7 +387,7 @@ async function exportGraphqlBatch(opts: GraphqlBatchOptions = {}): Promise<Graph
   // mid-write (worker shutdown, extension reload, crash) would otherwise lose
   // it all, and every later run re-exports what this one wrote (#148). A post
   // only counts once its files are on disk (markDone), and saves are debounced
-  // so a Super run doesn't rewrite a 5000-id array per post. Zip and Combined
+  // so an Auto Fast run doesn't rewrite a 5000-id array per post. Zip and Combined
   // put nothing on disk until the end, so they keep the end-of-run save only.
   const saveProgress = (): Promise<void> => saveLedgers(ledgerArr, [...nextIncomplete]);
   const saveAsWeGo = output !== 'combined' && !zip;
@@ -453,7 +453,7 @@ async function exportGraphqlBatch(opts: GraphqlBatchOptions = {}): Promise<Graph
     return writeFiles(folder, files).then(markDone);
   };
 
-  // Super pipeline: a root that needs no article or reply expansion is
+  // Auto Fast pipeline: a root that needs no article or reply expansion is
   // complete the moment the feed maps it — so write it straight away, overlapping
   // the next page's fetch instead of bursting every download at the end. Scoped
   // to separate-files output (the thousands-of-loose-files case this targets):
@@ -490,7 +490,7 @@ async function exportGraphqlBatch(opts: GraphqlBatchOptions = {}): Promise<Graph
   //    `needsExpand` items get a TweetDetail fetch next; `ledger` decides whether
   //    to mark the item done (false = re-run should retry it). For a profile,
   //    `handle` is set and reposts (author ≠ handle) are skipped — matching
-  //    Manual profile export.
+  //    Scroll profile export.
   interface Item {
     doc: Document;
     needsExpand: boolean;
@@ -500,7 +500,7 @@ async function exportGraphqlBatch(opts: GraphqlBatchOptions = {}): Promise<Graph
     // canonical id (edited tweets), so we must ledger
     // this one too or the post re-exports every run.
     feedId: string;
-    // Set once the Super pipeline already streamed this item to disk during
+    // Set once the Auto Fast pipeline already streamed this item to disk during
     // collection, so the final write phase skips it.
     written?: boolean;
   }
@@ -532,7 +532,7 @@ async function exportGraphqlBatch(opts: GraphqlBatchOptions = {}): Promise<Graph
           continue;
         }
         if (id && prevIncomplete.has(id)) continue; // retried by id below — don't double-collect
-        // Super still fetches a reply to someone else: the posts it answers
+        // Auto Fast still fetches a reply to someone else: the posts it answers
         // only come with TweetDetail (issue #154).
         const needsExpand = doc.metadata.type === 'article' || expandThreads || repliesToAnotherAuthor(raw);
         const item: Item = { doc, needsExpand, ledger: !needsExpand, feedId: id };
@@ -593,7 +593,7 @@ async function exportGraphqlBatch(opts: GraphqlBatchOptions = {}): Promise<Graph
   }
 
   // 3) Expand fresh items via per-item TweetDetail: articles, replies to other
-  //    authors, and self-threads in Auto. Articles go FIRST (their body only exists
+  //    authors, and self-threads in Auto Full. Articles go FIRST (their body only exists
   //    via TweetDetail). On the first rate-limit signal we STOP (rather than
   //    hammer X and degrade the user's session); stopped/rate-limited items are
   //    NOT ledgered, so a re-run retries them.
@@ -609,7 +609,7 @@ async function exportGraphqlBatch(opts: GraphqlBatchOptions = {}): Promise<Graph
     });
     return null;
   } else if (toExpand.length > 0) {
-    // Super (expandThreads off) still expands articles — their body needs the
+    // Auto Fast (expandThreads off) still expands articles — their body needs the
     // TweetDetail fetch — and replies to others, for the posts they answer.
     // Name only what this run actually expands.
     setProgress({
@@ -647,29 +647,29 @@ async function exportGraphqlBatch(opts: GraphqlBatchOptions = {}): Promise<Graph
     const pending = toExpand.filter((s) => !s.ledger).length;
     if (rateLimited && pending > 0) {
       log(
-        `hit X's TweetDetail rate limit — stopped to protect your session. ${pending} item(s) were exported incomplete (a root tweet, an article stub, or an article whose embedded post is a link) and were NOT marked done; re-run Auto or Super later (a few minutes) and the dedup ledger will fetch just those.`
+        `hit X's TweetDetail rate limit — stopped to protect your session. ${pending} item(s) were exported incomplete (a root tweet, an article stub, or an article whose embedded post is a link) and were NOT marked done; re-run Auto Full or Auto Fast later (a few minutes) and the dedup ledger will fetch just those.`
       );
     }
   }
 
   // 4) Write the rest. Completed backlog items (retryItems) go first, then this
-  // run's fresh collection minus whatever the Super pipeline already
+  // run's fresh collection minus whatever the Auto Fast pipeline already
   // streamed during collection. On a normal/rate-limited run we write
   // everything; on CANCEL we write only the items actually processed
-  // (ledger=true), so "stop at 5" yields ~5 files like Manual — the rest stay
+  // (ledger=true), so "stop at 5" yields ~5 files like Scroll — the rest stay
   // un-ledgered for a re-run.
   const allItems = [...retryItems, ...selected];
   const toWrite = cancelRequested ? allItems.filter((s) => s.ledger) : allItems;
   const remaining = toWrite.filter((s) => !s.written);
   // Streamed items are already written; count them so the bar doesn't reset from
-  // "2000" back to "0" for a pure Super run whose remainder is near-empty.
+  // "2000" back to "0" for a pure Auto Fast run whose remainder is near-empty.
   let processed = toWrite.length - remaining.length;
   setProgress({ phase: 'Writing files…', total: toWrite.length, done: processed });
   for (const s of remaining) {
     await writeOne(s);
     setProgress({ done: ++processed });
   }
-  // Drain any downloads the Super pipeline streamed during collection, so
+  // Drain any downloads the Auto Fast pipeline streamed during collection, so
   // every file is on disk before we write the manifest and finalize.
   await Promise.all(streamedWrites);
   // Zip mode: everything writeOne collected (stubs included) as one archive.
@@ -725,7 +725,7 @@ async function exportGraphqlBatch(opts: GraphqlBatchOptions = {}): Promise<Graph
 
 
 // Debug/fixture capture: download the raw TweetDetail JSON for one status id,
-// reusing the already-granted Auto/Super auth (no Network-tab fiddling). Console:
+// reusing the already-granted Auto Full/Auto Fast auth (no Network-tab fiddling). Console:
 //   await xclipperDumpTweetDetail('2046902326657749114')
 async function dumpTweetDetail(id: string): Promise<void> {
   if (!(await requestGraphqlAccess())) return void log('permission denied');
@@ -756,7 +756,7 @@ export function initGraphqlBatch(): void {
 
 function startGraphqlBatch(m: GraphqlBatchStartRequest): GraphqlBatchStartResponse {
   if (progress.status === 'running') {
-    return { success: false, error: 'An Auto/Super run is already in progress.' };
+    return { success: false, error: 'An Auto Full/Auto Fast run is already in progress.' };
   }
   void runGraphqlBatchExport({
     ...(m.source ? { source: m.source } : {}),
@@ -776,7 +776,7 @@ async function graphqlBatchReady(msg: GraphqlBatchReadyRequest): Promise<Graphql
 }
 
 // Popup → background controls. Only extension pages may drive these, same as
-// the Manual batch messages.
+// the Scroll batch messages.
 export const graphqlBatchRoutes: Routes = {
   FAST_BATCH_START: { trust: ['extension-page'], handle: startGraphqlBatch },
   FAST_BATCH_STATUS: {

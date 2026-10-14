@@ -63,28 +63,28 @@
     "message": "批量引擎"
   },
   "batch_mode_hint": {
-    "message": "自动和超级模式通过你已登录的 X 会话获取内容 — 无需 API 密钥或密码，任何内容都不会离开浏览器。大型任务可能触发 X 的软性速率限制；任务会平稳停止并保留其余待处理项目 — 等待约 15 分钟，再次运行即可从中断处继续。"
+    "message": "自动完整和自动快速模式通过你已登录的 X 会话获取内容 — 无需 API 密钥或密码，任何内容都不会离开浏览器。大型任务可能触发 X 的软性速率限制；任务会平稳停止并保留其余待处理项目 — 等待约 15 分钟，再次运行即可从中断处继续。"
   },
   "batch_mode_info_label": {
-    "message": "关于自动和超级模式"
+    "message": "关于自动完整和自动快速模式"
   },
   "mode_manual": {
-    "message": "手动"
+    "message": "滚动"
   },
   "mode_auto": {
-    "message": "自动"
+    "message": "自动完整"
   },
   "mode_super": {
-    "message": "超级"
+    "message": "自动快速"
   },
   "mode_caption_manual": {
-    "message": "由你滚动页面；加载的每个帖子都会保存，包含完整推文串和文章。"
+    "message": "由你滚动并选择加载的内容。保存完整推文串和文章。"
   },
   "mode_caption_auto": {
-    "message": "通过你的 X 会话自动获取，无需滚动，包含完整推文串和文章。"
+    "message": "无需滚动。自动获取帖子及完整推文串和文章。"
   },
   "mode_caption_super": {
-    "message": "一次获取数千条，但每个帖子仅保存首条推文 — 跳过推文串。"
+    "message": "无需滚动。跳过推文串展开，以更快导出更多帖子。仍会展开文章和对其他作者的回复。"
   },
   "btn_batch_fast_hint": {
     "message": "通过你的 X 会话获取所有书签，速度更快。会展开推文串和文章。"
@@ -96,16 +96,16 @@
     "message": "通过你的 X 会话获取你点赞的帖子，速度更快。会展开推文串和文章。"
   },
   "btn_batch_fast_no_selection": {
-    "message": "选择功能仅在手动模式下可用；请切换到手动模式来选择推文。"
+    "message": "选择功能仅在滚动模式下可用；请切换到滚动模式来选择推文。"
   },
   "btn_batch_fast_no_timeline": {
-    "message": "时间线仅在手动模式下可用；请切换到手动模式来导出主页信息流。"
+    "message": "时间线仅在滚动模式下可用；请切换到滚动模式来导出主页信息流。"
   },
   "batch_tab_selection_fast": {
-    "message": "切换到手动模式以选择推文"
+    "message": "切换到滚动模式以选择推文"
   },
   "batch_tab_timeline_fast": {
-    "message": "切换到手动模式以导出主页信息流"
+    "message": "切换到滚动模式以导出主页信息流"
   },
   "fast_date_range": {
     "message": "日期范围"
@@ -337,9 +337,6 @@
   },
   "group_export": {
     "message": "导出设置"
-  },
-  "beta": {
-    "message": "Beta"
   },
   "group_single": {
     "message": "单条导出"

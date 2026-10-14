@@ -4,8 +4,8 @@ import type { Document } from '../src/ast/types';
 import { markdownOptions } from '../src/shared/post-process';
 import { DEFAULT_SETTINGS, type BatchFormat, type BatchOutput } from '../src/shared/settings';
 
-// One set of batch output rules for every engine (#138). Manual, Auto and
-// Super all plan a run through planBatch, so these cases hold for each of them.
+// One set of batch output rules for every engine (#138). Scroll, Auto Full and
+// Auto Fast all plan a run through planBatch, so these cases hold for each of them.
 
 const FORMATS: BatchFormat[] = ['md', 'txt', 'html', 'json', 'csv'];
 const OUTPUTS: BatchOutput[] = ['separate', 'both', 'combined'];
@@ -41,7 +41,7 @@ describe('planBatch', () => {
     expect(planBatch(settings, 'md', 'separate').markdown).toEqual(markdownOptions(settings, 'download'));
   });
 
-  it('survives storage: a Manual job keeps its plan across a worker restart', () => {
+  it('survives storage: a Scroll job keeps its plan across a worker restart', () => {
     const plan = planBatch({ ...DEFAULT_SETTINGS, inlineStats: true }, 'html', 'both');
     expect(JSON.parse(JSON.stringify(plan))).toEqual(plan);
   });
@@ -52,7 +52,7 @@ const MP4 = 'https://video.twimg.com/amplify_video/1/vid/avc1/1280x720/clip.mp4'
 const PHOTO = 'https://pbs.twimg.com/media/photo.jpg';
 
 // A post with a photo and a video whose MP4 is already known (the shape GraphQL
-// Batch maps, and Manual's once the orchestrator has resolved its videos).
+// Batch maps, and Scroll's once the orchestrator has resolved its videos).
 const videoDoc: Document = {
   version: 1,
   metadata: {

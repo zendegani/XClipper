@@ -1,4 +1,5 @@
-// Product choices; acquisition modules use Manual/GraphQL names. See GLOSSARY.md.
+// Product labels: manual = Scroll, auto = Auto Full, super = Auto Fast.
+// Keep stored values and message contracts compatible. See GLOSSARY.md.
 export type BatchEngine = 'manual' | 'auto' | 'super';
 export type BatchSource = 'bookmarks' | 'profile' | 'selection' | 'likes' | 'timeline';
 export type GraphqlBatchSource = 'bookmarks' | 'profile' | 'likes';
@@ -98,7 +99,7 @@ export interface ExtractResponse {
   error?: string;
 }
 
-// Automatic single-post trigger, unrelated to the Auto batch engine.
+// Automatic single-post trigger, unrelated to the Auto Full batch engine.
 // Background → content: run an in-place extraction on the current tab, used by
 // the inline button / context menu when the target tweet is already the open
 // permalink. `subAction` selects the flow; `pdf` routes to the PDF pipeline.
@@ -117,7 +118,7 @@ export interface AutoExtractRequest {
   single?: boolean;
 }
 
-// Manual engine: start a DOM worker-window job over the given status permalinks
+// Scroll engine: start a DOM worker-window job over the given status permalinks
 // (ADR 0002). BATCH_* action strings are retained for compatibility.
 export interface ManualBatchStartRequest {
   action: 'BATCH_START';
@@ -147,13 +148,13 @@ export interface ManualBatchStartResponse {
   error?: string;
 }
 
-// Extension page → background: control a running Manual job.
+// Extension page → background: control a running Scroll job.
 export interface ManualBatchControlRequest {
   action: 'BATCH_CONTROL';
   control: 'cancel' | 'pause' | 'resume';
 }
 
-// Extension page → background: snapshot of the current Manual job, polled by
+// Extension page → background: snapshot of the current Scroll job, polled by
 // the popup progress UI (the popup may close and reopen mid-job, so progress
 // must be queryable rather than pushed).
 export interface ManualBatchStatusRequest {
@@ -242,12 +243,12 @@ export interface ContextUrlRequest {
   url: string | null;
 }
 
-// ─── GraphQL acquisition: Auto and Super (ADR 0003) ──────────────────
+// ─── GraphQL acquisition: Auto Full and Auto Fast (ADR 0003) ──────────────────
 // Progress is polled because the popup can close mid-run. These engines have
 // no per-item worker tab. FAST_BATCH_* action strings are kept for compatibility.
 export interface GraphqlBatchStartRequest {
   action: 'FAST_BATCH_START';
-  // Timeline and Selection use Manual.
+  // Timeline and Selection use Scroll.
   source?: GraphqlBatchSource;
   // Profile owner's handle — used to skip reposts (export only their own posts).
   handle?: string;
@@ -255,7 +256,7 @@ export interface GraphqlBatchStartRequest {
   // skipped (and never expanded), so the TweetDetail budget is spared.
   fromDate?: string;
   toDate?: string;
-  // Auto by default; false selects Super. Both expand articles and replies to
+  // Auto Full by default; false selects Auto Fast. Both expand articles and replies to
   // other authors, even when self-thread expansion is disabled.
   expandThreads?: boolean;
   // Fetch mode (#83): 'recent' starts from the top of the feed

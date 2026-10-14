@@ -125,8 +125,8 @@ Use the terms in [`GLOSSARY.md`](GLOSSARY.md). The [architecture navigation map]
 - **Tweets/threads:** custom AST rendering (t.co resolution, emoji inlining, @mention cleanup).
 - **Articles:** manual Draft.js block parsing for precise heading/list/code-block extraction.
 - **PDF:** the same AST renders to HTML and prints via Chrome's native engine.
-- **Manual engine:** DOM acquisition in `src/background/manual-batch.ts` visits each loaded/selected permalink in a worker window; pure job transitions live in `batch-state.ts`. Supports all five sources, with pause/resume and determinate progress.
-- **Auto and Super engines (opt-in):** shared GraphQL acquisition in `src/background/graphql-batch.ts` maps X's JSON through `src/graphql/` into the same Content AST and output sink. Auto expands self-threads; Super skips them, while still expanding articles and replies to other authors. Both support Bookmarks, Profile, and Likes, with separate Recent / Resume / Date range fetch modes — see [`docs/adr/0003`](docs/adr/0003-fast-batch-graphql.md).
+- **Scroll engine:** DOM acquisition in `src/background/manual-batch.ts` visits each loaded/selected permalink in a worker window; pure job transitions live in `batch-state.ts`. Supports all five sources, with pause/resume and determinate progress.
+- **Auto Full and Auto Fast engines (opt-in):** shared GraphQL acquisition in `src/background/graphql-batch.ts` maps X's JSON through `src/graphql/` into the same Content AST and output sink. Auto Full expands self-threads; Auto Fast skips them, while still expanding articles and replies to other authors. Both support Bookmarks, Profile, and Likes, with separate Recent / Resume / Date range fetch modes — see [`docs/adr/0003`](docs/adr/0003-fast-batch-graphql.md).
 - DOM is cleaned (engagement bars, follow buttons, navigation) before extraction.
 - Downloads go through the `chrome.downloads` API after the background worker validates the message sender and sanitizes paths. Local image downloads are limited to expected X media hosts; external image URLs stay as remote Markdown links.
 - Nothing leaves your browser.
@@ -189,6 +189,6 @@ npm run clean      # Clean build output
 | `contextMenus` | Add **Save / Copy tweet as Markdown** to the right-click menu (X.com only) |
 | `alarms`       | Keep batch jobs running reliably while the service worker idles (a watchdog timer) |
 | `host` (X.com) | Inject a content script on X.com to extract post / article content and draw the inline download button |
-| `webRequest` *(optional)* | **Auto/Super and local video saving** — capture your X session's auth header to replay X's internal API. Requested through Chrome's prompt when selecting Auto/Super or enabling local Media saving |
+| `webRequest` *(optional)* | **Auto Full/Auto Fast and local video saving** — capture your X session's auth header to replay X's internal API. Requested through Chrome's prompt when selecting Auto Full/Auto Fast or enabling local Media saving |
 
 **Your data never leaves your device. No data is collected, transmitted, or stored externally.** See [PRIVACY.md](PRIVACY.md).

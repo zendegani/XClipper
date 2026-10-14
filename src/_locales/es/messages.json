@@ -63,28 +63,28 @@
     "message": "Motor de exportación por lotes"
   },
   "batch_mode_hint": {
-    "message": "Auto y Súper obtienen contenido mediante tu sesión iniciada de X — sin clave API, sin contraseña y sin que nada salga de tu navegador; las ejecuciones grandes pueden alcanzar el límite de frecuencia flexible de X, pero se detienen correctamente y dejan el resto pendiente — espera unos 15 minutos y vuelve a ejecutarlas para continuar desde donde se detuvieron."
+    "message": "Auto Completo y Auto Rápido obtienen contenido mediante tu sesión iniciada de X — sin clave API, sin contraseña y sin que nada salga de tu navegador; las ejecuciones grandes pueden alcanzar el límite de frecuencia flexible de X, pero se detienen correctamente y dejan el resto pendiente — espera unos 15 minutos y vuelve a ejecutarlas para continuar desde donde se detuvieron."
   },
   "batch_mode_info_label": {
-    "message": "Sobre Auto y Súper"
+    "message": "Sobre Auto Completo y Auto Rápido"
   },
   "mode_manual": {
-    "message": "Manual"
+    "message": "Desplazar"
   },
   "mode_auto": {
-    "message": "Auto"
+    "message": "Auto Completo"
   },
   "mode_super": {
-    "message": "Súper"
+    "message": "Auto Rápido"
   },
   "mode_caption_manual": {
-    "message": "Desplázate por la página; se guarda cada publicación que cargas, con hilos y artículos completos."
+    "message": "Tú te desplazas y eliges qué cargar. Guarda hilos y artículos completos."
   },
   "mode_caption_auto": {
-    "message": "Obtiene contenido automáticamente mediante tu sesión de X — sin desplazarte, con hilos y artículos completos."
+    "message": "Sin desplazarte. Obtiene publicaciones con hilos y artículos completos."
   },
   "mode_caption_super": {
-    "message": "Obtiene miles a la vez, pero solo guarda el primer tweet de cada publicación — se omiten los hilos."
+    "message": "Sin desplazarte. Omite la ampliación de hilos para exportar más y más rápido. Sigue ampliando artículos y respuestas a otros autores."
   },
   "btn_batch_fast_hint": {
     "message": "Obtén todos tus marcadores mediante tu sesión de X, mucho más rápido. Expande hilos y artículos."
@@ -96,16 +96,16 @@
     "message": "Obtén tus publicaciones con like mediante tu sesión de X, mucho más rápido. Expande hilos y artículos."
   },
   "btn_batch_fast_no_selection": {
-    "message": "La selección solo está disponible en Manual; cambia a Manual para elegir tweets a mano."
+    "message": "La selección solo está disponible en Desplazar; cambia a Desplazar para elegir tweets a mano."
   },
   "btn_batch_fast_no_timeline": {
-    "message": "La cronología solo está disponible en Manual; cambia a Manual para exportar tu feed de inicio."
+    "message": "La cronología solo está disponible en Desplazar; cambia a Desplazar para exportar tu feed de inicio."
   },
   "batch_tab_selection_fast": {
-    "message": "Cambia a Manual para elegir tweets a mano"
+    "message": "Cambia a Desplazar para elegir tweets a mano"
   },
   "batch_tab_timeline_fast": {
-    "message": "Cambia a Manual para exportar tu feed de inicio"
+    "message": "Cambia a Desplazar para exportar tu feed de inicio"
   },
   "fast_date_range": {
     "message": "Rango de fechas"
@@ -337,9 +337,6 @@
   },
   "group_export": {
     "message": "Ajustes de exportación"
-  },
-  "beta": {
-    "message": "Beta"
   },
   "group_single": {
     "message": "Exportación individual"

@@ -53,16 +53,16 @@ When you click **Download .pdf**, the extension opens a new tab at an extension-
 
 These are the minimum permissions required for the extension to function. They are granted at install time. No additional permissions are requested unless you explicitly opt in below.
 
-### Optional permission — Auto/Super engines and local video saving
+### Optional permission — Auto Full/Auto Fast engines and local video saving
 
-XClipper's **Auto** and **Super** batch engines are optional; **Manual** is the default. Selecting Auto or Super requests the permissions below through the browser's own prompt. Enabling local **Media** saving also requests this access to resolve video URLs for single exports and Manual batches. Declining leaves Manual batch export available.
+XClipper's **Auto Full** and **Auto Fast** batch engines are optional; **Scroll** is the default. Selecting Auto Full or Auto Fast requests the permissions below through the browser's own prompt. Enabling local **Media** saving also requests this access to resolve video URLs for single exports and Scroll batches. Declining leaves Scroll batch export available.
 
 | Optional permission | Purpose |
 |---------------------|---------|
 | `webRequest` (X.com only) | Lets XClipper read the authentication token your browser **already sends** on your own X.com requests, so it can call X's internal data endpoints directly — the same endpoints x.com's own web page calls — instead of opening and rendering each post in a tab. This is much faster. |
 | `host` (X.com, optional) | Grants the `webRequest` access above, scoped to X.com only. |
 
-With your consent, Auto and Super reuse **your existing logged-in X session** to fetch your bookmarks/likes/posts as data; local Media saving uses the same session to resolve video URLs. This does **not** use any paid API and does **not** ask for your password — data is fetched from X into your browser and written to Downloads. You can revoke the permission at any time in your browser's extension settings; the engine selector then falls back to Manual, and session-based video resolution is unavailable.
+With your consent, Auto Full and Auto Fast reuse **your existing logged-in X session** to fetch your bookmarks/likes/posts as data; local Media saving uses the same session to resolve video URLs. This does **not** use any paid API and does **not** ask for your password — data is fetched from X into your browser and written to Downloads. You can revoke the permission at any time in your browser's extension settings; the engine selector then falls back to Scroll, and session-based video resolution is unavailable.
 
 ### Entry points and download safety
 

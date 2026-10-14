@@ -76,7 +76,7 @@ describe('tweetDetailToDocument', () => {
   });
 
   // The body starts at the thread's first post, but the id stays the requested
-  // post's, so the file name matches `source:` and Manual's export (#157).
+  // post's, so the file name matches `source:` and Scroll's export (#157).
   it('roots a mid-thread request at the thread start, keeping the requested id', () => {
     const raw = tweetDetail([mk('1', 'alice', 'first'), mk('2', 'alice', 'second'), mk('3', 'alice', 'third')]);
     const doc = tweetDetailToDocument(raw, '2');

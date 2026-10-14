@@ -63,28 +63,28 @@
     "message": "Moteur Batch"
   },
   "batch_mode_hint": {
-    "message": "Auto et Super récupèrent les posts via votre session X connectée — sans clé API, sans mot de passe, rien ne quitte votre navigateur. Les gros exports peuvent atteindre la limite de débit de X ; ils s’arrêtent proprement en laissant le reste en attente — patientez environ 15 minutes, puis relancez pour reprendre."
+    "message": "Auto complet et Auto rapide récupèrent les posts via votre session X connectée — sans clé API, sans mot de passe, rien ne quitte votre navigateur. Les gros exports peuvent atteindre la limite de débit de X ; ils s’arrêtent proprement en laissant le reste en attente — patientez environ 15 minutes, puis relancez pour reprendre."
   },
   "batch_mode_info_label": {
-    "message": "Infos Auto/Super"
+    "message": "Infos Auto complet/Auto rapide"
   },
   "mode_manual": {
-    "message": "Manuel"
+    "message": "Défiler"
   },
   "mode_auto": {
-    "message": "Auto"
+    "message": "Auto complet"
   },
   "mode_super": {
-    "message": "Super"
+    "message": "Auto rapide"
   },
   "mode_caption_manual": {
-    "message": "Vous faites défiler la page ; chaque post chargé est enregistré, avec les fils et articles complets."
+    "message": "Vous faites défiler la page et choisissez quoi charger. Enregistre les fils et articles complets."
   },
   "mode_caption_auto": {
-    "message": "Récupère automatiquement via votre session X — sans défilement, avec les fils et articles complets."
+    "message": "Sans défilement. Récupère les posts avec les fils et articles complets."
   },
   "mode_caption_super": {
-    "message": "Récupère des milliers de posts à la fois, mais seulement le premier tweet de chacun — fils ignorés."
+    "message": "Sans défilement. Ignore le développement des fils pour des exports plus volumineux et rapides. Développe toujours les articles et les réponses aux autres auteurs."
   },
   "btn_batch_fast_hint": {
     "message": "Récupère tous vos signets via votre session X, beaucoup plus vite. Développe les fils et articles."
@@ -96,16 +96,16 @@
     "message": "Récupère vos posts likés via votre session X, beaucoup plus vite. Développe les fils et articles."
   },
   "btn_batch_fast_no_selection": {
-    "message": "La sélection est uniquement disponible en mode Manuel ; passez en mode Manuel pour choisir les tweets à la main."
+    "message": "La sélection est uniquement disponible en mode Défiler ; passez en mode Défiler pour choisir les tweets à la main."
   },
   "btn_batch_fast_no_timeline": {
-    "message": "Le fil est uniquement disponible en mode Manuel ; passez en mode Manuel pour exporter votre fil d’accueil."
+    "message": "Le fil est uniquement disponible en mode Défiler ; passez en mode Défiler pour exporter votre fil d’accueil."
   },
   "batch_tab_selection_fast": {
-    "message": "Passez en mode Manuel pour choisir les tweets à la main"
+    "message": "Passez en mode Défiler pour choisir les tweets à la main"
   },
   "batch_tab_timeline_fast": {
-    "message": "Passez en mode Manuel pour exporter votre fil d’accueil"
+    "message": "Passez en mode Défiler pour exporter votre fil d’accueil"
   },
   "fast_date_range": {
     "message": "Plage de dates"
@@ -337,9 +337,6 @@
   },
   "group_export": {
     "message": "Paramètres d'export"
-  },
-  "beta": {
-    "message": "Bêta"
   },
   "group_single": {
     "message": "Export unique"

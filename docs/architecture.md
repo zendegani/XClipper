@@ -9,8 +9,8 @@ see [`ast-schema.md`](./ast-schema.md); for *why* the AST exists see
 ## The one diagram
 
 Both acquisition paths converge on **Content AST → renderers**: DOM acquisition
-serves single exports and Manual batches; GraphQL acquisition serves Auto and
-Super batches. The AST is the source of truth; renderers never touch the DOM.
+serves single exports and Scroll batches; GraphQL acquisition serves Auto Full and
+Auto Fast batches. The AST is the source of truth; renderers never touch the DOM.
 
 ```mermaid
 flowchart LR
@@ -136,7 +136,7 @@ flowchart TD
 ## Orchestration & entry points
 
 Three ways into a single export, one DOM extractor. Every single-post trigger
-converges on `content.ts`; these automatic triggers are unrelated to the Auto
+converges on `content.ts`; these automatic triggers are unrelated to the Auto Full
 batch engine.
 
 ```mermaid
@@ -157,26 +157,26 @@ holds logic both the popup and content script need (`post-process`, `settings`,
 
 ## Batch export: three engines, two acquisition paths
 
-Export mode (Single / Batch), batch engine (Manual / Auto / Super), source, and
+Export mode (Single / Batch), batch engine (Scroll / Auto Full / Auto Fast), source, and
 fetch mode are separate choices. Batch supports Markdown, TXT, HTML, JSON, and
 CSV, with Separate / Combined / Both output; PDF remains a single-export format.
 
 | Engine | Acquisition | Sources | Expansion and controls |
 |---|---|---|---|
-| **Manual** (default) | DOM in an unfocused worker window | Bookmarks, Profile, Likes, Timeline, Selection | Full threads/articles; determinate progress, pause/resume/stop |
-| **Auto** (opt-in) | GraphQL feed + per-item TweetDetail | Bookmarks, Profile, Likes | Full threads/articles; open-ended counts and stop |
-| **Super** (opt-in) | Same GraphQL path, `expandThreads: false` | Bookmarks, Profile, Likes | Skips self-thread expansion; still expands articles and replies to other authors; open-ended counts and stop |
+| **Scroll** (default) | DOM in an unfocused worker window | Bookmarks, Profile, Likes, Timeline, Selection | Full threads/articles; determinate progress, pause/resume/stop |
+| **Auto Full** (opt-in) | GraphQL feed + per-item TweetDetail | Bookmarks, Profile, Likes | Full threads/articles; open-ended counts and stop |
+| **Auto Fast** (opt-in) | Same GraphQL path, `expandThreads: false` | Bookmarks, Profile, Likes | Skips self-thread expansion; still expands articles and replies to other authors; open-ended counts and stop |
 
-Super can include an author's follow-up posts when expanding a reply to another
-author. It is not a guarantee of one tweet per document. Auto/Super share one
+Auto Fast can include an author's follow-up posts when expanding a reply to another
+author. It is not a guarantee of one tweet per document. Auto Full/Auto Fast share one
 implementation and require the optional `webRequest` permission, requested
 through Chrome's own prompt when selected.
 
 ```mermaid
 flowchart LR
-  Manual["Manual: loaded or selected status URLs"] -->|BATCH_START| DOM["manual-batch.ts<br/>worker window → DOM → Document"]
-  Auto["Auto: expandThreads true"] -->|FAST_BATCH_START| GQL["graphql-batch.ts<br/>feed + TweetDetail → Document"]
-  Super["Super: expandThreads false"] -->|FAST_BATCH_START| GQL
+  Scroll["Scroll: loaded or selected status URLs"] -->|BATCH_START| DOM["manual-batch.ts<br/>worker window → DOM → Document"]
+  AutoFull["Auto Full: expandThreads true"] -->|FAST_BATCH_START| GQL["graphql-batch.ts<br/>feed + TweetDetail → Document"]
+  AutoFast["Auto Fast: expandThreads false"] -->|FAST_BATCH_START| GQL
   DOM --> Sink["batch-sink.ts<br/>plan → render → write"]
   GQL --> Sink
   Sink --> Files["Separate / Combined / Both<br/>selected format, optional zip/media"]
@@ -187,14 +187,14 @@ flowchart LR
 | Responsibility | Current code | Contracts / verification |
 |---|---|---|
 | Single / Batch export mode | `src/popup/export-mode.ts` | `lastExportMode`; switching does not select an engine |
-| Engine selection, permission prompt, fetch mode, GraphQL progress | `src/popup/batch-engine-ui.ts` | `BatchEngine`, `FetchMode`; Auto sends `expandThreads: true`, Super sends `false` |
-| Source tabs, engine dispatch, Manual progress | `src/popup/batch-ui.ts` | Manual sends `BATCH_START`; Auto/Super send `FAST_BATCH_START` via `startGraphqlExport` |
-| Manual acquisition and persisted job | `src/background/manual-batch.ts`, `batch-state.ts`, `src/content/content.ts` | `ManualBatch*` types, `BATCH_*` actions; `tests/manual-batch.test.ts`, `tests/batch-state.test.ts` |
-| GraphQL acquisition for Auto/Super | `src/background/graphql-batch.ts`, `x-session.ts`, `src/graphql/` | `GraphqlBatch*` types, `FAST_BATCH_*` actions; `tests/graphql-batch.test.ts`, GraphQL mapper tests |
+| Engine selection, permission prompt, fetch mode, GraphQL progress | `src/popup/batch-engine-ui.ts` | `BatchEngine`, `FetchMode`; Auto Full sends `expandThreads: true`, Auto Fast sends `false` |
+| Source tabs, engine dispatch, Scroll progress | `src/popup/batch-ui.ts` | Scroll sends `BATCH_START`; Auto Full/Auto Fast send `FAST_BATCH_START` via `startGraphqlExport` |
+| Scroll acquisition and persisted job | `src/background/manual-batch.ts`, `batch-state.ts`, `src/content/content.ts` | `ManualBatch*` types, `BATCH_*` actions; `tests/manual-batch.test.ts`, `tests/batch-state.test.ts` |
+| GraphQL acquisition for Auto Full/Auto Fast | `src/background/graphql-batch.ts`, `x-session.ts`, `src/graphql/` | `GraphqlBatch*` types, `FAST_BATCH_*` actions; `tests/graphql-batch.test.ts`, GraphQL mapper tests |
 | Shared output and export history | `src/background/batch-sink.ts`, `src/shared/export-ledger.ts` | Every engine uses `planBatch`, `renderItem`, `itemFiles`, and the shared writers; sink/ledger tests |
 | Message routing and trust | `src/types/messages.ts`, `src/background/background.ts`, `router.ts` | `tests/message-routes.test.ts` checks the action/trust table |
 
-### Manual acquisition
+### Scroll acquisition
 
 The injector accumulates status permalinks as virtualized cells scroll through
 the page (`XCLIPPER_HARVEST`); Selection supplies checked permalinks. The
@@ -204,7 +204,7 @@ each permalink with `#xclipper=batch`. A visible window lets X render thread
 continuations and lazy media. The content script extracts the DOM and reports a
 `Document` via `BATCH_ITEM_RESULT`; the background renders and writes it.
 
-The queue, watchdog, pause/resume, and restart policy belong to Manual. See
+The queue, watchdog, pause/resume, and restart policy belong to Scroll. See
 [`ADR 0002`](./adr/0002-batch-export-architecture.md) for their rationale.
 
 ### GraphQL acquisition
@@ -213,7 +213,7 @@ The queue, watchdog, pause/resume, and restart policy belong to Manual. See
 with the optional permission and restores them from session storage after a
 service-worker restart. `graphql-batch.ts` paginates the selected source,
 maps feed JSON into the same `Document` AST, then uses TweetDetail for expansion.
-Auto expands self-threads; Super skips them to allow a larger collection cap.
+Auto Full expands self-threads; Auto Fast skips them to allow a larger collection cap.
 Both still fetch articles and replies to other authors, and both stop when X
 rate-limits expansion. Incomplete items remain available for a later run.
 
@@ -226,13 +226,15 @@ decisions and amendments.
 
 ### Compatibility names and historical terms
 
-Active TypeScript names distinguish Manual from GraphQL acquisition. Existing
+The Scroll engine retains the internal `ManualBatch*` types and `manual-batch.ts`
+module name; Auto Full and Auto Fast share GraphQL acquisition. Existing
 runtime identifiers keep their spelling so saved choices, jobs, and callers
 continue to work:
 
-- `BATCH_*` actions select/control Manual; `FAST_BATCH_*` select/control GraphQL.
+- `BATCH_*` actions select/control Scroll; `FAST_BATCH_*` select/control GraphQL.
   `expandThreads` and `paginate` remain the GraphQL request fields.
-- `batchMode` stores the engine. Legacy `fastBatchMode` / `fastSuperMode` booleans
+- `BatchEngine` and `batchMode` retain `manual` → Scroll, `auto` → Auto Full,
+  and `super` → Auto Fast. Legacy `fastBatchMode` / `fastSuperMode` booleans
   still migrate on read. `fastPaginateMode`, `fastDateFrom`, and `fastDateTo`
   retain the fetch choice and date window. `lastExportMode` stores Single/Batch.
 - `xclipper_batch_job`, `xclipper_batch_doc_*`, `xclipper-batch-watchdog`,
@@ -241,9 +243,10 @@ continue to work:
   ledgers, cursor keys, output folder names, and manifest permissions are unchanged.
 - The DevTools helpers `xclipperStartBatch` / `xclipperFastBatch`, the popup
   event `xclipper-fast-changed`, and existing DOM/CSS hooks and locale keys retain
-  their names. `XCLIPPER_AUTOEXTRACT` is a single-post trigger, not the Auto engine.
+  their names. `XCLIPPER_AUTOEXTRACT` is a single-post trigger, not the Auto Full engine.
 
 ADRs, release notes, and historical artifacts retain the language of their time:
-**Standard** means today's Manual, **Fast Batch** names the shared GraphQL path,
-and **Super Fast** means today's Super. ADR 0003's engine-selector amendment
-records the transition; current navigation belongs here.
+**Manual** / **Standard** mean today's Scroll, **Auto** means Auto Full, and
+**Super** / **Super Fast** mean Auto Fast. **Fast Batch** names the shared GraphQL
+path. ADR 0003's engine-selector amendment records the earlier transition;
+current names and navigation belong here.

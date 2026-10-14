@@ -77,7 +77,7 @@ describe('jsonToAst — metadata', () => {
 
   // #126: X hides a reply's leading @mentions and the t.co its card already
   // represents, so the DOM path never sees either. The mapper drops both so
-  // Auto/Super render what the page renders.
+  // Auto Full/Auto Fast render what the page renders.
   it("drops the leading mentions outside display_text_range", () => {
     const doc = jsonToAst(
       tweet({
@@ -502,7 +502,7 @@ describe('jsonToTweetNode — quotes and wrappers', () => {
 });
 
 describe('jsonToAst — renderer compatibility', () => {
-  // The premise of Auto/Super (ADR 0003): a mapped Document feeds the existing
+  // The premise of Auto Full/Auto Fast (ADR 0003): a mapped Document feeds the existing
   // renderers unchanged. This proves the output is renderer-compatible — text,
   // entity link, and image all survive into Markdown.
   it('renders to Markdown via the existing renderMarkdown', () => {
@@ -716,7 +716,7 @@ describe('jsonToAst — X Articles', () => {
 
   // Code blocks and tables are the one part of an article X does NOT send as
   // structured Draft.js — an atomic MARKDOWN entity holds raw markdown source.
-  // Before these were mapped, every code block and table in an Auto/Super
+  // Before these were mapped, every code block and table in an Auto Full/Auto Fast
   // export was silently dropped.
   const withMarkdownEntities = (...markdown: string[]) => ({
     ...articleResult,
@@ -997,8 +997,8 @@ describe('jsonToTweetNode — cards', () => {
   });
 });
 
-// Super fetches TweetDetail only for these, to bring the posts they answer
-// (issue #154); a reply to oneself is a thread continuation, which Super skips.
+// Auto Fast fetches TweetDetail only for these, to bring the posts they answer
+// (issue #154); a reply to oneself is a thread continuation, which Auto Fast skips.
 describe('repliesToAnotherAuthor', () => {
   it('is true for a reply to someone else', () => {
     expect(repliesToAnotherAuthor(tweet({ in_reply_to_status_id_str: '9', in_reply_to_screen_name: 'alice' }))).toBe(true);
