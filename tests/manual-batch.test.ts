@@ -62,9 +62,9 @@ Object.assign(chromeGlobal, {
 type ChangeListener = (delta: { id: number; state: { current: string } }) => void;
 const changeListeners = new Set<ChangeListener>();
 
-const { batchRoutes, initBatch, startBatch } = await import('../src/background/batch');
+const { manualBatchRoutes, initManualBatch, startManualBatch } = await import('../src/background/manual-batch');
 const { dispatch } = await import('../src/background/router');
-initBatch();
+initManualBatch();
 
 function post(id: string, text: string): Document {
   const author = { name: 'Jane', handle: 'jane' };
@@ -79,7 +79,7 @@ function post(id: string, text: string): Document {
 // What the worker tab sends once it has extracted a post: the AST, nothing else.
 async function workerReports(doc: Document): Promise<void> {
   const msg = { action: 'BATCH_ITEM_RESULT', url: doc.metadata.sourceUrl, success: true, doc };
-  dispatch(batchRoutes, msg, { tab: { id: 7 }, url: doc.metadata.sourceUrl }, () => {});
+  dispatch(manualBatchRoutes, msg, { tab: { id: 7 }, url: doc.metadata.sourceUrl }, () => {});
   await vi.advanceTimersByTimeAsync(2_000);
   for (const l of alarmListeners) l({ name: 'xclipper-batch-watchdog' });
   await vi.advanceTimersByTimeAsync(0);
@@ -106,7 +106,7 @@ afterEach(() => {
 describe('Manual batch', () => {
   it('writes each post from the AST the worker tab sends', async () => {
     const a = post('1', 'first post');
-    await startBatch([a.metadata.sourceUrl], 'selection');
+    await startManualBatch([a.metadata.sourceUrl], 'selection');
     await workerReports(a);
 
     expect(fileNames()).toContain('1.md');
@@ -116,7 +116,7 @@ describe('Manual batch', () => {
   it('keeps the settings from the start of the job when they change mid-run', async () => {
     const a = post('1', 'first');
     const b = post('2', 'second');
-    await startBatch([a.metadata.sourceUrl, b.metadata.sourceUrl], 'selection');
+    await startManualBatch([a.metadata.sourceUrl, b.metadata.sourceUrl], 'selection');
     await workerReports(a);
     settings = { ...settings, filenameTemplate: '{handle}-{id}', obsidianFriendly: true };
     await workerReports(b);
@@ -127,7 +127,7 @@ describe('Manual batch', () => {
 
   it('records a post it cannot render as failed right away, not after the timeout', async () => {
     const a = post('1', 'first');
-    await startBatch([a.metadata.sourceUrl], 'selection');
+    await startManualBatch([a.metadata.sourceUrl], 'selection');
     const broken = { ...a, metadata: { ...a.metadata, author: undefined } } as unknown as Document;
     await workerReports(broken);
 

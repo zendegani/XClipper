@@ -118,12 +118,15 @@ In particular, discuss any change that:
 
 ### How it works
 
+Use the terms in [`GLOSSARY.md`](GLOSSARY.md). The [architecture navigation map](docs/architecture.md#navigation-map) connects each engine to its popup, message, acquisition, output, and test modules.
+
 - Content script auto-injects on `x.com/*/status/*` pages.
 - DOM is parsed into a typed, JSON-serializable **Content AST** (the single source of truth); separate renderers turn it into Markdown or PDF — see [`docs/adr/0001`](docs/adr/0001-content-ast-architecture.md).
 - **Tweets/threads:** custom AST rendering (t.co resolution, emoji inlining, @mention cleanup).
 - **Articles:** manual Draft.js block parsing for precise heading/list/code-block extraction.
 - **PDF:** the same AST renders to HTML and prints via Chrome's native engine.
-- **Fast Batch (opt-in):** an alternate acquisition path maps X's internal GraphQL JSON to the same Content AST (`src/graphql/`), reusing every renderer and sink unchanged — see [`docs/adr/0003`](docs/adr/0003-fast-batch-graphql.md).
+- **Manual engine:** DOM acquisition in `src/background/manual-batch.ts` visits each loaded/selected permalink in a worker window; pure job transitions live in `batch-state.ts`. Supports all five sources, with pause/resume and determinate progress.
+- **Auto and Super engines (opt-in):** shared GraphQL acquisition in `src/background/graphql-batch.ts` maps X's JSON through `src/graphql/` into the same Content AST and output sink. Auto expands self-threads; Super skips them, while still expanding articles and replies to other authors. Both support Bookmarks, Profile, and Likes, with separate Recent / Resume / Date range fetch modes — see [`docs/adr/0003`](docs/adr/0003-fast-batch-graphql.md).
 - DOM is cleaned (engagement bars, follow buttons, navigation) before extraction.
 - Downloads go through the `chrome.downloads` API after the background worker validates the message sender and sanitizes paths. Local image downloads are limited to expected X media hosts; external image URLs stay as remote Markdown links.
 - Nothing leaves your browser.
@@ -140,6 +143,7 @@ In particular, discuss any change that:
 xclipper/
 ├── src/
 │   ├── content/        # DOM → Content AST (dom-to-ast/), inline button, PDF trigger
+│   ├── graphql/        # GraphQL JSON → Content AST, feed pagination, TweetDetail
 │   ├── ast/            # Content AST types + renderers (Markdown, PDF HTML)
 │   ├── background/     # Service worker (downloads, context menu, PDF print, batch)
 │   ├── popup/          # Popup UI, split: dom / settings-form / actions / widgets
@@ -185,6 +189,6 @@ npm run clean      # Clean build output
 | `contextMenus` | Add **Save / Copy tweet as Markdown** to the right-click menu (X.com only) |
 | `alarms`       | Keep batch jobs running reliably while the service worker idles (a watchdog timer) |
 | `host` (X.com) | Inject a content script on X.com to extract post / article content and draw the inline download button |
-| `webRequest` *(optional)* | **Fast Batch only** — read your X session's auth header to replay X's internal API. Requested only if you enable Fast Batch; never used otherwise |
+| `webRequest` *(optional)* | **Auto/Super and local video saving** — capture your X session's auth header to replay X's internal API. Requested through Chrome's prompt when selecting Auto/Super or enabling local Media saving |
 
 **Your data never leaves your device. No data is collected, transmitted, or stored externally.** See [PRIVACY.md](PRIVACY.md).

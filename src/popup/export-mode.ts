@@ -3,9 +3,9 @@
 // so reopening the popup mid-job lands on the progress, not on Single.
 
 import { syncBatchControls } from './settings-form';
-import { syncFastBatchMode } from './fast-batch-ui';
+import { syncBatchEngineVisibility } from './batch-engine-ui';
 
-const MODE_KEY = 'lastExportMode';
+const EXPORT_MODE_KEY = 'lastExportMode';
 const OPEN_KEY = 'exportSettingsOpen';
 
 const tabSingle = document.getElementById('tab-mode-single');
@@ -15,7 +15,7 @@ const panelBatch = document.getElementById('batch-section');
 // Format + output controls only apply to batch runs, so they ride with the mode.
 const batchFormatControls = document.getElementById('batch-format-controls');
 // Export settings is collapsible; default expanded in Single, collapsed in Batch
-// (Batch adds the Fast toggle + tabs + progress, so it needs the vertical room).
+// (Batch adds the engine selector + source tabs + progress, so it needs the vertical room).
 // Those are only defaults — the user's own fold, per mode, is remembered below.
 const exportSettings = document.getElementById('export-settings') as HTMLDetailsElement | null;
 const exportOptions = exportSettings?.parentElement;
@@ -39,15 +39,15 @@ export function setExportMode(single: boolean, persist = true): void {
     if (single) exportOptions.parentElement?.append(exportOptions);
     else panelBatch?.before(exportOptions);
   }
-  // Fast Batch controls ride with the mode too (batch-only).
-  syncFastBatchMode(single);
+  // Engine controls ride with the export mode too (batch-only).
+  syncBatchEngineVisibility(single);
   // The format-gated toggle disabling depends on mode, so re-sync after the
   // batch controls' visibility flips.
   syncBatchControls();
-  if (persist) chrome.storage.local.set({ [MODE_KEY]: single ? 'single' : 'batch' });
+  if (persist) chrome.storage.local.set({ [EXPORT_MODE_KEY]: single ? 'single' : 'batch' });
 }
 
-export function initModeTabs(): void {
+export function initExportModeTabs(): void {
   tabSingle?.addEventListener('click', () => setExportMode(true));
   tabBatch?.addEventListener('click', () => setExportMode(false));
   // Remember the fold the user leaves each mode in, so it survives re-open.
@@ -55,13 +55,13 @@ export function initModeTabs(): void {
     openState[currentSingle ? 'single' : 'batch'] = exportSettings.open;
     chrome.storage.local.set({ [OPEN_KEY]: openState });
   });
-  chrome.storage.local.get([MODE_KEY, OPEN_KEY], (res) => {
+  chrome.storage.local.get([EXPORT_MODE_KEY, OPEN_KEY], (res) => {
     const saved = res[OPEN_KEY] as Partial<typeof openState> | undefined;
     if (saved) {
       if (typeof saved.single === 'boolean') openState.single = saved.single;
       if (typeof saved.batch === 'boolean') openState.batch = saved.batch;
     }
-    if (res[MODE_KEY] === 'batch') setExportMode(false, false);
+    if (res[EXPORT_MODE_KEY] === 'batch') setExportMode(false, false);
     else if (exportSettings) exportSettings.open = openState.single;
   });
 }

@@ -51,7 +51,7 @@ const POSTER = 'https://pbs.twimg.com/amplify_video_thumb/1/img/poster.jpg';
 const MP4 = 'https://video.twimg.com/amplify_video/1/vid/avc1/1280x720/clip.mp4';
 const PHOTO = 'https://pbs.twimg.com/media/photo.jpg';
 
-// A post with a photo and a video whose MP4 is already known (the shape Fast
+// A post with a photo and a video whose MP4 is already known (the shape GraphQL
 // Batch maps, and Manual's once the orchestrator has resolved its videos).
 const videoDoc: Document = {
   version: 1,

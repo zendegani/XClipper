@@ -1,7 +1,7 @@
 // The export ledger: which posts past batch runs already exported, persisted in
-// chrome.storage.local. Both batch engines read and write it, and the popup
+// chrome.storage.local. All three batch engines read and write it, and the popup
 // reads it for the "(N new)" count — so the ledger's stored format lives here
-// once, with the two Fast Batch cursors: every key Reset history clears. No
+// once, with the two Auto/Super cursors: every key Reset history clears. No
 // chrome.* at import time, so the popup can import it.
 
 // Status ids already exported. Batch runs skip these so re-running on a longer
@@ -9,7 +9,7 @@
 export const EXPORTED_LEDGER_KEY = 'xclipper_batch_exported';
 export const LEDGER_CAP = 5000;
 
-// Fast Batch only: ids written as partial (rate-limited) stubs — un-ledgered so
+// Auto/Super only: ids written as partial (rate-limited) stubs — un-ledgered so
 // a re-run retries them, and expanded FIRST next run so a stable feed order
 // can't starve the same tail forever (issue #81).
 export const INCOMPLETE_LEDGER_KEY = 'xclipper_fast_incomplete';
@@ -17,12 +17,12 @@ export const INCOMPLETE_LEDGER_KEY = 'xclipper_fast_incomplete';
 // of rate limits growing it unbounded.
 export const INCOMPLETE_CAP = 2000;
 
-// Fast Batch only: per-source cursor for Resume pagination — where the last
+// Auto/Super only: per-source cursor for Resume pagination — where the last
 // Resume run left off, so the next continues instead of re-scanning the feed
 // from the top (issue #83). Shape { [source]: cursor }. Cleared by Reset history.
 export const RESUME_CURSOR_KEY = 'xclipper_fast_resume';
 
-// Fast Batch only: Date-range mode's OWN continuation cursor, kept separate from
+// Auto/Super only: Date-range mode's OWN continuation cursor, kept separate from
 // RESUME_CURSOR_KEY so a date-range crawl never disturbs a Resume backfill's
 // position (issue #83). Scoped to the window it was scanning ({cursor,from,to});
 // a different window starts over. Shape { [source]: {cursor,from,to} }.
@@ -52,7 +52,7 @@ export async function recordExported(id: string): Promise<void> {
   await chrome.storage.local.set({ [EXPORTED_LEDGER_KEY]: appendToLedger(await loadExported(), id) });
 }
 
-// Fast Batch: holds both lists in memory for the run and saves them whole.
+// Auto/Super: holds both lists in memory for the run and saves them whole.
 export async function saveLedgers(exported: string[], incomplete: string[]): Promise<void> {
   await chrome.storage.local.set({
     [EXPORTED_LEDGER_KEY]: exported.slice(-LEDGER_CAP),
@@ -60,7 +60,7 @@ export async function saveLedgers(exported: string[], incomplete: string[]): Pro
   });
 }
 
-// Keyed by Fast Batch source ('bookmarks' | 'profile' | 'likes'). The keys stay
+// Keyed by Auto/Super source ('bookmarks' | 'profile' | 'likes'). The keys stay
 // plain strings so this shared module needs nothing from src/background/.
 export type ResumeCursors = Partial<Record<string, string>>;
 type DateCursor = { cursor: string; from: string; to: string };

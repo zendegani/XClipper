@@ -1,16 +1,14 @@
-// Fast Batch (ADR 0003) — live acquisition half, Phase A (console-triggerable,
-// no UI yet, mirroring how ADR 0002 batch shipped first).
+// GraphQL acquisition for the Auto and Super batch engines (ADR 0003).
 //
 // We never ask for a password or a paid API key. With the opt-in `webRequest`
 // permission granted, we observe the auth headers the browser ALREADY sends on
 // your own x.com GraphQL requests, then replay the timeline endpoint ourselves —
 // paginating by cursor (timeline.ts), mapping each tweet to the AST (jsonToAst),
 // then writing through the SHARED batch sinks (batch-sink.ts) with the user's
-// batch settings — so Fast Batch produces the same files as Standard batch, just
-// far faster. Only acquisition differs.
+// batch settings. Manual uses DOM acquisition; all three engines share output.
 //
 // This module is impure (webRequest, fetch, permissions). Its pure dependencies
-// (parse/paginate/map/sinks) are unit-tested; tests/fast-batch.test.ts drives
+// (parse/paginate/map/sinks) are unit-tested; tests/graphql-batch.test.ts drives
 // the run loop with the session and sinks mocked. Verify it live:
 //   1) chrome://extensions → XClipper → service worker (Inspect)
 //   2) await xclipperFastBatch()      // grants permission, then EXPORTS bookmarks
@@ -19,12 +17,14 @@
 
 import type { Document, TweetNode } from '../ast/types';
 import type {
-  FastBatchProgress,
-  FastBatchReadyRequest,
-  FastBatchReadyResponse,
-  FastBatchStartRequest,
-  FastBatchStartResponse,
-  FastBatchStatusResponse,
+  FetchMode,
+  GraphqlBatchSource,
+  GraphqlBatchProgress,
+  GraphqlBatchReadyRequest,
+  GraphqlBatchReadyResponse,
+  GraphqlBatchStartRequest,
+  GraphqlBatchStartResponse,
+  GraphqlBatchStatusResponse,
 } from '../types/messages';
 import type { Routes } from './router';
 import type { EmbeddedTweets } from '../graphql/json-to-ast';
@@ -64,7 +64,7 @@ import {
   classify,
   GraphqlError,
   hasAccess,
-  requestFastBatchAccess,
+  requestGraphqlAccess,
   restoreSession,
   startCapturing,
   templates,
@@ -72,10 +72,10 @@ import {
 
 const log = (...args: unknown[]): void => console.log('[xclipper fast-batch]', ...args);
 
-// Polled progress for the popup (Fast Batch has no per-item worker tab, so it
-// can't reuse the Standard batch job model). Cancel is cooperative — the run
+// Polled progress for the popup (Auto/Super have no per-item worker tab, so they
+// can't reuse the Manual batch job model). Cancel is cooperative — the run
 // loops check the flag at phase boundaries.
-let progress: FastBatchProgress = {
+let progress: GraphqlBatchProgress = {
   status: 'idle',
   phase: '',
   done: 0,
@@ -84,7 +84,7 @@ let progress: FastBatchProgress = {
   skipped: 0,
 };
 let cancelRequested = false;
-const setProgress = (p: Partial<FastBatchProgress>): void => {
+const setProgress = (p: Partial<GraphqlBatchProgress>): void => {
   progress = { ...progress, ...p };
 };
 
@@ -194,47 +194,44 @@ function isRepost(raw: unknown): boolean {
   return !!(t as { legacy?: { retweeted_status_result?: unknown } }).legacy?.retweeted_status_result;
 }
 
-export interface FastBatchResult {
+export interface GraphqlBatchResult {
   exported: number;
   skipped: number;
   folder: string;
 }
 
-export type FastSource = 'bookmarks' | 'profile' | 'likes';
-
 // Which captured GraphQL operations back each source, + a label for progress.
 // Listed newest-first: X renames these (the profile Posts timeline went from
 // `UserTweets` to `UserOriginalsTimeline`), and the old name keeps working for
 // clients still being served it, so whichever was captured is used (#107).
-const SOURCE_CONFIG: Record<FastSource, { ops: string[]; label: string }> = {
+const SOURCE_CONFIG: Record<GraphqlBatchSource, { ops: string[]; label: string }> = {
   bookmarks: { ops: ['Bookmarks'], label: 'bookmarks' },
   profile: { ops: ['UserOriginalsTimeline', 'UserTweets'], label: 'posts' },
   likes: { ops: ['Likes'], label: 'likes' },
 };
 
 // The captured request for a source's feed, or undefined if none was seen yet.
-const feedTemplate = (source: FastSource): string | undefined =>
+const feedTemplate = (source: GraphqlBatchSource): string | undefined =>
   SOURCE_CONFIG[source].ops.map((op) => templates[op]).find(Boolean);
 
-export interface FastBatchOptions {
-  source?: FastSource;
+export interface GraphqlBatchOptions {
+  source?: GraphqlBatchSource;
   // Profile owner's handle — reposts (author ≠ handle) are skipped, matching
-  // Standard profile export.
+  // Manual profile export.
   handle?: string;
   // YYYY-MM-DD bounds on the tweet date; out-of-range items are skipped before
   // expansion, so a tighter range avoids X's TweetDetail rate limit.
   fromDate?: string;
   toDate?: string;
   maxItems?: number;
-  // Fetch TweetDetail for non-article tweets to expand self-threads (Articles
-  // are always expanded — their body needs the fetch). On by default for
-  // completeness; pass false for the fastest root-only run.
+  // Auto expands self-threads (default); false selects Super. Both still fetch
+  // TweetDetail for articles and replies to other authors.
   expandThreads?: boolean;
   // Fetch mode (issue #83): 'recent' paginates from the top; 'resume' continues
   // from the saved per-source cursor (deep backfill); 'dateRange' deep-scans from
   // the top for posts within fromDate..toDate — dedups against history but does
   // NOT read or advance the resume cursor, so it never disturbs a Resume run.
-  paginate?: 'recent' | 'resume' | 'dateRange';
+  paginate?: FetchMode;
 }
 
 // At most this many TweetDetail fetches in flight during expansion. Kept low on
@@ -243,18 +240,17 @@ export interface FastBatchOptions {
 // went wrong"). Gentle + stop-on-rate-limit protects the session.
 const TWEET_DETAIL_CONCURRENCY = 3;
 
-// Items collected per Fast Batch run. Deliberately matched to the ~150-call
-// TweetDetail budget above (not the Standard batch's 200): if collection
+// Items collected per Auto run. Deliberately matched to the ~150-call
+// TweetDetail budget above (not the Manual batch's 200): if collection
 // exceeds the expansion budget, every run leaves the overflow as un-expanded
 // stubs, and since the next run completes that backlog FIRST, the leftover
 // compounds upward each run. Sizing the run to the budget means a run expands
 // everything it collects — no growing backlog.
-const FAST_BATCH_MAX_ITEMS = 150;
+const AUTO_MAX_ITEMS = 150;
 
-// Super Fast (#85): with thread expansion off there's no TweetDetail budget to
-// honor, so the run is bounded by the feed page budget instead
-// (RESUME_MAX_PAGES pages × ~20 posts/page).
-const SUPER_FAST_MAX_ITEMS = 3000;
+// Super (#85) skips self-thread expansion, raising the collection cap. Articles
+// and replies to other authors still need TweetDetail and can hit its rate limit.
+const SUPER_MAX_ITEMS = 3000;
 
 // Feed pages a run will walk. Recent scans the top, so a small window is enough.
 // The deep modes need a much larger ceiling: Resume pages PAST everything already
@@ -286,25 +282,25 @@ const KEEPALIVE_MS = 20_000;
 // Short enough that a cut-off run loses at most a few seconds of work.
 const PROGRESS_SAVE_MS = 2_000;
 
-export async function runFastBatchExport(opts: FastBatchOptions = {}): Promise<FastBatchResult | null> {
+export async function runGraphqlBatchExport(opts: GraphqlBatchOptions = {}): Promise<GraphqlBatchResult | null> {
   const keepAlive = setInterval(() => void chrome.runtime.getPlatformInfo(), KEEPALIVE_MS);
   try {
-    return await exportFastBatch(opts);
+    return await exportGraphqlBatch(opts);
   } finally {
     clearInterval(keepAlive);
   }
 }
 
-// Phase-A trigger (no UI yet, like ADR 0002 batch): fetch the bookmarks
-// timeline via GraphQL, map each tweet to the AST, expand Articles/threads via
+// Fetch the chosen source feed via GraphQL, map each tweet to the AST, and
+// expand content according to the engine via
 // per-item TweetDetail, then postProcess + write through the SHARED sinks
 // (per-item files / combined / data.json) using the user's batch settings.
 // Honors the dedup ledger and the hard item cap. Console:
-//   await xclipperFastBatch()                       // full (threads + articles)
-//   await xclipperFastBatch({ expandThreads: false }) // fastest, root-only
-async function exportFastBatch(opts: FastBatchOptions = {}): Promise<FastBatchResult | null> {
+//   await xclipperFastBatch()                       // Auto
+//   await xclipperFastBatch({ expandThreads: false }) // Super (articles/replies still expand)
+async function exportGraphqlBatch(opts: GraphqlBatchOptions = {}): Promise<GraphqlBatchResult | null> {
   const expandThreads = opts.expandThreads ?? true;
-  const maxItems = opts.maxItems ?? (expandThreads ? FAST_BATCH_MAX_ITEMS : SUPER_FAST_MAX_ITEMS);
+  const maxItems = opts.maxItems ?? (expandThreads ? AUTO_MAX_ITEMS : SUPER_MAX_ITEMS);
   const source = opts.source ?? 'bookmarks';
   const handleRaw = opts.handle?.replace(/^@/, ''); // original case, for display
   const handle = handleRaw?.toLowerCase(); // for the repost filter
@@ -328,13 +324,13 @@ async function exportFastBatch(opts: FastBatchOptions = {}): Promise<FastBatchRe
     needTweetDetail: false,
     error: undefined,
   });
-  if (!(await requestFastBatchAccess())) {
-    log('permission denied — Fast Batch needs the optional webRequest access');
-    setProgress({ status: 'error', error: 'Permission denied — enable Fast Batch first.' });
+  if (!(await requestGraphqlAccess())) {
+    log('permission denied — Auto/Super need the optional webRequest access');
+    setProgress({ status: 'error', error: 'Permission denied — select Auto or Super first.' });
     return null;
   }
   await restoreSession(); // reload captured auth/templates if the SW restarted
-  // Fast Batch replays two captured requests: the source feed (bookmarks /
+  // Auto/Super replays two captured requests: the source feed (bookmarks /
   // profile / likes), and (to expand threads/articles) TweetDetail. After an
   // extension reload neither has been seen yet. Check BOTH up front (before
   // paginating) and give one plain hint — the user does it once, then it works.
@@ -355,7 +351,7 @@ async function exportFastBatch(opts: FastBatchOptions = {}): Promise<FastBatchRe
   }
 
   const settings = await loadSettings();
-  // Profile: drop reposts unless the user opted to include them (matches Standard).
+  // Profile: drop reposts unless the user opted to include them (matches Manual).
   const skipReposts = source === 'profile' && !settings.includeReposts;
   // The same output rules Manual follows (batch-sink.ts planBatch).
   const plan = planBatch(settings, settings.batchFormat ?? 'md', settings.batchOutput ?? 'separate');
@@ -457,30 +453,30 @@ async function exportFastBatch(opts: FastBatchOptions = {}): Promise<FastBatchRe
     return writeFiles(folder, files).then(markDone);
   };
 
-  // Super Fast pipeline: with expansion off, a non-article root is
+  // Super pipeline: a root that needs no article or reply expansion is
   // complete the moment the feed maps it — so write it straight away, overlapping
   // the next page's fetch instead of bursting every download at the end. Scoped
   // to separate-files output (the thousands-of-loose-files case this targets):
   // articles still need TweetDetail (expanded below), and the combined/both
   // digest is order-sensitive, so those keep the end-of-run write.
-  const superFastStream = !expandThreads && output === 'separate';
+  const superStream = !expandThreads && output === 'separate';
   const streamedWrites: Promise<void>[] = [];
 
   // Recent starts from the top. Resume continues from this source's saved
   // frontier (deep backfill). Date range deep-scans from the top for a tweet-date
   // window — like Recent's start, but it must reach deep, so it shares Resume's
   // page budget and pacing without ever touching the resume cursor (#83).
-  const paginate = opts.paginate ?? 'recent';
-  const deepCrawl = paginate === 'resume' || paginate === 'dateRange';
+  const fetchMode = opts.paginate ?? 'recent';
+  const deepCrawl = fetchMode === 'resume' || fetchMode === 'dateRange';
   const vars = JSON.parse(getVariables(template)) as Record<string, unknown>;
   delete vars.cursor;
   const resumeCursors = await loadResumeCursors();
-  const dateCursors = paginate === 'dateRange' ? await loadDateCursors() : {};
+  const dateCursors = fetchMode === 'dateRange' ? await loadDateCursors() : {};
   // Date range keys its window so a changed range restarts from the top.
   const dateWindow = { from: opts.fromDate ?? '', to: opts.toDate ?? '' };
-  if (paginate === 'resume' && resumeCursors[source]) {
+  if (fetchMode === 'resume' && resumeCursors[source]) {
     vars.cursor = resumeCursors[source];
-  } else if (paginate === 'dateRange') {
+  } else if (fetchMode === 'dateRange') {
     const d = dateCursors[source];
     if (d && d.from === dateWindow.from && d.to === dateWindow.to) vars.cursor = d.cursor;
   }
@@ -494,7 +490,7 @@ async function exportFastBatch(opts: FastBatchOptions = {}): Promise<FastBatchRe
   //    `needsExpand` items get a TweetDetail fetch next; `ledger` decides whether
   //    to mark the item done (false = re-run should retry it). For a profile,
   //    `handle` is set and reposts (author ≠ handle) are skipped — matching
-  //    Standard profile export.
+  //    Manual profile export.
   interface Item {
     doc: Document;
     needsExpand: boolean;
@@ -504,7 +500,7 @@ async function exportFastBatch(opts: FastBatchOptions = {}): Promise<FastBatchRe
     // canonical id (edited tweets), so we must ledger
     // this one too or the post re-exports every run.
     feedId: string;
-    // Set once the Super Fast pipeline already streamed this item to disk during
+    // Set once the Super pipeline already streamed this item to disk during
     // collection, so the final write phase skips it.
     written?: boolean;
   }
@@ -543,7 +539,7 @@ async function exportFastBatch(opts: FastBatchOptions = {}): Promise<FastBatchRe
         selected.push(item);
         // Stream complete (non-article) roots to disk as they arrive, so their
         // downloads overlap the rest of the crawl instead of piling up at the end.
-        if (superFastStream && !item.needsExpand) {
+        if (superStream && !item.needsExpand) {
           streamedWrites.push(writeOne(item));
           item.written = true;
         }
@@ -596,8 +592,8 @@ async function exportFastBatch(opts: FastBatchOptions = {}): Promise<FastBatchRe
     log(`completed ${retryItems.length}/${ids.length} earlier incomplete item(s)${gaveUp.size ? ` (${gaveUp.size} gone)` : ''}`);
   }
 
-  // 3) Expand fresh items via per-item TweetDetail: Articles always (full body),
-  //    other tweets when expandThreads. Articles go FIRST (their body only exists
+  // 3) Expand fresh items via per-item TweetDetail: articles, replies to other
+  //    authors, and self-threads in Auto. Articles go FIRST (their body only exists
   //    via TweetDetail). On the first rate-limit signal we STOP (rather than
   //    hammer X and degrade the user's session); stopped/rate-limited items are
   //    NOT ledgered, so a re-run retries them.
@@ -651,29 +647,29 @@ async function exportFastBatch(opts: FastBatchOptions = {}): Promise<FastBatchRe
     const pending = toExpand.filter((s) => !s.ledger).length;
     if (rateLimited && pending > 0) {
       log(
-        `hit X's TweetDetail rate limit — stopped to protect your session. ${pending} item(s) were exported incomplete (a root tweet, an article stub, or an article whose embedded post is a link) and were NOT marked done; re-run Fast Batch later (a few minutes) and the dedup ledger will fetch just those.`
+        `hit X's TweetDetail rate limit — stopped to protect your session. ${pending} item(s) were exported incomplete (a root tweet, an article stub, or an article whose embedded post is a link) and were NOT marked done; re-run Auto or Super later (a few minutes) and the dedup ledger will fetch just those.`
       );
     }
   }
 
   // 4) Write the rest. Completed backlog items (retryItems) go first, then this
-  // run's fresh collection minus whatever the Super Fast pipeline already
+  // run's fresh collection minus whatever the Super pipeline already
   // streamed during collection. On a normal/rate-limited run we write
   // everything; on CANCEL we write only the items actually processed
-  // (ledger=true), so "stop at 5" yields ~5 files like Standard — the rest stay
+  // (ledger=true), so "stop at 5" yields ~5 files like Manual — the rest stay
   // un-ledgered for a re-run.
   const allItems = [...retryItems, ...selected];
   const toWrite = cancelRequested ? allItems.filter((s) => s.ledger) : allItems;
   const remaining = toWrite.filter((s) => !s.written);
   // Streamed items are already written; count them so the bar doesn't reset from
-  // "2000" back to "0" for a pure Super Fast run whose remainder is near-empty.
+  // "2000" back to "0" for a pure Super run whose remainder is near-empty.
   let processed = toWrite.length - remaining.length;
   setProgress({ phase: 'Writing files…', total: toWrite.length, done: processed });
   for (const s of remaining) {
     await writeOne(s);
     setProgress({ done: ++processed });
   }
-  // Drain any downloads the Super Fast pipeline streamed during collection, so
+  // Drain any downloads the Super pipeline streamed during collection, so
   // every file is on disk before we write the manifest and finalize.
   await Promise.all(streamedWrites);
   // Zip mode: everything writeOne collected (stubs included) as one archive.
@@ -701,10 +697,10 @@ async function exportFastBatch(opts: FastBatchOptions = {}): Promise<FastBatchRe
   // cursors). Skip on cancel — a cancelled run may have paginated past items it
   // never wrote, and we must not skip those.
   if (!cancelled && frontier) {
-    if (paginate === 'resume') {
+    if (fetchMode === 'resume') {
       resumeCursors[source] = frontier;
       await saveResumeCursors(resumeCursors);
-    } else if (paginate === 'dateRange') {
+    } else if (fetchMode === 'dateRange') {
       dateCursors[source] = { cursor: frontier, from: dateWindow.from, to: dateWindow.to };
       await saveDateCursors(dateCursors);
     }
@@ -729,10 +725,10 @@ async function exportFastBatch(opts: FastBatchOptions = {}): Promise<FastBatchRe
 
 
 // Debug/fixture capture: download the raw TweetDetail JSON for one status id,
-// reusing the already-granted Fast Batch auth (no Network-tab fiddling). Console:
+// reusing the already-granted Auto/Super auth (no Network-tab fiddling). Console:
 //   await xclipperDumpTweetDetail('2046902326657749114')
 async function dumpTweetDetail(id: string): Promise<void> {
-  if (!(await requestFastBatchAccess())) return void log('permission denied');
+  if (!(await requestGraphqlAccess())) return void log('permission denied');
   const template = templates.TweetDetail;
   if (!template) return void log('no TweetDetail request seen yet — open any tweet once, then retry');
   const vars = JSON.parse(getVariables(template)) as Record<string, unknown>;
@@ -744,7 +740,7 @@ async function dumpTweetDetail(id: string): Promise<void> {
   log('dumped TweetDetail', id, '→ Downloads/xclipper-debug/');
 }
 
-export function initFastBatch(): void {
+export function initGraphqlBatch(): void {
   void restoreSession();
   // Re-arm capture across service-worker restarts if access was already granted.
   void hasAccess().then((ok) => {
@@ -753,16 +749,16 @@ export function initFastBatch(): void {
   chrome.permissions.onAdded.addListener((p) => {
     if (p.permissions?.includes('webRequest')) startCapturing();
   });
-  // Phase-A triggers (see header).
-  (globalThis as Record<string, unknown>).xclipperFastBatch = runFastBatchExport;
+  // Keep the original DevTools trigger names for compatibility.
+  (globalThis as Record<string, unknown>).xclipperFastBatch = runGraphqlBatchExport;
   (globalThis as Record<string, unknown>).xclipperDumpTweetDetail = dumpTweetDetail;
 }
 
-function startFastBatch(m: FastBatchStartRequest): FastBatchStartResponse {
+function startGraphqlBatch(m: GraphqlBatchStartRequest): GraphqlBatchStartResponse {
   if (progress.status === 'running') {
-    return { success: false, error: 'A Fast Batch run is already in progress.' };
+    return { success: false, error: 'An Auto/Super run is already in progress.' };
   }
-  void runFastBatchExport({
+  void runGraphqlBatchExport({
     ...(m.source ? { source: m.source } : {}),
     ...(m.handle ? { handle: m.handle } : {}),
     ...(m.fromDate ? { fromDate: m.fromDate } : {}),
@@ -773,19 +769,19 @@ function startFastBatch(m: FastBatchStartRequest): FastBatchStartResponse {
   return { success: true };
 }
 
-async function fastBatchReady(msg: FastBatchReadyRequest): Promise<FastBatchReadyResponse> {
+async function graphqlBatchReady(msg: GraphqlBatchReadyRequest): Promise<GraphqlBatchReadyResponse> {
   await restoreSession(); // templates may live in session storage after a SW restart
   const src = msg.source ?? 'bookmarks';
   return { feed: !!feedTemplate(src), tweetDetail: !!templates.TweetDetail };
 }
 
 // Popup → background controls. Only extension pages may drive these, same as
-// the Standard batch messages.
-export const fastBatchRoutes: Routes = {
-  FAST_BATCH_START: { trust: ['extension-page'], handle: startFastBatch },
+// the Manual batch messages.
+export const graphqlBatchRoutes: Routes = {
+  FAST_BATCH_START: { trust: ['extension-page'], handle: startGraphqlBatch },
   FAST_BATCH_STATUS: {
     trust: ['extension-page'],
-    handle: (): FastBatchStatusResponse => ({ progress }),
+    handle: (): GraphqlBatchStatusResponse => ({ progress }),
   },
   FAST_BATCH_CANCEL: {
     trust: ['extension-page'],
@@ -794,5 +790,5 @@ export const fastBatchRoutes: Routes = {
       return {};
     },
   },
-  FAST_BATCH_READY: { trust: ['extension-page'], handle: fastBatchReady },
+  FAST_BATCH_READY: { trust: ['extension-page'], handle: graphqlBatchReady },
 };

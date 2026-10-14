@@ -1,8 +1,8 @@
-// Popup UI for batch export (ADR 0002, Phases B–C). The background owns the
-// job; this module only starts/controls it and polls BATCH_STATUS for
-// progress — the popup can close and reopen mid-job without losing anything.
+// Source tabs and batch dispatch. The background owns acquisition; this module
+// polls Manual jobs via BATCH_STATUS. batch-engine-ui owns engine selection and
+// GraphQL progress for Auto/Super. Both paths survive closing the popup.
 //
-// Layout: a Bookmarks | Profile | Likes | Selection icon-tab strip over one
+// Layout: a Bookmarks | Profile | Likes | Timeline | Selection tab strip over one
 // action button, so every source is always discoverable without stretching
 // the popup. A tab's button activates when the current page matches its source
 // (Selection works on any x.com timeline); otherwise it's disabled with a
@@ -12,8 +12,9 @@
 // ledger); Reset clears that memory.
 
 import type {
-  BatchStartResponse,
-  BatchStatusResponse,
+  BatchSource,
+  ManualBatchStartResponse,
+  ManualBatchStatusResponse,
   HarvestResponse,
 } from '../types/messages';
 import { hostMatches } from '../shared/media';
@@ -43,11 +44,10 @@ import {
   tabBatchLikes,
   tabBatchTimeline,
 } from './dom';
-import { setExportMode } from './mode';
-import { getFastMode, isFastActive, startFastExport, cancelFast, setStandardJobActive, resumeFastIfActive, updateFastSteps } from './fast-batch-ui';
+import { setExportMode } from './export-mode';
+import { usesGraphqlEngine, isGraphqlRunActive, startGraphqlExport, cancelGraphqlRun, setManualJobActive, resumeGraphqlRunIfActive, updateGraphqlSteps } from './batch-engine-ui';
 
-type JobSnapshot = NonNullable<BatchStatusResponse['job']>;
-type BatchTab = 'bookmarks' | 'profile' | 'selection' | 'likes' | 'timeline';
+type JobSnapshot = NonNullable<ManualBatchStatusResponse['job']>;
 
 // The pause button swaps between a pause and a play (resume) glyph.
 const icoPause = btnBatchPause.querySelector('.batch-ico-pause');
@@ -59,7 +59,7 @@ const JOB_POLL_MS = 800;
 const COUNT_POLL_MS = 1000;
 const t = (key: string, fallback: string): string => chrome.i18n.getMessage(key) || fallback;
 
-const TAB_BUTTONS: Record<BatchTab, HTMLButtonElement> = {
+const TAB_BUTTONS: Record<BatchSource, HTMLButtonElement> = {
   bookmarks: tabBatchBookmarks,
   profile: tabBatchProfile,
   selection: tabBatchSelection,
@@ -69,7 +69,7 @@ const TAB_BUTTONS: Record<BatchTab, HTMLButtonElement> = {
 
 // Per-tab action-button icons (bookmark, user, check-square, heart, home) — all
 // live in the HTML; the inactive ones are hidden.
-const TAB_ICONS: Record<BatchTab, SVGElement> = {
+const TAB_ICONS: Record<BatchSource, SVGElement> = {
   bookmarks: btnBatchIconBookmarks,
   profile: btnBatchIconProfile,
   selection: btnBatchIconSelection,
@@ -80,13 +80,13 @@ const TAB_ICONS: Record<BatchTab, SVGElement> = {
 // Sources with a fixed URL we can open directly (no handle needed). Likes is
 // your own and now sits at a fixed address under History, so it qualifies too;
 // only Profile is per-account and can't be opened generically.
-const OPEN_URLS: Partial<Record<BatchTab, string>> = {
+const OPEN_URLS: Partial<Record<BatchSource, string>> = {
   bookmarks: 'https://x.com/i/history',
   likes: 'https://x.com/i/history/likes',
   timeline: 'https://x.com/home',
 };
 
-let activeTab: BatchTab = 'bookmarks';
+let activeTab: BatchSource = 'bookmarks';
 // The last tab shown, persisted. A page that isn't a source (a tweet opened for
 // Auto's readiness step) keeps it, so the action button can't silently swap
 // to another ready source between steps.
@@ -111,15 +111,15 @@ let jobPollTimer: ReturnType<typeof setInterval> | undefined;
 let countPollTimer: ReturnType<typeof setInterval> | undefined;
 let pageTabId: number | undefined;
 let pageIsX = false;
-// Current page URL — lets Fast read the profile handle without the injector
-// (Fast uses captured GraphQL, so it works even when the page wasn't reloaded).
+// Auto/Super read the profile handle from the URL without the injector; their
+// captured GraphQL requests work even when the current page wasn't reloaded.
 let pageUrl: string | undefined;
 
 async function fetchJob(): Promise<JobSnapshot | undefined> {
   try {
     const resp = (await chrome.runtime.sendMessage({
       action: 'BATCH_STATUS',
-    })) as BatchStatusResponse | undefined;
+    })) as ManualBatchStatusResponse | undefined;
     return resp?.job;
   } catch {
     return undefined;
@@ -172,20 +172,18 @@ function hideDedupAndResets(): void {
 async function refreshIdleUi(): Promise<void> {
   appendable = false;
   openTarget = undefined;
-  // Fast Batch (armed via the Auto/Super engine) overrides per-page gating: it
-  // fetches through the GraphQL session, so it doesn't need the source page
-  // loaded.
-  if (getFastMode()) {
-    await refreshFastIdle();
+  // Auto/Super override per-page gating: GraphQL acquisition doesn't need the
+  // source page loaded.
+  if (usesGraphqlEngine()) {
+    await refreshGraphqlIdle();
     return;
   }
-  await refreshStandardIdle();
+  await refreshManualIdle();
 }
 
-// Fast-mode idle state. Phase 1 is bookmarks / profile / likes only — Selection
-// and Timeline have no GET-paginated feed, so they point back with a "turn Fast
-// off" hint. The dedup row stays visible so layout is stable.
-async function refreshFastIdle(): Promise<void> {
+// Auto/Super support Bookmarks, Profile, and Likes. Selection and Timeline
+// point back to Manual. The dedup row stays visible so layout is stable.
+async function refreshGraphqlIdle(): Promise<void> {
   if (activeTab === 'selection' || activeTab === 'timeline') {
     hideDedupAndResets();
     setButton(
@@ -199,7 +197,7 @@ async function refreshFastIdle(): Promise<void> {
     );
     return;
   }
-  // bookmarks / profile / likes — Fast paginates from the top via cursor (no
+  // bookmarks / profile / likes — GraphQL paginates from the top via cursor (no
   // harvested collection), so "Reset queue" is always greyed; "Reset history"
   // greys when the ledger is empty.
   const ledger = new Set(await loadExported());
@@ -211,7 +209,7 @@ async function refreshFastIdle(): Promise<void> {
   let label: string;
   let hint: string;
   if (activeTab === 'profile') {
-    // Handle from the URL, not the injector — Fast doesn't need the page.
+    // Handle from the URL, not the injector — GraphQL doesn't need the page.
     const handle = handleFromUrl(pageUrl);
     label = `${t('btn_batch_profile', 'Export posts')}${handle ? ` @${handle}` : ''}`;
     hint = t('btn_batch_fast_profile_hint', "Fetch this profile's own posts through your X session — much faster. Reposts are skipped.");
@@ -222,13 +220,13 @@ async function refreshFastIdle(): Promise<void> {
     label = t('btn_batch', 'Export bookmarks');
     hint = t('btn_batch_fast_hint', 'Fetch all your bookmarks through your X session — much faster. Expands threads & articles; stops politely if X rate-limits.');
   }
-  setButton(label, !isFastActive(), hint);
-  void updateFastSteps(activeTab); // refresh the Page/Tweet readiness lights
+  setButton(label, !isGraphqlRunActive(), hint);
+  void updateGraphqlSteps(activeTab); // refresh the Page/Tweet readiness lights
 }
 
-// Standard (worker-tab) idle state: harvest the current page, then either gate
+// Manual (worker-tab) idle state: harvest the current page, then either gate
 // with a "where to go" hint or render the export/append button.
-async function refreshStandardIdle(): Promise<void> {
+async function refreshManualIdle(): Promise<void> {
   const { source, handle, urls, unreachable } = await harvest();
 
   // After an extension reload the page still runs the old/no content script
@@ -362,34 +360,34 @@ async function renderOnSourceButton(urls: string[], handle: string | undefined):
   batchDedupRow.classList.remove('hidden');
 }
 
-// Fast can't do Selection or Timeline (no GET-paginated feed), so disable those
-// tabs while Fast is armed (and bounce off them if active). The tabs dim via
+// Auto/Super don't support Selection or Timeline, so disable those tabs when
+// either engine is selected (and bounce off them if active). The tabs dim via
 // color, not opacity, so their tooltips stay readable (issue #38).
-function applyFastTabGating(): void {
-  const fast = getFastMode();
+function applyEngineSourceGating(): void {
+  const graphqlEngine = usesGraphqlEngine();
   const sel = TAB_BUTTONS.selection;
-  sel.disabled = fast;
+  sel.disabled = graphqlEngine;
   sel.setAttribute(
     'data-tooltip',
-    fast
+    graphqlEngine
       ? t('batch_tab_selection_fast', 'Switch to Manual to pick tweets by hand')
       : t('batch_tab_selection', 'Selection')
   );
   const tl = TAB_BUTTONS.timeline;
-  tl.disabled = fast;
+  tl.disabled = graphqlEngine;
   tl.setAttribute(
     'data-tooltip',
-    fast
+    graphqlEngine
       ? t('batch_tab_timeline_fast', 'Switch to Manual to export your home feed')
       : t('batch_tab_timeline', 'Timeline')
   );
-  if (fast && (activeTab === 'selection' || activeTab === 'timeline')) setActiveTab('bookmarks');
+  if (graphqlEngine && (activeTab === 'selection' || activeTab === 'timeline')) setActiveTab('bookmarks');
 }
 
-function setActiveTab(tab: BatchTab): void {
+function setActiveTab(tab: BatchSource): void {
   activeTab = tab;
   void chrome.storage.local.set({ [LAST_TAB_KEY]: tab });
-  (Object.keys(TAB_BUTTONS) as BatchTab[]).forEach((k) => {
+  (Object.keys(TAB_BUTTONS) as BatchSource[]).forEach((k) => {
     TAB_BUTTONS[k].classList.toggle('active', k === tab);
     TAB_ICONS[k].classList.toggle('hidden', k !== tab);
   });
@@ -397,8 +395,8 @@ function setActiveTab(tab: BatchTab): void {
   // every tab while active; only hide it once idle.
   if (jobIsActive && lastJob) {
     render(lastJob);
-  } else if (!isFastActive()) {
-    // A running Fast Batch owns the progress bar (its own poller) — don't hide it.
+  } else if (!isGraphqlRunActive()) {
+    // An Auto/Super run owns the progress display via its own poller.
     batchProgress.classList.add('hidden');
   }
   void refreshIdleUi();
@@ -427,7 +425,7 @@ function render(job: JobSnapshot): void {
 
   const active = job.status === 'running' || job.status === 'paused';
   jobIsActive = active;
-  setStandardJobActive(active); // lock the Fast toggle + keep the box blue while Standard runs
+  setManualJobActive(active); // lock the engine selector while Manual runs
   // The start button's enabled state + tooltip are owned entirely by
   // setButton (via refreshIdleUi) — render must not touch them, or the two
   // pollers fight and the button flickers between disabled and append-enabled.
@@ -499,7 +497,7 @@ function startCountPolling(): void {
 // final report stays visible until the user switches tabs.
 async function backToIdle(): Promise<void> {
   jobIsActive = false;
-  setStandardJobActive(false); // Standard job ended — unlock the Fast toggle
+  setManualJobActive(false); // Manual job ended — unlock the engine selector
   await refreshIdleUi();
   startCountPolling();
 }
@@ -515,12 +513,11 @@ async function control(controlAction: 'pause' | 'resume' | 'cancel'): Promise<vo
 }
 
 async function startExport(): Promise<void> {
-  // Armed Fast Batch routes the paginated sources (bookmarks/profile/likes)
-  // through the GraphQL path (own progress poller in fast-batch-ui). Selection
-  // isn't Fast-compatible (its tab is disabled while Fast is armed).
-  if (getFastMode() && activeTab !== 'selection' && activeTab !== 'timeline') {
-    // Fast reads the profile handle from the URL (no injector needed).
-    await startFastExport(activeTab, activeTab === 'profile' ? handleFromUrl(pageUrl) : undefined);
+  // Auto/Super route supported sources through GraphQL; batch-engine-ui polls
+  // their progress. Timeline and Selection require Manual.
+  if (usesGraphqlEngine() && activeTab !== 'selection' && activeTab !== 'timeline') {
+    // GraphQL reads the profile handle from the URL (no injector needed).
+    await startGraphqlExport(activeTab, activeTab === 'profile' ? handleFromUrl(pageUrl) : undefined);
     return;
   }
 
@@ -556,7 +553,7 @@ async function startExport(): Promise<void> {
     format: settings.batchFormat,
     output: settings.batchOutput,
     ...(activeTab === 'profile' && handle ? { handle } : {}),
-  })) as BatchStartResponse | undefined;
+  })) as ManualBatchStartResponse | undefined;
   if (!resp?.success) {
     batchProgress.classList.remove('hidden');
     batchProgressText.textContent = resp?.error || t('batch_start_failed', 'Could not start the batch.');
@@ -582,7 +579,7 @@ async function appendExport(): Promise<void> {
 
 // Take the user to a source's page (Bookmarks/Timeline) when they aren't on it:
 // navigate the current x.com tab if there is one, else open a new tab. They then
-// scroll to load posts and export (Standard reads the loaded DOM).
+// scroll to load posts and export (Manual reads the loaded DOM).
 function openSourcePage(url: string): void {
   if (pageIsX && pageTabId !== undefined) {
     void chrome.tabs.update(pageTabId, { url });
@@ -609,11 +606,11 @@ export async function initBatchUi(): Promise<void> {
     if (openTarget) return void openSourcePage(openTarget);
     void (appendable ? appendExport() : startExport());
   });
-  btnBatchCancel.addEventListener('click', () => void (isFastActive() ? cancelFast() : control('cancel')));
-  // Fast toggle armed/disarmed, or a fast run finished → re-evaluate the button
-  // and the Selection tab (which Fast disables).
+  btnBatchCancel.addEventListener('click', () => void (isGraphqlRunActive() ? cancelGraphqlRun() : control('cancel')));
+  // Engine changed or GraphQL run finished: re-evaluate the button and
+  // source tabs (Timeline/Selection require Manual).
   window.addEventListener('xclipper-fast-changed', () => {
-    applyFastTabGating();
+    applyEngineSourceGating();
     void refreshIdleUi();
   });
   btnBatchPause.addEventListener('click', () => {
@@ -625,7 +622,7 @@ export async function initBatchUi(): Promise<void> {
     void resetHistory().finally(refreshIdleUi);
   });
   btnBatchResetQueue.addEventListener('click', () => void resetQueue());
-  (Object.keys(TAB_BUTTONS) as BatchTab[]).forEach((tab) => {
+  (Object.keys(TAB_BUTTONS) as BatchSource[]).forEach((tab) => {
     TAB_BUTTONS[tab].addEventListener('click', () => setActiveTab(tab));
   });
 
@@ -641,9 +638,9 @@ export async function initBatchUi(): Promise<void> {
     setExportMode(false, false); // reopening mid-job lands on Batch, not Single
     render(activeJob); // sets jobIsActive, so tab setup below keeps Start disabled
     startJobPolling();
-  } else if (await resumeFastIfActive()) {
-    // A Fast Batch run is still going in the background — land on Batch so its
-    // progress (with whose export) is visible; fast-batch-ui owns the polling.
+  } else if (await resumeGraphqlRunIfActive()) {
+    // An Auto/Super run is still going in the background — land on Batch so its
+    // progress (with whose export) is visible; batch-engine-ui owns the polling.
     setExportMode(false, false);
   }
 
@@ -654,11 +651,11 @@ export async function initBatchUi(): Promise<void> {
   // tab; Selection is the first-run default on x.com.
   const { source } = await harvest();
   const { [LAST_TAB_KEY]: saved } = await chrome.storage.local.get(LAST_TAB_KEY);
-  const lastTab = typeof saved === 'string' && saved in TAB_BUTTONS ? (saved as BatchTab) : null;
+  const lastTab = typeof saved === 'string' && saved in TAB_BUTTONS ? (saved as BatchSource) : null;
   setActiveTab(
     activeJob?.origin ?? source ?? sourceFromUrl(tab?.url) ?? lastTab ?? (pageIsX ? 'selection' : 'bookmarks')
   );
-  applyFastTabGating(); // reflect Fast state if it was restored armed
+  applyEngineSourceGating(); // reflect GraphQL state if it was restored armed
 }
 
 // Best-effort page type from the URL, for initial tab focus when the injector
@@ -673,11 +670,11 @@ function pageFromUrl(url: string | undefined): XPage | null {
   }
 }
 
-function sourceFromUrl(url: string | undefined): BatchTab | null {
+function sourceFromUrl(url: string | undefined): BatchSource | null {
   return pageFromUrl(url)?.source ?? null;
 }
 
-// Profile handle straight from the URL — Fast doesn't need the injector, so this
+// Profile handle straight from the URL — GraphQL doesn't need the injector, so this
 // works even when the page wasn't reloaded after an extension update.
 function handleFromUrl(url: string | undefined): string | undefined {
   const page = pageFromUrl(url);

@@ -1023,10 +1023,10 @@ body {
   margin-inline-end: 4px;
 }
 
-/* ─── Fast Batch toggle (sits above Export settings) ──────────── */
-/* Batch engine selector: Manual | Auto | Super — one segmented control that
- * replaces the old Fast on/off + Super on/off toggles. Full-width so it reads as
- * a primary choice; the fetch-mode segment (.fast-seg) below twins its shape. */
+/* ─── Batch engine selector ──────────── */
+/* Manual | Auto | Super replaces the historical Fast + Super toggles.
+ * Full-width so it reads as a primary choice; the fetch-mode segment
+ * (.fast-seg) below twins its shape. */
 .batch-mode {
   display: flex;
   border: 1px solid var(--border-subtle);
@@ -1090,7 +1090,7 @@ body {
 
 /* The caption explains scroll mode + quality (engine field) or the fetch mode
  * (Recent/Resume/Date range field). Hidden until a click on its segments, and
- * hidden again by the next click elsewhere (see fast-batch-ui). Fixed two-line
+ * hidden again by the next click elsewhere (see batch-engine-ui). Fixed two-line
  * height so switching options while it shows never shifts the layout below. */
 .mode-field-caption.hidden {
   display: none;
@@ -1217,7 +1217,7 @@ body {
   background: var(--warning-bg);
 }
 
-/* Fast Batch date-range filter (shown only while Fast is armed). */
+/* Auto/Super date-range filter (shown only when Auto/Super is selected). */
 .fast-date-range {
   display: flex;
   align-items: center;
@@ -1310,7 +1310,7 @@ body {
   color: #fff;
 }
 
-/* Fast Batch step lights: Page → Tweet → Fetch → Expand. */
+/* Auto/Super step lights: Page → Tweet → Fetch → Expand. */
 .fast-steps {
   display: flex;
   align-items: center;
@@ -1369,10 +1369,10 @@ body {
   transform: translateX(0) translateY(0);
 }
 
-/* Fast Batch has no honest determinate total — collection is open-ended and
- * Super Fast streams its writes in parallel — so the fill bar can only fake a
- * fraction. Hide it during any Fast run; the live count text, step lights, and
- * Stop button carry the real feedback. Standard batch (no .fast-on) keeps its
+/* Auto/Super have no honest determinate total — collection is open-ended and
+ * Super streams its writes in parallel — so the fill bar can only fake a
+ * fraction. Hide it during any GraphQL run; the live count text, step lights, and
+ * Stop button carry the real feedback. Manual batch (no .fast-on) keeps its
  * bar, where the total is known and writes are sequential. */
 #view-main.fast-on .batch-bar {
   display: none;
@@ -1380,7 +1380,7 @@ body {
 
 /* With the bar gone, the Stop button would otherwise sit alone on its own row
  * above the status text. Lay the control row and the status text on one line so
- * a Fast run reads "[■] Bookmarks · Fetching… 1300" and reclaims that row.
+ * a GraphQL run reads "[■] Bookmarks · Fetching… 1300" and reclaims that row.
  * (:not(.hidden) so the idle display:none still wins.) */
 #view-main.fast-on #batch-progress:not(.hidden) {
   display: flex;
@@ -2403,7 +2403,7 @@ details.option-group[open] .option-group-chevron {
   border-top: 1px solid var(--border-subtle);
 }
 
-/* Batch-only — hidden in Single mode (mode.ts toggles `.hidden`). Needs an
+/* Batch-only — hidden in Single mode (export-mode.ts toggles `.hidden`). Needs an
  * explicit override since `.batch-format-controls` sets its own display. */
 .batch-format-controls.hidden {
   display: none;

@@ -7,9 +7,9 @@ import { applyI18n } from './i18n';
 import { initSettingsForm } from './settings-form';
 import { initActions } from './actions';
 import { initBatchUi } from './batch-ui';
-import { initModeTabs } from './mode';
+import { initExportModeTabs } from './export-mode';
 import { initReviewBanner } from './review-banner';
-import { initFastBatchUi } from './fast-batch-ui';
+import { initBatchEngineUi } from './batch-engine-ui';
 
 // ─── Footer version ───────────────────────────────────────────────────
 
@@ -57,8 +57,8 @@ if (formatDetails) {
 
 // ─── Feature modules ──────────────────────────────────────────────────
 
-initFastBatchUi();
-initModeTabs();
+initBatchEngineUi();
+initExportModeTabs();
 initSettingsForm();
 initActions();
 void initBatchUi();

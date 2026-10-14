@@ -5,8 +5,8 @@
 // post's AST into its files (pure, so the rules are testable without chrome),
 // and the write* functions are the only side effects: the per-item files, the
 // per-job data.json, and the one combined file. They take a `folder`, not a
-// BatchJob, so the DOM worker-tab batch (batch.ts) and the GraphQL Fast Batch
-// (fast-batch.ts) share them unchanged.
+// ManualBatchJob, so Manual (manual-batch.ts) and Auto/Super (graphql-batch.ts)
+// share them unchanged.
 
 import type { Document } from '../ast/types';
 import { renderDigest } from '../ast/render-digest';
@@ -45,7 +45,7 @@ export interface BuiltFile {
   ext: string;
 }
 
-// The job-level fields the data.json manifest records (decoupled from BatchJob).
+// The job-level fields the data.json manifest records (decoupled from ManualBatchJob).
 export interface JobMeta {
   jobId: string;
   status: string;
@@ -97,7 +97,7 @@ export type OutFile = { path: string; content: string; mime: string } | { path: 
 
 // The one place a batch post's Markdown is made, for every engine. Its file
 // name comes from here too, before the caller de-duplicates it. Videos must
-// already carry their MP4s (Fast Batch maps them; Manual resolves them first).
+// already carry their MP4s (Auto/Super maps them; Manual resolves them first).
 export function renderItem(doc: Document, plan: BatchPlan): PostProcessResult {
   return postProcess(docToExtracted(doc, plan.localVideo ? { includeVideoLinks: true } : undefined), {
     ...plan.markdown,
@@ -147,7 +147,7 @@ export function buildCombined(format: BatchFormat, docs: Document[], opts: Forma
   }
 }
 
-// Download pacing: a big batch can fire thousands of downloads (a Super Fast
+// Download pacing: a big batch can fire thousands of downloads (a Super
 // run alone writes 1000s of files, plus images). Unthrottled, they all hit
 // Chrome's browser process at once — data-URL decode, downloads-UI updates,
 // history-DB inserts, disk writes — and the whole browser janks until the
