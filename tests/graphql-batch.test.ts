@@ -122,8 +122,8 @@ describe('runGraphqlBatchExport — a run cut off mid-write', () => {
   // while it ran survives. Posts whose files landed must be in the ledger; the
   // one still downloading must not be, so the next run redoes it.
   it.each([
-    ['Auto (threads expanded, written at the end)', true],
-    ['Super (streamed while the feed is read)', false],
+    ['Auto Full (threads expanded, written at the end)', true],
+    ['Auto Fast (streamed while the feed is read)', false],
   ])('%s saves the posts already on disk', async (_name, expandThreads) => {
     const write = hangWrite(3);
     void runGraphqlBatchExport({ expandThreads });

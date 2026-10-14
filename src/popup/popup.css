@@ -1024,7 +1024,7 @@ body {
 }
 
 /* ─── Batch engine selector ──────────── */
-/* Manual | Auto | Super replaces the historical Fast + Super toggles.
+/* Scroll | Auto Full | Auto Fast replaces the historical engine toggles.
  * Full-width so it reads as a primary choice; the fetch-mode segment
  * (.fast-seg) below twins its shape. */
 .batch-mode {
@@ -1043,6 +1043,7 @@ body {
   align-items: center;
   justify-content: center;
   gap: 4px;
+  white-space: nowrap;
   font-family: var(--font);
   font-size: 13px;
   font-weight: 600;
@@ -1058,16 +1059,12 @@ body {
 }
 
 /* Selected engine — the batch accent (same blue as the Export button + the
- * fetch-mode segment) for every engine, Manual included. The "uses your X
+ * fetch-mode segment) for every engine, Scroll included. The "uses your X
  * session" signal is carried by the red (i) beside the caption, not by a red
  * segment. */
 .mode-seg-btn.active {
   background: var(--batch);
   color: #fff;
-}
-
-.mode-seg-btn .beta-badge {
-  opacity: 0.7;
 }
 
 /* Field box: groups the engine and fetch-mode controls with their captions
@@ -1104,10 +1101,10 @@ body {
   color: var(--text-secondary);
 }
 
-/* Engine caption + an (i) at its end (Auto/Super only) that carries the deeper
+/* Engine caption + an (i) at its end (Auto Full/Auto Fast only) that carries the deeper
  * "how it works / soft rate limit / re-run after ~15 min" note. Bottom-aligned
  * so the (i) sits by the caption's last line, or alone at the row's end while
- * the caption is hidden. The row drops out when neither is showing (Manual). */
+ * the caption is hidden. The row drops out when neither is showing (Scroll). */
 .mode-caption-row {
   display: flex;
   align-items: flex-end;
@@ -1123,7 +1120,7 @@ body {
   flex: 1;
 }
 
-/* Fetch mode (Auto/Super only) shares the engine's box, below its caption row. */
+/* Fetch mode (Auto Full/Auto Fast only) shares the engine's box, below its caption row. */
 .fast-paginate {
   display: flex;
   flex-direction: column;
@@ -1134,7 +1131,7 @@ body {
   display: none;
 }
 
-/* Shown for Auto/Super only — it is the single red mark in the batch view, the
+/* Shown for Auto Full/Auto Fast only — it is the single red mark in the batch view, the
  * "uses your logged-in X session" signal that used to colour the whole engine
  * segment and the active source tab. */
 .mode-info {
@@ -1181,7 +1178,7 @@ body {
   display: none;
 }
 
-/* Flood warning: Auto/Super with un-zipped per-item output would drop
+/* Flood warning: Auto Full/Auto Fast with un-zipped per-item output would drop
  * thousands of entries on the downloads shelf. One line with a button that
  * turns on Zip (or Combined), below the engine/fetch-mode box. */
 .flood-hint {
@@ -1217,7 +1214,7 @@ body {
   background: var(--warning-bg);
 }
 
-/* Auto/Super date-range filter (shown only when Auto/Super is selected). */
+/* Auto Full/Auto Fast date-range filter (shown only when Auto Full/Auto Fast is selected). */
 .fast-date-range {
   display: flex;
   align-items: center;
@@ -1252,7 +1249,7 @@ body {
 
 /* Fetch-mode segment (Recent | Resume | Date range) — twins the engine selector
  * above it: full-width, same border/radius, one step smaller (it's a sub-setting
- * of Auto/Super, not a primary choice). */
+ * of Auto Full/Auto Fast, not a primary choice). */
 .fast-seg {
   display: flex;
   border: 1px solid var(--border-subtle);
@@ -1310,7 +1307,7 @@ body {
   color: #fff;
 }
 
-/* Auto/Super step lights: Page → Tweet → Fetch → Expand. */
+/* Auto Full/Auto Fast step lights: Page → Tweet → Fetch → Expand. */
 .fast-steps {
   display: flex;
   align-items: center;
@@ -1369,10 +1366,10 @@ body {
   transform: translateX(0) translateY(0);
 }
 
-/* Auto/Super have no honest determinate total — collection is open-ended and
- * Super streams its writes in parallel — so the fill bar can only fake a
+/* Auto Full/Auto Fast have no honest determinate total — collection is open-ended and
+ * Auto Fast streams its writes in parallel — so the fill bar can only fake a
  * fraction. Hide it during any GraphQL run; the live count text, step lights, and
- * Stop button carry the real feedback. Manual batch (no .fast-on) keeps its
+ * Stop button carry the real feedback. Scroll batch (no .fast-on) keeps its
  * bar, where the total is known and writes are sequential. */
 #view-main.fast-on .batch-bar {
   display: none;
@@ -2092,21 +2089,6 @@ details.option-group[open] .option-group-chevron {
   background: var(--accent);
   color: #fff;
   box-shadow: 0 2px 8px var(--accent-glow);
-}
-
-/* "Beta" pill on the Batch tab. Outlined in currentColor so it stays legible
- * in both tab states — grey when inactive, white-on-accent when active. */
-.beta-badge {
-  margin-inline-start: 5px;
-  padding: 1px 5px;
-  border: 1px solid currentColor;
-  border-radius: 999px;
-  font-size: 9px;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
-  vertical-align: middle;
-  opacity: 0.75;
 }
 
 /* Tier-1 panels (Single / Batch) are borderless — the mode tabs above carry

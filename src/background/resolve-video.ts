@@ -1,7 +1,7 @@
 // Resolve a single post's video URLs so they can be saved locally.
 //
 // The DOM extractor can't see them (ADR 0003 — X plays video through MSE, so
-// only X's own GraphQL payload carries the MP4 variant list). Auto/Super already
+// only X's own GraphQL payload carries the MP4 variant list). Auto Full/Auto Fast already
 // captures the session's auth for exactly this, so single export borrows that
 // same machinery for one TweetDetail call instead of growing a second one.
 //

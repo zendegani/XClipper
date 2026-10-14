@@ -1,6 +1,6 @@
 // Source tabs and batch dispatch. The background owns acquisition; this module
-// polls Manual jobs via BATCH_STATUS. batch-engine-ui owns engine selection and
-// GraphQL progress for Auto/Super. Both paths survive closing the popup.
+// polls Scroll jobs via BATCH_STATUS. batch-engine-ui owns engine selection and
+// GraphQL progress for Auto Full/Auto Fast. Both paths survive closing the popup.
 //
 // Layout: a Bookmarks | Profile | Likes | Timeline | Selection tab strip over one
 // action button, so every source is always discoverable without stretching
@@ -88,7 +88,7 @@ const OPEN_URLS: Partial<Record<BatchSource, string>> = {
 
 let activeTab: BatchSource = 'bookmarks';
 // The last tab shown, persisted. A page that isn't a source (a tweet opened for
-// Auto's readiness step) keeps it, so the action button can't silently swap
+// Auto Full's readiness step) keeps it, so the action button can't silently swap
 // to another ready source between steps.
 const LAST_TAB_KEY = 'batchTab';
 // One job at a time (the background enforces this — one worker window,
@@ -111,7 +111,7 @@ let jobPollTimer: ReturnType<typeof setInterval> | undefined;
 let countPollTimer: ReturnType<typeof setInterval> | undefined;
 let pageTabId: number | undefined;
 let pageIsX = false;
-// Auto/Super read the profile handle from the URL without the injector; their
+// Auto Full/Auto Fast read the profile handle from the URL without the injector; their
 // captured GraphQL requests work even when the current page wasn't reloaded.
 let pageUrl: string | undefined;
 
@@ -172,7 +172,7 @@ function hideDedupAndResets(): void {
 async function refreshIdleUi(): Promise<void> {
   appendable = false;
   openTarget = undefined;
-  // Auto/Super override per-page gating: GraphQL acquisition doesn't need the
+  // Auto Full/Auto Fast override per-page gating: GraphQL acquisition doesn't need the
   // source page loaded.
   if (usesGraphqlEngine()) {
     await refreshGraphqlIdle();
@@ -181,8 +181,8 @@ async function refreshIdleUi(): Promise<void> {
   await refreshManualIdle();
 }
 
-// Auto/Super support Bookmarks, Profile, and Likes. Selection and Timeline
-// point back to Manual. The dedup row stays visible so layout is stable.
+// Auto Full/Auto Fast support Bookmarks, Profile, and Likes. Selection and Timeline
+// point back to Scroll. The dedup row stays visible so layout is stable.
 async function refreshGraphqlIdle(): Promise<void> {
   if (activeTab === 'selection' || activeTab === 'timeline') {
     hideDedupAndResets();
@@ -192,8 +192,8 @@ async function refreshGraphqlIdle(): Promise<void> {
         : t('btn_batch_select', 'Select tweets…'),
       false,
       activeTab === 'timeline'
-        ? t('btn_batch_fast_no_timeline', 'Timeline is only available in Manual — switch to Manual to export your home feed.')
-        : t('btn_batch_fast_no_selection', 'Selection is only available in Manual — switch to Manual to pick tweets by hand.')
+        ? t('btn_batch_fast_no_timeline', 'Timeline is only available in Scroll — switch to Scroll to export your home feed.')
+        : t('btn_batch_fast_no_selection', 'Selection is only available in Scroll — switch to Scroll to pick tweets by hand.')
     );
     return;
   }
@@ -224,7 +224,7 @@ async function refreshGraphqlIdle(): Promise<void> {
   void updateGraphqlSteps(activeTab); // refresh the Page/Tweet readiness lights
 }
 
-// Manual (worker-tab) idle state: harvest the current page, then either gate
+// Scroll (worker-tab) idle state: harvest the current page, then either gate
 // with a "where to go" hint or render the export/append button.
 async function refreshManualIdle(): Promise<void> {
   const { source, handle, urls, unreachable } = await harvest();
@@ -360,7 +360,7 @@ async function renderOnSourceButton(urls: string[], handle: string | undefined):
   batchDedupRow.classList.remove('hidden');
 }
 
-// Auto/Super don't support Selection or Timeline, so disable those tabs when
+// Auto Full/Auto Fast don't support Selection or Timeline, so disable those tabs when
 // either engine is selected (and bounce off them if active). The tabs dim via
 // color, not opacity, so their tooltips stay readable (issue #38).
 function applyEngineSourceGating(): void {
@@ -370,7 +370,7 @@ function applyEngineSourceGating(): void {
   sel.setAttribute(
     'data-tooltip',
     graphqlEngine
-      ? t('batch_tab_selection_fast', 'Switch to Manual to pick tweets by hand')
+      ? t('batch_tab_selection_fast', 'Switch to Scroll to pick tweets by hand')
       : t('batch_tab_selection', 'Selection')
   );
   const tl = TAB_BUTTONS.timeline;
@@ -378,7 +378,7 @@ function applyEngineSourceGating(): void {
   tl.setAttribute(
     'data-tooltip',
     graphqlEngine
-      ? t('batch_tab_timeline_fast', 'Switch to Manual to export your home feed')
+      ? t('batch_tab_timeline_fast', 'Switch to Scroll to export your home feed')
       : t('batch_tab_timeline', 'Timeline')
   );
   if (graphqlEngine && (activeTab === 'selection' || activeTab === 'timeline')) setActiveTab('bookmarks');
@@ -396,7 +396,7 @@ function setActiveTab(tab: BatchSource): void {
   if (jobIsActive && lastJob) {
     render(lastJob);
   } else if (!isGraphqlRunActive()) {
-    // An Auto/Super run owns the progress display via its own poller.
+    // An Auto Full/Auto Fast run owns the progress display via its own poller.
     batchProgress.classList.add('hidden');
   }
   void refreshIdleUi();
@@ -425,7 +425,7 @@ function render(job: JobSnapshot): void {
 
   const active = job.status === 'running' || job.status === 'paused';
   jobIsActive = active;
-  setManualJobActive(active); // lock the engine selector while Manual runs
+  setManualJobActive(active); // lock the engine selector while Scroll runs
   // The start button's enabled state + tooltip are owned entirely by
   // setButton (via refreshIdleUi) — render must not touch them, or the two
   // pollers fight and the button flickers between disabled and append-enabled.
@@ -497,7 +497,7 @@ function startCountPolling(): void {
 // final report stays visible until the user switches tabs.
 async function backToIdle(): Promise<void> {
   jobIsActive = false;
-  setManualJobActive(false); // Manual job ended — unlock the engine selector
+  setManualJobActive(false); // Scroll job ended — unlock the engine selector
   await refreshIdleUi();
   startCountPolling();
 }
@@ -513,8 +513,8 @@ async function control(controlAction: 'pause' | 'resume' | 'cancel'): Promise<vo
 }
 
 async function startExport(): Promise<void> {
-  // Auto/Super route supported sources through GraphQL; batch-engine-ui polls
-  // their progress. Timeline and Selection require Manual.
+  // Auto Full/Auto Fast route supported sources through GraphQL; batch-engine-ui polls
+  // their progress. Timeline and Selection require Scroll.
   if (usesGraphqlEngine() && activeTab !== 'selection' && activeTab !== 'timeline') {
     // GraphQL reads the profile handle from the URL (no injector needed).
     await startGraphqlExport(activeTab, activeTab === 'profile' ? handleFromUrl(pageUrl) : undefined);
@@ -579,7 +579,7 @@ async function appendExport(): Promise<void> {
 
 // Take the user to a source's page (Bookmarks/Timeline) when they aren't on it:
 // navigate the current x.com tab if there is one, else open a new tab. They then
-// scroll to load posts and export (Manual reads the loaded DOM).
+// scroll to load posts and export (Scroll reads the loaded DOM).
 function openSourcePage(url: string): void {
   if (pageIsX && pageTabId !== undefined) {
     void chrome.tabs.update(pageTabId, { url });
@@ -608,7 +608,7 @@ export async function initBatchUi(): Promise<void> {
   });
   btnBatchCancel.addEventListener('click', () => void (isGraphqlRunActive() ? cancelGraphqlRun() : control('cancel')));
   // Engine changed or GraphQL run finished: re-evaluate the button and
-  // source tabs (Timeline/Selection require Manual).
+  // source tabs (Timeline/Selection require Scroll).
   window.addEventListener('xclipper-fast-changed', () => {
     applyEngineSourceGating();
     void refreshIdleUi();
@@ -639,7 +639,7 @@ export async function initBatchUi(): Promise<void> {
     render(activeJob); // sets jobIsActive, so tab setup below keeps Start disabled
     startJobPolling();
   } else if (await resumeGraphqlRunIfActive()) {
-    // An Auto/Super run is still going in the background — land on Batch so its
+    // An Auto Full/Auto Fast run is still going in the background — land on Batch so its
     // progress (with whose export) is visible; batch-engine-ui owns the polling.
     setExportMode(false, false);
   }

@@ -2,7 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import type { Document } from '../src/ast/types';
 import { DEFAULT_SETTINGS, type Settings } from '../src/shared/settings';
 
-// The Manual orchestrator with chrome mocked down to the downloads it starts:
+// The Scroll orchestrator with chrome mocked down to the downloads it starts:
 // the worker tab reports each post's AST, and the background writes its files.
 
 let settings: Settings;
@@ -103,7 +103,7 @@ afterEach(() => {
   vi.useRealTimers();
 });
 
-describe('Manual batch', () => {
+describe('Scroll batch', () => {
   it('writes each post from the AST the worker tab sends', async () => {
     const a = post('1', 'first post');
     await startManualBatch([a.metadata.sourceUrl], 'selection');

@@ -63,28 +63,28 @@
     "message": "Batch engine"
   },
   "batch_mode_hint": {
-    "message": "Auto and Super fetch through your logged-in X session — no API key, no password, nothing leaves your browser. Large runs can hit X's soft rate limit; it stops politely and leaves the rest pending — wait ~15 minutes, then re-run to continue where it left off."
+    "message": "Auto Full and Auto Fast fetch through your logged-in X session — no API key, no password, nothing leaves your browser. Large runs can hit X's soft rate limit; it stops politely and leaves the rest pending — wait ~15 minutes, then re-run to continue where it left off."
   },
   "batch_mode_info_label": {
-    "message": "About Auto & Super"
+    "message": "About Auto Full & Auto Fast"
   },
   "mode_manual": {
-    "message": "Manual"
+    "message": "Scroll"
   },
   "mode_auto": {
-    "message": "Auto"
+    "message": "Auto Full"
   },
   "mode_super": {
-    "message": "Super"
+    "message": "Auto Fast"
   },
   "mode_caption_manual": {
-    "message": "You scroll the page; every post you load is saved. Full threads & articles."
+    "message": "You scroll and choose what loads. Saves full threads and articles."
   },
   "mode_caption_auto": {
-    "message": "Fetches through your X session automatically — no scrolling. Full threads & articles."
+    "message": "No scrolling. Fetches posts with full threads and articles."
   },
   "mode_caption_super": {
-    "message": "Fetches thousands at once, but saves each post's first tweet only — threads skipped."
+    "message": "No scrolling. Skips thread expansion for larger, faster exports. Articles and replies to others still expand."
   },
   "btn_batch_fast_hint": {
     "message": "Fetch all your bookmarks through your X session — much faster. Expands threads & articles."
@@ -96,16 +96,16 @@
     "message": "Fetch your liked posts through your X session — much faster. Expands threads & articles."
   },
   "btn_batch_fast_no_selection": {
-    "message": "Selection is only available in Manual — switch to Manual to pick tweets by hand."
+    "message": "Selection is only available in Scroll — switch to Scroll to pick tweets by hand."
   },
   "btn_batch_fast_no_timeline": {
-    "message": "Timeline is only available in Manual — switch to Manual to export your home feed."
+    "message": "Timeline is only available in Scroll — switch to Scroll to export your home feed."
   },
   "batch_tab_selection_fast": {
-    "message": "Switch to Manual to pick tweets by hand"
+    "message": "Switch to Scroll to pick tweets by hand"
   },
   "batch_tab_timeline_fast": {
-    "message": "Switch to Manual to export your home feed"
+    "message": "Switch to Scroll to export your home feed"
   },
   "fast_date_range": {
     "message": "Date range"
@@ -337,9 +337,6 @@
   },
   "group_export": {
     "message": "Export settings"
-  },
-  "beta": {
-    "message": "Beta"
   },
   "group_single": {
     "message": "Single export"

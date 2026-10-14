@@ -99,7 +99,7 @@ describe('domToAst() on a reply permalink', () => {
   });
 });
 
-// The full Manual path: loadThreadIntoDom captures the thread into an
+// The full Scroll path: loadThreadIntoDom captures the thread into an
 // off-screen host, which domToAst then reads ahead of the live page.
 describe('extractTweetAsync() on a reply permalink', () => {
   for (const c of cases) {

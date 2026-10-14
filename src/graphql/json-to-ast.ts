@@ -1,4 +1,4 @@
-// Auto/Super (ADR 0003): map X's internal GraphQL tweet JSON → the Content AST.
+// Auto Full/Auto Fast (ADR 0003): map X's internal GraphQL tweet JSON → the Content AST.
 //
 // This is a sibling to src/content/dom-to-ast: it produces the SAME `Document`
 // the renderers consume, so every renderer, postProcess, format, and sink works
@@ -428,7 +428,7 @@ function embeddedTweetBlock(tweetId?: string, embeds?: EmbeddedTweets): Block | 
 // Code blocks and tables are the one part of an article X does NOT hand over
 // as structured Draft.js: the entity holds raw markdown source. Parse the two
 // shapes X emits so this path lands on the same AST as the DOM extractor —
-// otherwise every code block and table in an Auto/Super export is dropped.
+// otherwise every code block and table in an Auto Full/Auto Fast export is dropped.
 function markdownEntityBlock(markdown?: string): Block | undefined {
   const src = (markdown ?? '').trim();
   if (!src) return undefined;

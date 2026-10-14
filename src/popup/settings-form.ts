@@ -62,7 +62,7 @@ import {
 
 const t = (key: string, fallback: string): string => chrome.i18n.getMessage(key) || fallback;
 
-// Same grant the Auto/Super engines ask for — one capture serves both.
+// Same grant the Auto Full/Auto Fast engines ask for — one capture serves both.
 const MEDIA_ACCESS: chrome.permissions.Permissions = {
   permissions: ['webRequest'],
   origins: ['*://x.com/*'],
@@ -169,7 +169,7 @@ function readSaveLocal(): SaveLocal {
 
 // Media is the tier that also wants the video file itself. Single export can
 // only honour that once the X session is captured, which is why picking Media
-// asks for the same permission the Auto/Super engines do.
+// asks for the same permission the Auto Full/Auto Fast engines do.
 export function saveLocalMediaEnabled(): boolean {
   return readSaveLocal() === 'media';
 }
@@ -493,7 +493,7 @@ export function initSettingsForm(): void {
     })
   );
   // Saving the video file needs X's own GraphQL payload — the DOM only carries
-  // the poster. Ask for the same optional permission the Auto/Super engines
+  // the poster. Ask for the same optional permission the Auto Full/Auto Fast engines
   // use, from the click itself because chrome.permissions.request needs the
   // gesture. Declining is fine: Media still saves images, video stays a link.
   saveLocalMedia.addEventListener('click', () => {

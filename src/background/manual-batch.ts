@@ -1,4 +1,4 @@
-// Manual engine's DOM acquisition (ADR 0002): owns the job queue, the
+// Scroll engine's DOM acquisition (ADR 0002): owns the job queue, the
 // unfocused worker window, throttle/timeout policy, and the folder sink. State
 // transitions are pure (batch-state.ts); the job is persisted to
 // chrome.storage.session after every step so an MV3 service-worker restart
@@ -122,7 +122,7 @@ export async function startManualBatch(
 
   const urls = rawUrls.filter((u): u is string => typeof u === 'string');
   // Snapshot every output decision once so the whole job lands in one shape
-  // even if a setting changes mid-run (Auto/Super do the same per run).
+  // even if a setting changes mid-run (Auto Full/Auto Fast do the same per run).
   const settings = await loadSettings();
   let job = createJob(urls, new Date(), planBatch(settings, format, output));
   if (job.urls.length === 0) {

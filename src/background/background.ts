@@ -93,11 +93,11 @@ function registerContextMenus(): void {
 chrome.runtime.onInstalled.addListener(registerContextMenus);
 chrome.runtime.onStartup.addListener(registerContextMenus);
 
-// Manual DOM acquisition (ADR 0002) — registers its tab and alarm listeners.
+// Scroll DOM acquisition (ADR 0002) — registers its tab and alarm listeners.
 // Its message routes join the table at the end of this file.
 initManualBatch();
 
-// Auto/Super (ADR 0003) — opt-in GraphQL acquisition; arms auth capture only
+// Auto Full/Auto Fast (ADR 0003) — opt-in GraphQL acquisition; arms auth capture only
 // when the user has granted the optional webRequest permission. The popup and
 // retained xclipperFastBatch() DevTools helper share this acquisition path.
 initGraphqlBatch();

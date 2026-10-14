@@ -1,4 +1,4 @@
-// X session auth + authed transport for Auto/Super (ADR 0003). We never ask for
+// X session auth + authed transport for Auto Full/Auto Fast (ADR 0003). We never ask for
 // a password or a paid API key: with the opt-in `webRequest` permission granted,
 // we observe the auth headers the browser ALREADY sends on the user's own x.com
 // GraphQL requests, remember the request templates, and replay them ourselves.

@@ -1,4 +1,4 @@
-// Auto/Super (ADR 0003) — map an X `TweetDetail` response to a Document.
+// Auto Full/Auto Fast (ADR 0003) — map an X `TweetDetail` response to a Document.
 //
 // TweetDetail (data.threaded_conversation_with_injections_v2) is the per-item
 // fetch that fills the gaps the bookmarks timeline can't: a self-thread's

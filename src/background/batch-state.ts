@@ -1,4 +1,4 @@
-// Pure state for a Manual job (ADR 0002). All chrome.* side effects live in
+// Pure state for a Scroll job (ADR 0002). All chrome.* side effects live in
 // manual-batch.ts; keeping the transitions pure makes them
 // unit-testable without extension API mocks.
 
@@ -53,7 +53,7 @@ export interface ManualBatchJob {
   usedFilenames: string[];
 }
 
-// Manual queue cap (ADR 0002 #7).
+// Scroll queue cap (ADR 0002 #7).
 export const MANUAL_BATCH_MAX_ITEMS = 200;
 
 // Strip any path beyond /status/<id> (e.g. /history, /photo/1) and drop any

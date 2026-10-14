@@ -5,7 +5,7 @@
 // post's AST into its files (pure, so the rules are testable without chrome),
 // and the write* functions are the only side effects: the per-item files, the
 // per-job data.json, and the one combined file. They take a `folder`, not a
-// ManualBatchJob, so Manual (manual-batch.ts) and Auto/Super (graphql-batch.ts)
+// ManualBatchJob, so Scroll (manual-batch.ts) and Auto Full/Auto Fast (graphql-batch.ts)
 // share them unchanged.
 
 import type { Document } from '../ast/types';
@@ -54,8 +54,8 @@ export interface JobMeta {
 }
 
 // Every output decision for one batch run, made once from the settings at its
-// start. All engines plan through here, so Manual and Auto/Super can't drift
-// apart on which files a run writes (#136). JSON-serializable: a Manual job
+// start. All engines plan through here, so Scroll and Auto Full/Auto Fast can't drift
+// apart on which files a run writes (#136). JSON-serializable: a Scroll job
 // keeps it in storage so a service-worker restart resumes with the same plan.
 export interface BatchPlan {
   format: BatchFormat;
@@ -97,7 +97,7 @@ export type OutFile = { path: string; content: string; mime: string } | { path: 
 
 // The one place a batch post's Markdown is made, for every engine. Its file
 // name comes from here too, before the caller de-duplicates it. Videos must
-// already carry their MP4s (Auto/Super maps them; Manual resolves them first).
+// already carry their MP4s (Auto Full/Auto Fast maps them; Scroll resolves them first).
 export function renderItem(doc: Document, plan: BatchPlan): PostProcessResult {
   return postProcess(docToExtracted(doc, plan.localVideo ? { includeVideoLinks: true } : undefined), {
     ...plan.markdown,
@@ -147,7 +147,7 @@ export function buildCombined(format: BatchFormat, docs: Document[], opts: Forma
   }
 }
 
-// Download pacing: a big batch can fire thousands of downloads (a Super
+// Download pacing: a big batch can fire thousands of downloads (an Auto Fast
 // run alone writes 1000s of files, plus images). Unthrottled, they all hit
 // Chrome's browser process at once — data-URL decode, downloads-UI updates,
 // history-DB inserts, disk writes — and the whole browser janks until the
