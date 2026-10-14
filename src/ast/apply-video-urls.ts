@@ -55,7 +55,7 @@ function lookup(poster: string | undefined, map: Map<string, string>): string | 
 
 function applyToMedia(media: MediaItem, map: Map<string, string>, state: State): void {
   if (media.kind !== 'video' && media.kind !== 'gif') return;
-  // Already carries a real source (Fast Batch built this node) — leave it.
+  // Already carries a real source (Auto/Super built this node) — leave it.
   if (media.url !== media.posterUrl) return;
   const mp4 = lookup(media.posterUrl, map);
   if (!mp4) return;

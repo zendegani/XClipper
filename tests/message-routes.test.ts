@@ -11,13 +11,13 @@ vi.mock('../src/background/router', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../src/background/router')>();
   return { ...actual, listen: (table: Routes) => void (routes = table) };
 });
-vi.mock('../src/background/batch', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../src/background/batch')>();
-  return { ...actual, initBatch: () => {} };
+vi.mock('../src/background/manual-batch', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../src/background/manual-batch')>();
+  return { ...actual, initManualBatch: () => {} };
 });
-vi.mock('../src/background/fast-batch', async (importOriginal) => {
-  const actual = await importOriginal<typeof import('../src/background/fast-batch')>();
-  return { ...actual, initFastBatch: () => {} };
+vi.mock('../src/background/graphql-batch', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../src/background/graphql-batch')>();
+  return { ...actual, initGraphqlBatch: () => {} };
 });
 vi.mock('../src/background/single-zip', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../src/background/single-zip')>();

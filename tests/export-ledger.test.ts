@@ -140,7 +140,7 @@ describe('loadDateCursors / saveDateCursors', () => {
 });
 
 describe('resetHistory', () => {
-  it('removes the ledgers and both Fast Batch cursors', async () => {
+  it('removes the ledgers and both GraphQL fetch cursors', async () => {
     store = {
       [EXPORTED_LEDGER_KEY]: ['1'],
       [INCOMPLETE_LEDGER_KEY]: ['2'],

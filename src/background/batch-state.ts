@@ -1,8 +1,9 @@
-// Pure state for a batch export job (ADR 0002, Phase A). All chrome.* side
-// effects live in batch.ts; keeping the transitions pure makes them
+// Pure state for a Manual job (ADR 0002). All chrome.* side effects live in
+// manual-batch.ts; keeping the transitions pure makes them
 // unit-testable without extension API mocks.
 
 import type { BatchPlan } from './batch-sink';
+import type { BatchSource } from '../types/messages';
 import { statusIdOf } from '../shared/x-routes';
 
 export interface BatchFailure {
@@ -10,11 +11,11 @@ export interface BatchFailure {
   error: string;
 }
 
-export interface BatchJob {
+export interface ManualBatchJob {
   id: string;
   status: 'running' | 'paused' | 'done' | 'cancelled';
   // Surface that launched the job; the popup scopes progress display to it.
-  origin?: 'bookmarks' | 'profile' | 'selection' | 'likes' | 'timeline';
+  origin?: BatchSource;
   // Profile owner's handle (only when origin === 'profile'); lets the popup
   // offer "add to queue" on the same profile but not a different one.
   handle?: string;
@@ -52,8 +53,8 @@ export interface BatchJob {
   usedFilenames: string[];
 }
 
-// Hard batch cap (ADR 0002 #7).
-export const BATCH_MAX_ITEMS = 200;
+// Manual queue cap (ADR 0002 #7).
+export const MANUAL_BATCH_MAX_ITEMS = 200;
 
 // Strip any path beyond /status/<id> (e.g. /history, /photo/1) and drop any
 // query/hash, so the worker tab always loads the canonical permalink.
@@ -62,7 +63,7 @@ export function normalizeStatusUrl(url: string): string | null {
   return m ? m[1] : null;
 }
 
-export function createJob(rawUrls: string[], now: Date, plan: BatchPlan): BatchJob {
+export function createJob(rawUrls: string[], now: Date, plan: BatchPlan): ManualBatchJob {
   const failures: BatchFailure[] = [];
   const seen = new Set<string>();
   const urls: string[] = [];
@@ -79,7 +80,7 @@ export function createJob(rawUrls: string[], now: Date, plan: BatchPlan): BatchJ
   return {
     id: `batch-${now.getTime()}`,
     status: 'running',
-    urls: urls.slice(0, BATCH_MAX_ITEMS),
+    urls: urls.slice(0, MANUAL_BATCH_MAX_ITEMS),
     nextIndex: 0,
     folder: batchFolderName(now),
     plan,
@@ -102,7 +103,7 @@ export function batchFolderName(now: Date): string {
   );
 }
 
-export function currentUrl(job: BatchJob): string | undefined {
+export function currentUrl(job: ManualBatchJob): string | undefined {
   return job.status === 'running' ? job.urls[job.nextIndex] : undefined;
 }
 
@@ -114,13 +115,13 @@ export type ItemOutcome =
 // filename the caller should write. The job flips to 'done' after the last
 // item.
 export function recordResult(
-  job: BatchJob,
+  job: ManualBatchJob,
   outcome: ItemOutcome
-): { job: BatchJob; filename?: string } {
+): { job: ManualBatchJob; filename?: string } {
   const url = currentUrl(job);
   if (url === undefined) return { job };
 
-  const next: BatchJob = {
+  const next: ManualBatchJob = {
     ...job,
     awaitingResult: false,
     deadline: undefined,
@@ -147,17 +148,17 @@ export function recordResult(
 // already queued/processed in this job or already exported by a past job, and
 // respects the hard cap. Returns the new job and the number actually added.
 export function appendUrls(
-  job: BatchJob,
+  job: ManualBatchJob,
   rawUrls: string[],
   exportedIds: Set<string>
-): { job: BatchJob; added: number } {
+): { job: ManualBatchJob; added: number } {
   if (job.status !== 'running' && job.status !== 'paused') return { job, added: 0 };
   const seen = new Set<string>();
   for (const u of job.urls) {
     const id = statusIdOf(u);
     if (id) seen.add(id);
   }
-  const room = BATCH_MAX_ITEMS - job.urls.length;
+  const room = MANUAL_BATCH_MAX_ITEMS - job.urls.length;
   if (room <= 0) return { job, added: 0 };
   const additions: string[] = [];
   for (const raw of rawUrls) {
@@ -173,7 +174,7 @@ export function appendUrls(
   return { job: { ...job, urls: [...job.urls, ...additions] }, added: additions.length };
 }
 
-export function cancelJob(job: BatchJob): BatchJob {
+export function cancelJob(job: ManualBatchJob): ManualBatchJob {
   return {
     ...job,
     status: 'cancelled',
@@ -185,7 +186,7 @@ export function cancelJob(job: BatchJob): BatchJob {
 
 // Pausing abandons the in-flight item (a late result is dropped by the
 // orchestrator's status guard); resuming re-dispatches it from scratch.
-export function pauseJob(job: BatchJob): BatchJob {
+export function pauseJob(job: ManualBatchJob): ManualBatchJob {
   if (job.status !== 'running') return job;
   return {
     ...job,
@@ -196,7 +197,7 @@ export function pauseJob(job: BatchJob): BatchJob {
   };
 }
 
-export function resumeJob(job: BatchJob): BatchJob {
+export function resumeJob(job: ManualBatchJob): ManualBatchJob {
   if (job.status !== 'paused') return job;
   // Clear the auto-pause reason and the failure run so resuming starts clean —
   // otherwise a single post-resume failure could re-trip the threshold pause.

@@ -1,4 +1,4 @@
-// Fast Batch (ADR 0003): map X's internal GraphQL tweet JSON → the Content AST.
+// Auto/Super (ADR 0003): map X's internal GraphQL tweet JSON → the Content AST.
 //
 // This is a sibling to src/content/dom-to-ast: it produces the SAME `Document`
 // the renderers consume, so every renderer, postProcess, format, and sink works
@@ -404,7 +404,7 @@ function atomicBlock(
 
 // An embedded post. Unlike a MEDIA entity, a TWEET entity is only a `tweetId` —
 // the tweet itself appears NOWHERE in the article's TweetDetail payload, so it
-// has to be fetched separately (fast-batch does that and passes the results in
+// has to be fetched separately (graphql-batch does that and passes the results in
 // `embeds`). With the tweet in hand we emit the same TweetNode the DOM path
 // gets from `[data-testid="simpleTweet"]`; without it (not fetched, or the
 // fetch was rate-limited) we emit a link the reader can follow — a visible
@@ -428,7 +428,7 @@ function embeddedTweetBlock(tweetId?: string, embeds?: EmbeddedTweets): Block | 
 // Code blocks and tables are the one part of an article X does NOT hand over
 // as structured Draft.js: the entity holds raw markdown source. Parse the two
 // shapes X emits so this path lands on the same AST as the DOM extractor —
-// otherwise every code block and table in a Fast Batch export is dropped.
+// otherwise every code block and table in an Auto/Super export is dropped.
 function markdownEntityBlock(markdown?: string): Block | undefined {
   const src = (markdown ?? '').trim();
   if (!src) return undefined;

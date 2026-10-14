@@ -50,32 +50,32 @@ export const tabBatchSelection = document.getElementById('tab-batch-selection') 
 export const tabBatchLikes = document.getElementById('tab-batch-likes') as HTMLButtonElement;
 export const tabBatchTimeline = document.getElementById('tab-batch-timeline') as HTMLButtonElement;
 
-// ─── Fast Batch (ADR 0003) ───────────────────────────────────────────
+// ─── Batch engine and GraphQL fetch controls (ADR 0003) ───────────────────────────────────────────
 export const viewMain = document.getElementById('view-main') as HTMLElement;
-export const batchModeField = document.getElementById('batch-mode-field') as HTMLDivElement;
-export const batchMode = document.getElementById('batch-mode') as HTMLDivElement;
-export const batchModeCaption = document.getElementById('batch-mode-caption') as HTMLParagraphElement;
-export const batchModeInfo = document.getElementById('batch-mode-info') as HTMLSpanElement;
-export const modeManual = document.getElementById('mode-manual') as HTMLButtonElement;
-export const modeAuto = document.getElementById('mode-auto') as HTMLButtonElement;
-export const modeSuper = document.getElementById('mode-super') as HTMLButtonElement;
+export const batchEngineField = document.getElementById('batch-mode-field') as HTMLDivElement;
+export const batchEngineSelector = document.getElementById('batch-mode') as HTMLDivElement;
+export const batchEngineCaption = document.getElementById('batch-mode-caption') as HTMLParagraphElement;
+export const batchEngineInfo = document.getElementById('batch-mode-info') as HTMLSpanElement;
+export const engineManual = document.getElementById('mode-manual') as HTMLButtonElement;
+export const engineAuto = document.getElementById('mode-auto') as HTMLButtonElement;
+export const engineSuper = document.getElementById('mode-super') as HTMLButtonElement;
 export const batchRunSummary = document.getElementById('batch-run-summary') as HTMLParagraphElement;
 export const floodHint = document.getElementById('flood-hint') as HTMLDivElement;
 export const floodFix = document.getElementById('flood-fix') as HTMLButtonElement;
-export const fastDateRange = document.getElementById('fast-date-range') as HTMLDivElement;
-export const fastDateFrom = document.getElementById('fast-date-from') as HTMLInputElement;
-export const fastDateTo = document.getElementById('fast-date-to') as HTMLInputElement;
-export const fastDateClear = document.getElementById('fast-date-clear') as HTMLButtonElement;
-export const fastPaginate = document.getElementById('fast-paginate') as HTMLDivElement;
-export const fastPaginateRecent = document.getElementById('fast-paginate-recent') as HTMLButtonElement;
-export const fastPaginateResume = document.getElementById('fast-paginate-resume') as HTMLButtonElement;
-export const fastPaginateDaterange = document.getElementById('fast-paginate-daterange') as HTMLButtonElement;
-export const fastPaginateCaption = document.getElementById('fast-paginate-caption') as HTMLParagraphElement;
-export const fastSteps = document.getElementById('fast-steps') as HTMLDivElement;
-export const fastStepPage = document.getElementById('fast-step-page') as HTMLSpanElement;
-export const fastStepTweet = document.getElementById('fast-step-tweet') as HTMLSpanElement;
-export const fastStepFetch = document.getElementById('fast-step-fetch') as HTMLSpanElement;
-export const fastStepExpand = document.getElementById('fast-step-expand') as HTMLSpanElement;
+export const fetchDateRange = document.getElementById('fast-date-range') as HTMLDivElement;
+export const fetchDateFrom = document.getElementById('fast-date-from') as HTMLInputElement;
+export const fetchDateTo = document.getElementById('fast-date-to') as HTMLInputElement;
+export const fetchDateClear = document.getElementById('fast-date-clear') as HTMLButtonElement;
+export const fetchModeSelector = document.getElementById('fast-paginate') as HTMLDivElement;
+export const fetchRecent = document.getElementById('fast-paginate-recent') as HTMLButtonElement;
+export const fetchResume = document.getElementById('fast-paginate-resume') as HTMLButtonElement;
+export const fetchDateRangeButton = document.getElementById('fast-paginate-daterange') as HTMLButtonElement;
+export const fetchModeCaption = document.getElementById('fast-paginate-caption') as HTMLParagraphElement;
+export const graphqlSteps = document.getElementById('fast-steps') as HTMLDivElement;
+export const graphqlStepPage = document.getElementById('fast-step-page') as HTMLSpanElement;
+export const graphqlStepTweet = document.getElementById('fast-step-tweet') as HTMLSpanElement;
+export const graphqlStepFetch = document.getElementById('fast-step-fetch') as HTMLSpanElement;
+export const graphqlStepExpand = document.getElementById('fast-step-expand') as HTMLSpanElement;
 export const batchSection = document.getElementById('batch-section') as HTMLDivElement;
 
 // ─── Settings checkboxes ─────────────────────────────────────────────

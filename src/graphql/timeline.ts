@@ -1,4 +1,4 @@
-// Fast Batch (ADR 0003): pure parsing + cursor pagination for X's internal
+// Auto/Super (ADR 0003): pure parsing + cursor pagination for X's internal
 // GraphQL timeline responses (bookmarks/likes/profile). No DOM, no Chrome APIs
 // — the network transport is injected into `paginateTimeline`, so the whole
 // loop is unit-testable. The raw tweet objects this yields feed `jsonToAst`.

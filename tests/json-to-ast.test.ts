@@ -502,7 +502,7 @@ describe('jsonToTweetNode — quotes and wrappers', () => {
 });
 
 describe('jsonToAst — renderer compatibility', () => {
-  // The premise of Fast Batch (ADR 0003): a mapped Document feeds the existing
+  // The premise of Auto/Super (ADR 0003): a mapped Document feeds the existing
   // renderers unchanged. This proves the output is renderer-compatible — text,
   // entity link, and image all survive into Markdown.
   it('renders to Markdown via the existing renderMarkdown', () => {
@@ -716,7 +716,7 @@ describe('jsonToAst — X Articles', () => {
 
   // Code blocks and tables are the one part of an article X does NOT send as
   // structured Draft.js — an atomic MARKDOWN entity holds raw markdown source.
-  // Before these were mapped, every code block and table in a Fast Batch
+  // Before these were mapped, every code block and table in an Auto/Super
   // export was silently dropped.
   const withMarkdownEntities = (...markdown: string[]) => ({
     ...articleResult,

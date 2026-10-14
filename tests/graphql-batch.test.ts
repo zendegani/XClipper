@@ -15,7 +15,7 @@ vi.mock('../src/background/x-session', () => ({
   classify: () => 'permanent',
   GraphqlError: class extends Error {},
   hasAccess: async () => true,
-  requestFastBatchAccess: async () => true,
+  requestGraphqlAccess: async () => true,
   restoreSession: async () => {},
   startCapturing: () => {},
 }));
@@ -40,7 +40,7 @@ vi.mock('../src/background/batch-sink', async (importOriginal) => {
 
 const { authedFetchJson } = await import('../src/background/x-session');
 const { writeFiles } = await import('../src/background/batch-sink');
-const { runFastBatchExport } = await import('../src/background/fast-batch');
+const { runGraphqlBatchExport } = await import('../src/background/graphql-batch');
 
 function tweet(id: string) {
   return {
@@ -100,10 +100,10 @@ afterEach(() => {
   vi.mocked(writeFiles).mockReset();
 });
 
-describe('runFastBatchExport — long downloads', () => {
+describe('runGraphqlBatchExport — long downloads', () => {
   it('keeps calling an extension API while a download runs, and stops when the run ends', async () => {
     const write = hangWrite(1);
-    const run = runFastBatchExport();
+    const run = runGraphqlBatchExport();
     await write.started;
 
     await vi.advanceTimersByTimeAsync(65_000);
@@ -117,7 +117,7 @@ describe('runFastBatchExport — long downloads', () => {
   });
 });
 
-describe('runFastBatchExport — a run cut off mid-write', () => {
+describe('runGraphqlBatchExport — a run cut off mid-write', () => {
   // The run never finishes (Chrome kills the worker), so only what was saved
   // while it ran survives. Posts whose files landed must be in the ledger; the
   // one still downloading must not be, so the next run redoes it.
@@ -126,7 +126,7 @@ describe('runFastBatchExport — a run cut off mid-write', () => {
     ['Super (streamed while the feed is read)', false],
   ])('%s saves the posts already on disk', async (_name, expandThreads) => {
     const write = hangWrite(3);
-    void runFastBatchExport({ expandThreads });
+    void runGraphqlBatchExport({ expandThreads });
     await write.started;
 
     await vi.advanceTimersByTimeAsync(10_000);

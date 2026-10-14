@@ -1,8 +1,8 @@
 // The one AST → ExtractedContent conversion, shared by every producer.
 //
 // Three paths build an ExtractedContent from a Document: the single-export
-// tweet/thread path, the single-export article path, and the background (Fast
-// Batch, zip mode, non-md per-item formats). They must agree byte-for-byte,
+// tweet/thread path, the single-export article path, and the batch background
+// (zip mode, non-md per-item formats). They must agree byte-for-byte,
 // because postProcess writes `author.handle` straight into frontmatter — so the
 // `@` prefix the AST strips (dom-to-ast/shared.ts stripHandlePrefix, and
 // GraphQL's `screen_name`) is re-added here, once, for all of them.

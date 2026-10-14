@@ -3,17 +3,21 @@
 A living overview of how XClipper turns x.com pages into Markdown, PDF, and
 Obsidian notes — one item at a time or in batch. For the per-node AST contract
 see [`ast-schema.md`](./ast-schema.md); for *why* the AST exists see
-[`adr/0001`](./adr/0001-content-ast-architecture.md).
+[`adr/0001`](./adr/0001-content-ast-architecture.md). Product terms are defined in
+[`GLOSSARY.md`](../GLOSSARY.md); the batch navigation map below connects them to code.
 
 ## The one diagram
 
-Everything is one shape: **DOM → Content AST → renderers**. The AST is the only
-source of truth; renderers never touch the DOM.
+Both acquisition paths converge on **Content AST → renderers**: DOM acquisition
+serves single exports and Manual batches; GraphQL acquisition serves Auto and
+Super batches. The AST is the source of truth; renderers never touch the DOM.
 
 ```mermaid
 flowchart LR
   DOM[/"x.com DOM"/] --> EX["Extraction<br/>(content/dom-to-ast)"]
   EX --> AST[("Content AST<br/>Document")]
+  GQL[/"X GraphQL JSON"/] --> MAP["Mapping<br/>(graphql/)"]
+  MAP --> AST
   AST --> RM["renderMarkdown"]
   AST --> RP["renderPdfHtml"]
   RM --> MD["Markdown .md<br/>+ frontmatter (postProcess)"]
@@ -25,7 +29,7 @@ Three planes, each independently testable:
 
 | Plane | Lives in | Input → Output | Knows about |
 |---|---|---|---|
-| **Extraction** | `content/dom-to-ast/` | DOM `Element` → `Document` | X's DOM quirks only |
+| **Acquisition** | `content/dom-to-ast/`, `graphql/` | DOM `Element` or GraphQL JSON → `Document` | X's DOM or response shape |
 | **Rendering** | `ast/` | `Document` → string (MD / HTML) | the AST only |
 | **Orchestration** | `content/`, `popup/`, `background/` | user intent → message → file | Chrome APIs, settings |
 
@@ -103,8 +107,10 @@ through `articleToTweetNode()`.
 
 ## Output pipelines
 
-All three start from one `Document`. Markdown is rendered **once** in the content
-script; `postProcess` then shapes it per the user's settings.
+All outputs start from a `Document`. For single exports, the content script
+renders Markdown; `postProcess` then shapes it per the user's settings. For all
+batch engines, `background/batch-sink.ts` renders each acquired document using
+the same renderers and post-processing rules.
 
 ```mermaid
 flowchart TD
@@ -129,7 +135,9 @@ flowchart TD
 
 ## Orchestration & entry points
 
-Three ways in, one extractor. Every trigger converges on `content.ts`.
+Three ways into a single export, one DOM extractor. Every single-post trigger
+converges on `content.ts`; these automatic triggers are unrelated to the Auto
+batch engine.
 
 ```mermaid
 flowchart LR
@@ -147,69 +155,95 @@ print tab, and the one-time `tweet2md → xclipper` settings migration. `shared/
 holds logic both the popup and content script need (`post-process`, `settings`,
 `media`, `obsidian`).
 
-## Batch export (shipped in v2.1.0)
+## Batch export: three engines, two acquisition paths
 
-Export many tweets/threads/articles in one job, sourced from **bookmarks**, a
-**profile**, or a **timeline selection**. Batch is not a second pipeline — it is
-the single-permalink flow run N times, so fidelity is identical by construction.
-The rationale and the choices behind it live in
-[`adr/0002`](./adr/0002-batch-export-architecture.md); this is the shape.
+Export mode (Single / Batch), batch engine (Manual / Auto / Super), source, and
+fetch mode are separate choices. Batch supports Markdown, TXT, HTML, JSON, and
+CSV, with Separate / Combined / Both output; PDF remains a single-export format.
 
-Three stages: *source adapters* harvest status URLs → a *background-owned
-orchestrator* drives one worker window through each permalink → *sinks* write the
-results.
+| Engine | Acquisition | Sources | Expansion and controls |
+|---|---|---|---|
+| **Manual** (default) | DOM in an unfocused worker window | Bookmarks, Profile, Likes, Timeline, Selection | Full threads/articles; determinate progress, pause/resume/stop |
+| **Auto** (opt-in) | GraphQL feed + per-item TweetDetail | Bookmarks, Profile, Likes | Full threads/articles; open-ended counts and stop |
+| **Super** (opt-in) | Same GraphQL path, `expandThreads: false` | Bookmarks, Profile, Likes | Skips self-thread expansion; still expands articles and replies to other authors; open-ended counts and stop |
+
+Super can include an author's follow-up posts when expanding a reply to another
+author. It is not a guarantee of one tweet per document. Auto/Super share one
+implementation and require the optional `webRequest` permission, requested
+through Chrome's own prompt when selected.
 
 ```mermaid
 flowchart LR
-  subgraph Sources["Source adapters (injector.js on the list page)"]
-    Bm["Bookmarks scroll"]
-    Pf["Profile scroll<br/>(owner's own posts)"]
-    Sel["Timeline selection<br/>(checkboxes)"]
-  end
-  Sources -->|"XCLIPPER_HARVEST<br/>status URLs"| Queue
-  subgraph BG["Background service worker"]
-    Queue["BatchJob queue<br/>(persisted to storage.session,<br/>resumable; dedup ledger)"]
-    Worker["one reused worker window"]
-    Queue -->|"navigate + #xclipper=batch"| Worker
-    Worker -->|"BATCH_ITEM_RESULT"| Queue
-  end
-  Worker -.->|"domToAst → Document"| Worker
-  Queue --> Folder["folder of per-item .md"]
-  Queue --> Json["per-job data.json (AST)"]
-  Queue --> Digest["opt-in digest.md"]
+  Manual["Manual: loaded or selected status URLs"] -->|BATCH_START| DOM["manual-batch.ts<br/>worker window → DOM → Document"]
+  Auto["Auto: expandThreads true"] -->|FAST_BATCH_START| GQL["graphql-batch.ts<br/>feed + TweetDetail → Document"]
+  Super["Super: expandThreads false"] -->|FAST_BATCH_START| GQL
+  DOM --> Sink["batch-sink.ts<br/>plan → render → write"]
+  GQL --> Sink
+  Sink --> Files["Separate / Combined / Both<br/>selected format, optional zip/media"]
 ```
 
-How the stages map onto the single-item architecture above — everything below the
-orchestrator, and every renderer, is reused unchanged:
+### Navigation map
 
-| Stage | Responsibility | Reuses |
+| Responsibility | Current code | Contracts / verification |
 |---|---|---|
-| **Source adapter** | scroll a list page, collect `a[href*="/status/"]` + light metadata | `injector.js` (already on all of x.com); depends only on status-link hrefs, so it survives X markup churn |
-| **Orchestrator** | sequential job queue, throttle, pause/resume/stop, per-item failure recording | the background — the only context that survives popup close and owns tabs/windows |
-| **Worker window** | navigate to each permalink, extract on load, report the result | the `#xclipper=` auto-extract hash, plus `domToAst` and every renderer unchanged |
-| **Sink** | write per-item `.md`, a per-job `data.json`, and an opt-in `digest.md` | `batch-sink.ts`, shared with Fast Batch: `planBatch` decides the output once per job, `renderItem` (`postProcess`) renders each item from its AST; `renderDigest(docs)` joins already-rendered documents |
+| Single / Batch export mode | `src/popup/export-mode.ts` | `lastExportMode`; switching does not select an engine |
+| Engine selection, permission prompt, fetch mode, GraphQL progress | `src/popup/batch-engine-ui.ts` | `BatchEngine`, `FetchMode`; Auto sends `expandThreads: true`, Super sends `false` |
+| Source tabs, engine dispatch, Manual progress | `src/popup/batch-ui.ts` | Manual sends `BATCH_START`; Auto/Super send `FAST_BATCH_START` via `startGraphqlExport` |
+| Manual acquisition and persisted job | `src/background/manual-batch.ts`, `batch-state.ts`, `src/content/content.ts` | `ManualBatch*` types, `BATCH_*` actions; `tests/manual-batch.test.ts`, `tests/batch-state.test.ts` |
+| GraphQL acquisition for Auto/Super | `src/background/graphql-batch.ts`, `x-session.ts`, `src/graphql/` | `GraphqlBatch*` types, `FAST_BATCH_*` actions; `tests/graphql-batch.test.ts`, GraphQL mapper tests |
+| Shared output and export history | `src/background/batch-sink.ts`, `src/shared/export-ledger.ts` | Every engine uses `planBatch`, `renderItem`, `itemFiles`, and the shared writers; sink/ledger tests |
+| Message routing and trust | `src/types/messages.ts`, `src/background/background.ts`, `router.ts` | `tests/message-routes.test.ts` checks the action/trust table |
 
-### Positions taken (see ADR 0002 for the full table)
+### Manual acquisition
 
-- **Visit every permalink; never parse list cells.** A thread's root tweet is
-  rendered identically to a standalone tweet in a bookmarks cell — there is no DOM
-  signal that more tweets follow. Thread membership is only knowable after loading
-  the permalink, which is exactly what the single-item extractor already does. One
-  extractor, one fixture suite, full fidelity for threads/articles/quotes/polls.
-- **The orchestrator lives in the background, not the popup.** Only the service
-  worker survives popup close. Job state is persisted to `chrome.storage.session`
-  after every item, so an MV3 worker restart resumes rather than orphaning a
-  half-done batch.
-- **One reused, unfocused worker *window*** (not a hidden tab): Chrome never paints
-  hidden tabs, so X's virtualized timeline wouldn't mount thread-continuation
-  tweets or hydrate lazy media. An unfocused-but-visible window keeps rendering
-  without stealing focus.
-- **Stream each result to the sink as it completes.** ASTs are not accumulated in
-  memory, so large batches stay bounded and partial output survives a crash.
-- **A dedup ledger** of exported status ids (`chrome.storage.local`, capped at
-  5000) lets the popup count "(N new)" and skip already-exported items; a Reset
-  control clears it. All ledger reads and writes go through
-  `src/shared/export-ledger.ts`.
+The injector accumulates status permalinks as virtualized cells scroll through
+the page (`XCLIPPER_HARVEST`); Selection supplies checked permalinks. The
+background owns a sequential `ManualBatchJob`, persisted to
+`chrome.storage.session`, and navigates one reused, unfocused worker window to
+each permalink with `#xclipper=batch`. A visible window lets X render thread
+continuations and lazy media. The content script extracts the DOM and reports a
+`Document` via `BATCH_ITEM_RESULT`; the background renders and writes it.
 
-State lives in `src/background/batch.ts` and `batch-state.ts`; the harvest and
-selection message contracts are in `src/types/messages.ts`.
+The queue, watchdog, pause/resume, and restart policy belong to Manual. See
+[`ADR 0002`](./adr/0002-batch-export-architecture.md) for their rationale.
+
+### GraphQL acquisition
+
+`x-session.ts` captures the user's existing X auth headers and request templates
+with the optional permission and restores them from session storage after a
+service-worker restart. `graphql-batch.ts` paginates the selected source,
+maps feed JSON into the same `Document` AST, then uses TweetDetail for expansion.
+Auto expands self-threads; Super skips them to allow a larger collection cap.
+Both still fetch articles and replies to other authors, and both stop when X
+rate-limits expansion. Incomplete items remain available for a later run.
+
+Recent starts at the top of the feed. Resume uses a saved per-source backfill
+cursor. Date range uses a separate continuation cursor keyed by its date window;
+it does not move Resume's cursor. All fetch modes and engines share export
+history through `src/shared/export-ledger.ts`; Reset history clears it and the
+continuation cursors. See [`ADR 0003`](./adr/0003-fast-batch-graphql.md) for the
+decisions and amendments.
+
+### Compatibility names and historical terms
+
+Active TypeScript names distinguish Manual from GraphQL acquisition. Existing
+runtime identifiers keep their spelling so saved choices, jobs, and callers
+continue to work:
+
+- `BATCH_*` actions select/control Manual; `FAST_BATCH_*` select/control GraphQL.
+  `expandThreads` and `paginate` remain the GraphQL request fields.
+- `batchMode` stores the engine. Legacy `fastBatchMode` / `fastSuperMode` booleans
+  still migrate on read. `fastPaginateMode`, `fastDateFrom`, and `fastDateTo`
+  retain the fetch choice and date window. `lastExportMode` stores Single/Batch.
+- `xclipper_batch_job`, `xclipper_batch_doc_*`, `xclipper-batch-watchdog`,
+  `#xclipper=batch`, and the other single-export URL markers remain unchanged.
+  Captured session data keeps `fastBatchAuth` / `fastBatchTemplates`; export
+  ledgers, cursor keys, output folder names, and manifest permissions are unchanged.
+- The DevTools helpers `xclipperStartBatch` / `xclipperFastBatch`, the popup
+  event `xclipper-fast-changed`, and existing DOM/CSS hooks and locale keys retain
+  their names. `XCLIPPER_AUTOEXTRACT` is a single-post trigger, not the Auto engine.
+
+ADRs, release notes, and historical artifacts retain the language of their time:
+**Standard** means today's Manual, **Fast Batch** names the shared GraphQL path,
+and **Super Fast** means today's Super. ADR 0003's engine-selector amendment
+records the transition; current navigation belongs here.

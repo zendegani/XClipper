@@ -10,8 +10,8 @@ import type {
 } from '../types/messages';
 import { isAllowedImageUrl, sanitizeFilePath } from './security';
 import { listen } from './router';
-import { batchRoutes, initBatch } from './batch';
-import { fastBatchRoutes, initFastBatch } from './fast-batch';
+import { manualBatchRoutes, initManualBatch } from './manual-batch';
+import { graphqlBatchRoutes, initGraphqlBatch } from './graphql-batch';
 import { normalizeStatusUrl } from './batch-state';
 import { buildSingleZipEntries, zipFilenameFor } from './single-zip';
 import { buildZip, zipDataUrl } from './zip';
@@ -93,14 +93,14 @@ function registerContextMenus(): void {
 chrome.runtime.onInstalled.addListener(registerContextMenus);
 chrome.runtime.onStartup.addListener(registerContextMenus);
 
-// Batch export orchestrator (ADR 0002) — registers its tab and alarm listeners.
+// Manual DOM acquisition (ADR 0002) — registers its tab and alarm listeners.
 // Its message routes join the table at the end of this file.
-initBatch();
+initManualBatch();
 
-// Fast Batch (ADR 0003) — opt-in GraphQL acquisition; arms auth capture only
-// when the user has granted the optional webRequest permission. Phase A:
-// console-triggerable via xclipperFastBatch(), no UI yet.
-initFastBatch();
+// Auto/Super (ADR 0003) — opt-in GraphQL acquisition; arms auth capture only
+// when the user has granted the optional webRequest permission. The popup and
+// retained xclipperFastBatch() DevTools helper share this acquisition path.
+initGraphqlBatch();
 
 // One-time migration: project renamed tweet2md → XClipper in v2.0.0. Existing
 // users have preferences stored under the old `tweet2md_settings` key. Copy
@@ -313,8 +313,8 @@ async function downloadMd(message: DownloadRequest): Promise<DownloadResponse> {
 // ─── Message routes ─────────────────────────────────────────────────
 
 listen({
-  ...batchRoutes,
-  ...fastBatchRoutes,
+  ...manualBatchRoutes,
+  ...graphqlBatchRoutes,
   XCLIPPER_CTX_URL: { trust: ['x-content'], handle: rememberContextUrl },
   // Single export asks for a post's MP4 URLs before it saves media locally.
   // The popup asks, and so does the in-page download (the post's button and

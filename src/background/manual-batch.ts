@@ -1,22 +1,22 @@
-// Batch export orchestrator (ADR 0002, Phase A): owns the job queue, the
-// hidden worker tab, throttle/timeout policy, and the folder sink. State
+// Manual engine's DOM acquisition (ADR 0002): owns the job queue, the
+// unfocused worker window, throttle/timeout policy, and the folder sink. State
 // transitions are pure (batch-state.ts); the job is persisted to
 // chrome.storage.session after every step so an MV3 service-worker restart
 // resumes the batch instead of orphaning it (ADR 0002 #4).
 //
-// Phase A has no UI. Temporary trigger from the service-worker DevTools
-// console:
+// The popup and Selection start jobs through BATCH_START. The original
+// service-worker DevTools trigger is also retained for compatibility:
 //   xclipperStartBatch(['https://x.com/user/status/123…', …])
 // or send { action: 'BATCH_START', urls } from any extension page. Cancel
 // with { action: 'BATCH_CONTROL', control: 'cancel' }.
 
 import type {
-  BatchAppendRequest,
-  BatchControlRequest,
-  BatchItemResultMessage,
-  BatchStartRequest,
-  BatchStartResponse,
-  BatchStatusResponse,
+  ManualBatchAppendRequest,
+  ManualBatchControlRequest,
+  ManualBatchItemResultMessage,
+  ManualBatchStartRequest,
+  ManualBatchStartResponse,
+  ManualBatchStatusResponse,
 } from '../types/messages';
 import { loadSettings, type BatchFormat, type BatchOutput } from '../shared/settings';
 import { recordExport } from '../shared/review-prompt';
@@ -34,7 +34,7 @@ import { resolveLocalVideo } from '../shared/local-video';
 import { resolveVideoUrls } from './resolve-video';
 import type { Routes } from './router';
 import {
-  type BatchJob,
+  type ManualBatchJob,
   appendUrls,
   cancelJob,
   createJob,
@@ -74,20 +74,20 @@ const FAILURE_PAUSE_THRESHOLD = 5;
 
 const log = (...args: unknown[]): void => console.log('[xclipper batch]', ...args);
 
-async function loadJob(): Promise<BatchJob | null> {
+async function loadJob(): Promise<ManualBatchJob | null> {
   const result = await chrome.storage.session.get(JOB_KEY);
-  return (result[JOB_KEY] as BatchJob | undefined) ?? null;
+  return (result[JOB_KEY] as ManualBatchJob | undefined) ?? null;
 }
 
-async function saveJob(job: BatchJob): Promise<void> {
+async function saveJob(job: ManualBatchJob): Promise<void> {
   await chrome.storage.session.set({ [JOB_KEY]: job });
 }
 
 const JOB_ORIGINS = ['bookmarks', 'profile', 'selection', 'likes', 'timeline'] as const;
 
-function coerceOrigin(raw: unknown): BatchJob['origin'] {
+function coerceOrigin(raw: unknown): ManualBatchJob['origin'] {
   return JOB_ORIGINS.includes(raw as (typeof JOB_ORIGINS)[number])
-    ? (raw as BatchJob['origin'])
+    ? (raw as ManualBatchJob['origin'])
     : undefined;
 }
 
@@ -102,16 +102,16 @@ function coerceOutput(raw: unknown): BatchOutput {
   return JOB_OUTPUTS.includes(raw as BatchOutput) ? (raw as BatchOutput) : 'separate';
 }
 
-// Output rules + all sink writers live in batch-sink.ts, shared with Fast
+// Output rules + all sink writers live in batch-sink.ts, shared with GraphQL
 // Batch — only acquisition differs between the two batch paths.
 
-export async function startBatch(
+export async function startManualBatch(
   rawUrls: unknown,
-  origin?: BatchJob['origin'],
+  origin?: ManualBatchJob['origin'],
   handle?: string,
   format: BatchFormat = 'md',
   output: BatchOutput = 'separate'
-): Promise<BatchStartResponse> {
+): Promise<ManualBatchStartResponse> {
   const existing = await loadJob();
   if (existing && (existing.status === 'running' || existing.status === 'paused')) {
     return { success: false, error: 'A batch job is already running' };
@@ -122,7 +122,7 @@ export async function startBatch(
 
   const urls = rawUrls.filter((u): u is string => typeof u === 'string');
   // Snapshot every output decision once so the whole job lands in one shape
-  // even if a setting changes mid-run (Fast Batch does the same per run).
+  // even if a setting changes mid-run (Auto/Super do the same per run).
   const settings = await loadSettings();
   let job = createJob(urls, new Date(), planBatch(settings, format, output));
   if (job.urls.length === 0) {
@@ -160,7 +160,7 @@ export async function startBatch(
 // Add newly-scrolled items to the live job's queue. The popup only offers
 // this on the running job's own source, so a long batch can keep absorbing
 // items the user loads instead of finishing short or being restarted.
-export async function appendBatch(rawUrls: unknown): Promise<BatchStartResponse> {
+export async function appendManualBatch(rawUrls: unknown): Promise<ManualBatchStartResponse> {
   const job = await loadJob();
   if (!job || (job.status !== 'running' && job.status !== 'paused')) {
     return { success: false, error: 'No batch job is running' };
@@ -190,7 +190,7 @@ export async function appendBatch(rawUrls: unknown): Promise<BatchStartResponse>
 // An unfocused-but-visible window keeps rendering without stealing focus.
 // (A fully occluded window is treated as hidden again; items then fail by
 // timeout and are recorded, not lost silently.)
-async function dispatchCurrent(job: BatchJob): Promise<void> {
+async function dispatchCurrent(job: ManualBatchJob): Promise<void> {
   const url = currentUrl(job);
   if (!url) {
     await finalize(job);
@@ -235,7 +235,7 @@ async function dispatchCurrent(job: BatchJob): Promise<void> {
 }
 
 async function handleItemResult(
-  msg: BatchItemResultMessage,
+  msg: ManualBatchItemResultMessage,
   sender: chrome.runtime.MessageSender
 ): Promise<void> {
   const job = await loadJob();
@@ -325,7 +325,7 @@ async function handleItemResult(
 // Persist, then either finish or move on after the politeness throttle. The
 // watchdog alarm re-runs tick() if the service worker dies during the
 // setTimeout, so the delay survives a worker restart (just stretched).
-async function continueAfter(job: BatchJob): Promise<void> {
+async function continueAfter(job: ManualBatchJob): Promise<void> {
   if (job.status !== 'running') {
     await finalize(job);
     return;
@@ -377,7 +377,7 @@ async function tick(): Promise<void> {
   }
 }
 
-async function takeStoredItems(job: BatchJob): Promise<StoredItem[]> {
+async function takeStoredItems(job: ManualBatchJob): Promise<StoredItem[]> {
   const keys = job.urls.map((_, i) => DOC_KEY_PREFIX + i);
   const stored = await chrome.storage.session.get(keys);
   await chrome.storage.session.remove(keys);
@@ -387,8 +387,8 @@ async function takeStoredItems(job: BatchJob): Promise<StoredItem[]> {
 }
 
 // The finished/cancelled job stays in storage for inspection until the next
-// startBatch overwrites it.
-async function finalize(job: BatchJob): Promise<void> {
+// startManualBatch overwrites it.
+async function finalize(job: ManualBatchJob): Promise<void> {
   await saveJob(job);
   await chrome.alarms.clear(WATCHDOG_ALARM);
   try {
@@ -435,7 +435,7 @@ async function finalize(job: BatchJob): Promise<void> {
   }
 }
 
-async function controlBatch(msg: BatchControlRequest): Promise<{ success: true }> {
+async function controlManualBatch(msg: ManualBatchControlRequest): Promise<{ success: true }> {
   const job = await loadJob();
   if (msg.control === 'cancel') {
     if (job && (job.status === 'running' || job.status === 'paused')) {
@@ -457,7 +457,7 @@ async function controlBatch(msg: BatchControlRequest): Promise<{ success: true }
   return { success: true };
 }
 
-async function batchStatus(): Promise<BatchStatusResponse> {
+async function manualBatchStatus(): Promise<ManualBatchStatusResponse> {
   const job = await loadJob();
   return job
     ? {
@@ -481,11 +481,11 @@ async function batchStatus(): Promise<BatchStatusResponse> {
 
 // BATCH_START and BATCH_APPEND also accept our injector content script on
 // x.com: selection mode starts batches from the page (Phase C).
-export const batchRoutes: Routes = {
+export const manualBatchRoutes: Routes = {
   BATCH_START: {
     trust: ['extension-page', 'x-content'],
-    handle: (msg: BatchStartRequest) =>
-      startBatch(
+    handle: (msg: ManualBatchStartRequest) =>
+      startManualBatch(
         msg.urls,
         coerceOrigin(msg.origin),
         typeof msg.handle === 'string' ? msg.handle : undefined,
@@ -495,20 +495,20 @@ export const batchRoutes: Routes = {
   },
   BATCH_APPEND: {
     trust: ['extension-page', 'x-content'],
-    handle: (msg: BatchAppendRequest) => appendBatch(msg.urls),
+    handle: (msg: ManualBatchAppendRequest) => appendManualBatch(msg.urls),
   },
-  BATCH_CONTROL: { trust: ['extension-page'], handle: controlBatch },
-  BATCH_STATUS: { trust: ['extension-page'], handle: batchStatus },
+  BATCH_CONTROL: { trust: ['extension-page'], handle: controlManualBatch },
+  BATCH_STATUS: { trust: ['extension-page'], handle: manualBatchStatus },
   BATCH_ITEM_RESULT: {
     trust: ['x-content'],
-    handle: (msg: BatchItemResultMessage, sender) => {
+    handle: (msg: ManualBatchItemResultMessage, sender) => {
       void handleItemResult(msg, sender);
       return { ok: true };
     },
   },
 };
 
-export function initBatch(): void {
+export function initManualBatch(): void {
   chrome.tabs.onRemoved.addListener((tabId) => {
     void (async () => {
       const job = await loadJob();
@@ -532,10 +532,10 @@ export function initBatch(): void {
   // Service worker restarted mid-job → pick up from the persisted state.
   void tick();
 
-  // Phase A temporary trigger (see header comment).
+  // Keep the original DevTools trigger name for compatibility.
   (globalThis as Record<string, unknown>).xclipperStartBatch = (urls: string[]) =>
-    startBatch(urls).then((r) => {
-      log('startBatch:', JSON.stringify(r));
+    startManualBatch(urls).then((r) => {
+      log('startManualBatch:', JSON.stringify(r));
       return r;
     });
 }

@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import {
-  BATCH_MAX_ITEMS,
+  MANUAL_BATCH_MAX_ITEMS,
   appendUrls,
   cancelJob,
   createJob,
@@ -10,7 +10,7 @@ import {
   recordResult,
   resumeJob,
   uniqueFilename,
-  type BatchJob,
+  type ManualBatchJob,
 } from '../src/background/batch-state';
 import { planBatch } from '../src/background/batch-sink';
 import { DEFAULT_SETTINGS } from '../src/shared/settings';
@@ -61,13 +61,13 @@ describe('createJob', () => {
     expect(job.nextIndex).toBe(0);
   });
 
-  it('caps the queue at BATCH_MAX_ITEMS', () => {
+  it('caps the queue at MANUAL_BATCH_MAX_ITEMS', () => {
     const urls = Array.from(
-      { length: BATCH_MAX_ITEMS + 50 },
+      { length: MANUAL_BATCH_MAX_ITEMS + 50 },
       (_, i) => `https://x.com/u/status/${i + 1}`
     );
     const job = createJob(urls, NOW, PLAN);
-    expect(job.urls).toHaveLength(BATCH_MAX_ITEMS);
+    expect(job.urls).toHaveLength(MANUAL_BATCH_MAX_ITEMS);
   });
 
   it('derives the folder name from the start time', () => {
@@ -76,7 +76,7 @@ describe('createJob', () => {
 });
 
 describe('recordResult', () => {
-  const twoItemJob = (): BatchJob =>
+  const twoItemJob = (): ManualBatchJob =>
     createJob(['https://x.com/a/status/1', 'https://x.com/b/status/2'], NOW, PLAN);
 
   it('advances on success and returns the filename to write', () => {
@@ -248,11 +248,11 @@ describe('appendUrls', () => {
   });
 
   it('respects the hard item cap', () => {
-    const many = Array.from({ length: BATCH_MAX_ITEMS }, (_, i) => u(`${i}`));
+    const many = Array.from({ length: MANUAL_BATCH_MAX_ITEMS }, (_, i) => u(`${i}`));
     const job = createJob(many, NOW, PLAN);
     const result = appendUrls(job, [u('9001'), u('9002')], new Set());
     expect(result.added).toBe(0);
-    expect(result.job.urls).toHaveLength(BATCH_MAX_ITEMS);
+    expect(result.job.urls).toHaveLength(MANUAL_BATCH_MAX_ITEMS);
   });
 
   it('is a no-op once the job is no longer running or paused', () => {

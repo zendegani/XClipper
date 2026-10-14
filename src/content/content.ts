@@ -1,5 +1,5 @@
 import type {
-  BatchItemResultMessage,
+  ManualBatchItemResultMessage,
   DownloadRequest,
   DownloadResponse,
   ExtractedContent,
@@ -408,7 +408,7 @@ function detectBatchInterstitial(): string | null {
 }
 
 async function runBatchExtract(): Promise<void> {
-  let msg: BatchItemResultMessage;
+  let msg: ManualBatchItemResultMessage;
   try {
     const tWait0 = performance.now();
     const article = await waitForArticle();

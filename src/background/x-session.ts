@@ -1,14 +1,14 @@
-// X session auth + authed transport for Fast Batch (ADR 0003). We never ask for
+// X session auth + authed transport for Auto/Super (ADR 0003). We never ask for
 // a password or a paid API key: with the opt-in `webRequest` permission granted,
 // we observe the auth headers the browser ALREADY sends on the user's own x.com
 // GraphQL requests, remember the request templates, and replay them ourselves.
 //
-// This is the impure edge (webRequest, fetch, permissions, storage); fast-batch
+// This is the impure edge (webRequest, fetch, permissions, storage); graphql-batch
 // orchestrates on top of it. `templates` is exported live — captureHeaders keeps
 // it current and the orchestrator reads it to know which requests it can replay.
 
 const GRAPHQL_FILTER = '*://x.com/i/api/graphql/*';
-const FAST_BATCH_ORIGINS = ['*://x.com/*'];
+const GRAPHQL_ORIGINS = ['*://x.com/*'];
 const log = (...args: unknown[]): void => console.log('[xclipper fast-batch]', ...args);
 
 interface XAuth {
@@ -74,15 +74,15 @@ export function startCapturing(): void {
 }
 
 export async function hasAccess(): Promise<boolean> {
-  return chrome.permissions.contains({ permissions: ['webRequest'], origins: FAST_BATCH_ORIGINS });
+  return chrome.permissions.contains({ permissions: ['webRequest'], origins: GRAPHQL_ORIGINS });
 }
 
-// Request the opt-in permission (the consent UI will call this). Resolves true
+// Request access through Chrome's optional-permission prompt. Resolves true
 // once granted; registers the capture listener on success.
-export async function requestFastBatchAccess(): Promise<boolean> {
+export async function requestGraphqlAccess(): Promise<boolean> {
   const granted =
     (await hasAccess()) ||
-    (await chrome.permissions.request({ permissions: ['webRequest'], origins: FAST_BATCH_ORIGINS }));
+    (await chrome.permissions.request({ permissions: ['webRequest'], origins: GRAPHQL_ORIGINS }));
   if (granted) startCapturing();
   return granted;
 }

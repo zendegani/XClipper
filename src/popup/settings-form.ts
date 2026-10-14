@@ -25,7 +25,7 @@ import {
 } from '../shared/post-process';
 import { hostMatches } from '../shared/media';
 import { attachPlaceholderAutocomplete } from './placeholder-autocomplete';
-import { updateFloodHint } from './fast-batch-ui';
+import { updateFloodHint } from './batch-engine-ui';
 import {
   fmtButtons,
   fmtTriggerValue,
@@ -62,7 +62,7 @@ import {
 
 const t = (key: string, fallback: string): string => chrome.i18n.getMessage(key) || fallback;
 
-// Same grant Fast Batch's Auto/Super engines ask for — one capture serves both.
+// Same grant the Auto/Super engines ask for — one capture serves both.
 const MEDIA_ACCESS: chrome.permissions.Permissions = {
   permissions: ['webRequest'],
   origins: ['*://x.com/*'],
@@ -194,10 +194,10 @@ function syncOutputForFormat(): void {
 // Markdown + HTML; metadata to Markdown + CSV. Single mode leaves all enabled
 // (the format is chosen per-button there, not up front).
 function syncBatchToggles(): void {
-  const batchMode = !batchFormatControls.classList.contains('hidden');
+  const inBatchMode = !batchFormatControls.classList.contains('hidden');
   const fmt = batchFormatSelect.value;
   const gate = (chk: HTMLInputElement, applies: boolean): void => {
-    const disabled = batchMode && !applies;
+    const disabled = inBatchMode && !applies;
     chk.disabled = disabled;
     chk.closest('.toggle-label')?.classList.toggle('disabled', disabled);
   };
@@ -205,7 +205,7 @@ function syncBatchToggles(): void {
   gate(chkMetadata, fmt === 'md' || fmt === 'csv');
   // Same greying rule for the save-locally group, but it's a radio set in a
   // .batch-field rather than a .toggle-label, so gate() doesn't fit it.
-  const saveLocalDisabled = batchMode && fmt !== 'md';
+  const saveLocalDisabled = inBatchMode && fmt !== 'md';
   for (const r of [saveLocalOff, saveLocalImages, saveLocalMedia]) r.disabled = saveLocalDisabled;
   saveLocalField.classList.toggle('disabled', saveLocalDisabled);
   // Zip means different things per mode, so it gates differently. In Batch it
@@ -214,10 +214,10 @@ function syncBatchToggles(): void {
   // videos will not fit through the base64 data: URL the archive is delivered
   // as. In Single the archive is one post, so that ceiling doesn't apply and
   // pairing Zip with local media is the whole point — keep it enabled.
-  const zipBlocked = batchMode && (outCombined.checked || (readSaveLocal() !== 'off' && fmt === 'md'));
+  const zipBlocked = inBatchMode && (outCombined.checked || (readSaveLocal() !== 'off' && fmt === 'md'));
   chkZip.disabled = zipBlocked;
   chkZip.closest('.toggle-label')?.classList.toggle('disabled', zipBlocked);
-  zipToggle.dataset.tooltip = batchMode
+  zipToggle.dataset.tooltip = inBatchMode
     ? t('opt_zip_title_batch', 'Pack all per-post files into a single .zip — one download instead of thousands. Not available while local media saving is on, or with Combined output.')
     : t('opt_zip_title_single', 'Pack the export into a single .zip — one archive instead of a Markdown file plus a sibling media folder.');
 }

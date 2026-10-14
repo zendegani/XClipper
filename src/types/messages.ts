@@ -1,3 +1,9 @@
+// Product choices; acquisition modules use Manual/GraphQL names. See GLOSSARY.md.
+export type BatchEngine = 'manual' | 'auto' | 'super';
+export type BatchSource = 'bookmarks' | 'profile' | 'selection' | 'likes' | 'timeline';
+export type GraphqlBatchSource = 'bookmarks' | 'profile' | 'likes';
+export type FetchMode = 'recent' | 'resume' | 'dateRange';
+
 export interface AuthorInfo {
   name: string;
   handle: string;
@@ -92,6 +98,7 @@ export interface ExtractResponse {
   error?: string;
 }
 
+// Automatic single-post trigger, unrelated to the Auto batch engine.
 // Background → content: run an in-place extraction on the current tab, used by
 // the inline button / context menu when the target tweet is already the open
 // permalink. `subAction` selects the flow; `pdf` routes to the PDF pipeline.
@@ -110,15 +117,14 @@ export interface AutoExtractRequest {
   single?: boolean;
 }
 
-// Extension page → background: start a batch export job over the given status
-// permalinks (ADR 0002, Phase A). The background owns the queue, the hidden
-// worker tab, throttle/timeout policy, and the folder sink.
-export interface BatchStartRequest {
+// Manual engine: start a DOM worker-window job over the given status permalinks
+// (ADR 0002). BATCH_* action strings are retained for compatibility.
+export interface ManualBatchStartRequest {
   action: 'BATCH_START';
   urls: string[];
   // Which surface launched the job — the popup scopes progress display to
   // the matching tab.
-  origin?: 'bookmarks' | 'profile' | 'selection' | 'likes' | 'timeline';
+  origin?: BatchSource;
   // Profile owner's handle when origin === 'profile'.
   handle?: string;
   // File format + grouping for the job (defaults: 'md' / 'separate'). PDF
@@ -129,36 +135,36 @@ export interface BatchStartRequest {
 
 // Extension page → background: add newly-loaded permalinks to the running
 // job's queue (the user scrolled in more posts on the same source).
-export interface BatchAppendRequest {
+export interface ManualBatchAppendRequest {
   action: 'BATCH_APPEND';
   urls: string[];
 }
 
-export interface BatchStartResponse {
+export interface ManualBatchStartResponse {
   success: boolean;
   // Items queued after normalization + dedupe + cap.
   total?: number;
   error?: string;
 }
 
-// Extension page → background: control a running batch job.
-export interface BatchControlRequest {
+// Extension page → background: control a running Manual job.
+export interface ManualBatchControlRequest {
   action: 'BATCH_CONTROL';
   control: 'cancel' | 'pause' | 'resume';
 }
 
-// Extension page → background: snapshot of the current batch job, polled by
+// Extension page → background: snapshot of the current Manual job, polled by
 // the popup progress UI (the popup may close and reopen mid-job, so progress
 // must be queryable rather than pushed).
-export interface BatchStatusRequest {
+export interface ManualBatchStatusRequest {
   action: 'BATCH_STATUS';
 }
 
-export interface BatchStatusResponse {
+export interface ManualBatchStatusResponse {
   job?: {
     id: string;
     status: 'running' | 'paused' | 'done' | 'cancelled';
-    origin?: 'bookmarks' | 'profile' | 'selection' | 'likes' | 'timeline';
+    origin?: BatchSource;
     // Set when origin === 'profile' — the popup only offers "add to queue"
     // on the same profile.
     handle?: string;
@@ -210,7 +216,7 @@ export interface SelectionRequest {
 // Content (worker tab) → background: finished result for the batch item the
 // worker tab currently shows. `url` is the page the result came from, so the
 // orchestrator can drop late or duplicate reports from a previous navigation.
-export interface BatchItemResultMessage {
+export interface ManualBatchItemResultMessage {
   action: 'BATCH_ITEM_RESULT';
   url: string;
   success: boolean;
@@ -236,54 +242,55 @@ export interface ContextUrlRequest {
   url: string | null;
 }
 
-// ─── Fast Batch (ADR 0003) ──────────────────────────────────────────
-// Opt-in GraphQL bookmarks export, driven from the popup. Progress is polled
-// (like BATCH_STATUS) because the popup can close mid-run. Separate from the
-// worker-tab batch job model on purpose — Fast Batch has no per-item tab.
-export interface FastBatchStartRequest {
+// ─── GraphQL acquisition: Auto and Super (ADR 0003) ──────────────────
+// Progress is polled because the popup can close mid-run. These engines have
+// no per-item worker tab. FAST_BATCH_* action strings are kept for compatibility.
+export interface GraphqlBatchStartRequest {
   action: 'FAST_BATCH_START';
-  // Which paginated source to export (Selection isn't Fast-compatible).
-  source?: 'bookmarks' | 'profile' | 'likes';
+  // Timeline and Selection use Manual.
+  source?: GraphqlBatchSource;
   // Profile owner's handle — used to skip reposts (export only their own posts).
   handle?: string;
   // Optional YYYY-MM-DD bounds on the tweet's date; out-of-range items are
   // skipped (and never expanded), so the TweetDetail budget is spared.
   fromDate?: string;
   toDate?: string;
+  // Auto by default; false selects Super. Both expand articles and replies to
+  // other authors, even when self-thread expansion is disabled.
   expandThreads?: boolean;
-  // Fast Batch fetch mode (#83): 'recent' starts from the top of the feed
+  // Fetch mode (#83): 'recent' starts from the top of the feed
   // (newly-added items); 'resume' continues from the saved per-source cursor
   // (backfill a large feed across sessions); 'dateRange' deep-scans from the top
   // for posts tweeted within fromDate..toDate — it dedups against history but
   // never touches the resume cursor, so it can't confuse a Resume backfill.
-  paginate?: 'recent' | 'resume' | 'dateRange';
+  paginate?: FetchMode;
 }
-export interface FastBatchStartResponse {
+export interface GraphqlBatchStartResponse {
   success: boolean;
   error?: string;
 }
-export interface FastBatchCancelRequest {
+export interface GraphqlBatchCancelRequest {
   action: 'FAST_BATCH_CANCEL';
 }
-export interface FastBatchStatusRequest {
+export interface GraphqlBatchStatusRequest {
   action: 'FAST_BATCH_STATUS';
 }
 // Readiness for the step lights: are the needed request templates captured?
-export interface FastBatchReadyRequest {
+export interface GraphqlBatchReadyRequest {
   action: 'FAST_BATCH_READY';
-  source?: 'bookmarks' | 'profile' | 'likes';
+  source?: GraphqlBatchSource;
 }
-export interface FastBatchReadyResponse {
+export interface GraphqlBatchReadyResponse {
   feed: boolean; // the source's feed template was observed (page visited)
   tweetDetail: boolean; // a tweet was opened (expansion possible)
 }
-export interface FastBatchProgress {
+export interface GraphqlBatchProgress {
   status: 'idle' | 'running' | 'done' | 'cancelled' | 'error';
   // Human-readable phase for the progress label (e.g. "Fetching bookmarks").
   phase: string;
   // Which source + (for profile) whose posts — so the popup can show who's
   // running even after navigating elsewhere / reopening.
-  source?: 'bookmarks' | 'profile' | 'likes';
+  source?: GraphqlBatchSource;
   handle?: string;
   done: number;
   total: number;
@@ -296,8 +303,8 @@ export interface FastBatchProgress {
   needTweetDetail?: boolean;
   error?: string;
 }
-export interface FastBatchStatusResponse {
-  progress: FastBatchProgress;
+export interface GraphqlBatchStatusResponse {
+  progress: GraphqlBatchProgress;
 }
 
 export type MessageRequest =
@@ -308,15 +315,15 @@ export type MessageRequest =
   | PdfPrintRequest
   | AutoExtractRequest
   | ContextUrlRequest
-  | BatchStartRequest
-  | BatchAppendRequest
-  | BatchControlRequest
-  | BatchStatusRequest
+  | ManualBatchStartRequest
+  | ManualBatchAppendRequest
+  | ManualBatchControlRequest
+  | ManualBatchStatusRequest
   | HarvestRequest
   | HarvestResetRequest
   | SelectionRequest
-  | BatchItemResultMessage
-  | FastBatchStartRequest
-  | FastBatchCancelRequest
-  | FastBatchStatusRequest
-  | FastBatchReadyRequest;
+  | ManualBatchItemResultMessage
+  | GraphqlBatchStartRequest
+  | GraphqlBatchCancelRequest
+  | GraphqlBatchStatusRequest
+  | GraphqlBatchReadyRequest;
