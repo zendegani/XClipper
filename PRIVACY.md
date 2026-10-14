@@ -53,16 +53,16 @@ When you click **Download .pdf**, the extension opens a new tab at an extension-
 
 These are the minimum permissions required for the extension to function. They are granted at install time. No additional permissions are requested unless you explicitly opt in below.
 
-### Optional permission — Fast Batch (off by default)
+### Optional permission — Auto/Super engines and local video saving
 
-XClipper offers an optional **Fast Batch** mode for exporting many posts at once. It is **off by default** and is never used unless you turn it on and confirm a consent prompt. Only then does the browser ask you to grant these **optional** permissions; declining leaves the normal (Standard) batch export fully working.
+XClipper's **Auto** and **Super** batch engines are optional; **Manual** is the default. Selecting Auto or Super requests the permissions below through the browser's own prompt. Enabling local **Media** saving also requests this access to resolve video URLs for single exports and Manual batches. Declining leaves Manual batch export available.
 
 | Optional permission | Purpose |
 |---------------------|---------|
 | `webRequest` (X.com only) | Lets XClipper read the authentication token your browser **already sends** on your own X.com requests, so it can call X's internal data endpoints directly — the same endpoints x.com's own web page calls — instead of opening and rendering each post in a tab. This is much faster. |
 | `host` (X.com, optional) | Grants the `webRequest` access above, scoped to X.com only. |
 
-What this means in plain terms: with your consent, Fast Batch reuses **your existing logged-in X session** to fetch your bookmarks/likes/posts as data. It does **not** use any paid API, does **not** ask for your password, and sends nothing to any server — the data is fetched from X into your browser and written to your Downloads exactly like Standard batch. You can revoke the permission at any time in your browser's extension settings, which disables Fast Batch and returns you to Standard batch.
+With your consent, Auto and Super reuse **your existing logged-in X session** to fetch your bookmarks/likes/posts as data; local Media saving uses the same session to resolve video URLs. This does **not** use any paid API and does **not** ask for your password — data is fetched from X into your browser and written to Downloads. You can revoke the permission at any time in your browser's extension settings; the engine selector then falls back to Manual, and session-based video resolution is unavailable.
 
 ### Entry points and download safety
 
