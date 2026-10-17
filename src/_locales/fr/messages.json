@@ -273,19 +273,19 @@
     "message": "Format"
   },
   "batch_output": {
-    "message": "Sortie"
+    "message": "Fichiers"
   },
   "batch_output_hint": {
-    "message": "Séparé : un fichier par post. Les deux : fichiers par post plus un fichier combiné. Combiné : un seul fichier."
+    "message": "Un par post : un fichier pour chaque post. Tout en un : tous les posts dans un seul fichier. Les deux : un fichier par post, plus un fichier regroupant tous les posts."
   },
   "batch_out_separate": {
-    "message": "Séparé"
+    "message": "Un par post"
   },
   "batch_out_both": {
     "message": "Les deux"
   },
   "batch_out_combined": {
-    "message": "Combiné"
+    "message": "Tout en un"
   },
   "opt_zip": {
     "message": "Compresser en ZIP (un téléchargement)"
@@ -294,7 +294,7 @@
     "message": "Regroupe l’export dans un seul .zip : en lot, un téléchargement au lieu de milliers ; en export unique, une archive au lieu d’un fichier Markdown et d’un dossier de médias."
   },
   "opt_zip_title_batch": {
-    "message": "Regroupe tous les fichiers par post dans un seul .zip — un téléchargement au lieu de milliers ; indisponible avec l’enregistrement local des médias ou la sortie Combiné."
+    "message": "Regroupe tous les fichiers par post dans un seul fichier .zip — un téléchargement au lieu de milliers ; indisponible si l’enregistrement local des médias est activé ou si « Tout en un » est sélectionné."
   },
   "opt_zip_title_single": {
     "message": "Regroupe l’export dans un seul .zip — une archive au lieu d’un fichier Markdown et d’un dossier de médias adjacent."
@@ -306,7 +306,7 @@
     "message": "Activer ZIP"
   },
   "flood_fix_combined": {
-    "message": "Utiliser Combiné"
+    "message": "Choisir « Tout en un »"
   },
   "batch_bar_selected": {
     "message": "sélectionnés"

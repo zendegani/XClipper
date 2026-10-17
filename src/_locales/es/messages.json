@@ -273,19 +273,19 @@
     "message": "Formato"
   },
   "batch_output": {
-    "message": "Salida"
+    "message": "Archivos"
   },
   "batch_output_hint": {
-    "message": "Separado: un archivo por publicación. Ambos: archivos por publicación más un archivo combinado. Combinado: solo un archivo."
+    "message": "Uno por publicación: un archivo para cada publicación. Todo en uno: todas las publicaciones en un solo archivo. Ambos: un archivo por publicación más un archivo con todas las publicaciones."
   },
   "batch_out_separate": {
-    "message": "Separado"
+    "message": "Uno por publicación"
   },
   "batch_out_both": {
     "message": "Ambos"
   },
   "batch_out_combined": {
-    "message": "Combinado"
+    "message": "Todo en uno"
   },
   "opt_zip": {
     "message": "Comprimir en ZIP (una descarga)"
@@ -294,7 +294,7 @@
     "message": "Empaqueta la exportación en un solo .zip: en Lote, una descarga en vez de miles; en Individual, un archivo en vez de un archivo Markdown y una carpeta de multimedia."
   },
   "opt_zip_title_batch": {
-    "message": "Empaqueta todos los archivos por publicación en un solo .zip — una descarga en vez de miles; no está disponible al guardar multimedia localmente ni con la salida «Combinado»."
+    "message": "Empaqueta todos los archivos por publicación en un solo archivo .zip — una descarga en vez de miles. No está disponible si guardas multimedia localmente o si seleccionas «Todo en uno»."
   },
   "opt_zip_title_single": {
     "message": "Empaqueta la exportación en un solo .zip — un archivo en vez de un archivo Markdown y una carpeta de multimedia adyacente."
@@ -306,7 +306,7 @@
     "message": "Activar ZIP"
   },
   "flood_fix_combined": {
-    "message": "Usar Combinado"
+    "message": "Usar «Todo en uno»"
   },
   "batch_bar_selected": {
     "message": "seleccionados"

@@ -273,19 +273,19 @@
     "message": "格式"
   },
   "batch_output": {
-    "message": "输出"
+    "message": "文件"
   },
   "batch_output_hint": {
-    "message": "单独：每个帖子一个文件。两者：单帖文件加一个合并文件。合并：只有一个文件。"
+    "message": "每帖一个：每个帖子一个文件。合为一个：所有帖子合在一个文件里。两者都要：每帖一个文件，外加合并后的文件。"
   },
   "batch_out_separate": {
-    "message": "单独"
+    "message": "每帖一个"
   },
   "batch_out_both": {
-    "message": "两者"
+    "message": "两者都要"
   },
   "batch_out_combined": {
-    "message": "合并"
+    "message": "合为一个"
   },
   "opt_zip": {
     "message": "打包为 ZIP（单次下载）"
@@ -294,7 +294,7 @@
     "message": "将导出内容打包为单个 .zip。批量导出时只下载一次，而不是数千次；单条导出时只生成一个压缩包，而不是一个 Markdown 文件加媒体文件夹。"
   },
   "opt_zip_title_batch": {
-    "message": "将每个帖子的文件打包为单个 .zip — 只下载一次，而不是数千次。开启本地保存媒体或选择“合并”输出时不可用。"
+    "message": "将每帖的文件打包成一个 .zip 文件，一次下载即可，无需下载数千次。开启本地媒体保存或选择“合为一个”时不可用。"
   },
   "opt_zip_title_single": {
     "message": "将导出内容打包为单个 .zip — 只生成一个压缩包，而不是一个 Markdown 文件加同级媒体文件夹。"
@@ -306,7 +306,7 @@
     "message": "开启 ZIP"
   },
   "flood_fix_combined": {
-    "message": "使用合并"
+    "message": "改用“合为一个”"
   },
   "batch_bar_selected": {
     "message": "已选择"
