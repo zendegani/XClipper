@@ -273,19 +273,19 @@
     "message": "Format"
   },
   "batch_output": {
-    "message": "Ausgabe"
+    "message": "Dateien"
   },
   "batch_output_hint": {
-    "message": "Separat: eine Datei pro Post. Beides: Dateien pro Post plus eine kombinierte Datei. Kombiniert: nur eine Datei."
+    "message": "Eine pro Post: eine Datei für jeden Post. Eine für alle: alle Posts in einer Datei. Beides: eine Datei pro Post plus die Gesamtdatei."
   },
   "batch_out_separate": {
-    "message": "Separat"
+    "message": "Eine pro Post"
   },
   "batch_out_both": {
     "message": "Beides"
   },
   "batch_out_combined": {
-    "message": "Kombiniert"
+    "message": "Eine für alle"
   },
   "opt_zip": {
     "message": "Dateien zippen (ein Download)"
@@ -294,7 +294,7 @@
     "message": "Packt den Export in eine einzige .zip. Im Batch erhältst du einen statt Tausender Downloads; beim Einzelexport ein Archiv statt einer Markdown-Datei plus Medienordner."
   },
   "opt_zip_title_batch": {
-    "message": "Packt alle Dateien pro Post in eine einzige .zip - ein Download statt Tausender. Nicht verfügbar, wenn Medien lokal gespeichert werden oder die Ausgabe „Kombiniert“ gewählt ist."
+    "message": "Packt alle Dateien pro Post in eine einzige ZIP-Datei – ein Download statt Tausender. Nicht verfügbar, wenn Medien lokal gespeichert werden oder „Eine für alle“ gewählt ist."
   },
   "opt_zip_title_single": {
     "message": "Packt den Export in eine einzige .zip - ein Archiv statt einer Markdown-Datei plus danebenliegendem Medienordner."
@@ -306,7 +306,7 @@
     "message": "ZIP aktivieren"
   },
   "flood_fix_combined": {
-    "message": "Kombinieren"
+    "message": "Eine für alle wählen"
   },
   "batch_bar_selected": {
     "message": "ausgewählt"

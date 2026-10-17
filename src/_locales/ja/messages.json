@@ -273,19 +273,19 @@
     "message": "形式"
   },
   "batch_output": {
-    "message": "出力"
+    "message": "ファイル"
   },
   "batch_output_hint": {
-    "message": "個別: 投稿ごとに1ファイル。両方: 投稿ごとのファイルと結合ファイル。結合: 1ファイルのみ。"
+    "message": "投稿ごとに1つ：投稿ごとに1ファイル。まとめて1つ：全投稿を1ファイルに。両方：投稿ごとのファイルとまとめたファイル。"
   },
   "batch_out_separate": {
-    "message": "個別"
+    "message": "投稿ごとに1つ"
   },
   "batch_out_both": {
     "message": "両方"
   },
   "batch_out_combined": {
-    "message": "結合"
+    "message": "まとめて1つ"
   },
   "opt_zip": {
     "message": "ZIPにまとめる（1回のダウンロード）"
@@ -294,7 +294,7 @@
     "message": "エクスポートを1つの.zipにまとめます。一括処理では数千回の代わりに1回のダウンロード、単体ではMarkdownファイルとメディアフォルダの代わりに1つのアーカイブになります。"
   },
   "opt_zip_title_batch": {
-    "message": "投稿ごとの全ファイルを1つの.zipにまとめ、数千回の代わりに1回のダウンロードで済みます—ローカルへのメディア保存がオンの場合や、出力が「結合」の場合は使えません。"
+    "message": "投稿ごとのファイルを1つの.zipファイルにまとめれば、ダウンロードは数千回ではなく1回で済みます。ローカルへのメディア保存がオンの場合や、「まとめて1つ」を選んだ場合は使えません。"
   },
   "opt_zip_title_single": {
     "message": "エクスポートを1つの.zipにまとめます—Markdownファイルと同階層のメディアフォルダの代わりに、1つのアーカイブになります。"
@@ -306,7 +306,7 @@
     "message": "ZIPをオン"
   },
   "flood_fix_combined": {
-    "message": "結合を使う"
+    "message": "「まとめて1つ」にする"
   },
   "batch_bar_selected": {
     "message": "選択済み"
