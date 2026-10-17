@@ -13,7 +13,7 @@ vi.mock('../src/background/graphql-batch', async (importOriginal) => {
 });
 
 type MenuItem = chrome.contextMenus.CreateProperties;
-type Click = { linkUrl?: string };
+type Click = { linkUrl?: string; srcUrl?: string; selection?: boolean };
 
 const created: MenuItem[] = [];
 const opened: string[] = [];
@@ -38,14 +38,27 @@ const matches = (patterns: string[], url: string): boolean =>
 
 // Each browser's rule for showing an item, from their source: Chrome's
 // ExtensionContextAndPatternMatch and Firefox's enabledForContext.
+// srcUrl stands for an image under the cursor.
 const shows = {
-  chrome: (item: MenuItem, click: Click): boolean =>
-    click.linkUrl
-      ? !!item.contexts?.includes('link') && matches(item.targetUrlPatterns ?? ['*'], click.linkUrl)
-      : !!item.contexts?.includes('page'),
-  firefox: (item: MenuItem, click: Click): boolean =>
-    (click.linkUrl ? !!item.contexts?.includes('link') : !!item.contexts?.includes('page')) &&
-    (!item.targetUrlPatterns || (!!click.linkUrl && matches(item.targetUrlPatterns, click.linkUrl))),
+  chrome: (item: MenuItem, click: Click): boolean => {
+    const has = (c: chrome.contextMenus.ContextType): boolean => !!item.contexts?.includes(c);
+    const targets = item.targetUrlPatterns ?? ['*'];
+    if (click.selection && has('selection')) return true;
+    if (click.linkUrl && has('link') && matches(targets, click.linkUrl)) return true;
+    if (click.srcUrl && has('image') && matches(targets, click.srcUrl)) return true;
+    return !click.linkUrl && !click.srcUrl && !click.selection && has('page');
+  },
+  firefox: (item: MenuItem, click: Click): boolean => {
+    const contexts = [
+      ...(click.linkUrl ? ['link'] : []),
+      ...(click.srcUrl ? ['image'] : []),
+      ...(click.selection ? ['selection'] : []),
+    ];
+    if (contexts.length === 0) contexts.push('page');
+    if (!contexts.some((c) => item.contexts?.includes(c as chrome.contextMenus.ContextType))) return false;
+    const targets = [click.linkUrl, click.srcUrl].filter((u): u is string => !!u);
+    return !item.targetUrlPatterns || targets.some((u) => matches(item.targetUrlPatterns!, u));
+  },
 };
 
 describe('context menu', () => {
@@ -57,11 +70,16 @@ describe('context menu', () => {
     it(`shows one XClipper menu on a post or its link in ${browser}`, () => {
       expect(visible({})).toBe(1);
       expect(visible({ linkUrl: 'https://x.com/a/status/1' })).toBe(1);
-      expect(visible({ linkUrl: 'https://x.com/a/status/1/photo/1' })).toBe(1);
+      expect(visible({ linkUrl: 'https://x.com/a/status/1/photo/1', srcUrl: 'https://pbs.twimg.com/media/a.jpg' })).toBe(1);
     });
 
     it(`shows no menu on other links in ${browser}`, () => {
       expect(visible({ linkUrl: 'https://x.com/a' })).toBe(0);
+    });
+
+    it(`shows no menu on selected text or an unlinked image in ${browser}`, () => {
+      expect(visible({ selection: true })).toBe(0);
+      expect(visible({ srcUrl: 'https://pbs.twimg.com/media/a.jpg' })).toBe(0);
     });
   }
 
