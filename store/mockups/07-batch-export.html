@@ -145,24 +145,28 @@
 
   .seg { display: flex; align-items: center; background: #f1f5f9; border-radius: 11px; padding: 4px; gap: 4px; }
   .seg .opt { flex: 1; text-align: center; font-size: 13px; font-weight: 700; color: var(--ink-3); padding: 8px 0; border-radius: 8px; }
-  .seg .opt.active { background: #ffffff; color: var(--ink); box-shadow: 0 1px 3px rgba(15,23,42,.12); }
+  /* Selected is a blue fill with white text in every selector, as in the popup. */
+  .seg .opt.active { background: var(--brand); color: #fff; box-shadow: 0 2px 8px rgba(29,155,240,.25); }
 
-  .tabs { display: flex; gap: 8px; }
+  /* Source tabs: one outlined strip with the selected tab as a blue pill inside. */
+  .tabs { display: flex; gap: 4px; padding: 4px; border: 1px solid var(--line); border-radius: 11px; }
   .tab {
-    flex: 1; height: 44px;
-    border: 1px solid var(--line); border-radius: 11px;
+    flex: 1; height: 36px;
+    border-radius: 8px;
     display: flex; align-items: center; justify-content: center;
     color: var(--ink-3);
   }
   .tab svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-  .tab.active { background: var(--brand); border-color: var(--brand); color: #fff; box-shadow: 0 8px 18px -4px rgba(29,155,240,.45); }
+  .tab.active { background: var(--brand); color: #fff; box-shadow: 0 2px 8px rgba(29,155,240,.25); }
 
-  .mode-field { display: flex; flex-direction: column; gap: 7px; }
-  .mode { display: flex; align-items: center; background: #f1f5f9; border-radius: 11px; padding: 4px; gap: 4px; }
-  .mode .opt { flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 13px; font-weight: 700; color: var(--ink-3); padding: 8px 0; border-radius: 8px; }
-  .mode .opt.active { background: #ffffff; color: var(--ink); box-shadow: 0 1px 3px rgba(15,23,42,.12); }
+  /* Engine + fetch mode share a gray box; each is an outlined segment row on white. */
+  .mode-field { display: flex; flex-direction: column; gap: 7px; padding: 8px; background: #f1f5f9; border: 1px solid var(--line); border-radius: 11px; }
+  .mode { display: flex; background: #ffffff; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .mode .opt { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: var(--ink-2); padding: 8px 0; }
+  .mode .opt + .opt { border-left: 1px solid var(--line); }
+  .mode .opt.active { background: var(--brand); color: #fff; }
   /* Fetch mode is the secondary choice, lighter than the engine row, as in the popup. */
-  .mode.fetch .opt { font-size: 12px; font-weight: 500; }
+  .mode.fetch .opt { font-size: 12px; font-weight: 500; padding: 7px 0; }
   /* Outlined in the brand color, like the popup's Export button. */
   .export-btn { height: 40px; border: 1.5px solid var(--brand); border-radius: 11px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: var(--brand); }
 
