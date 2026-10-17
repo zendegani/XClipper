@@ -34,7 +34,10 @@ await import('../src/background/background');
 installed.forEach((fn) => fn());
 
 const matches = (patterns: string[], url: string): boolean =>
-  patterns.some((p) => new RegExp('^' + p.replace(/[.?]/g, '\\$&').replace(/\*/g, '.*') + '$').test(url));
+  patterns.some((p) => {
+    const literal = p.split('*').map((part) => part.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'));
+    return new RegExp('^' + literal.join('.*') + '$').test(url);
+  });
 
 // Each browser's rule for showing an item, from their source: Chrome's
 // ExtensionContextAndPatternMatch and Firefox's enabledForContext.
