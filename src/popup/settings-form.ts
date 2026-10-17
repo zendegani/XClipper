@@ -494,20 +494,23 @@ export function initSettingsForm(): void {
   );
   // Saving the video file needs X's own GraphQL payload — the DOM only carries
   // the poster. Ask for the same optional permission the Auto Full/Auto Fast engines
-  // use, from the click itself because chrome.permissions.request needs the
-  // gesture. Declining is fine: Media still saves images, video stays a link.
+  // use, synchronously in the click: Firefox rejects request() from any async
+  // callback, so whether access already existed is checked up front instead.
+  // Declining is fine: Media still saves images, video stays a link.
+  let hadMediaAccess = false;
+  chrome.permissions.contains(MEDIA_ACCESS, (has) => (hadMediaAccess = has));
   saveLocalMedia.addEventListener('click', () => {
-    chrome.permissions.contains(MEDIA_ACCESS, (has) => {
-      if (has) return;
-      chrome.permissions.request(MEDIA_ACCESS, (granted) => {
-        void chrome.runtime.lastError; // benign gesture/denial errors
-        // The capture listener only arms once the permission lands, and the
-        // page fetched its TweetDetail long before that — so without a reload
-        // there is no request template to replay and the first export after
-        // granting would quietly fall back to the thumbnail. Reload the post
-        // so the very next export has what it needs.
-        if (granted) void reloadActiveXTab();
-      });
+    if (hadMediaAccess) return;
+    chrome.permissions.request(MEDIA_ACCESS, (granted) => {
+      void chrome.runtime.lastError; // benign gesture/denial errors
+      if (!granted) return;
+      hadMediaAccess = true;
+      // The capture listener only arms once the permission lands, and the
+      // page fetched its TweetDetail long before that — so without a reload
+      // there is no request template to replay and the first export after
+      // granting would quietly fall back to the thumbnail. Reload the post
+      // so the very next export has what it needs.
+      void reloadActiveXTab();
     });
   });
   chkZip.addEventListener('change', () => {
