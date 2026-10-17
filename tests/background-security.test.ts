@@ -7,6 +7,7 @@ import {
 } from '../src/background/security';
 
 const EXTENSION_ID = 'abcdefghijklmnopabcdefghijklmnop';
+const CHROME_BASE = `chrome-extension://${EXTENSION_ID}/`;
 
 function sender(fields: Partial<chrome.runtime.MessageSender>): chrome.runtime.MessageSender {
   return fields as chrome.runtime.MessageSender;
@@ -93,7 +94,8 @@ describe('isExtensionPageSender()', () => {
           url: `chrome-extension://${EXTENSION_ID}/popup.html`,
           origin: `chrome-extension://${EXTENSION_ID}`,
         }),
-        EXTENSION_ID
+        EXTENSION_ID,
+        CHROME_BASE
       )
     ).toBe(true);
   });
@@ -106,7 +108,8 @@ describe('isExtensionPageSender()', () => {
           url: 'https://x.com/example/status/123',
           origin: 'https://x.com',
         }),
-        EXTENSION_ID
+        EXTENSION_ID,
+        CHROME_BASE
       )
     ).toBe(false);
   });
@@ -119,11 +122,36 @@ describe('isExtensionPageSender()', () => {
           url: 'chrome-extension://otherextensionidotherextensionid/popup.html',
           origin: 'chrome-extension://otherextensionidotherextensionid',
         }),
-        EXTENSION_ID
+        EXTENSION_ID,
+        CHROME_BASE
       )
     ).toBe(false);
 
-    expect(isExtensionPageSender(sender({}), EXTENSION_ID)).toBe(false);
+    expect(isExtensionPageSender(sender({}), EXTENSION_ID, CHROME_BASE)).toBe(false);
+  });
+
+  // Firefox: the ID is the gecko ID, but pages live under a per-install UUID.
+  const GECKO_ID = 'xclipper@zendegani.github.io';
+  const FIREFOX_BASE = 'moz-extension://0b9e3c52-6a1d-4f3e-9c2a-5d7e8f9a1b2c/';
+
+  it('accepts pages of this extension in Firefox', () => {
+    expect(
+      isExtensionPageSender(
+        sender({ id: GECKO_ID, url: `${FIREFOX_BASE}popup.html` }),
+        GECKO_ID,
+        FIREFOX_BASE
+      )
+    ).toBe(true);
+  });
+
+  it('rejects another Firefox extension page', () => {
+    expect(
+      isExtensionPageSender(
+        sender({ id: GECKO_ID, url: 'moz-extension://11111111-2222-3333-4444-555555555555/popup.html' }),
+        GECKO_ID,
+        FIREFOX_BASE
+      )
+    ).toBe(false);
   });
 });
 

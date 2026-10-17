@@ -10,6 +10,7 @@ const listeners = new Set<unknown>();
     sendMessage: noop,
     lastError: undefined,
     id: 'test-extension',
+    getURL: (path: string) => `chrome-extension://test-extension/${path}`,
   },
   storage: {
     local: {

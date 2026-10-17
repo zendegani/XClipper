@@ -20,15 +20,22 @@ function isHttpsXUrl(raw: string | undefined): boolean {
 
 export function isExtensionPageSender(
   sender: chrome.runtime.MessageSender,
-  extensionId: string
+  extensionId: string,
+  // chrome.runtime.getURL(''). Chrome serves pages from chrome-extension://<id>/,
+  // Firefox from moz-extension://<per-install UUID>/, which is not the ID.
+  extensionBaseUrl: string
 ): boolean {
   if (!extensionId || sender.id !== extensionId) return false;
+  const own = parseUrl(extensionBaseUrl);
+  if (!own) return false;
 
   const candidates = [sender.url, sender.origin];
 
+  // Compare scheme + host, not URL.origin: that is "null" for these schemes
+  // outside the browser.
   return candidates.some((candidate) => {
     const url = parseUrl(candidate);
-    return url?.protocol === 'chrome-extension:' && url.hostname === extensionId;
+    return url?.protocol === own.protocol && url.host === own.host;
   });
 }
 

@@ -27,7 +27,7 @@ export type Routes = { [A in Action]?: Route<Extract<MessageRequest, { action: A
 function isTrusted(sender: chrome.runtime.MessageSender, trust: readonly Trust[]): boolean {
   return trust.some((t) =>
     t === 'extension-page'
-      ? isExtensionPageSender(sender, chrome.runtime.id)
+      ? isExtensionPageSender(sender, chrome.runtime.id, chrome.runtime.getURL(''))
       : isTrustedXContentSender(sender)
   );
 }
