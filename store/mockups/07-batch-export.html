@@ -162,7 +162,6 @@
   .mode { display: flex; align-items: center; background: #f1f5f9; border-radius: 11px; padding: 4px; gap: 4px; }
   .mode .opt { flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 13px; font-weight: 700; color: var(--ink-3); padding: 8px 0; border-radius: 8px; }
   .mode .opt.active { background: #ffffff; color: var(--ink); box-shadow: 0 1px 3px rgba(15,23,42,.12); }
-  .mode .beta { font-size: 9px; font-weight: 800; color: #b91c1c; background: #fee2e2; border-radius: 999px; padding: 2px 5px; letter-spacing: .04em; text-transform: uppercase; }
   .mode-caption { font-size: 11.5px; color: var(--ink-2); line-height: 1.35; }
 
   .progress { display: flex; flex-direction: column; gap: 10px; }
@@ -229,26 +228,26 @@
           <div class="tab" title="Selection"><svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
         </div>
 
-        <!-- Batch engine: Manual | Auto | Super -->
+        <!-- Batch engine: Scroll | Auto Full | Auto Fast -->
         <div class="mode-field">
           <div class="mode-label">Batch engine</div>
           <div class="mode">
-            <div class="opt">Manual</div>
-            <div class="opt">Auto<span class="beta">Beta</span></div>
-            <div class="opt active">Super<span class="beta">Beta</span></div>
+            <div class="opt">Scroll</div>
+            <div class="opt">Auto Full</div>
+            <div class="opt active">Auto Fast</div>
           </div>
-          <div class="mode-caption">Fetches thousands at once, but saves each post&rsquo;s first tweet only &mdash; threads skipped.</div>
+          <div class="mode-caption">No scrolling. Skips thread expansion for larger, faster exports. Articles and replies to others still expand.</div>
         </div>
 
-        <!-- Progress (Super running). Auto/Super have Stop but no Pause, and no
+        <!-- Progress (Auto Fast running). Auto Full/Auto Fast have Stop but no Pause, and no
              determinate bar — collection is open-ended, so a fraction would be
              fake. The step lights and live count carry progress, as in the popup. -->
         <div class="progress">
           <div class="steps">
-            <span class="step done">Reload x.com</span>
-            <span class="step done">Open one tweet</span>
-            <span class="step live">Fetching …</span>
-            <span class="step">Expanding …</span>
+            <span class="step done">Reload bookmarks</span>
+            <span class="step done">Open a tweet</span>
+            <span class="step live">Fetching</span>
+            <span class="step">Expanding</span>
           </div>
           <div class="prow">
             <div class="ctl"><svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="1.5"/></svg></div>
