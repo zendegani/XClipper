@@ -50,45 +50,51 @@ type MenuAction =
 // tweet body or media instead of the timestamp link).
 let lastContextUrl: string | null = null;
 
+// The page-context copy of each item carries this suffix on its id.
+const MENU_PAGE_SUFFIX = '-page';
+
 function registerContextMenus(): void {
+  chrome.contextMenus.removeAll(() => {
+    // The same menu twice: once for status links, once for the page. Firefox
+    // checks targetUrlPatterns on every click and hides the item when nothing
+    // under the cursor is a link, so one link+page item never showed on tweet
+    // text there. Chrome checks the pattern only on links and never matches
+    // `link` and `page` on the same click, so it still shows one menu.
+    addMenuTree('', { contexts: ['link'], targetUrlPatterns: ['*://x.com/*/status/*'] });
+    addMenuTree(MENU_PAGE_SUFFIX, { contexts: ['page'] });
+  });
+}
+
+function addMenuTree(
+  suffix: string,
+  scope: Pick<chrome.contextMenus.CreateProperties, 'contexts' | 'targetUrlPatterns'>
+): void {
+  const documentUrlPatterns = ['*://x.com/*'];
   // Explicit parent suppresses Chrome's auto-group label (which would use
   // the full extension name).
-  chrome.contextMenus.removeAll(() => {
-    chrome.contextMenus.create({
-      id: MENU_PARENT,
-      title: 'XClipper',
-      contexts: ['link', 'page'],
-      targetUrlPatterns: ['*://x.com/*/status/*'],
-      documentUrlPatterns: ['*://x.com/*'],
-    });
-    // Every child shares the parent's context + URL scoping; only id/title (and
-    // separators) vary, so build them through small helpers.
-    const common = {
-      parentId: MENU_PARENT,
-      contexts: ['link', 'page'] as ['link', 'page'],
-      targetUrlPatterns: ['*://x.com/*/status/*'],
-      documentUrlPatterns: ['*://x.com/*'],
-    };
-    const item = (id: string, msgKey: string, fallback: string): void => {
-      chrome.contextMenus.create({ ...common, id, title: chrome.i18n.getMessage(msgKey) || fallback });
-    };
-    const sep = (id: string): void => {
-      chrome.contextMenus.create({ ...common, id, type: 'separator' });
-    };
+  chrome.contextMenus.create({ ...scope, documentUrlPatterns, id: MENU_PARENT + suffix, title: 'XClipper' });
+  // Every child shares the parent's context + URL scoping; only id/title (and
+  // separators) vary, so build them through small helpers.
+  const common = { ...scope, documentUrlPatterns, parentId: MENU_PARENT + suffix };
+  const item = (id: string, msgKey: string, fallback: string): void => {
+    chrome.contextMenus.create({ ...common, id: id + suffix, title: chrome.i18n.getMessage(msgKey) || fallback });
+  };
+  const sep = (id: string): void => {
+    chrome.contextMenus.create({ ...common, id: id + suffix, type: 'separator' });
+  };
 
-    item(MENU_PDF, 'ctx_export_pdf', 'Export tweet as PDF');
-    item(MENU_OBSIDIAN, 'ctx_obsidian_tweet', 'Add tweet to Obsidian');
-    sep(MENU_SEP1);
-    item(MENU_COPY, 'ctx_copy_tweet', 'Copy tweet as Markdown');
-    item(MENU_SAVE, 'ctx_save_tweet', 'Download tweet as Markdown');
-    item(MENU_COPY_SINGLE, 'ctx_copy_just_this_tweet', 'Copy just this tweet (no thread)');
-    sep(MENU_SEP2);
-    item(MENU_COPY_TXT, 'ctx_copy_txt', 'Copy tweet as txt');
-    item(MENU_TXT, 'ctx_download_txt', 'Download tweet as txt');
-    item(MENU_HTML, 'ctx_download_html', 'Download tweet as html');
-    item(MENU_JSON, 'ctx_download_json', 'Download tweet as json');
-    item(MENU_CSV, 'ctx_download_csv', 'Download tweet as csv');
-  });
+  item(MENU_PDF, 'ctx_export_pdf', 'Export tweet as PDF');
+  item(MENU_OBSIDIAN, 'ctx_obsidian_tweet', 'Add tweet to Obsidian');
+  sep(MENU_SEP1);
+  item(MENU_COPY, 'ctx_copy_tweet', 'Copy tweet as Markdown');
+  item(MENU_SAVE, 'ctx_save_tweet', 'Download tweet as Markdown');
+  item(MENU_COPY_SINGLE, 'ctx_copy_just_this_tweet', 'Copy just this tweet (no thread)');
+  sep(MENU_SEP2);
+  item(MENU_COPY_TXT, 'ctx_copy_txt', 'Copy tweet as txt');
+  item(MENU_TXT, 'ctx_download_txt', 'Download tweet as txt');
+  item(MENU_HTML, 'ctx_download_html', 'Download tweet as html');
+  item(MENU_JSON, 'ctx_download_json', 'Download tweet as json');
+  item(MENU_CSV, 'ctx_download_csv', 'Download tweet as csv');
 }
 
 chrome.runtime.onInstalled.addListener(registerContextMenus);
@@ -149,7 +155,7 @@ function menuItemAction(
 }
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
-  const picked = menuItemAction(info.menuItemId);
+  const picked = menuItemAction(String(info.menuItemId).replace(MENU_PAGE_SUFFIX, ''));
   if (!picked) return;
   const { action, single } = picked;
 

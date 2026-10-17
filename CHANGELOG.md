@@ -24,6 +24,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Popup actions now reach the background in Firefox**: the background only trusted pages with Chrome's extension address, so in Firefox it silently ignored the popup. Starting Auto Full or Auto Fast said "Could not start", and other popup actions that go through the background failed the same way. The background now recognizes the popup in both browsers and still ignores other extensions and web pages.
 - **Downloads now work in Firefox**: Firefox refused every file XClipper saved, with "Access denied for URL data:…", so a single post did not download and a batch hung at Writing with no way to stop it. Files now reach Firefox in a form it accepts. If the browser refuses a file anyway, a batch now skips that file and carries on instead of hanging. Chrome downloads files the same way as before.
 - **Firefox build now requires Firefox 128 or later**: Auto Full and Auto Fast ask for x.com access through a setting Firefox only supports from version 128, so on older versions they could never work. The Firefox build now says it needs 128, the version that brought that support.
+- **Right-click menu now appears on posts in Firefox**: Firefox showed the XClipper menu only when you right-clicked a post's timestamp, not its text or the rest of the page. It now appears wherever it does in Chrome. Chrome is not affected.
 
 ## [2.8.7] - 2026-10-11
 
