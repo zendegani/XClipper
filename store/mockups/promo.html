@@ -94,13 +94,17 @@
   /* ── Batch popup (left) ── */
   .mqp{
     position: relative;
+    /* Nudged below center so the badge clears the header with room to spare. */
+    top: 14px;
     width: 348px;
     background: #ffffff;
     border-radius: 18px;
     box-shadow: 0 30px 60px -16px rgba(0,0,0,.5), 0 1px 3px rgba(0,0,0,.2);
     padding: 18px;
     color: #0b1220;
-    display: flex; flex-direction: column; gap: 13px;
+    /* 10px, not image 07's 14px: the fetch-mode row made the popup taller,
+       and the badge must clear the subtitle above it. */
+    display: flex; flex-direction: column; gap: 10px;
     flex-shrink: 0;
   }
   .mqp-head{ position: relative; display: flex; align-items: center; justify-content: center; }
@@ -112,29 +116,33 @@
 
   .mqp-seg{ display: flex; background: #f1f5f9; border-radius: 11px; padding: 4px; gap: 4px; }
   .mqp-seg .opt{ flex: 1; text-align: center; font-size: 13px; font-weight: 700; color: #94a3b8; padding: 8px 0; border-radius: 8px; }
-  .mqp-seg .opt.active{ background: #fff; color: #0b1220; box-shadow: 0 1px 3px rgba(15,23,42,.12); }
+  /* Selected is a blue fill with white text in every selector, as in the popup. */
+  .mqp-seg .opt.active{ background: var(--brand-blue); color: #fff; box-shadow: 0 2px 8px rgba(29,155,240,.25); }
 
-  .mqp-tabs{ display: flex; gap: 8px; }
+  /* Source tabs: one outlined strip with the selected tab as a blue pill inside. */
+  .mqp-tabs{ display: flex; gap: 4px; padding: 4px; border: 1px solid var(--line); border-radius: 11px; }
   .mqp-tab{
-    flex: 1; height: 44px; border: 1px solid var(--line); border-radius: 11px;
+    flex: 1; height: 36px; border-radius: 8px;
     display: flex; align-items: center; justify-content: center; color: #94a3b8;
   }
   .mqp-tab svg{ width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
-  .mqp-tab.active{ background: var(--brand-blue); border-color: var(--brand-blue); color: #fff; box-shadow: 0 8px 18px -4px rgba(29,155,240,.45); }
+  .mqp-tab.active{ background: var(--brand-blue); color: #fff; box-shadow: 0 2px 8px rgba(29,155,240,.25); }
 
-  .mqp-mode-field{ display: flex; flex-direction: column; gap: 7px; }
-  .mqp-mode-label{ font-size: 11px; font-weight: 800; color: #94a3b8; letter-spacing: .06em; text-transform: uppercase; }
-  .mqp-mode{ display: flex; align-items: center; background: #f1f5f9; border-radius: 11px; padding: 4px; gap: 4px; }
-  .mqp-mode .opt{ flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 13px; font-weight: 700; color: #94a3b8; padding: 8px 0; border-radius: 8px; }
-  .mqp-mode .opt.active{ background: #ffffff; color: #0b1220; box-shadow: 0 1px 3px rgba(15,23,42,.12); }
-  .mqp-mode .beta{ font-size: 9px; font-weight: 800; color: #b91c1c; background: #fee2e2; border-radius: 999px; padding: 2px 5px; letter-spacing: .04em; text-transform: uppercase; }
+  /* Engine + fetch mode: separate gray tracks with a blue pill, like the
+     Single / Batch row. A short divider separates two unselected neighbors. */
+  .mqp-mode{ display: flex; background: #f1f5f9; border-radius: 11px; padding: 4px; gap: 4px; }
+  .mqp-mode .opt{ position: relative; flex: 1; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: #475569; padding: 8px 0; border-radius: 8px; }
+  .mqp-mode .opt + .opt::before{ content: ''; position: absolute; left: -2.5px; top: 25%; bottom: 25%; width: 1px; background: #475569; opacity: .4; }
+  .mqp-mode .opt.active::before, .mqp-mode .opt.active + .opt::before{ display: none; }
+  .mqp-mode .opt.active{ background: var(--brand-blue); color: #fff; box-shadow: 0 2px 8px rgba(29,155,240,.25); }
+  /* Fetch mode is the secondary choice, lighter than the engine row, as in the popup. */
+  .mqp-mode.fetch .opt{ font-size: 12px; font-weight: 500; }
   /* Mirrors the popup's outlined .btn-primary — the batch CTA. */
   .mqp-cta{
     display: flex; align-items: center; justify-content: center; gap: 8px;
     height: 44px; border: 1px solid var(--brand-blue); border-radius: 11px;
     color: var(--brand-blue); font-size: 14px; font-weight: 700; letter-spacing: -.01em;
   }
-  .mqp-cta svg{ width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
 
   .mqp-prog{ display: flex; flex-direction: column; gap: 9px; }
   .mqp-prow{ display: flex; align-items: center; gap: 10px; }
@@ -346,7 +354,7 @@
         </svg>
       </div>
 
-      <!-- Stage 2: Batch popup, Super engine running -->
+      <!-- Stage 2: Batch popup, Auto Fast running -->
       <div class="mqp">
         <div class="mqp-badge">
           <svg viewBox="0 0 24 24"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
@@ -374,27 +382,27 @@
           <div class="mqp-tab" title="Selection"><svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
         </div>
 
-        <div class="mqp-mode-field">
-          <div class="mqp-mode-label">Batch engine</div>
-          <div class="mqp-mode">
-            <div class="opt">Manual</div>
-            <div class="opt">Auto<span class="beta">Beta</span></div>
-            <div class="opt active">Super<span class="beta">Beta</span></div>
-          </div>
-          <div class="mqp-cta">
-            <svg viewBox="0 0 24 24"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-            Export bookmarks
-          </div>
+        <div class="mqp-mode">
+          <div class="opt">Scroll</div>
+          <div class="opt">Auto Full</div>
+          <div class="opt active">Auto Fast</div>
+        </div>
+        <div class="mqp-mode fetch">
+          <div class="opt">Recent</div>
+          <div class="opt active">Resume</div>
+          <div class="opt">Date range</div>
         </div>
 
-        <!-- Super running: Stop but no Pause, and no determinate bar -
+        <div class="mqp-cta">Export bookmarks</div>
+
+        <!-- Auto Fast running: Stop but no Pause, and no determinate bar -
              collection is open-ended, so the step lights and live count carry it. -->
         <div class="mqp-prog">
           <div class="mqp-steps">
-            <span class="mqp-step done">Reload x.com</span>
-            <span class="mqp-step done">Open one tweet</span>
-            <span class="mqp-step live">Fetching &hellip;</span>
-            <span class="mqp-step">Expanding &hellip;</span>
+            <span class="mqp-step done">Reload bookmarks</span>
+            <span class="mqp-step done">Open a tweet</span>
+            <span class="mqp-step live">Fetching</span>
+            <span class="mqp-step">Expanding</span>
           </div>
           <div class="mqp-prow">
             <div class="mqp-ctl"><svg viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="1.5"/></svg></div>
