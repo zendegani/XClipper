@@ -1066,6 +1066,32 @@ body {
   color: var(--text-primary);
 }
 
+/* With three options, two unselected labels side by side read as one wide
+ * button. A short divider centered in the 4px gap separates them; it hides
+ * next to the selected pill, which needs no separator. (::after is taken by
+ * the hover tooltip.) */
+:is(.mode-seg-btn, .fast-seg-btn) {
+  position: relative;
+}
+
+:is(.mode-seg-btn, .fast-seg-btn) + :is(.mode-seg-btn, .fast-seg-btn)::before {
+  content: "";
+  position: absolute;
+  inset-inline-start: -2.5px;
+  top: 25%;
+  bottom: 25%;
+  width: 1px;
+  /* --border-subtle vanishes on the gray track; the secondary text color,
+   * faded, stays visible in both light and dark themes. */
+  background: var(--text-secondary);
+  opacity: 0.4;
+}
+
+:is(.mode-seg-btn, .fast-seg-btn).active::before,
+:is(.mode-seg-btn, .fast-seg-btn).active + :is(.mode-seg-btn, .fast-seg-btn)::before {
+  display: none;
+}
+
 /* Selected engine and fetch mode — the batch accent (same blue as the source
  * tabs and the Export button), Scroll included. The "uses your X session"
  * signal is carried by the red warning triangle beside the engine row, not by
@@ -1176,13 +1202,14 @@ body {
 
 /* Flood warning: Auto Full/Auto Fast with un-zipped per-item output would drop
  * thousands of entries on the downloads shelf. One line with a button that
- * turns on Zip (or Combined), below the engine/fetch-mode box. */
+ * turns on Zip (or Combined), below the engine/fetch-mode rows. The extra 4px
+ * above and below keeps the tinted block from crowding its neighbors. */
 .flood-hint {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 8px;
-  margin: -2px 0 0;
+  margin: 4px 0;
   padding: 5px 5px 5px 8px;
   font-size: 11px;
   line-height: 1.35;
