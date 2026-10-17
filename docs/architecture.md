@@ -159,7 +159,7 @@ holds logic both the popup and content script need (`post-process`, `settings`,
 
 Export mode (Single / Batch), batch engine (Scroll / Auto Full / Auto Fast), source, and
 fetch mode are separate choices. Batch supports Markdown, TXT, HTML, JSON, and
-CSV, with Separate / Combined / Both output; PDF remains a single-export format.
+CSV, with One per post / One for all / Both files; PDF remains a single-export format.
 
 | Engine | Acquisition | Sources | Expansion and controls |
 |---|---|---|---|
@@ -179,7 +179,7 @@ flowchart LR
   AutoFast["Auto Fast: expandThreads false"] -->|FAST_BATCH_START| GQL
   DOM --> Sink["batch-sink.ts<br/>plan → render → write"]
   GQL --> Sink
-  Sink --> Files["Separate / Combined / Both<br/>selected format, optional zip/media"]
+  Sink --> Files["One per post / One for all / Both<br/>selected format, optional zip/media"]
 ```
 
 ### Navigation map
