@@ -63,11 +63,13 @@ export async function restoreSession(): Promise<void> {
 
 export function startCapturing(): void {
   if (listening) return;
-  // extraHeaders so the auth/csrf headers are reliably readable in MV3.
+  // extraHeaders so the auth/csrf headers are reliably readable in Chrome MV3.
+  // Firefox has no such option (it exposes the headers anyway) and throws on it.
+  const extra = chrome.webRequest.OnBeforeSendHeadersOptions?.EXTRA_HEADERS;
   chrome.webRequest.onBeforeSendHeaders.addListener(
     captureHeaders,
     { urls: [GRAPHQL_FILTER], types: ['xmlhttprequest'] },
-    ['requestHeaders', 'extraHeaders']
+    extra ? ['requestHeaders', extra] : ['requestHeaders']
   );
   listening = true;
   log('capturing X GraphQL auth headers');

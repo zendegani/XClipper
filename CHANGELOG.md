@@ -17,6 +17,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **One blue for every selected control**: the source tabs, the engine and fetch-mode selectors, the Export button, and the progress bar used a slightly greener blue than the Single export and Batch export tabs. They now all use the same blue.
 - **Session warning moved beside the engine selector**: the red mark that says Auto Full and Auto Fast use your logged-in X session is now a warning triangle in the margin, next to the engine selector. It no longer takes up its own row between the engine and fetch-mode selectors. Hover over it or focus it to read the note, as before.
 
+### Fixed
+
+- **Auto Full and Auto Fast now selectable in Firefox**: clicking either engine in Firefox fell back to Scroll, because Firefox only lets an extension ask for a permission straight from the click. The popup now asks right away, and you see no extra prompt if you already allowed it. Firefox also refused how the extension read your X session, so these engines could not fetch posts there. That works in Firefox now too. Chrome is not affected.
+
 ## [2.8.7] - 2026-10-11
 
 ### Added
