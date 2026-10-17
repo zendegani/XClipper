@@ -21,11 +21,9 @@
   --radius: 12px;
   --radius-sm: 8px;
   /* Shared outer height of the stacked full-width rows: export mode tabs,
-   * Export settings (closed), source tabs, and the Export button. */
+   * Export settings (closed), source tabs, engine + fetch-mode tracks, and
+   * the Export button. */
   --row-height: 38px;
-  /* The engine + fetch-mode segments sit inside a box, so they match the
-   * selected pill of the tab rows above (row height minus their 3px inset). */
-  --pill-height: calc(var(--row-height) - 6px);
   --transition: 200ms cubic-bezier(0.25, 0.1, 0.25, 1);
   /* How long the tooltip waits before appearing on hover (mirrors native
    * title= behavior). Reverts to 0 on mouse-leave so the tooltip
@@ -1031,13 +1029,15 @@ body {
 
 /* ─── Batch engine selector ──────────── */
 /* Scroll | Auto Full | Auto Fast replaces the historical engine toggles.
- * Full-width so it reads as a primary choice; the fetch-mode segment
- * (.fast-seg) below twins its shape. */
-.batch-mode {
+ * Both it and the fetch-mode row (.fast-seg) are gray tracks with a blue pill
+ * for the selected option, like the Single / Batch export tabs. */
+:is(.batch-mode, .fast-seg) {
   display: flex;
-  height: var(--pill-height);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
+  height: var(--row-height);
+  gap: 4px;
+  padding: 3px;
+  background: var(--bg-elevated);
+  border-radius: var(--radius);
 }
 
 .batch-mode.hidden {
@@ -1054,38 +1054,35 @@ body {
   font-family: var(--font);
   font-size: 13px;
   font-weight: 600;
-  padding: 7px 6px;
+  padding: 0 6px;
   border: none;
-  background: var(--bg-primary);
+  border-radius: var(--radius-sm);
+  background: transparent;
   color: var(--text-secondary);
   cursor: pointer;
 }
 
-.mode-seg-btn + .mode-seg-btn {
-  border-left: 1px solid var(--border-subtle);
+:is(.mode-seg-btn, .fast-seg-btn):hover:not(.active) {
+  color: var(--text-primary);
 }
 
-/* Selected engine — the batch accent (same blue as the Export button + the
- * fetch-mode segment) for every engine, Scroll included. The "uses your X
- * session" signal is carried by the red warning triangle beside the engine
- * row, not by a red segment. */
-.mode-seg-btn.active {
+/* Selected engine and fetch mode — the batch accent (same blue as the source
+ * tabs and the Export button), Scroll included. The "uses your X session"
+ * signal is carried by the red warning triangle beside the engine row, not by
+ * a red segment. */
+:is(.mode-seg-btn, .fast-seg-btn).active {
   background: var(--batch);
   color: #fff;
+  box-shadow: 0 2px 8px var(--batch-glow);
 }
 
-/* Field box: groups the engine and fetch-mode controls with their captions
- * behind one subtle border, so it's unambiguous which explanation belongs to which toggle.
- * The elevated background sets the box off from the segments inside it (which
- * keep their own outline on --bg-primary). */
+/* No box: each caption sits 4px under its own row, and the fetch-mode group
+ * starts 10px further down, so proximity shows which explanation belongs to
+ * which row. */
 .mode-field {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  padding: 8px;
-  background: var(--bg-elevated);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
+  gap: 4px;
 }
 
 .mode-field.hidden {
@@ -1113,11 +1110,12 @@ body {
   position: relative;
 }
 
-/* Fetch mode (Auto Full/Auto Fast only) shares the engine's box, below its caption row. */
+/* Fetch mode (Auto Full/Auto Fast only), below the engine row and its caption. */
 .fast-paginate {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
+  margin-top: 6px;
 }
 
 .fast-paginate.hidden {
@@ -1126,14 +1124,13 @@ body {
 
 /* Shown for Auto Full/Auto Fast only — it is the single red mark in the batch view, the
  * "uses your logged-in X session" signal that used to colour the whole engine
- * segment and the active source tab. It sits outside the field box, centered in
- * the popup's 20px end gutter (box padding 8px + border 1px + half the gutter
- * 10px + half the icon 7.5px), so it takes no row of its own between the engine
- * and fetch-mode selectors. */
+ * segment and the active source tab. It sits centered in the popup's 20px end
+ * gutter (half the gutter 10px + half the icon 7.5px), so it takes no row of
+ * its own between the engine and fetch-mode selectors. */
 .mode-info {
   position: absolute;
   top: 50%;
-  inset-inline-end: -26.5px;
+  inset-inline-end: -17.5px;
   transform: translateY(-50%);
   display: inline-flex;
   align-items: center;
@@ -1246,30 +1243,9 @@ body {
   opacity: 0.6;
 }
 
-/* Fetch-mode segment (Recent | Resume | Date range) — twins the engine selector
- * above it: full-width, same border/radius, one step smaller (it's a sub-setting
- * of Auto Full/Auto Fast, not a primary choice). */
-.fast-seg {
-  display: flex;
-  height: var(--pill-height);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-sm);
-}
-
-/* Each segment carries its caption as a hover tooltip, so the groups can't
- * clip overflow; the end segments round themselves instead. */
-:is(.mode-seg-btn, .fast-seg-btn):first-child {
-  border-start-start-radius: calc(var(--radius-sm) - 1px);
-  border-end-start-radius: calc(var(--radius-sm) - 1px);
-}
-
-:is(.mode-seg-btn, .fast-seg-btn):last-child {
-  border-start-end-radius: calc(var(--radius-sm) - 1px);
-  border-end-end-radius: calc(var(--radius-sm) - 1px);
-}
-
-/* End segments sit near the popup edges: anchor their tooltips to that edge so
- * they grow inward instead of clipping off-screen. */
+/* Each segment carries its caption as a hover tooltip. End segments sit near
+ * the popup edges: anchor their tooltips to that edge so they grow inward
+ * instead of clipping off-screen. */
 :is(.mode-seg-btn, .fast-seg-btn):first-child::after {
   left: 0;
   transform: translateY(2px);
@@ -1289,22 +1265,12 @@ body {
   flex: 1;
   font-family: var(--font);
   font-size: 12px;
-  padding: 5px 6px;
+  padding: 0 6px;
   border: none;
-  background: var(--bg-primary);
+  border-radius: var(--radius-sm);
+  background: transparent;
   color: var(--text-secondary);
   cursor: pointer;
-}
-
-.fast-seg-btn + .fast-seg-btn {
-  border-left: 1px solid var(--border-subtle);
-}
-
-/* Selected fetch mode uses the batch accent (same blue as the Export button and
- * the engine selector) — one "selected" colour across both rows. */
-.fast-seg-btn.active {
-  background: var(--batch);
-  color: #fff;
 }
 
 /* Auto Full/Auto Fast step lights: Page → Tweet → Fetch → Expand. */
