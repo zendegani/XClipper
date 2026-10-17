@@ -20,6 +20,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ### Fixed
 
 - **Auto Full and Auto Fast now selectable in Firefox**: clicking either engine in Firefox fell back to Scroll, because Firefox only lets an extension ask for a permission straight from the click. The popup now asks right away, and you see no extra prompt if you already allowed it. If the prompt closes the popup, your choice is still kept once you allow it. Firefox also refused how the extension read your X session, so these engines could not fetch posts there. That works in Firefox now too. Choosing Media under Save locally had the same permission problem in Firefox and is fixed too. Chrome is not affected.
+- **Popup actions now reach the background in Firefox**: the background only trusted pages with Chrome's extension address, so in Firefox it silently ignored the popup. Starting Auto Full or Auto Fast said "Could not start", and other popup actions that go through the background failed the same way. The background now recognizes the popup in both browsers and still ignores other extensions and web pages.
 
 ## [2.8.7] - 2026-10-11
 
