@@ -1060,8 +1060,8 @@ body {
 
 /* Selected engine — the batch accent (same blue as the Export button + the
  * fetch-mode segment) for every engine, Scroll included. The "uses your X
- * session" signal is carried by the red (i) beside the caption, not by a red
- * segment. */
+ * session" signal is carried by the red warning triangle beside the engine
+ * row, not by a red segment. */
 .mode-seg-btn.active {
   background: var(--batch);
   color: #fff;
@@ -1101,23 +1101,9 @@ body {
   color: var(--text-secondary);
 }
 
-/* Engine caption + an (i) at its end (Auto Full/Auto Fast only) that carries the deeper
- * "how it works / soft rate limit / re-run after ~15 min" note. Bottom-aligned
- * so the (i) sits by the caption's last line, or alone at the row's end while
- * the caption is hidden. The row drops out when neither is showing (Scroll). */
-.mode-caption-row {
-  display: flex;
-  align-items: flex-end;
-  justify-content: flex-end;
-  gap: 8px;
-}
-
-.mode-caption-row:not(:has(> :not(.hidden))) {
-  display: none;
-}
-
-.mode-caption-row .mode-field-caption {
-  flex: 1;
+/* Anchors the warning triangle to the engine segments' vertical center. */
+.mode-engine-row {
+  position: relative;
 }
 
 /* Fetch mode (Auto Full/Auto Fast only) shares the engine's box, below its caption row. */
@@ -1133,11 +1119,17 @@ body {
 
 /* Shown for Auto Full/Auto Fast only — it is the single red mark in the batch view, the
  * "uses your logged-in X session" signal that used to colour the whole engine
- * segment and the active source tab. */
+ * segment and the active source tab. It sits outside the field box, centered in
+ * the popup's 20px end gutter (box padding 8px + border 1px + half the gutter
+ * 10px + half the icon 7.5px), so it takes no row of its own between the engine
+ * and fetch-mode selectors. */
 .mode-info {
+  position: absolute;
+  top: 50%;
+  inset-inline-end: -26.5px;
+  transform: translateY(-50%);
   display: inline-flex;
   align-items: center;
-  flex-shrink: 0;
   color: var(--error);
   cursor: help;
 }
@@ -1151,7 +1143,7 @@ body {
   height: 15px;
 }
 
-/* The (i) sits at the popup's right edge — anchor its tooltip to the end edge so
+/* The triangle sits at the popup's right edge — anchor its tooltip to the end edge so
  * it grows inward instead of clipping off-screen. */
 .mode-info[data-tooltip]::after {
   left: auto;

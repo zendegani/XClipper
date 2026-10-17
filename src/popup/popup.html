@@ -217,30 +217,30 @@
           </button>
         </div>
         <div id="batch-mode-field" class="mode-field hidden">
-          <div id="batch-mode" class="batch-mode" role="group" aria-label="Batch engine"
-            data-i18n-aria-label="batch_mode">
-            <button type="button" id="mode-manual" class="mode-seg-btn active" data-mode="manual" data-i18n="mode_manual">Scroll</button>
-            <button type="button" id="mode-auto" class="mode-seg-btn" data-mode="auto">
-              <span data-i18n="mode_auto">Auto Full</span>
-            </button>
-            <button type="button" id="mode-super" class="mode-seg-btn" data-mode="super">
-              <span data-i18n="mode_super">Auto Fast</span>
-            </button>
-          </div>
-          <div class="mode-caption-row">
-            <p id="batch-mode-caption" class="mode-field-caption hidden"></p>
+          <div class="mode-engine-row">
+            <div id="batch-mode" class="batch-mode" role="group" aria-label="Batch engine"
+              data-i18n-aria-label="batch_mode">
+              <button type="button" id="mode-manual" class="mode-seg-btn active" data-mode="manual" data-i18n="mode_manual">Scroll</button>
+              <button type="button" id="mode-auto" class="mode-seg-btn" data-mode="auto">
+                <span data-i18n="mode_auto">Auto Full</span>
+              </button>
+              <button type="button" id="mode-super" class="mode-seg-btn" data-mode="super">
+                <span data-i18n="mode_super">Auto Fast</span>
+              </button>
+            </div>
             <span id="batch-mode-info" class="mode-info hidden" tabindex="0" role="img"
                 aria-label="About Auto Full & Auto Fast" data-i18n-aria-label="batch_mode_info_label"
                 data-tooltip="Auto Full and Auto Fast fetch through your logged-in X session — no API key, no password, nothing leaves your browser. Large runs can hit X's soft rate limit; it stops politely and leaves the rest pending — wait ~15 minutes, then re-run to continue where it left off."
                 data-i18n-tooltip="batch_mode_hint">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
                   stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <circle cx="12" cy="12" r="10" />
-                  <line x1="12" y1="16" x2="12" y2="12" />
-                  <line x1="12" y1="8" x2="12.01" y2="8" />
+                  <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                  <line x1="12" y1="9" x2="12" y2="13" />
+                  <line x1="12" y1="17" x2="12.01" y2="17" />
                 </svg>
             </span>
           </div>
+          <p id="batch-mode-caption" class="mode-field-caption hidden"></p>
           <div id="fast-paginate" class="fast-paginate hidden">
             <div class="fast-seg" role="group" aria-label="Fetch mode" data-i18n-aria-label="fast_paginate">
               <button type="button" id="fast-paginate-recent" class="fast-seg-btn active" data-mode="recent" data-i18n="fast_paginate_recent">Recent</button>
