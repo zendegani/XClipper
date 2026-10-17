@@ -155,7 +155,8 @@ function menuItemAction(
 }
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
-  const picked = menuItemAction(String(info.menuItemId).replace(MENU_PAGE_SUFFIX, ''));
+  const id = String(info.menuItemId);
+  const picked = menuItemAction(id.endsWith(MENU_PAGE_SUFFIX) ? id.slice(0, -MENU_PAGE_SUFFIX.length) : id);
   if (!picked) return;
   const { action, single } = picked;
 
