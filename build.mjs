@@ -35,6 +35,8 @@ function firefoxManifest(manifest) {
     gecko: {
       id: 'xclipper@zendegani.github.io',
       strict_min_version: '128.0',
+      // AMO rejects new submissions without this. XClipper sends nothing off the device.
+      data_collection_permissions: { required: ['none'] },
     },
   };
 
