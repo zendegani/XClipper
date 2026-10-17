@@ -20,6 +20,12 @@
   --toggle-off-knob: #8b98a5;
   --radius: 12px;
   --radius-sm: 8px;
+  /* Shared outer height of the stacked full-width rows: export mode tabs,
+   * Export settings (closed), source tabs, and the Export button. */
+  --row-height: 38px;
+  /* The engine + fetch-mode segments sit inside a box, so they match the
+   * selected pill of the tab rows above (row height minus their 3px inset). */
+  --pill-height: calc(var(--row-height) - 6px);
   --transition: 200ms cubic-bezier(0.25, 0.1, 0.25, 1);
   /* How long the tooltip waits before appearing on hover (mirrors native
    * title= behavior). Reverts to 0 on mouse-leave so the tooltip
@@ -1029,6 +1035,7 @@ body {
  * (.fast-seg) below twins its shape. */
 .batch-mode {
   display: flex;
+  height: var(--pill-height);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
 }
@@ -1244,6 +1251,7 @@ body {
  * of Auto Full/Auto Fast, not a primary choice). */
 .fast-seg {
   display: flex;
+  height: var(--pill-height);
   border: 1px solid var(--border-subtle);
   border-radius: var(--radius-sm);
 }
@@ -1418,6 +1426,12 @@ details.option-group:not([open]) {
   list-style: none;
   padding: 0;
   user-select: none;
+}
+
+/* Closed, the Export settings box matches --row-height: the summary fills
+ * what .options' 10px padding and 1px border leave. */
+#export-settings > .option-group-summary {
+  min-height: calc(var(--row-height) - 22px);
 }
 
 .option-group-summary::-webkit-details-marker {
@@ -2052,6 +2066,7 @@ details.option-group[open] .option-group-chevron {
 /* ─── Tier-1 export mode tabs (Single | Batch) ──────────────── */
 .export-tabs {
   display: flex;
+  height: var(--row-height);
   gap: 4px;
   padding: 3px;
   background: var(--bg-elevated);
@@ -2110,6 +2125,7 @@ details.option-group[open] .option-group-chevron {
 
 .btn-batch {
   width: 100%;
+  height: var(--row-height);
   background: transparent;
   color: var(--batch);
   border: 1px solid var(--batch);
@@ -2280,6 +2296,7 @@ details.option-group[open] .option-group-chevron {
 
 .batch-tabs {
   display: flex;
+  height: var(--row-height);
   gap: 4px;
   margin-bottom: 8px;
   padding: 3px;
