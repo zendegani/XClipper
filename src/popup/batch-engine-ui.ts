@@ -183,24 +183,19 @@ function setBatchEngine(engine: BatchEngine): void {
   notifyChanged();
 }
 
-// A user click on an engine segment. Scroll needs nothing; Auto Full/Auto Fast need the opt-in webRequest permission —
-// contains() first to avoid a needless prompt, request() inside this gesture,
-// and a denial falls back to Scroll.
+// A user click on an engine segment. Scroll needs nothing; Auto Full/Auto Fast need the opt-in webRequest permission.
+// request() must run synchronously in the click: Firefox rejects it from any
+// async callback (e.g. after contains()). An already-granted request resolves
+// true without a prompt, and a denial falls back to Scroll.
 function selectEngine(engine: BatchEngine): void {
   if (manualJobActive || graphqlRunActive) return;
   if (engine === 'manual') {
     setBatchEngine('manual');
     return;
   }
-  chrome.permissions.contains(ACCESS, (has) => {
-    if (has) {
-      setBatchEngine(engine);
-      return;
-    }
-    chrome.permissions.request(ACCESS, (granted) => {
-      void chrome.runtime.lastError; // swallow benign gesture/denial errors
-      setBatchEngine(granted ? engine : 'manual');
-    });
+  chrome.permissions.request(ACCESS, (granted) => {
+    void chrome.runtime.lastError; // swallow benign gesture/denial errors
+    setBatchEngine(granted ? engine : 'manual');
   });
 }
 
