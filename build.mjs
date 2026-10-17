@@ -19,7 +19,7 @@ const commonOptions = {
   bundle: true,
   minify: !isWatch,
   sourcemap: isWatch ? 'inline' : false,
-  target: isFirefox ? 'firefox121' : 'chrome120',
+  target: isFirefox ? 'firefox128' : 'chrome120',
   logLevel: 'info',
 };
 
@@ -34,7 +34,7 @@ function firefoxManifest(manifest) {
   next.browser_specific_settings = {
     gecko: {
       id: 'xclipper@zendegani.github.io',
-      strict_min_version: '121.0',
+      strict_min_version: '128.0',
     },
   };
 
