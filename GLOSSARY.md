@@ -32,6 +32,14 @@ _Avoid_: Engine, export mode
 Recent, Resume, or Date range: how Auto Full or Auto Fast traverses a source feed. Recent starts at the top; Resume continues a backfill; Date range finds posts published in a chosen window with its own continuation position.
 _Avoid_: Engine, pagination mode
 
+**Files**:
+One per post, One for all, or Both: how many files a batch writes. One per post writes a file for each post; One for all writes every post into one Compilation; Both writes the two. CSV always uses One for all.
+_Avoid_: Output, Separate, Combined
+
+**Compilation**:
+The single file that One for all and Both write, holding every post in the batch (`x-compilation-<date>.<ext>`).
+_Avoid_: Combined file, digest, merged file
+
 **Acquisition path**:
 The way post content is obtained: DOM acquisition for Scroll and single exports, or GraphQL acquisition for Auto Full and Auto Fast.
 _Avoid_: Engine (when referring to the two acquisition paths)
