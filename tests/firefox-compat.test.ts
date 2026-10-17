@@ -8,7 +8,12 @@ import { resolve } from 'path';
 
 type Chrome = Record<string, Record<string, unknown>>;
 const chromeGlobal = (globalThis as unknown as { chrome: Chrome }).chrome;
-const original = { ...chromeGlobal, storage: { ...chromeGlobal.storage }, tabs: { ...chromeGlobal.tabs } };
+const original = {
+  ...chromeGlobal,
+  storage: { ...chromeGlobal.storage },
+  tabs: { ...chromeGlobal.tabs },
+  downloads: { ...chromeGlobal.downloads },
+};
 afterEach(() => {
   delete chromeGlobal.permissions;
   delete chromeGlobal.webRequest;
@@ -110,6 +115,76 @@ describe('popup permission requests under Firefox rules', () => {
     click('save-local-media');
     await new Promise((r) => setTimeout(r, 10));
     expect(reloaded).toEqual([]);
+  });
+});
+
+describe('file downloads', () => {
+  type Change = (d: { id: number; state: { current: string } }) => void;
+  let urls: string[];
+  let refuseDataUrls: boolean;
+  let changeListeners: Set<Change>;
+  let revoked: string[];
+  const originalCreate = URL.createObjectURL;
+  const originalRevoke = URL.revokeObjectURL;
+
+  beforeEach(() => {
+    urls = [];
+    revoked = [];
+    refuseDataUrls = false;
+    changeListeners = new Set();
+    chromeGlobal.downloads = {
+      // Firefox throws on a refused URL; Chrome would set lastError instead.
+      download: (opts: { url: string }, cb: (id: number) => void) => {
+        if (refuseDataUrls && opts.url.startsWith('data:')) throw new Error(`Access denied for URL ${opts.url}`);
+        urls.push(opts.url);
+        cb(urls.length);
+        queueMicrotask(() => changeListeners.forEach((l) => l({ id: urls.length, state: { current: 'complete' } })));
+      },
+      onChanged: {
+        addListener: (fn: Change) => changeListeners.add(fn),
+        removeListener: (fn: Change) => changeListeners.delete(fn),
+      },
+    };
+  });
+  afterEach(() => {
+    chromeGlobal.downloads = original.downloads;
+    URL.createObjectURL = originalCreate;
+    URL.revokeObjectURL = originalRevoke;
+  });
+
+  function actLikeFirefox(): void {
+    refuseDataUrls = true;
+    let n = 0;
+    URL.createObjectURL = () => `blob:moz-extension://uuid/${++n}`;
+    URL.revokeObjectURL = (u: string) => void revoked.push(u);
+  }
+
+  it('hands Firefox a blob: URL with the same bytes and frees it once written', async () => {
+    actLikeFirefox();
+    let blob: Blob | undefined;
+    URL.createObjectURL = (b: Blob) => ((blob = b), 'blob:moz-extension://uuid/1');
+    const { downloadData } = await import('../src/background/batch-sink');
+    await downloadData('XClipper', 'post.md', '# héllo', 'text/markdown');
+    expect(urls).toEqual(['blob:moz-extension://uuid/1']);
+    expect(await blob!.text()).toBe('# héllo');
+    expect(revoked).toEqual(['blob:moz-extension://uuid/1']);
+  });
+
+  it('keeps data: URLs where there is no URL.createObjectURL (Chrome service worker)', async () => {
+    // @ts-expect-error -- absent in a Chrome MV3 service worker
+    URL.createObjectURL = undefined;
+    const { downloadData } = await import('../src/background/batch-sink');
+    await downloadData('XClipper', 'post.md', '# hi', 'text/markdown');
+    expect(urls).toEqual(['data:text/markdown;charset=utf-8,%23%20hi']);
+  });
+
+  it('does not hang a batch when the browser throws on a download', async () => {
+    refuseDataUrls = true;
+    // @ts-expect-error -- no blob fallback, so the data: URL reaches the throwing mock
+    URL.createObjectURL = undefined;
+    const { downloadData } = await import('../src/background/batch-sink');
+    const writes = Array.from({ length: 10 }, (_, i) => downloadData('XClipper', `${i}.md`, 'x', 'text/markdown'));
+    await expect(Promise.all(writes)).resolves.toBeDefined();
   });
 });
 

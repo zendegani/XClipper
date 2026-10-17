@@ -42,6 +42,7 @@ import {
   itemFiles,
   planBatch,
   renderItem,
+  startFileDownload,
   writeCombined,
   writeFiles,
   writeJsonManifest,
@@ -736,7 +737,7 @@ async function dumpTweetDetail(id: string): Promise<void> {
   delete vars.cursor;
   const json = await authedFetchJson(setVariablesParam(template, JSON.stringify(vars)));
   const url = `data:application/json;base64,${btoa(unescape(encodeURIComponent(JSON.stringify(json))))}`;
-  await chrome.downloads.download({ url, filename: `xclipper-debug/tweetdetail-${id}.json` });
+  await startFileDownload({ url, filename: `xclipper-debug/tweetdetail-${id}.json` });
   log('dumped TweetDetail', id, '→ Downloads/xclipper-debug/');
 }
 
