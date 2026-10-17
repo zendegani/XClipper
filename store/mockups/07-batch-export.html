@@ -158,11 +158,13 @@
   .tab.active { background: var(--brand); border-color: var(--brand); color: #fff; box-shadow: 0 8px 18px -4px rgba(29,155,240,.45); }
 
   .mode-field { display: flex; flex-direction: column; gap: 7px; }
-  .mode-label { font-size: 11px; font-weight: 800; color: var(--ink-3); letter-spacing: .06em; text-transform: uppercase; }
   .mode { display: flex; align-items: center; background: #f1f5f9; border-radius: 11px; padding: 4px; gap: 4px; }
   .mode .opt { flex: 1; display: flex; align-items: center; justify-content: center; gap: 5px; font-size: 13px; font-weight: 700; color: var(--ink-3); padding: 8px 0; border-radius: 8px; }
   .mode .opt.active { background: #ffffff; color: var(--ink); box-shadow: 0 1px 3px rgba(15,23,42,.12); }
-  .mode-caption { font-size: 11.5px; color: var(--ink-2); line-height: 1.35; }
+  /* Fetch mode is the secondary choice, lighter than the engine row, as in the popup. */
+  .mode.fetch .opt { font-size: 12px; font-weight: 500; }
+  /* Outlined in the brand color, like the popup's Export button. */
+  .export-btn { height: 40px; border: 1.5px solid var(--brand); border-radius: 11px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: var(--brand); }
 
   .progress { display: flex; flex-direction: column; gap: 10px; }
   /* One row, like the popup's .fast-steps (space-between, no wrap) — sized down
@@ -228,16 +230,21 @@
           <div class="tab" title="Selection"><svg viewBox="0 0 24 24"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg></div>
         </div>
 
-        <!-- Batch engine: Scroll | Auto Full | Auto Fast -->
+        <!-- Batch engine: Scroll | Auto Full | Auto Fast, then fetch mode -->
         <div class="mode-field">
-          <div class="mode-label">Batch engine</div>
           <div class="mode">
             <div class="opt">Scroll</div>
             <div class="opt">Auto Full</div>
             <div class="opt active">Auto Fast</div>
           </div>
-          <div class="mode-caption">No scrolling. Skips thread expansion for larger, faster exports. Articles and replies to others still expand.</div>
+          <div class="mode fetch">
+            <div class="opt">Recent</div>
+            <div class="opt active">Resume</div>
+            <div class="opt">Date range</div>
+          </div>
         </div>
+
+        <div class="export-btn">Export bookmarks</div>
 
         <!-- Progress (Auto Fast running). Auto Full/Auto Fast have Stop but no Pause, and no
              determinate bar — collection is open-ended, so a fraction would be
