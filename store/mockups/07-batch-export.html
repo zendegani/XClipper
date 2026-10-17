@@ -159,14 +159,17 @@
   .tab svg { width: 20px; height: 20px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
   .tab.active { background: var(--brand); color: #fff; box-shadow: 0 2px 8px rgba(29,155,240,.25); }
 
-  /* Engine + fetch mode share a gray box; each is an outlined segment row on white. */
-  .mode-field { display: flex; flex-direction: column; gap: 7px; padding: 8px; background: #f1f5f9; border: 1px solid var(--line); border-radius: 11px; }
-  .mode { display: flex; background: #ffffff; border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
-  .mode .opt { flex: 1; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: var(--ink-2); padding: 8px 0; }
-  .mode .opt + .opt { border-left: 1px solid var(--line); }
-  .mode .opt.active { background: var(--brand); color: #fff; }
+  /* Engine + fetch mode: separate gray tracks with a blue pill, like the
+     Single / Batch row. A short divider separates two unselected neighbors. */
+  .mode-field { display: flex; flex-direction: column; gap: 10px; }
+  .mode { display: flex; background: #f1f5f9; border-radius: 11px; padding: 4px; gap: 4px; }
+  .mode .opt { position: relative; flex: 1; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 700; color: var(--ink-2); padding: 8px 0; border-radius: 8px; }
+  .mode .opt + .opt::before { content: ''; position: absolute; left: -2.5px; top: 25%; bottom: 25%; width: 1px; background: var(--ink-2); opacity: .4; }
+  .mode .opt.active::before, .mode .opt.active + .opt::before { display: none; }
+  .mode .opt.active { background: var(--brand); color: #fff; box-shadow: 0 2px 8px rgba(29,155,240,.25); }
   /* Fetch mode is the secondary choice, lighter than the engine row, as in the popup. */
-  .mode.fetch .opt { font-size: 12px; font-weight: 500; padding: 7px 0; }
+  .mode.fetch .opt { font-size: 12px; font-weight: 500; }
+
   /* Outlined in the brand color, like the popup's Export button. */
   .export-btn { height: 40px; border: 1.5px solid var(--brand); border-radius: 11px; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: var(--brand); }
 
