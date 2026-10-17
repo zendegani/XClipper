@@ -2410,7 +2410,7 @@ details.option-group[open] .option-group-chevron {
 /* A basis, not `auto`: the wrap decision then compares this floor — not the
  * label's full single-line width — against what the control needs, so a label
  * that can simply wrap its own text (en, de, ja, zh) keeps the one-line row.
- * Short labels (Format, Output) keep the default basis and never force a wrap. */
+ * Short labels (Format, Files) keep the default basis and never force a wrap. */
 .batch-field > .toggle-text {
   flex: 1 1 150px;
 }

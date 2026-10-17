@@ -273,19 +273,19 @@
     "message": "Format"
   },
   "batch_output": {
-    "message": "Output"
+    "message": "Files"
   },
   "batch_output_hint": {
-    "message": "Separate: one file per post. Both: per-post files plus one combined file. Combined: just one file."
+    "message": "One per post: a file for each post. One for all: every post in a single file. Both: a file for each post plus the single file."
   },
   "batch_out_separate": {
-    "message": "Separate"
+    "message": "One per post"
   },
   "batch_out_both": {
     "message": "Both"
   },
   "batch_out_combined": {
-    "message": "Combined"
+    "message": "One for all"
   },
   "opt_zip": {
     "message": "Zip files (one download)"
@@ -294,7 +294,7 @@
     "message": "Pack the export into a single .zip. In Batch, one download instead of thousands; in Single, one archive instead of a Markdown file plus a media folder."
   },
   "opt_zip_title_batch": {
-    "message": "Pack all per-post files into a single .zip — one download instead of thousands. Not available while local media saving is on, or with Combined output."
+    "message": "Pack all per-post files into a single .zip — one download instead of thousands. Not available while local media saving is on, or with One for all."
   },
   "opt_zip_title_single": {
     "message": "Pack the export into a single .zip — one archive instead of a Markdown file plus a sibling media folder."
@@ -306,7 +306,7 @@
     "message": "Turn on Zip"
   },
   "flood_fix_combined": {
-    "message": "Use Combined"
+    "message": "Use One for all"
   },
   "batch_bar_selected": {
     "message": "selected"

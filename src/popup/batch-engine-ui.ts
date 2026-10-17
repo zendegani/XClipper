@@ -164,7 +164,7 @@ export function updateFloodHint(): void {
   const show = inBatchMode && !running && batchEngine !== 'manual' && !outCombined.checked && !zipOn;
   floodHint?.classList.toggle('hidden', !show);
   floodFix.textContent = chkZip.disabled
-    ? t('flood_fix_combined', 'Use Combined')
+    ? t('flood_fix_combined', 'Use One for all')
     : t('flood_fix_zip', 'Turn on Zip');
 }
 

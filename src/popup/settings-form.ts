@@ -218,7 +218,7 @@ function syncBatchToggles(): void {
   chkZip.disabled = zipBlocked;
   chkZip.closest('.toggle-label')?.classList.toggle('disabled', zipBlocked);
   zipToggle.dataset.tooltip = inBatchMode
-    ? t('opt_zip_title_batch', 'Pack all per-post files into a single .zip — one download instead of thousands. Not available while local media saving is on, or with Combined output.')
+    ? t('opt_zip_title_batch', 'Pack all per-post files into a single .zip — one download instead of thousands. Not available while local media saving is on, or with One for all.')
     : t('opt_zip_title_single', 'Pack the export into a single .zip — one archive instead of a Markdown file plus a sibling media folder.');
 }
 
