@@ -7,6 +7,14 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Changed
+
+- **Batch engines renamed to Scroll, Auto Full, and Auto Fast**: Manual is now **Scroll**, Auto is now **Auto Full**, and Super is now **Auto Fast**, in all six languages. The new names say how each one works: Scroll saves the posts you load by scrolling, and Auto Full and Auto Fast fetch posts for you without scrolling. Auto Fast's caption no longer says it saves only each post's first tweet. It now explains that Auto Fast skips thread expansion but still expands articles and replies to other people. The Beta badges on Auto Full and Auto Fast are gone. Your chosen engine and your settings carry over, and exported files do not change.
+- **Batch popup rows aligned to one height**: Single export and Batch export, Export settings, the source tabs, and the Export button are now the same height. The engine and fetch-mode selectors match the height of a selected tab.
+- **Session warning moved beside the engine selector**: the red mark that says Auto Full and Auto Fast use your logged-in X session is now a warning triangle in the margin, next to the engine selector. It no longer takes up its own row between the engine and fetch-mode selectors. Hover over it or focus it to read the note, as before.
+
 ## [2.8.7] - 2026-10-11
 
 ### Added
