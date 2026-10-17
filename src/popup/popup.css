@@ -2107,9 +2107,12 @@ details.option-group[open] .option-group-chevron {
   margin-bottom: 0;
 }
 
+/* Batch controls use the popup's one accent blue; the selected Batch export
+ * tab already marks the mode, so a second, near-identical blue read as a
+ * mismatch beside it. */
 .batch-section {
-  --batch: #0ea5e9;
-  --batch-glow: rgba(14, 165, 233, 0.18);
+  --batch: var(--accent);
+  --batch-glow: var(--accent-glow);
 }
 
 .batch-section.hidden {
@@ -2153,7 +2156,7 @@ details.option-group[open] .option-group-chevron {
   height: 8px;
   flex: 1;
   border-radius: 9999px;
-  background: rgba(14, 165, 233, 0.15);
+  background: var(--accent-tint);
   overflow: hidden;
 }
 
