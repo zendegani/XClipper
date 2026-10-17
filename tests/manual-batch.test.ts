@@ -91,7 +91,13 @@ const text = (name: string): string => {
   return d ? decodeURIComponent(d.url.slice(d.url.indexOf(',') + 1)) : '';
 };
 
+// Chrome's service worker has no URL.createObjectURL, so files go out as the
+// data: URLs that text() decodes (Firefox's blob: path is in firefox-compat).
+const createObjectURL = URL.createObjectURL;
+
 beforeEach(() => {
+  // @ts-expect-error -- absent in a Chrome MV3 service worker
+  URL.createObjectURL = undefined;
   vi.useFakeTimers();
   settings = { ...DEFAULT_SETTINGS, filenameTemplate: '{id}' };
   downloads = [];
@@ -100,6 +106,7 @@ beforeEach(() => {
 });
 
 afterEach(() => {
+  URL.createObjectURL = createObjectURL;
   vi.useRealTimers();
 });
 

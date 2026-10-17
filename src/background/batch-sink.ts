@@ -158,6 +158,49 @@ const MAX_INFLIGHT_DOWNLOADS = 8;
 let inflight = 0;
 const waiting: (() => void)[] = [];
 
+// The one place a file download starts. Firefox refuses data: URLs here, and
+// throws on refused options where Chrome sets lastError. Its background is an
+// event page with URL.createObjectURL, so there a data: URL becomes a blob: URL,
+// revoked once the download ends; Chrome's service worker has no
+// createObjectURL and keeps the data: URL. Never rejects. onEnd runs once the
+// file is written or interrupted.
+export async function startFileDownload(
+  options: chrome.downloads.DownloadOptions,
+  onEnd: () => void = () => {}
+): Promise<{ downloadId: number } | { error: string }> {
+  let blobUrl: string | undefined;
+  const release = (): void => {
+    if (blobUrl) URL.revokeObjectURL(blobUrl);
+  };
+  try {
+    if (options.url.startsWith('data:') && typeof URL.createObjectURL === 'function') {
+      blobUrl = URL.createObjectURL(await (await fetch(options.url)).blob());
+    }
+    return await new Promise((resolve) => {
+      chrome.downloads.download(blobUrl ? { ...options, url: blobUrl } : options, (id) => {
+        const error = chrome.runtime.lastError?.message;
+        if (error || id === undefined) {
+          release();
+          return resolve({ error: error ?? 'Download did not start' });
+        }
+        const onChanged = (delta: chrome.downloads.DownloadDelta): void => {
+          const state = delta.state?.current;
+          if (delta.id === id && (state === 'complete' || state === 'interrupted')) {
+            chrome.downloads.onChanged.removeListener(onChanged);
+            release();
+            onEnd();
+          }
+        };
+        chrome.downloads.onChanged.addListener(onChanged);
+        resolve({ downloadId: id });
+      });
+    });
+  } catch (err) {
+    release();
+    return { error: err instanceof Error ? err.message : String(err) };
+  }
+}
+
 function downloadThrottled(options: chrome.downloads.DownloadOptions): Promise<void> {
   return new Promise((resolve) => {
     const finish = (): void => {
@@ -167,16 +210,8 @@ function downloadThrottled(options: chrome.downloads.DownloadOptions): Promise<v
     };
     const start = (): void => {
       inflight++;
-      chrome.downloads.download(options, (id) => {
-        if (chrome.runtime.lastError || id === undefined) return finish();
-        const onChanged = (delta: chrome.downloads.DownloadDelta): void => {
-          const state = delta.state?.current;
-          if (delta.id === id && (state === 'complete' || state === 'interrupted')) {
-            chrome.downloads.onChanged.removeListener(onChanged);
-            finish();
-          }
-        };
-        chrome.downloads.onChanged.addListener(onChanged);
+      void startFileDownload(options, finish).then((r) => {
+        if ('error' in r) finish();
       });
     };
     if (inflight < MAX_INFLIGHT_DOWNLOADS) start();

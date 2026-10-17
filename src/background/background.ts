@@ -15,6 +15,7 @@ import { graphqlBatchRoutes, initGraphqlBatch } from './graphql-batch';
 import { normalizeStatusUrl } from './batch-state';
 import { buildSingleZipEntries, zipFilenameFor } from './single-zip';
 import { buildZip, zipDataUrl } from './zip';
+import { startFileDownload } from './batch-sink';
 import { resolveVideoUrls } from './resolve-video';
 
 // ─── Context menu: Save / Copy tweet as Markdown ────────────────────
@@ -246,18 +247,11 @@ async function printPdf(message: PdfPrintRequest): Promise<PdfPrintResponse> {
   }
 }
 
-// Resolves, never rejects: a download that Chrome refuses is an expected
+// Resolves, never rejects: a download that the browser refuses is an expected
 // { success: false } answer, not a handler failure for the router to log.
-function startDownload(options: chrome.downloads.DownloadOptions): Promise<DownloadResponse> {
-  return new Promise((resolve) => {
-    chrome.downloads.download(options, (downloadId) => {
-      if (chrome.runtime.lastError) {
-        resolve({ success: false, error: chrome.runtime.lastError.message });
-      } else {
-        resolve({ success: true, downloadId });
-      }
-    });
-  });
+async function startDownload(options: chrome.downloads.DownloadOptions): Promise<DownloadResponse> {
+  const r = await startFileDownload(options);
+  return 'error' in r ? { success: false, error: r.error } : { success: true, downloadId: r.downloadId };
 }
 
 async function downloadMd(message: DownloadRequest): Promise<DownloadResponse> {
