@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [2.8.8.1] - 2026-10-17
+
+### Fixed
+
+- **Removed languages no longer ship with the extension**: XClipper dropped Arabic, Hindi, Italian, Persian, Portuguese (Brazil), and Russian in August, but an old copy of their translations stayed in every release package since. If your browser uses one of those languages, the popup showed that outdated translation, partly in English and with old names such as Manual and Auto. It now shows English. English, German, Spanish, French, Japanese, and Chinese (Simplified) are unchanged.
+- **Firefox build now declares that it collects no data**: Mozilla Add-ons requires every new extension to state what data it collects, and refused XClipper without it. The Firefox build now states that it collects none. Chrome is not affected.
+
 ## [2.8.8] - 2026-10-17
 
 ### Changed
