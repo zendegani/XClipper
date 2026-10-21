@@ -1,6 +1,6 @@
 <p align="center">
   <a href="https://chromewebstore.google.com/detail/xclipper/epmmehilhbpkgcjbcohgkmihlalagkho"><img src="assets/featured-badge.svg" alt="Featured on the Chrome Web Store" height="44" /></a>
-  <a href="https://chromewebstore.google.com/detail/xclipper/epmmehilhbpkgcjbcohgkmihlalagkho"><img src="assets/users-badge.svg" alt="10,000+ users" height="44" /></a>
+  <a href="https://chromewebstore.google.com/detail/xclipper/epmmehilhbpkgcjbcohgkmihlalagkho"><img src="assets/users-badge.svg" alt="2,000+ users" height="44" /></a>
 </p>
 
 <h1 align="center">
