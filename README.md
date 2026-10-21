@@ -22,6 +22,7 @@
 
 <p align="center">
   <a href="https://chromewebstore.google.com/detail/xclipper/epmmehilhbpkgcjbcohgkmihlalagkho"><img src="https://img.shields.io/badge/Install-Chrome%20Web%20Store-4285F4?logo=googlechrome&logoColor=white&style=for-the-badge" alt="Install from the Chrome Web Store" /></a>
+  <a href="https://addons.mozilla.org/firefox/addon/xclipper/"><img src="https://img.shields.io/badge/Install-Firefox%20Add--ons-FF7139?logo=firefoxbrowser&logoColor=white&style=for-the-badge" alt="Install from Firefox Add-ons" /></a>
 </p>
 
 <p align="center">
