@@ -119,7 +119,9 @@ export async function extractTweetAsync(
   opts: { singleTweet?: boolean } = {}
 ): Promise<ExtractedContent> {
   let rehydrateHost: Element | null = null;
-  if (!opts.singleTweet) {
+  if (opts.singleTweet) {
+    if (!(await findFocalArticle(extractTweetId()))) throw new Error(FOCAL_NOT_FOUND);
+  } else {
     rehydrateHost = await loadThreadIntoDom();
   }
   try {
@@ -154,6 +156,51 @@ async function waitForGrowth(
   return false;
 }
 
+export const FOCAL_NOT_FOUND = "Couldn't find this post on the page. Reload the page and try again.";
+
+// Upward walk caps. Ancestors render with the conversation view rather than
+// streaming in lazily, so a short idle cap confirms "nothing more above"
+// quickly; a genuinely long chain still walks fully via the growth signal (only
+// the final no-growth step pays the cap).
+const MAX_UP_STEPS = 30;
+const UP_SETTLE_CAP = 300;
+// Downward walk caps.
+const MAX_STEPS = 60;
+const DOWN_SETTLE_CAP = 400;
+const scrollStep = () => Math.max(window.innerHeight * 0.6, 400);
+const atPageBottom = () =>
+  window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 50;
+
+// X virtualizes the timeline, so once the reader scrolls far enough down the
+// requested post is no longer on the page (issue #182). Bring it back — up
+// first, where it usually is, then down from the top — rather than export
+// whatever post is still mounted. Null when it never shows up.
+async function findFocalArticle(focalId: string): Promise<Element | null> {
+  const find = () =>
+    Array.from(document.querySelectorAll('article[role="article"]'))
+      .find((a) => !isPromotedArticle(a) && getTweetStatusId(a) === focalId) ?? null;
+  let focal = find();
+  for (let step = 0; !focal && step < MAX_UP_STEPS; step++) {
+    const beforeCount = document.querySelectorAll('article[role="article"]').length;
+    const beforeHeight = document.documentElement.scrollHeight;
+    window.scrollTo({ top: 0, behavior: 'instant' });
+    // Jumping to the top swaps the mounted posts without growing the page, so
+    // look again whether or not it grew.
+    const grew = await waitForGrowth(beforeCount, beforeHeight, UP_SETTLE_CAP);
+    focal = find();
+    if (!grew) break;
+  }
+  for (let step = 0; !focal && step < MAX_STEPS; step++) {
+    const beforeCount = document.querySelectorAll('article[role="article"]').length;
+    const beforeHeight = document.documentElement.scrollHeight;
+    window.scrollBy({ top: scrollStep(), behavior: 'instant' });
+    const grew = await waitForGrowth(beforeCount, beforeHeight, DOWN_SETTLE_CAP);
+    focal = find();
+    if (!grew && atPageBottom()) break;
+  }
+  return focal;
+}
+
 async function loadThreadIntoDom(): Promise<Element | null> {
   // Fresh map per extraction — keeps memory bounded in long X.com SPA
   // sessions where the user navigates between threads.
@@ -180,19 +227,12 @@ async function loadThreadIntoDom(): Promise<Element | null> {
   // reply, the posts it replies to sit above it (issue #153). Found before
   // the upward walk, which can unmount it under a long chain of those.
   const focalId = extractTweetId();
-  const focal = Array.from(document.querySelectorAll('article[role="article"]'))
-    .find((a) => !isPromotedArticle(a) && getTweetStatusId(a) === focalId);
-  if (!focal) return null;
+  const focal = await findFocalArticle(focalId);
+  if (!focal) throw new Error(FOCAL_NOT_FOUND);
   const threadAuthor = extractAuthorFromArticle(focal);
 
   // Upward walk: coax X into loading any ancestors above the focused tweet.
   // No capture yet — the author's earlier posts in the thread are among them.
-  const MAX_UP_STEPS = 30;
-  // Ancestors render with the conversation view rather than streaming in lazily,
-  // so a short idle cap confirms "nothing more above" quickly; a genuinely long
-  // chain still walks fully via the growth signal (only the final no-growth step
-  // pays the cap).
-  const UP_SETTLE_CAP = 300;
   for (let step = 0; step < MAX_UP_STEPS; step++) {
     const beforeCount = document.querySelectorAll('article[role="article"]').length;
     const beforeHeight = document.documentElement.scrollHeight;
@@ -211,8 +251,7 @@ async function loadThreadIntoDom(): Promise<Element | null> {
   captureArticles(captured, context, threadAuthor.handle, focalId);
 
   let threadDone = false;
-  const SCROLL_STEP = Math.max(window.innerHeight * 0.6, 400);
-  const MAX_STEPS = 60;
+  const SCROLL_STEP = scrollStep();
 
   for (let step = 0; step < MAX_STEPS && !threadDone; step++) {
     const articleCount = document.querySelectorAll('article[role="article"]').length;
@@ -220,15 +259,13 @@ async function loadThreadIntoDom(): Promise<Element | null> {
     threadDone = captureArticles(captured, context, threadAuthor.handle, focalId);
     if (threadDone) break;
 
-    const atBottom =
-      window.scrollY + window.innerHeight >= document.documentElement.scrollHeight - 50;
-    if (atBottom && captured.size === sizeBefore) break;
+    if (atPageBottom() && captured.size === sizeBefore) break;
     const beforeHeight = document.documentElement.scrollHeight;
     window.scrollBy({ top: SCROLL_STEP, behavior: 'instant' });
     // Continue the instant the next thread tweet mounts, but still allow the
     // full 400 ms when it streams in slowly — same ceiling as before, so a slow
     // render never truncates the thread.
-    await waitForGrowth(articleCount, beforeHeight, 400);
+    await waitForGrowth(articleCount, beforeHeight, DOWN_SETTLE_CAP);
   }
 
   // Final pass: capture at bottom, scroll-back-to-top + settle + capture.
@@ -313,9 +350,8 @@ function keepSnapshot(store: Map<string, Element>, article: Element): void {
 // virtualization-independent source for the thread and its context. Thread
 // order is `store`'s insertion order — established by the bounded
 // downward walk (which sees tweets in thread/chronological order as X
-// loads them on scroll). domToAst sorts rehydrated articles ahead of live
-// ones; same-id live duplicates get dropped via id dedup in
-// collectSameAuthorArticles. Off-screen positioning (position:absolute +
+// loads them on scroll). When the host exists, domToAst reads only it and
+// ignores the live page. Off-screen positioning (position:absolute +
 // left:-99999px + visibility:hidden + pointer-events:none) keeps X's
 // virtualizer from noticing.
 //
@@ -354,8 +390,8 @@ function rehydrateMissingArticles(
     host.appendChild(rehydratedCell(id, snapshot));
   }
 
-  // Attach as last body child — domToAst's rehydrated-first sort handles
-  // ordering vs live cells, so we don't need a specific anchor.
+  // Attach as last body child — domToAst reads the host alone, so it needs no
+  // specific anchor among the live cells.
   document.body.appendChild(host);
   return host;
 }

@@ -3,18 +3,22 @@ import { readFileSync, existsSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { JSDOM } from 'jsdom';
 import { extract } from '../src/content/content';
+import { extractTweetAsync } from '../src/content/tweet';
+import type { Document, ThreadNode, TweetNode } from '../src/ast/types';
 
-// Build a single <article> belonging to @alice, given its id, time iso and
-// tweet text. The author block matches what extractAuthorFromArticle parses.
-function tweetArticle(id: string, iso: string, text: string): string {
+// Build a single <article> belonging to @alice (or `handle`), given its id,
+// time iso and tweet text. The author block matches what
+// extractAuthorFromArticle parses.
+function tweetArticle(id: string, iso: string, text: string, handle = 'alice', engagement = ''): string {
   return `
     <article role="article" data-tid="${id}">
       <div data-testid="User-Name">
-        <a href="/alice"><span>Alice</span></a>
-        <a href="/alice"><span>@alice</span></a>
+        <a href="/${handle}"><span>${handle[0].toUpperCase() + handle.slice(1)}</span></a>
+        <a href="/${handle}"><span>@${handle}</span></a>
       </div>
-      <a href="/alice/status/${id}"><time datetime="${iso}">…</time></a>
+      <a href="/${handle}/status/${id}"><time datetime="${iso}">…</time></a>
       <div data-testid="tweetText"><span>${text}</span></div>
+      ${engagement}
     </article>
   `;
 }
@@ -106,6 +110,9 @@ describe('thread-walk: tombstone is not a boundary', () => {
 // The bounded captureArticles in tweet.ts must stop AT NeetCode, so the
 // "thank you!" reply never gets captured, never gets rehydrated, and never
 // appears in the output. -d.html is the chunk that includes those comments.
+// It no longer holds the thread's first post, so the request points at the
+// first thread post it does hold; a missing requested post fails the export
+// (issue #182).
 describe('thread-walk: same-author reply after the comment boundary', () => {
   const originalScrollTo = window.scrollTo;
   const fixturePath = resolve(__dirname, 'fixtures/trq212-2035372716820218141-d.html');
@@ -115,7 +122,7 @@ describe('thread-walk: same-author reply after the comment boundary', () => {
     window.scrollTo = (() => {}) as typeof window.scrollTo;
     const html = readFileSync(fixturePath, 'utf-8');
     const dom = new JSDOM(html, {
-      url: 'https://x.com/trq212/status/2035372716820218141',
+      url: 'https://x.com/trq212/status/2035372725921882119',
     });
     document.documentElement.replaceWith(
       dom.window.document.documentElement.cloneNode(true) as HTMLElement,
@@ -123,8 +130,8 @@ describe('thread-walk: same-author reply after the comment boundary', () => {
     Object.defineProperty(window, 'location', {
       value: {
         ...window.location,
-        pathname: '/trq212/status/2035372716820218141',
-        href: 'https://x.com/trq212/status/2035372716820218141',
+        pathname: '/trq212/status/2035372725921882119',
+        href: 'https://x.com/trq212/status/2035372725921882119',
         hash: '',
       },
       writable: true,
@@ -152,4 +159,123 @@ describe('thread-walk: same-author reply after the comment boundary', () => {
     expect(md).not.toContain('NeetCode');
     expect(md).not.toContain('@neetcode1');
   });
+});
+
+// X virtualizes the timeline: only the posts near the viewport are mounted.
+// After the reader scrolls to the bottom of a long thread, the requested post
+// is gone from the page, and scrolling back up brings the first posts back
+// while unmounting the last ones (issue #182). Synthetic posts only.
+describe('thread-walk: scrolled down past the requested post', () => {
+  const CELL = 100;
+  const originalScrollTo = window.scrollTo;
+  const originalScrollBy = window.scrollBy;
+  let posts: string[] = [];
+  let scrollY = 0;
+
+  const post = (n: number, handle = 'alice') =>
+    tweetArticle(
+      String(n),
+      new Date(Date.UTC(2026, 4, 1, 0, n)).toISOString(),
+      `post ${n}`,
+      handle,
+      `<div role="group" aria-label="${n} likes"></div>`,
+    );
+
+  // Mount the posts within the viewport plus a small overscan, like X does.
+  function render(): void {
+    const max = posts.length * CELL - window.innerHeight;
+    scrollY = Math.max(0, Math.min(scrollY, max));
+    const first = Math.max(0, Math.floor(scrollY / CELL) - 2);
+    const last = Math.ceil((scrollY + window.innerHeight) / CELL) + 2;
+    document.querySelector('main')!.innerHTML = posts.slice(first, last).join('');
+  }
+
+  function loadScrolledToBottom(focalId: string, page: string[]): void {
+    posts = page;
+    document.body.innerHTML = '<main></main>';
+    pointLocationAt(focalId);
+    scrollY = Infinity;
+    render();
+  }
+
+  beforeEach(() => {
+    Object.defineProperty(window, 'scrollY', { get: () => scrollY, configurable: true });
+    Object.defineProperty(document.documentElement, 'scrollHeight', {
+      get: () => posts.length * CELL,
+      configurable: true,
+    });
+    window.scrollTo = ((opts?: { top?: number }) => {
+      scrollY = opts?.top ?? 0;
+      render();
+    }) as typeof window.scrollTo;
+    window.scrollBy = ((opts?: { top?: number }) => {
+      scrollY += opts?.top ?? 0;
+      render();
+    }) as typeof window.scrollBy;
+  });
+
+  afterEach(() => {
+    window.scrollTo = originalScrollTo;
+    window.scrollBy = originalScrollBy;
+    delete (window as { scrollY?: number }).scrollY;
+    delete (document.documentElement as { scrollHeight?: number }).scrollHeight;
+  });
+
+  const range = (from: number, to: number) => Array.from({ length: to - from + 1 }, (_, i) => from + i);
+  // alice's 20-post thread, then a reply by bob and alice's answer to it.
+  const thread = () => [...range(101, 120).map((n) => post(n)), post(121, 'bob'), post(122)];
+  const ids = (doc: Document) =>
+    doc.body.type === 'thread'
+      ? (doc.body as ThreadNode).tweets.map((t) => t.tweetId)
+      : [(doc.body as TweetNode).tweetId];
+  const contextIds = (doc: Document) => (doc.context ?? []).map((t) => t.tweetId);
+  const firstPostDate = new Date(Date.UTC(2026, 4, 1, 0, 101)).toISOString();
+
+  it('exports the whole thread when requested at its first post', async () => {
+    loadScrolledToBottom('101', thread());
+    expect(document.body.textContent).not.toContain('post 101');
+    const doc = (await extractTweetAsync()).body as Document;
+    expect(ids(doc)).toEqual(range(101, 120).map(String));
+    expect(doc.metadata.date).toBe(firstPostDate);
+    expect(doc.metadata.engagement?.likes).toBe(101);
+  }, 10_000);
+
+  it('exports the whole thread from its first post when requested mid-thread', async () => {
+    loadScrolledToBottom('108', thread());
+    const doc = (await extractTweetAsync()).body as Document;
+    expect(doc.metadata.tweetId).toBe('108');
+    expect(ids(doc)).toEqual(range(101, 120).map(String));
+    expect(doc.metadata.date).toBe(firstPostDate);
+    expect(doc.metadata.engagement?.likes).toBe(101);
+  }, 10_000);
+
+  it('exports a reply with its context after scrolling past it', async () => {
+    const page = [
+      ...range(101, 105).map((n) => post(n)),
+      post(106, 'bob'),
+      post(107, 'bob'),
+      ...range(108, 122).map((n) => post(n, 'carol')),
+    ];
+    loadScrolledToBottom('106', page);
+    const doc = (await extractTweetAsync()).body as Document;
+    expect(doc.metadata.author.handle).toBe('bob');
+    expect(ids(doc)).toEqual(['106', '107']);
+    expect(contextIds(doc)).toEqual(range(101, 105).map(String));
+  }, 10_000);
+
+  it('exports the requested post, not another, as a single post', async () => {
+    loadScrolledToBottom('103', thread());
+    const doc = (await extractTweetAsync({ singleTweet: true })).body as Document;
+    expect(ids(doc)).toEqual(['103']);
+    expect(doc.metadata.engagement?.likes).toBe(103);
+  }, 10_000);
+
+  for (const singleTweet of [false, true]) {
+    it(`fails instead of exporting another post when the requested one never appears${singleTweet ? ' (single post)' : ''}`, async () => {
+      loadScrolledToBottom('999', thread());
+      const res = await extract({ singleTweet });
+      expect(res.success).toBe(false);
+      expect(res.error).toMatch(/Couldn't find this post/);
+    }, 10_000);
+  }
 });
