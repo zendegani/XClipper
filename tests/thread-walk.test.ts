@@ -107,9 +107,8 @@ describe('thread-walk: tombstone is not a boundary', () => {
 // Real-world regression: in the trq212 thread, Thariq replies to NeetCode's
 // comment with "thank you! means a lot". DOM order on the page is:
 //   …thread tweets… → NeetCode (different author) → Thariq "thank you!" reply
-// The bounded captureArticles in tweet.ts must stop AT NeetCode, so the
-// "thank you!" reply never gets captured, never gets rehydrated, and never
-// appears in the output. -d.html is the chunk that includes those comments.
+// The thread run picked in tweet.ts must end AT NeetCode, so the
+// "thank you!" reply never gets rehydrated and never appears in the output. -d.html is the chunk that includes those comments.
 // It no longer holds the thread's first post, so the request points at the
 // first thread post it does hold; a missing requested post fails the export
 // (issue #182).

@@ -107,10 +107,12 @@ export function isPromotedArticle(article: Element): boolean {
  *      this coaxes X into hydrating ancestors all the way to the thread root.
  *   2. Take the thread author from the requested post — not the topmost one,
  *      which for a reply is the post it replies to.
- *   3. Walk DOWN, collecting that author's run of tweets around the requested
- *      post (deduped by status id) until a different-author tweet appears
- *      (start of the reply section), or scrolling yields nothing new (thread
- *      complete).
+ *   3. Walk DOWN, keeping every tweet it sees (deduped by status id) until
+ *      a different-author tweet follows the author's run around the requested
+ *      post (start of the reply section), or scrolling yields nothing new
+ *      (thread complete).
+ *   4. Pick that run from everything kept, plus the posts above it, which it
+ *      answers.
  *
  * When `singleTweet` is set, the walk is skipped and only the focused article
  * (the one whose status id matches the page url) is extracted.
@@ -342,13 +344,10 @@ function keepSnapshot(store: Map<string, Element>, article: Element): void {
 
 // Inject the captured thread, after the posts it answers (`context`), into an
 // off-screen host so domToAst has a guaranteed-ordered,
-// virtualization-independent source for the thread and its context. Both are
-// in capture order — established by the downward walk (which sees tweets in
-// thread/chronological order as X loads them on scroll). When the host
-// exists, domToAst reads only it and
-// ignores the live page. Off-screen positioning (position:absolute +
-// left:-99999px + visibility:hidden + pointer-events:none) keeps X's
-// virtualizer from noticing.
+// virtualization-independent source for the thread and its context. When the
+// host exists, domToAst reads only it and ignores the live page. Off-screen
+// positioning (position:absolute + left:-99999px + visibility:hidden +
+// pointer-events:none) keeps X's virtualizer from noticing.
 //
 // Returns the host so the caller can remove it after extraction.
 function rehydrateMissingArticles(
@@ -366,13 +365,22 @@ function rehydrateMissingArticles(
       'visibility:hidden;pointer-events:none;overflow:hidden;',
   );
 
-  // The context goes first, so domToAst finds it above the thread.
-  for (const snapshot of context) {
+  // Both oldest first, by id rather than capture order: ids grow with time,
+  // and posts X loads late — after the walk went past them — are captured
+  // after later ones. A self-thread answers its previous post, so oldest
+  // first is thread order. The context goes first, so domToAst finds it
+  // above the thread.
+  const byAge = (a: Element, b: Element) => {
+    const x = getTweetStatusId(a);
+    const y = getTweetStatusId(b);
+    return x.length - y.length || (x < y ? -1 : 1);
+  };
+  for (const snapshot of [...context].sort(byAge)) {
     host.appendChild(rehydratedCell(getTweetStatusId(snapshot), snapshot));
   }
 
   const target = authorHandle.toLowerCase();
-  for (const snapshot of thread) {
+  for (const snapshot of [...thread].sort(byAge)) {
     // Sanity: re-verify the snapshot still parses as same-author.
     const a = extractAuthorFromArticle(snapshot);
     if (a.handle.toLowerCase() !== target) continue;
