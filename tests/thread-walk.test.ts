@@ -249,6 +249,30 @@ describe('thread-walk: scrolled down past the requested post', () => {
     expect(doc.metadata.engagement?.likes).toBe(101);
   }, 10_000);
 
+  // A fresh mid-thread permalink shows only the posts around the requested
+  // one. X loads the earlier ones after the first scroll to the top — 375 ms
+  // in a real session — and keeps the requested post in view, pushing the
+  // page down past them.
+  it('exports the whole thread when X loads the earlier posts late', async () => {
+    const earlier = range(101, 113).map((n) => post(n));
+    loadScrolledToBottom('120', [...range(114, 120).map((n) => post(n)), post(121, 'bob')]);
+    const scrollTo = window.scrollTo;
+    let loaded = false;
+    window.scrollTo = ((opts?: { top?: number }) => {
+      scrollTo(opts);
+      if (loaded) return;
+      loaded = true;
+      setTimeout(() => {
+        posts = [...earlier, ...posts];
+        scrollY += earlier.length * CELL;
+        render();
+      }, 375);
+    }) as typeof window.scrollTo;
+    const doc = (await extractTweetAsync()).body as Document;
+    expect(ids(doc)).toEqual(range(101, 120).map(String));
+    expect(doc.metadata.date).toBe(firstPostDate);
+  }, 10_000);
+
   it('exports a reply with its context after scrolling past it', async () => {
     const page = [
       ...range(101, 105).map((n) => post(n)),
