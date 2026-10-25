@@ -108,7 +108,8 @@ describe('thread-walk: tombstone is not a boundary', () => {
 // comment with "thank you! means a lot". DOM order on the page is:
 //   …thread tweets… → NeetCode (different author) → Thariq "thank you!" reply
 // The thread run picked in tweet.ts must end AT NeetCode, so the
-// "thank you!" reply never gets rehydrated and never appears in the output. -d.html is the chunk that includes those comments.
+// "thank you!" reply never gets rehydrated and never appears in the output.
+// -d.html is the chunk that includes those comments.
 // It no longer holds the thread's first post, so the request points at the
 // first thread post it does hold; a missing requested post fails the export
 // (issue #182).
@@ -251,26 +252,32 @@ describe('thread-walk: scrolled down past the requested post', () => {
   // A fresh mid-thread permalink shows only the posts around the requested
   // one. X loads the earlier ones after the first scroll to the top — 375 ms
   // in a real session — and keeps the requested post in view, pushing the
-  // page down past them.
-  it('exports the whole thread when X loads the earlier posts late', async () => {
-    const earlier = range(101, 113).map((n) => post(n));
-    loadScrolledToBottom('120', [...range(114, 120).map((n) => post(n)), post(121, 'bob')]);
-    const scrollTo = window.scrollTo;
-    let loaded = false;
-    window.scrollTo = ((opts?: { top?: number }) => {
-      scrollTo(opts);
-      if (loaded) return;
-      loaded = true;
-      setTimeout(() => {
-        posts = [...earlier, ...posts];
-        scrollY += earlier.length * CELL;
-        render();
-      }, 375);
-    }) as typeof window.scrollTo;
-    const doc = (await extractTweetAsync()).body as Document;
-    expect(ids(doc)).toEqual(range(101, 120).map(String));
-    expect(doc.metadata.date).toBe(firstPostDate);
-  }, 10_000);
+  // page down past them. Slower than the walk's wait (900 ms), they're
+  // captured after the later posts and must still come out in order.
+  for (const { delayMs, below } of [
+    { delayMs: 375, below: [post(121, 'bob')] },
+    { delayMs: 900, below: [] },
+  ]) {
+    it(`exports the whole thread when X loads the earlier posts after ${delayMs} ms`, async () => {
+      const earlier = range(101, 113).map((n) => post(n));
+      loadScrolledToBottom('120', [...range(114, 120).map((n) => post(n)), ...below]);
+      const scrollTo = window.scrollTo;
+      let loaded = false;
+      window.scrollTo = ((opts?: { top?: number }) => {
+        scrollTo(opts);
+        if (loaded) return;
+        loaded = true;
+        setTimeout(() => {
+          posts = [...earlier, ...posts];
+          scrollY += earlier.length * CELL;
+          render();
+        }, delayMs);
+      }) as typeof window.scrollTo;
+      const doc = (await extractTweetAsync()).body as Document;
+      expect(ids(doc)).toEqual(range(101, 120).map(String));
+      expect(doc.metadata.date).toBe(firstPostDate);
+    }, 10_000);
+  }
 
   it('exports a reply with its context after scrolling past it', async () => {
     const page = [
