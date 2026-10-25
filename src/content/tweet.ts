@@ -203,11 +203,10 @@ async function findFocalArticle(focalId: string): Promise<Element | null> {
 }
 
 async function loadThreadIntoDom(): Promise<Element | null> {
-  // Fresh map per extraction — keeps memory bounded in long X.com SPA
-  // sessions where the user navigates between threads.
-  const captured: Map<string, Element> = new Map();
-  // The posts above the thread, which it answers (issue #154).
-  const context: Map<string, Element> = new Map();
+  // Every post the downward walk sees, in page order. Fresh per extraction —
+  // keeps memory bounded in long X.com SPA sessions where the user navigates
+  // between threads.
+  const seen: Map<string, Element> = new Map();
 
   // A freshly navigated permalink may show only the focal tweet while the
   // conversation timeline streams in; walking immediately would conclude
@@ -242,25 +241,27 @@ async function loadThreadIntoDom(): Promise<Element | null> {
   }
 
   // X.com virtualizes the timeline — articles scrolled off-screen are
-  // detached from the DOM. We snapshot each thread article via cloneNode
-  // during the walk and re-attach any that are missing at the end, so
-  // domToAst sees the whole thread regardless of viewport state.
+  // detached from the DOM. We snapshot every article via cloneNode during the
+  // walk and re-attach the thread at the end, so domToAst sees the whole
+  // thread regardless of viewport state.
   //
-  // First capture — the thread around the requested post, bounded by other
-  // authors' posts so reply-section tweets by the author (e.g. "thank you!
-  // means a lot" in response to a comment) don't pollute the captured set.
-  captureArticles(captured, context, threadAuthor.handle, focalId);
+  // The thread is picked from everything seen only once the walk ends: at the
+  // top of a long thread the requested post is far below and unmounted, so
+  // picking it per screen would drop the thread's first posts.
+  const isFocal = (a: Element) => getTweetStatusId(a) === focalId;
+  const threadEnded = () => threadRun([...seen.values()], threadAuthor.handle, isFocal).ended;
 
-  let threadDone = false;
   const SCROLL_STEP = scrollStep();
 
-  for (let step = 0; step < MAX_STEPS && !threadDone; step++) {
+  for (let step = 0; step < MAX_STEPS; step++) {
     const articleCount = document.querySelectorAll('article[role="article"]').length;
-    const sizeBefore = captured.size;
-    threadDone = captureArticles(captured, context, threadAuthor.handle, focalId);
-    if (threadDone) break;
+    const sizeBefore = seen.size;
+    captureArticles(seen);
+    // Stop at the comment boundary, so reply-section tweets by the author
+    // (e.g. "thank you! means a lot" in response to a comment) stay out.
+    if (threadEnded()) break;
 
-    if (atPageBottom() && captured.size === sizeBefore) break;
+    if (atPageBottom() && seen.size === sizeBefore) break;
     const beforeHeight = document.documentElement.scrollHeight;
     window.scrollBy({ top: SCROLL_STEP, behavior: 'instant' });
     // Continue the instant the next thread tweet mounts, but still allow the
@@ -270,11 +271,17 @@ async function loadThreadIntoDom(): Promise<Element | null> {
   }
 
   // Final pass: capture at bottom, scroll-back-to-top + settle + capture.
-  captureArticles(captured, context, threadAuthor.handle, focalId);
+  captureArticles(seen);
   window.scrollTo({ top: 0, behavior: 'instant' });
   await delay(250);
-  captureArticles(captured, context, threadAuthor.handle, focalId);
-  return rehydrateMissingArticles(captured, context, threadAuthor.handle);
+  captureArticles(seen);
+
+  // The thread is the author's run around the requested post, bounded by
+  // other authors' posts; the posts above it are what it answers (#153, #154).
+  const all = [...seen.values()];
+  const { run } = threadRun(all, threadAuthor.handle, isFocal);
+  const context = run.length > 0 ? all.slice(0, all.indexOf(run[0])) : [];
+  return rehydrateMissingArticles(run, context, threadAuthor.handle);
 }
 
 // X shows a [role="progressbar"] spinner while a timeline streams in. Note a
@@ -301,28 +308,15 @@ function hydrationScore(article: Element): number {
 // Snapshot helpers. We use cloneNode rather than outerHTML so X.com-specific
 // markup (article cards, link cards, etc.) round-trips without parsing, and
 // so there's no HTML-string injection path. Clones are detached; originals
-// stay live. Captures only the thread run around the requested post — or
-// around a post captured earlier, once scrolling has unmounted the requested
-// one — so reply-section tweets by the author aren't swept in, plus the posts
-// above that run into `context`. Returns whether the run's end (the comment
-// boundary) is on the page.
-function captureArticles(
-  store: Map<string, Element>,
-  context: Map<string, Element>,
-  authorHandle: string,
-  focalId: string
-): boolean {
-  const live = Array.from(document.querySelectorAll('article[role="article"]'))
-    .filter((a) => !isPromotedArticle(a));
-  const { run, ended } = threadRun(live, authorHandle, (a) => {
-    const id = getTweetStatusId(a);
-    return id === focalId || store.has(id);
-  });
-  for (const article of run) keepSnapshot(store, article);
-  if (run.length > 0) {
-    for (const article of live.slice(0, live.indexOf(run[0]))) keepSnapshot(context, article);
+// stay live. Captures every post on the page; new ones land after those seen
+// earlier, so a downward walk keeps page order. Tombstones are skipped — they
+// have no author to show, and no stable id to dedupe on.
+function captureArticles(store: Map<string, Element>): void {
+  for (const article of document.querySelectorAll('article[role="article"]')) {
+    if (isPromotedArticle(article)) continue;
+    if (extractAuthorFromArticle(article).handle === 'unknown') continue;
+    keepSnapshot(store, article);
   }
-  return ended;
 }
 
 function keepSnapshot(store: Map<string, Element>, article: Element): void {
@@ -346,23 +340,23 @@ function keepSnapshot(store: Map<string, Element>, article: Element): void {
   store.set(id, article.cloneNode(true) as Element);
 }
 
-// Inject ALL captured thread articles, after the posts they answer
-// (`context`), into an off-screen host so domToAst has a guaranteed-ordered,
-// virtualization-independent source for the thread and its context. Thread
-// order is `store`'s insertion order — established by the bounded
-// downward walk (which sees tweets in thread/chronological order as X
-// loads them on scroll). When the host exists, domToAst reads only it and
+// Inject the captured thread, after the posts it answers (`context`), into an
+// off-screen host so domToAst has a guaranteed-ordered,
+// virtualization-independent source for the thread and its context. Both are
+// in capture order — established by the downward walk (which sees tweets in
+// thread/chronological order as X loads them on scroll). When the host
+// exists, domToAst reads only it and
 // ignores the live page. Off-screen positioning (position:absolute +
 // left:-99999px + visibility:hidden + pointer-events:none) keeps X's
 // virtualizer from noticing.
 //
 // Returns the host so the caller can remove it after extraction.
 function rehydrateMissingArticles(
-  store: Map<string, Element>,
-  context: Map<string, Element>,
+  thread: Element[],
+  context: Element[],
   authorHandle: string,
 ): Element | null {
-  if (store.size === 0) return null;
+  if (thread.length === 0) return null;
 
   const host = document.createElement('div');
   host.setAttribute('data-xclipper-rehydrate-host', '');
@@ -372,23 +366,17 @@ function rehydrateMissingArticles(
       'visibility:hidden;pointer-events:none;overflow:hidden;',
   );
 
-  // The context goes first, oldest first, so domToAst finds it above the
-  // thread. Sorted by id rather than capture order: ids grow with time, and a
-  // pass that scrolled past the top may have captured a later post first.
-  const byAge = (a: string, b: string) => a.length - b.length || (a < b ? -1 : 1);
-  for (const id of [...context.keys()].sort(byAge)) {
-    host.appendChild(rehydratedCell(id, context.get(id)!));
+  // The context goes first, so domToAst finds it above the thread.
+  for (const snapshot of context) {
+    host.appendChild(rehydratedCell(getTweetStatusId(snapshot), snapshot));
   }
 
-  // Iterate the Map in insertion order — JS Map preserves it. captureArticles'
-  // boundary break ensures only thread tweets land here, so the order is the
-  // walk's chronological encounter order = thread order.
   const target = authorHandle.toLowerCase();
-  for (const [id, snapshot] of store) {
+  for (const snapshot of thread) {
     // Sanity: re-verify the snapshot still parses as same-author.
     const a = extractAuthorFromArticle(snapshot);
     if (a.handle.toLowerCase() !== target) continue;
-    host.appendChild(rehydratedCell(id, snapshot));
+    host.appendChild(rehydratedCell(getTweetStatusId(snapshot), snapshot));
   }
 
   // Attach as last body child — domToAst reads the host alone, so it needs no
