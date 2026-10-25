@@ -51,6 +51,10 @@ export interface TweetNode {
   articleCard?: ArticleCardNode;
   quotedTweet?: TweetNode;
   engagement?: EngagementCounts;
+  // X showed only a preview of this post, with a "Show more" link, so `text`
+  // stops where X cut it off. Set by the DOM extractor; single export fills in
+  // the full text and clears it when it can (issue #184).
+  truncated?: true;
 }
 
 export interface ThreadNode {

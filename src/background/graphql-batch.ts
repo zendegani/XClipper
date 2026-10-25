@@ -101,7 +101,7 @@ const RETRY_BASE_MS = 1200;
 // the target id (`focalTweetId` is X's well-known TweetDetail variable). Returns
 // null when no TweetDetail request has been observed yet. Retries transient /
 // rate-limit failures with backoff; throws the last error otherwise.
-async function fetchTweetDetailJson(id: string): Promise<unknown | null> {
+export async function fetchTweetDetailJson(id: string): Promise<unknown | null> {
   const template = templates.TweetDetail;
   if (!template) return null;
   const vars = JSON.parse(getVariables(template)) as Record<string, unknown>;

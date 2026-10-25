@@ -1,6 +1,6 @@
 import type { TweetNode } from '../../ast/types';
 import { SELECTORS, extractAuthorFromArticle } from '../dom';
-import { stripHandlePrefix, extractDateFromArticle } from './shared';
+import { stripHandlePrefix, extractDateFromArticle, isTextTruncated } from './shared';
 import { extractInline } from './inline';
 import { extractArticleCard } from './cards';
 import { extractMedia } from './media';
@@ -48,5 +48,6 @@ export function extractQuotedTweet(article: Element): TweetNode | undefined {
 
   const node: TweetNode = { type: 'tweet', author, date, tweetId, text, media };
   if (articleCard) node.articleCard = articleCard;
+  if (quoteTextEl && isTextTruncated(quoteTextEl)) node.truncated = true;
   return node;
 }

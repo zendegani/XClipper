@@ -4,16 +4,20 @@ import type {
   DownloadResponse,
   ExtractedContent,
   ExtractResponse,
+  FullTextResultMessage,
+  ResolveFullTextRequest,
+  ResolveFullTextResponse,
   ResolveVideoUrlsResponse,
 } from '../types/messages';
 import { postProcess, markdownOptions, buildFilename } from '../shared/post-process';
 import { renderMarkdown } from '../ast/render-markdown';
+import { truncatedTweets } from '../ast/full-text';
 import { resolveLocalVideo, type LocalVideoResult } from '../shared/local-video';
 import { buildFormatExport, type ExportFormat } from '../shared/export-formats';
 import { loadSettings, type Settings } from '../shared/settings';
 import { buildObsidianUrl } from '../shared/obsidian';
 import { recordExport } from '../shared/review-prompt';
-import { delay, isArticlePage } from './dom';
+import { delay, extractTweetId, isArticlePage } from './dom';
 import { extractArticle } from './article';
 import { extractTweetAsync } from './tweet';
 import { waitForArticle } from './wait';
@@ -26,6 +30,9 @@ type AutoAction = 'download' | 'copy' | 'obsidian';
 export async function extract(options?: {
   includeMetadata?: boolean;
   singleTweet?: boolean;
+  // Fill in the posts X cut off at "Show more" (issue #184). Single export
+  // only: Scroll batch and the full-text window itself pass false.
+  fullText?: boolean;
 }): Promise<ExtractResponse> {
   try {
     if (!window.location.pathname.includes('/status/')) {
@@ -39,6 +46,7 @@ export async function extract(options?: {
     const data = isArticle
       ? extractArticle()
       : await extractTweetAsync({ singleTweet: options?.singleTweet });
+    if (options?.fullText !== false) await fillTruncatedText(data);
 
     return { success: true, data };
   } catch (err) {
@@ -47,6 +55,37 @@ export async function extract(options?: {
       error: err instanceof Error ? err.message : String(err),
     };
   }
+}
+
+// Ask the background for the full text of every cut-off post, then re-render
+// the Markdown. A post it can't fill keeps its preview and the "Show more"
+// link the renderers add.
+async function fillTruncatedText(data: ExtractedContent): Promise<void> {
+  if (!data.body) return;
+  const truncated = truncatedTweets(data.body).filter((t) => t.tweetId);
+  if (truncated.length === 0) return;
+
+  const posts = new Map(truncated.map((t) => [t.tweetId, { tweetId: t.tweetId, handle: t.author.handle }]));
+  const request: ResolveFullTextRequest = {
+    action: 'RESOLVE_FULL_TEXT',
+    tweetId: data.tweetId,
+    posts: [...posts.values()],
+  };
+  const response = await new Promise<ResolveFullTextResponse | undefined>((resolve) => {
+    chrome.runtime.sendMessage(request, (r?: ResolveFullTextResponse) =>
+      resolve(chrome.runtime.lastError ? undefined : r)
+    );
+  });
+  const texts = new Map(response?.texts ?? []);
+  let filled = 0;
+  for (const tweet of truncated) {
+    const text = texts.get(tweet.tweetId);
+    if (!text) continue;
+    tweet.text = text;
+    delete tweet.truncated;
+    filled++;
+  }
+  if (filled > 0) data.markdown = renderMarkdown(data.body);
 }
 
 // ─── Message Listener ───────────────────────────────────────────────
@@ -432,6 +471,7 @@ async function runBatchExtract(): Promise<void> {
     const tEx0 = performance.now();
     const response = await extract({
       includeMetadata: settings.includeMetadata || settings.inlineStats,
+      fullText: false,
     });
     const extractMs = Math.round(performance.now() - tEx0);
     if (!response.success || !response.data) {
@@ -465,6 +505,30 @@ async function runBatchExtract(): Promise<void> {
 
 if (BATCH_MARKER_RE.test(window.location.hash)) {
   runBatchExtract();
+}
+
+// ─── Full-text window (#xclipper=fulltext) ──────────────────────────
+// The background opens a cut-off post's own page here, where X shows it in
+// full, and waits for its text (resolve-full-text.ts). No text when the page
+// didn't show the post, or still shows it cut off.
+
+async function runFullTextExtract(): Promise<void> {
+  const msg: FullTextResultMessage = { action: 'FULL_TEXT_RESULT', tweetId: extractTweetId() };
+  if (await waitForArticle()) {
+    const response = await extract({ singleTweet: true, fullText: false });
+    const post = response.data?.body?.body;
+    if (post?.type === 'tweet' && !post.truncated) msg.text = post.text;
+  }
+  try {
+    window.stop();
+  } catch {
+    // ignore
+  }
+  chrome.runtime.sendMessage(msg);
+}
+
+if (/[#&]xclipper=fulltext/.test(window.location.hash)) {
+  runFullTextExtract();
 }
 
 // ─── In-place toast ─────────────────────────────────────────────────

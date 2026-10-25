@@ -17,6 +17,7 @@ import { buildSingleZipEntries, zipFilenameFor } from './single-zip';
 import { buildZip, zipDataUrl } from './zip';
 import { startFileDownload } from './batch-sink';
 import { resolveVideoUrls } from './resolve-video';
+import { receiveFullText, resolveFullText } from './resolve-full-text';
 
 // ─── Context menu: Save / Copy tweet as Markdown ────────────────────
 
@@ -328,6 +329,11 @@ listen({
       urls: [...(await resolveVideoUrls(message.tweetId))],
     }),
   },
+  // Single export asks for the full text of the posts X cut off at "Show
+  // more". Only the content script asks, and only it answers, from the post's
+  // own page in the window this opens.
+  RESOLVE_FULL_TEXT: { trust: ['x-content'], handle: resolveFullText },
+  FULL_TEXT_RESULT: { trust: ['x-content'], handle: receiveFullText },
   // The HTML goes into an extension page, so only our content script may send it.
   PDF_PRINT_REQUEST: { trust: ['x-content'], handle: printPdf },
   DOWNLOAD_MD: { trust: ['x-content', 'extension-page'], handle: downloadMd },
