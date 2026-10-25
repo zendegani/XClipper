@@ -6,7 +6,7 @@ import {
   isArticlePage,
   threadRun,
 } from '../dom';
-import { extractEngagementMetadata, isPromotedArticle } from '../tweet';
+import { FOCAL_NOT_FOUND, extractEngagementMetadata, isPromotedArticle } from '../tweet';
 import { stripHandlePrefix, extractDateFromArticle } from './shared';
 import { articleToTweetNode } from './tweet-node';
 import { articleDocument } from './article-body';
@@ -73,9 +73,13 @@ export function domToAst(opts: { singleTweet?: boolean } = {}): Document {
   };
 }
 
+// Never another post in its place: its date and stats would be exported under
+// the requested post's id (issue #182).
 function focusedArticle(articles: Element[]): Element {
   const tweetId = extractTweetId();
-  return articles.find((a) => getTweetStatusId(a) === tweetId) || articles[0];
+  const focal = articles.find((a) => getTweetStatusId(a) === tweetId);
+  if (!focal) throw new Error(FOCAL_NOT_FOUND);
+  return focal;
 }
 
 function collectThread(articles: Element[], focal: Element): Element[] {

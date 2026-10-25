@@ -97,6 +97,13 @@ describe('domToAst() on a reply permalink', () => {
     loadPage({ id: '1', handle: 'alice' }, [post('1', 'alice', 'lone'), post('2', 'bob', 'reply')]);
     expect('context' in domToAst()).toBe(false);
   });
+
+  // Not the first post on the page in its place (issue #182).
+  it('throws when the requested post is not on the page', () => {
+    loadPage({ id: '9', handle: 'alice' }, [post('1', 'alice', 'first'), post('2', 'alice', 'second')]);
+    expect(() => domToAst()).toThrow(/Couldn't find this post/);
+    expect(() => domToAst({ singleTweet: true })).toThrow(/Couldn't find this post/);
+  });
 });
 
 // The full Scroll path: loadThreadIntoDom captures the thread into an

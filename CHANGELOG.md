@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Fixed
+
+- **Long threads export completely after scrolling**: if you scrolled down a long thread before exporting it from the popup, the right-click menu, or the inline button on the page you were reading, the file had only the posts still on screen. It started partway through the thread and showed that later post's date and stats under the requested post's link. This happened from v2.8.6 on. XClipper now scrolls back to find the requested post and exports the whole thread from its first post, as it did before. Single-post exports find the requested post the same way. If the post can't be found, the export stops with an error instead of saving a different post.
+
 ## [2.8.9] - 2026-10-17
 
 ### Fixed
