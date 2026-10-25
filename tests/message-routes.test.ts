@@ -41,6 +41,8 @@ describe('background message routes', () => {
     expect(trust).toEqual({
       XCLIPPER_CTX_URL: ['x-content'],
       RESOLVE_VIDEO_URLS: ['extension-page', 'x-content'],
+      RESOLVE_FULL_TEXT: ['x-content'],
+      FULL_TEXT_RESULT: ['x-content'],
       PDF_PRINT_REQUEST: ['x-content'],
       DOWNLOAD_MD: ['x-content', 'extension-page'],
       BATCH_START: ['extension-page', 'x-content'],

@@ -74,6 +74,29 @@ export interface ResolveVideoUrlsResponse {
   urls: [string, string][];
 }
 
+// Single export: ask the background for the full text of the posts X showed
+// only as a preview (issue #184). `tweetId` is the requested post. Answered
+// with the texts it found; a post left out stays cut off — see
+// resolve-full-text.ts.
+export interface ResolveFullTextRequest {
+  action: 'RESOLVE_FULL_TEXT';
+  tweetId: string;
+  posts: { tweetId: string; handle: string }[];
+}
+
+export interface ResolveFullTextResponse {
+  // [post id, full text] pairs — a Map doesn't survive the message boundary.
+  texts: [string, import('../ast/types').InlineNode[]][];
+}
+
+// Content (full-text window) → background: the text of the post this page
+// shows in full. No `text` when the page didn't show it.
+export interface FullTextResultMessage {
+  action: 'FULL_TEXT_RESULT';
+  tweetId: string;
+  text?: import('../ast/types').InlineNode[];
+}
+
 export interface ExportPdfRequest {
   action: 'EXPORT_PDF';
 }
@@ -312,6 +335,8 @@ export type MessageRequest =
   | ExtractRequest
   | DownloadRequest
   | ResolveVideoUrlsRequest
+  | ResolveFullTextRequest
+  | FullTextResultMessage
   | ExportPdfRequest
   | PdfPrintRequest
   | AutoExtractRequest

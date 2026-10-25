@@ -141,7 +141,7 @@ describe('extract() snapshot tests', () => {
 
       loadFixtureHtml(htmlPaths, url);
 
-      const res = await extract({ includeMetadata: true });
+      const res = await extract({ includeMetadata: true, fullText: false });
       expect(res.success, res.success ? '' : (res as { error?: string }).error || '').toBe(true);
       if (!res.success || !res.data) return;
 

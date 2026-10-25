@@ -14,6 +14,7 @@ import type {
   TableCellNode,
 } from './types';
 import { isProgressiveMp4 } from './collect-media';
+import { displayText } from './full-text';
 
 export interface MarkdownRenderOptions {
   includeVideoLinks?: boolean;
@@ -135,7 +136,7 @@ function appendTweetBody(
   tweet: TweetNode,
   options: MarkdownRenderOptions,
 ): void {
-  const text = renderInlineForTweet(tweet.text);
+  const text = renderInlineForTweet(displayText(tweet));
   const mediaLines = tweet.media.map((media) => renderMediaItem(media, options));
   const embed = renderTweetEmbed(tweet, options);
   const pollLines = tweet.poll ? renderPoll(tweet.poll) : '';
@@ -175,7 +176,7 @@ function renderTweetEmbed(tweet: TweetNode, options: MarkdownRenderOptions): str
 
 function renderQuotedTweetBlock(quote: TweetNode, options: MarkdownRenderOptions): string {
   const headerLine = `**${quote.author.name} (@${quote.author.handle})**`;
-  const text = renderInlineForTweet(quote.text);
+  const text = renderInlineForTweet(displayText(quote));
   const mediaLines = quote.media.map((media) => renderMediaItem(media, options));
 
   const segments: string[] = [headerLine];

@@ -1,7 +1,7 @@
 import type { TweetNode } from '../../ast/types';
 import { SELECTORS, extractAuthorFromArticle, getTweetStatusId } from '../dom';
 import { extractEngagementMetadata } from '../tweet';
-import { stripHandlePrefix, extractDateFromArticle } from './shared';
+import { stripHandlePrefix, extractDateFromArticle, isTextTruncated } from './shared';
 import { extractQuotedTweet, quotedTweetContainer } from './quote';
 import { extractInline } from './inline';
 import { extractLinkCard, linkCardContainer } from './cards';
@@ -31,5 +31,6 @@ export function articleToTweetNode(article: Element): TweetNode {
   if (linkCard) node.linkCard = linkCard;
   if (quotedTweet) node.quotedTweet = quotedTweet;
   if (engagement) node.engagement = engagement;
+  if (mainTextEl && isTextTruncated(mainTextEl)) node.truncated = true;
   return node;
 }

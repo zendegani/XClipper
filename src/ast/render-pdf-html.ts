@@ -14,6 +14,7 @@ import type {
   TableRowNode,
 } from './types';
 import { foldContext } from './render-markdown';
+import { displayText } from './full-text';
 
 export interface RenderPdfHtmlOptions {
   // 'twitter' (default): X-styled cards. 'document': clean prose layout.
@@ -92,7 +93,7 @@ function renderThread(thread: ThreadNode, meta: DocumentMetadata, opts: RenderPd
 function renderTweetCard(tweet: TweetNode, meta?: DocumentMetadata, opts: RenderPdfHtmlOptions = {}): string {
   const head = renderAuthorHeader(tweet);
   const text = tweet.text.length > 0
-    ? `<div class="tweet-body">${renderInlines(tweet.text)}</div>`
+    ? `<div class="tweet-body">${renderInlines(displayText(tweet))}</div>`
     : '';
   const media = tweet.media.length > 0
     ? `<div class="tweet-media">${tweet.media.map(renderMedia).join('')}</div>`
@@ -111,7 +112,7 @@ function renderTweetCard(tweet: TweetNode, meta?: DocumentMetadata, opts: Render
 function renderQuotedTweet(quote: TweetNode): string {
   const head = renderAuthorHeader(quote);
   const text = quote.text.length > 0
-    ? `<div class="tweet-body">${renderInlines(quote.text)}</div>`
+    ? `<div class="tweet-body">${renderInlines(displayText(quote))}</div>`
     : '';
   const media = quote.media.length > 0
     ? `<div class="tweet-media">${quote.media.map(renderMedia).join('')}</div>`
