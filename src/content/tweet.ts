@@ -158,12 +158,13 @@ async function waitForGrowth(
 
 export const FOCAL_NOT_FOUND = "Couldn't find this post on the page. Reload the page and try again.";
 
-// Upward walk caps. Ancestors render with the conversation view rather than
-// streaming in lazily, so a short idle cap confirms "nothing more above"
-// quickly; a genuinely long chain still walks fully via the growth signal (only
-// the final no-growth step pays the cap).
+// Upward walk caps. A mid-thread permalink shows only a few posts above the
+// requested one; X loads the rest after the scroll to the top — measured at
+// 375 ms in a focused tab, slower in the unfocused Scroll batch window. Give up
+// too early and the walk captures only those few. A long chain still walks
+// fully via the growth signal; only the final no-growth step pays the cap.
 const MAX_UP_STEPS = 30;
-const UP_SETTLE_CAP = 300;
+const UP_SETTLE_CAP = 750;
 // Downward walk caps.
 const MAX_STEPS = 60;
 const DOWN_SETTLE_CAP = 400;
