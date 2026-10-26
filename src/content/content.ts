@@ -728,6 +728,13 @@ chrome.runtime.onConnect.addListener((port) => {
 });
 
 async function runPopupExport(port: chrome.runtime.Port, request: SingleExportRequest): Promise<void> {
+  // One export at a time: each one can open a helper window. A popup opened
+  // again can ask before SINGLE_EXPORT_STATE reached it, so send it again.
+  if (popupExport) {
+    const state: SingleExportState = { action: 'SINGLE_EXPORT_STATE', busy: popupExport.request.target };
+    port.postMessage(state);
+    return;
+  }
   const job: PopupExport = { request, owner: port };
   popupExport = job;
   const { settings, format } = request;

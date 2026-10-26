@@ -237,6 +237,22 @@ describe('popup export', () => {
     expect(toastText()).toBe('Disk full');
   });
 
+  // A popup opened again can send a click before SINGLE_EXPORT_STATE reaches
+  // it. A second export would open a second helper window.
+  it('refuses a second export while one runs', async () => {
+    const popup = openPopup();
+    popup.send(request('copy'));
+    popup.close();
+    const reopened = openPopup();
+    reopened.send(request('download'));
+    await exportEnded(reopened);
+
+    expect(reopened.received.filter((m) => (m as SingleExportState).busy === 'copy')).toHaveLength(2);
+    expect(reopened.received.some((m) => (m as { action: string }).action === 'SINGLE_EXPORT_RESULT')).toBe(false);
+    expect(downloads()).toHaveLength(0);
+    expect(writeText).toHaveBeenCalledTimes(1);
+  });
+
   it('tells a new popup nothing when no export runs', () => {
     expect(openPopup().received).toEqual([]);
   });
