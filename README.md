@@ -148,7 +148,7 @@ Pick whichever entry point you prefer — they all run the same extractor and re
 
 Per-export toggles live in the main popup; set-once options live under the gear icon. See [Settings](#settings--tune-once-forget-about-it) above.
 
-> **Add to Obsidian tip:** for long threads or content where you want images permanently archived, use **Download .md** with **Save images locally** and drag the resulting folder into your vault. The Obsidian deeplink is best for quick capture — it has an OS-level URL-length limit and leaves images as remote URLs.
+> **Add to Obsidian tip:** the note is handed to Obsidian through your clipboard, so **Add to Obsidian** replaces whatever you had copied. Images stay as remote URLs; to archive them permanently, use **Download .md** with **Save images locally** and drag the resulting folder into your vault.
 
 Filenames default to `@handle-tweetId.md` (tweets/threads) or `@handle-article-slug.md` (articles), and are fully configurable via the filename template.
 

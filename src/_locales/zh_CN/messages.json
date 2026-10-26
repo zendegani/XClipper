@@ -327,10 +327,13 @@
     "message": "已有批量任务正在运行。"
   },
   "btn_obsidian_hint": {
-    "message": "在「设置」中配置 Vault、子文件夹和 frontmatter 字段。\n长推文串或图片请改用「下载 .md」按钮。"
+    "message": "在「设置」中配置 Vault、子文件夹和 frontmatter 字段。\n笔记通过剪贴板发送。如需将图片保存到本地，请改用「下载 .md」按钮。"
   },
   "obsidian_opened": {
-    "message": "正在打开 Obsidian…"
+    "message": "笔记已复制到剪贴板。正在打开 Obsidian…"
+  },
+  "obsidian_copy_failed": {
+    "message": "无法将笔记复制到剪贴板，因此未打开 Obsidian。请重试。"
   },
   "extracting": {
     "message": "提取中…"

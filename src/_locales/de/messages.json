@@ -327,10 +327,13 @@
     "message": "Ein Batch-Job läuft bereits."
   },
   "btn_obsidian_hint": {
-    "message": "Vault, Unterordner und Frontmatter-Felder lassen sich in den Einstellungen konfigurieren.\nFür lange Threads oder Bilder nutze den Button „.md herunterladen“."
+    "message": "Vault, Unterordner und Frontmatter-Felder lassen sich in den Einstellungen konfigurieren.\nDie Notiz wird über die Zwischenablage übergeben. Um Bilder lokal zu speichern, nutze den Button „.md herunterladen“."
   },
   "obsidian_opened": {
-    "message": "Obsidian wird geöffnet…"
+    "message": "Notiz in die Zwischenablage kopiert. Obsidian wird geöffnet…"
+  },
+  "obsidian_copy_failed": {
+    "message": "Die Notiz konnte nicht in die Zwischenablage kopiert werden, daher wurde Obsidian nicht geöffnet. Versuche es erneut."
   },
   "extracting": {
     "message": "Wird extrahiert…"

@@ -306,14 +306,21 @@ export function initActions(): void {
       const result = await extractMarkdown('obsidian');
       const vault = txtObsidianVault.value.trim();
       const folder = txtObsidianFolder.value.trim();
-      const url = buildObsidianUrl(result.markdown, result.filename, vault, folder);
+      const url = buildObsidianUrl(result.filename, vault, folder);
+      // Obsidian reads the note from the clipboard. If the copy failed,
+      // opening it would make a note out of whatever the clipboard held before.
+      try {
+        await navigator.clipboard.writeText(result.markdown);
+      } catch {
+        throw new Error(chrome.i18n.getMessage('obsidian_copy_failed') || 'Couldn’t copy the note to the clipboard, so Obsidian wasn’t opened. Try again.');
+      }
       void recordExport();
 
       // Navigate the popup itself to the obsidian:// URL. The OS handler picks
       // it up; the popup closes either way, so we don't leave a blank tab.
       window.location.href = url;
 
-      showStatus(`✓ ${chrome.i18n.getMessage('obsidian_opened') || 'Opening Obsidian…'}`, 'success');
+      showStatus(`✓ ${chrome.i18n.getMessage('obsidian_opened') || 'Note copied to clipboard. Opening Obsidian…'}`, 'success');
       setLoading(false);
     } catch (err) {
       handleExtractionError(err);

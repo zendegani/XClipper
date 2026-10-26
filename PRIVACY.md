@@ -34,7 +34,7 @@ When **Save images locally** is enabled, XClipper only downloads image assets fr
 
 ### Add to Obsidian
 
-When you click **Add to Obsidian**, the extension builds an `obsidian://new?...` deeplink containing the rendered Markdown (and the optional vault name you configured in Settings) and navigates the popup window to that URL. Your operating system's URL handler then hands the data to the Obsidian desktop app, if installed. The handoff happens **locally on your device** — no network request is made and no external server is involved. Images remain as remote `pbs.twimg.com` URLs in the rendered Markdown so they display inline in Obsidian without writing copies to disk.
+When you click **Add to Obsidian**, the extension copies the rendered Markdown to your clipboard, then builds an `obsidian://new?...` deeplink containing the note's file name and the optional vault name you configured in Settings, and navigates to that URL. Your operating system's URL handler opens the Obsidian desktop app, if installed, which reads the note from your clipboard. The handoff happens **locally on your device** — no network request is made and no external server is involved. Images remain as remote `pbs.twimg.com` URLs in the rendered Markdown so they display inline in Obsidian without writing copies to disk.
 
 ### Download .pdf
 
