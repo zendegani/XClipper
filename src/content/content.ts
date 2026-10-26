@@ -9,6 +9,8 @@ import type {
   ResolveFullTextResponse,
   ResolveVideoUrlsResponse,
   SingleExportClaimMessage,
+  SingleExportDownloadMessage,
+  SingleExportDownloadedMessage,
   SingleExportRequest,
   SingleExportResultMessage,
   SingleExportState,
@@ -694,6 +696,9 @@ interface PopupExport {
   // The popup that asked. null when it closed before it claimed the last step.
   owner: chrome.runtime.Port | null;
   data?: ExtractedContent;
+  // The popup claimed the export with SINGLE_EXPORT_DOWNLOAD, and the
+  // background has not answered yet.
+  downloading?: boolean;
 }
 
 let popupExport: PopupExport | null = null;
@@ -707,8 +712,9 @@ chrome.runtime.onConnect.addListener((port) => {
     const state: SingleExportState = { action: 'SINGLE_EXPORT_STATE', busy: popupExport.request.target };
     port.postMessage(state);
   }
-  port.onMessage.addListener((msg: SingleExportRequest | SingleExportClaimMessage) => {
+  port.onMessage.addListener((msg: SingleExportRequest | SingleExportClaimMessage | SingleExportDownloadMessage) => {
     if (msg.action === 'SINGLE_EXPORT') void runPopupExport(port, msg);
+    else if (msg.action === 'SINGLE_EXPORT_DOWNLOAD') void downloadForPopup(port, msg.request);
     else if (msg.action === 'SINGLE_EXPORT_CLAIM' && popupExport?.owner === port) popupExport = null;
   });
   port.onDisconnect.addListener(() => {
@@ -717,7 +723,7 @@ chrome.runtime.onConnect.addListener((port) => {
     if (job?.owner !== port) return;
     job.owner = null;
     // Extraction is done but the popup closed before it claimed the last step.
-    if (job.data) void finishPopupExport(job, job.data);
+    if (job.data && !job.downloading) void finishPopupExport(job, job.data);
   });
 });
 
@@ -756,6 +762,23 @@ async function finishPopupExport(job: PopupExport, data: ExtractedContent): Prom
   } finally {
     endPopupExport(job);
   }
+}
+
+// The popup's own download. The export stays busy until the background
+// answers, so a popup opened again in the meantime sees it.
+async function downloadForPopup(port: chrome.runtime.Port, request: DownloadRequest): Promise<void> {
+  const job = popupExport?.owner === port ? popupExport : null;
+  if (job) job.downloading = true;
+  const error = await sendDownload(request);
+  if (job && !job.owner) {
+    // The popup closed while the background worked.
+    showInPlaceToast(error ?? (chrome.i18n.getMessage('downloaded') || 'Downloaded!'));
+    if (!error) void recordExport();
+  } else {
+    const msg: SingleExportDownloadedMessage = { action: 'SINGLE_EXPORT_DOWNLOADED', error };
+    port.postMessage(msg);
+  }
+  if (job) endPopupExport(job);
 }
 
 function endPopupExport(job: PopupExport): void {

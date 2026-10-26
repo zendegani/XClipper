@@ -6,9 +6,12 @@
 import type {
   ExtractResponse,
   DownloadRequest,
+  DownloadResponse,
   ExtractedContent,
   ResolveVideoUrlsResponse,
   SingleExportClaimMessage,
+  SingleExportDownloadMessage,
+  SingleExportDownloadedMessage,
   SingleExportRequest,
   SingleExportResultMessage,
   SingleExportState,
@@ -111,6 +114,7 @@ function setLoading(loading: boolean, target?: 'download' | 'copy' | 'obsidian' 
 let tabPort: chrome.runtime.Port | null = null;
 let tabPortReady: Promise<void> = Promise.resolve();
 let onExtractResult: ((response: ExtractResponse | undefined) => void) | null = null;
+let onDownloadResult: ((error: string | null) => void) | null = null;
 
 async function connectToTab(): Promise<void> {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
@@ -118,10 +122,13 @@ async function connectToTab(): Promise<void> {
   if (!tab?.id || !hostMatches(url, 'x.com', 'www.x.com') || !url.includes('/status/')) return;
 
   const port = chrome.tabs.connect(tab.id, { name: SINGLE_EXPORT_PORT });
-  port.onMessage.addListener((msg: SingleExportResultMessage | SingleExportState) => {
+  port.onMessage.addListener((msg: SingleExportResultMessage | SingleExportDownloadedMessage | SingleExportState) => {
     if (msg.action === 'SINGLE_EXPORT_RESULT') {
       onExtractResult?.(msg.response);
       onExtractResult = null;
+    } else if (msg.action === 'SINGLE_EXPORT_DOWNLOADED') {
+      onDownloadResult?.(msg.error);
+      onDownloadResult = null;
     } else if (msg.busy) {
       // An export from a closed popup still runs in this tab.
       setLoading(true, msg.busy);
@@ -136,16 +143,35 @@ async function connectToTab(): Promise<void> {
     tabPort = null;
     onExtractResult?.(undefined);
     onExtractResult = null;
+    onDownloadResult?.(chrome.i18n.getMessage('download_failed') || 'Download failed.');
+    onDownloadResult = null;
   });
   tabPort = port;
 }
 
 // Tell the content script that the popup does the last step now, so the
 // content script does not do it too when the popup closes. Send it after
-// every slow step and before the step that the user sees.
+// every slow step and immediately before the clipboard write.
 function claimExport(): void {
   const msg: SingleExportClaimMessage = { action: 'SINGLE_EXPORT_CLAIM' };
   tabPort?.postMessage(msg);
+}
+
+// Download through the content script, which also claims the export. The
+// background can take long to answer (zip mode fetches the media first), and
+// if the popup closes before then, the content script shows the answer in a
+// toast. Resolves to the error to show, or null when the download started.
+async function downloadThroughTab(request: DownloadRequest): Promise<string | null> {
+  const port = tabPort;
+  if (!port) {
+    const response: DownloadResponse | undefined = await chrome.runtime.sendMessage(request);
+    return response?.success ? null : response?.error || chrome.i18n.getMessage('download_failed') || 'Download failed.';
+  }
+  return new Promise((resolve) => {
+    onDownloadResult = resolve;
+    const msg: SingleExportDownloadMessage = { action: 'SINGLE_EXPORT_DOWNLOAD', request };
+    port.postMessage(msg);
+  });
 }
 
 // Shared up-front guard + extraction: resolve the active tab, confirm it's a
@@ -203,12 +229,10 @@ async function extractMarkdown(
 
   const data = await extractContent(forAction, 'md');
 
-  const result = postProcess(data, {
+  return postProcess(data, {
     ...opts,
     videoAttachments: opts.downloadImages ? await localVideoAttachments(data) : undefined,
   });
-  claimExport();
-  return result;
 }
 
 // Turn this post's videos into local files, when the user asked for Media.
@@ -363,6 +387,7 @@ export function initActions(): void {
 
     try {
       const result = await extractMarkdown('obsidian');
+      claimExport();
       const vault = txtObsidianVault.value.trim();
       const folder = txtObsidianFolder.value.trim();
       const url = buildObsidianUrl(result.filename, vault, folder);
@@ -406,21 +431,20 @@ async function runMarkdownDownload(): Promise<void> {
       zip: chkZip.checked && result.images.length > 0,
     };
 
-    chrome.runtime.sendMessage(downloadMsg, (downloadResponse) => {
-      if (chrome.runtime.lastError || !downloadResponse?.success) {
-        showStatus(downloadResponse?.error || chrome.i18n.getMessage('download_failed') || 'Download failed.', 'error');
-      } else {
-        const typeLabels: Record<string, string> = {
-          article: chrome.i18n.getMessage('article_downloaded') || 'Article downloaded!',
-          thread: chrome.i18n.getMessage('thread_downloaded') || 'Thread downloaded!',
-          tweet: chrome.i18n.getMessage('tweet_downloaded') || 'Tweet downloaded!',
-        };
-        const label = typeLabels[result.type] || chrome.i18n.getMessage('downloaded') || 'Downloaded!';
-        showStatus(`✓ ${label}`, 'success');
-        void recordExport();
-      }
-      setLoading(false);
-    });
+    const error = await downloadThroughTab(downloadMsg);
+    if (error) {
+      showStatus(error, 'error');
+    } else {
+      const typeLabels: Record<string, string> = {
+        article: chrome.i18n.getMessage('article_downloaded') || 'Article downloaded!',
+        thread: chrome.i18n.getMessage('thread_downloaded') || 'Thread downloaded!',
+        tweet: chrome.i18n.getMessage('tweet_downloaded') || 'Tweet downloaded!',
+      };
+      const label = typeLabels[result.type] || chrome.i18n.getMessage('downloaded') || 'Downloaded!';
+      showStatus(`✓ ${label}`, 'success');
+      void recordExport();
+    }
+    setLoading(false);
   } catch (err) {
     handleExtractionError(err);
   }
@@ -433,6 +457,7 @@ async function runMarkdownCopy(): Promise<void> {
 
   try {
     const result = await extractMarkdown('copy');
+    claimExport();
 
     await navigator.clipboard.writeText(result.markdown);
 
@@ -459,7 +484,6 @@ async function runFormatExport(format: ExportFormat, action: 'download' | 'copy'
 
   try {
     const data = await extractContent(action, format);
-    claimExport();
     const obsidianFriendly = chkObsidianFriendly.checked;
     const exported = buildFormatExport(format, data, {
       includeEngagement: chkInlineStats.checked,
@@ -470,6 +494,7 @@ async function runFormatExport(format: ExportFormat, action: 'download' | 'copy'
     });
 
     if (action === 'copy') {
+      claimExport();
       await navigator.clipboard.writeText(exported.content);
       showStatus(`✓ .${exported.ext} ${chrome.i18n.getMessage('copied') || 'Copied!'}`, 'success');
       void recordExport();
@@ -486,15 +511,14 @@ async function runFormatExport(format: ExportFormat, action: 'download' | 'copy'
       mime: exported.mime,
     };
 
-    chrome.runtime.sendMessage(downloadMsg, (downloadResponse) => {
-      if (chrome.runtime.lastError || !downloadResponse?.success) {
-        showStatus(downloadResponse?.error || chrome.i18n.getMessage('download_failed') || 'Download failed.', 'error');
-      } else {
-        showStatus(`✓ .${exported.ext} ${chrome.i18n.getMessage('downloaded') || 'Downloaded!'}`, 'success');
-        void recordExport();
-      }
-      setLoading(false);
-    });
+    const error = await downloadThroughTab(downloadMsg);
+    if (error) {
+      showStatus(error, 'error');
+    } else {
+      showStatus(`✓ .${exported.ext} ${chrome.i18n.getMessage('downloaded') || 'Downloaded!'}`, 'success');
+      void recordExport();
+    }
+    setLoading(false);
   } catch (err) {
     handleExtractionError(err);
   }

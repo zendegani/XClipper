@@ -155,8 +155,12 @@ opens to the tab (`SINGLE_EXPORT_PORT`), not through the background router.
 While the popup is open, it gets the post and does the last step itself,
 because a content script can't write the clipboard while the popup has the
 focus. Chrome closes the port when the popup closes. If that happens before the
-popup sends `SINGLE_EXPORT_CLAIM`, the content script does the last step with
-the popup's settings (`finishMarkdownExport`) and shows a toast (#191). A popup
+popup sends `SINGLE_EXPORT_CLAIM` (or `SINGLE_EXPORT_DOWNLOAD`), the content
+script does the last step with the popup's settings (`finishMarkdownExport`)
+and shows a toast (#191). The popup's own download also goes through the
+content script (`SINGLE_EXPORT_DOWNLOAD`), because the background can take long
+to answer in zip mode; an answer that comes after the popup closed becomes a
+toast. A popup
 opened during that export gets `SINGLE_EXPORT_STATE` and shows the button as
 busy until the export ends.
 
