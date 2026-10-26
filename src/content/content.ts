@@ -96,13 +96,6 @@ async function fillTruncatedText(data: ExtractedContent): Promise<void> {
 // ─── Message Listener ───────────────────────────────────────────────
 
 chrome.runtime.onMessage.addListener((_message, _sender, sendResponse) => {
-  if (_message.action === 'EXTRACT') {
-    extract({
-      includeMetadata: _message.includeMetadata || false,
-      singleTweet: _message.singleTweet === true,
-    }).then(sendResponse);
-    return true;
-  }
   if (_message.action === 'EXPORT_PDF') {
     runPdfExport().then(
       () => sendResponse({ success: true }),
