@@ -118,8 +118,9 @@ let onDownloadResult: ((error: string | null) => void) | null = null;
 
 async function connectToTab(): Promise<void> {
   const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
-  const url = tab?.url || '';
-  if (!tab?.id || !hostMatches(url, 'x.com', 'www.x.com') || !url.includes('/status/')) return;
+  // Not only on /status/ pages: the user can move to another x.com page while
+  // an export runs, and the content script stays in that tab.
+  if (!tab?.id || !hostMatches(tab.url || '', 'x.com', 'www.x.com')) return;
 
   const port = chrome.tabs.connect(tab.id, { name: SINGLE_EXPORT_PORT });
   port.onMessage.addListener((msg: SingleExportResultMessage | SingleExportDownloadedMessage | SingleExportState) => {
