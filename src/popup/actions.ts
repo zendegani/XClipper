@@ -113,7 +113,7 @@ function setLoading(loading: boolean, target?: 'download' | 'copy' | 'obsidian' 
 // export that the popup did not claim. null when the tab has no content script.
 let tabPort: chrome.runtime.Port | null = null;
 let tabPortReady: Promise<void> = Promise.resolve();
-let onExtractResult: ((response: ExtractResponse | undefined) => void) | null = null;
+let onExtractResult: ((response: ExtractResponse | 'busy' | undefined) => void) | null = null;
 let onDownloadResult: ((error: string | null) => void) | null = null;
 
 async function connectToTab(): Promise<void> {
@@ -131,7 +131,11 @@ async function connectToTab(): Promise<void> {
       onDownloadResult?.(msg.error);
       onDownloadResult = null;
     } else if (msg.busy) {
-      // An export from a closed popup still runs in this tab.
+      // An export from a closed popup still runs in this tab. A click that
+      // came before this message gets no export of its own.
+      onExtractResult?.('busy');
+      onExtractResult = null;
+      setLoading(false);
       setLoading(true, msg.busy);
     } else {
       setLoading(false);
@@ -203,7 +207,7 @@ async function extractContent(target: SingleExportTarget, format: BatchFormat): 
   await tabPortReady;
   const port = tabPort;
   const response = port
-    ? await new Promise<ExtractResponse | undefined>((resolve) => {
+    ? await new Promise<ExtractResponse | 'busy' | undefined>((resolve) => {
         onExtractResult = resolve;
         const request: SingleExportRequest = { action: 'SINGLE_EXPORT', target, format, settings: readSettingsForm() };
         port.postMessage(request);
@@ -213,6 +217,7 @@ async function extractContent(target: SingleExportTarget, format: BatchFormat): 
   // After an extension reload the content script already in the tab is
   // orphaned and can't answer, so the port closes without a result. Surface
   // the "reload the page" hint.
+  if (response === 'busy') throw new ExportBusyError();
   if (!response) {
     throw new Error(chrome.i18n.getMessage('error_reload') || 'Reload the page and try again.');
   }
@@ -270,7 +275,12 @@ async function localVideoAttachments(data: ExtractedContent): Promise<VideoAttac
   return result.attachments;
 }
 
+// Another export still runs in this tab, and the popup already shows it as
+// busy (SINGLE_EXPORT_STATE). Not an error to show.
+class ExportBusyError extends Error {}
+
 function handleExtractionError(err: unknown): void {
+  if (err instanceof ExportBusyError) return;
   // The popup shows the error, so the content script must not try the export
   // again when the popup closes.
   claimExport();
