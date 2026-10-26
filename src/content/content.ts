@@ -432,7 +432,8 @@ const BATCH_MARKER_RE = /[#&]xclipper=batch/;
 // 0002 #7) rather than recording a failure and pressing on. Only consulted when
 // no <article> rendered — a deleted/withheld tweet ("unavailable"/"doesn't
 // exist") also has no article but uses different copy, so it stays a per-item
-// skip and returns null here.
+// skip and returns null here. The full-text window checks it too, to give up
+// on such a wall at once.
 function detectBatchInterstitial(): string | null {
   if (/^\/(i\/flow\/login|login|account\/access)/.test(window.location.pathname)) {
     return 'Signed out of X';
@@ -513,9 +514,24 @@ if (BATCH_MARKER_RE.test(window.location.hash)) {
 // full, and waits for its text (resolve-full-text.ts). No text when the page
 // didn't show the post, or still shows it cut off.
 
+// Shorter than waitForArticle's 15 s: someone is waiting on this export, and
+// the post's own page normally shows it within a few seconds.
+const FULL_TEXT_WAIT_MS = 8000;
+
 async function runFullTextExtract(): Promise<void> {
   const msg: FullTextResultMessage = { action: 'FULL_TEXT_RESULT', tweetId: extractTweetId() };
-  if (await waitForArticle()) {
+  // Answer at once on a sign-in or rate-limit page rather than wait it out.
+  const start = Date.now();
+  let shown = false;
+  while (Date.now() - start < FULL_TEXT_WAIT_MS) {
+    if (document.querySelector('article[role="article"]')) {
+      shown = true;
+      break;
+    }
+    if (detectBatchInterstitial()) break;
+    await delay(200);
+  }
+  if (shown) {
     const response = await extract({ singleTweet: true, fullText: false });
     const post = response.data?.body?.body;
     if (post?.type === 'tweet' && !post.truncated) msg.text = post.text;
