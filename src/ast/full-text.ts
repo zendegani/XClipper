@@ -6,7 +6,9 @@
 // export fills those in (content.ts); whatever stays cut off ends with "…" and
 // a link to the post (just "…" when it has no id) rather than stopping
 // mid-line. Only posts with a "Show more" button are found: X cuts long quotes
-// too, but without one.
+// too, but without one. Leaving a quote as X's preview is deliberate: a short
+// post that quotes a long one shouldn't export as mostly the quote, and a user
+// who wants all of it exports the quoted post on its own.
 
 import type { Block, Document, InlineNode, TweetNode } from './types';
 
