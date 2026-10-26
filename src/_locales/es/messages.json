@@ -596,6 +596,9 @@
   "copied": {
     "message": "¡Copiado!"
   },
+  "copy_failed": {
+    "message": "No se pudo copiar al portapapeles. Inténtalo de nuevo."
+  },
   "video_unresolved": {
     "message": "El vídeo se mantiene como enlace — recarga la publicación una vez y vuelve a exportarla."
   }

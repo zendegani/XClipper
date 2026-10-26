@@ -596,6 +596,9 @@
   "copied": {
     "message": "已复制！"
   },
+  "copy_failed": {
+    "message": "无法复制到剪贴板。请重试。"
+  },
   "video_unresolved": {
     "message": "视频保留为链接 — 重新加载帖子一次，然后再次导出。"
   }

@@ -596,6 +596,9 @@
   "copied": {
     "message": "Copied!"
   },
+  "copy_failed": {
+    "message": "Couldn’t copy to the clipboard. Try again."
+  },
   "video_unresolved": {
     "message": "Video kept as a link — reload the post once, then export again."
   }

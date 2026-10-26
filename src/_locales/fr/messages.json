@@ -596,6 +596,9 @@
   "copied": {
     "message": "Copié !"
   },
+  "copy_failed": {
+    "message": "Impossible de copier dans le presse-papiers. Réessayez."
+  },
   "video_unresolved": {
     "message": "Vidéo conservée sous forme de lien — rechargez une fois le post, puis réexportez."
   }

@@ -148,8 +148,8 @@ describe('in-page download', () => {
 
 // Add to Obsidian hands the note over through the clipboard (issue #181). If
 // the copy fails, opening Obsidian would make a note out of whatever the
-// clipboard held before, so it must stay closed.
-describe('in-page Add to Obsidian', () => {
+// clipboard held before, so it must stay closed. Copy must not claim success.
+describe('in-page clipboard exports', () => {
   const writeText = vi.fn<(text: string) => Promise<void>>();
   const open = vi.fn();
 
@@ -178,6 +178,20 @@ describe('in-page Add to Obsidian', () => {
     expect(open).not.toHaveBeenCalled();
     expect(toastText()).toBe('obsidian_copy_failed');
   });
+
+  for (const subAction of ['copy', 'copy-txt']) {
+    it(`says so when ${subAction} cannot reach the clipboard`, async () => {
+      writeText.mockRejectedValue(new Error('Document is not focused.'));
+      await autoExtract(subAction);
+      expect(toastText()).toBe('copy_failed');
+    });
+
+    it(`confirms ${subAction} when the clipboard takes it`, async () => {
+      await autoExtract(subAction);
+      expect(writeText).toHaveBeenCalledWith(expect.stringContaining('A tweet'));
+      expect(toastText()).toBe('copied');
+    });
+  }
 });
 
 describe('in-page export failures', () => {
