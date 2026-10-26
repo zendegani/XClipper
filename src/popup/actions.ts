@@ -8,7 +8,13 @@ import type {
   DownloadRequest,
   ExtractedContent,
   ResolveVideoUrlsResponse,
+  SingleExportClaimMessage,
+  SingleExportRequest,
+  SingleExportResultMessage,
+  SingleExportState,
+  SingleExportTarget,
 } from '../types/messages';
+import { SINGLE_EXPORT_PORT } from '../types/messages';
 import { postProcess, markdownOptions, buildFilename, type PostProcessResult } from '../shared/post-process';
 import { buildFormatExport, type ExportFormat } from '../shared/export-formats';
 import { recordExport } from '../shared/review-prompt';
@@ -99,10 +105,54 @@ function setLoading(loading: boolean, target?: 'download' | 'copy' | 'obsidian' 
   }
 }
 
+// The popup's port to the tab's content script (issue #191). Chrome closes it
+// when the popup closes. Then the content script does the last step of an
+// export that the popup did not claim. null when the tab has no content script.
+let tabPort: chrome.runtime.Port | null = null;
+let tabPortReady: Promise<void> = Promise.resolve();
+let onExtractResult: ((response: ExtractResponse | undefined) => void) | null = null;
+
+async function connectToTab(): Promise<void> {
+  const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+  const url = tab?.url || '';
+  if (!tab?.id || !hostMatches(url, 'x.com', 'www.x.com') || !url.includes('/status/')) return;
+
+  const port = chrome.tabs.connect(tab.id, { name: SINGLE_EXPORT_PORT });
+  port.onMessage.addListener((msg: SingleExportResultMessage | SingleExportState) => {
+    if (msg.action === 'SINGLE_EXPORT_RESULT') {
+      onExtractResult?.(msg.response);
+      onExtractResult = null;
+    } else if (msg.busy) {
+      // An export from a closed popup still runs in this tab.
+      setLoading(true, msg.busy);
+    } else {
+      setLoading(false);
+    }
+  });
+  port.onDisconnect.addListener(() => {
+    // No content script answers, for example an old one after an extension
+    // reload. Reading lastError stops Chrome from logging it.
+    void chrome.runtime.lastError;
+    tabPort = null;
+    onExtractResult?.(undefined);
+    onExtractResult = null;
+  });
+  tabPort = port;
+}
+
+// Tell the content script that the popup does the last step now, so the
+// content script does not do it too when the popup closes. Send it after
+// every slow step and before the step that the user sees.
+function claimExport(): void {
+  const msg: SingleExportClaimMessage = { action: 'SINGLE_EXPORT_CLAIM' };
+  tabPort?.postMessage(msg);
+}
+
 // Shared up-front guard + extraction: resolve the active tab, confirm it's a
-// specific X.com status page, and run EXTRACT. Both the Markdown flows and the
-// alternate-format exports build on the ExtractedContent it returns.
-async function extractContent(includeMetadata: boolean): Promise<ExtractedContent> {
+// specific X.com status page, and ask the content script for the post. Both
+// the Markdown flows and the alternate-format exports build on the
+// ExtractedContent it returns.
+async function extractContent(target: SingleExportTarget, format: BatchFormat): Promise<ExtractedContent> {
   const [tab] = await chrome.tabs.query({
     active: true,
     currentWindow: true,
@@ -123,16 +173,19 @@ async function extractContent(includeMetadata: boolean): Promise<ExtractedConten
     );
   }
 
-  const response: ExtractResponse | undefined = await chrome.tabs.sendMessage(tab.id, {
-    action: 'EXTRACT',
-    includeMetadata,
-  });
+  await tabPortReady;
+  const port = tabPort;
+  const response = port
+    ? await new Promise<ExtractResponse | undefined>((resolve) => {
+        onExtractResult = resolve;
+        const request: SingleExportRequest = { action: 'SINGLE_EXPORT', target, format, settings: readSettingsForm() };
+        port.postMessage(request);
+      })
+    : undefined;
 
   // After an extension reload the content script already in the tab is
-  // orphaned: its async EXTRACT handler can't answer, so tabs.sendMessage
-  // resolves `undefined` (instead of rejecting with "Receiving end does not
-  // exist"). Surface the same "reload the page" hint rather than letting a
-  // raw `undefined.success` TypeError leak through.
+  // orphaned and can't answer, so the port closes without a result. Surface
+  // the "reload the page" hint.
   if (!response) {
     throw new Error(chrome.i18n.getMessage('error_reload') || 'Reload the page and try again.');
   }
@@ -148,13 +201,14 @@ async function extractMarkdown(
 ): Promise<PostProcessResult> {
   const opts = markdownOptions(readSettingsForm(), forAction);
 
-  // Need engagement data if either renderer wants it.
-  const data = await extractContent(opts.includeMetadata || opts.inlineStats === true);
+  const data = await extractContent(forAction, 'md');
 
-  return postProcess(data, {
+  const result = postProcess(data, {
     ...opts,
     videoAttachments: opts.downloadImages ? await localVideoAttachments(data) : undefined,
   });
+  claimExport();
+  return result;
 }
 
 // Turn this post's videos into local files, when the user asked for Media.
@@ -192,6 +246,9 @@ async function localVideoAttachments(data: ExtractedContent): Promise<VideoAttac
 }
 
 function handleExtractionError(err: unknown): void {
+  // The popup shows the error, so the content script must not try the export
+  // again when the popup closes.
+  claimExport();
   const message =
     err instanceof Error ? err.message : (chrome.i18n.getMessage('error_unexpected') || 'An unexpected error occurred.');
 
@@ -205,6 +262,8 @@ function handleExtractionError(err: unknown): void {
 
 // Wires the four export buttons. Call once on popup open.
 export function initActions(): void {
+  tabPortReady = connectToTab();
+
   // ─── Download / Copy: dispatch on the selected format ───
   // '.md' runs the full Markdown pipeline (frontmatter, local images, filename
   // template); the other four go through buildFormatExport.
@@ -399,7 +458,8 @@ async function runFormatExport(format: ExportFormat, action: 'download' | 'copy'
   statusEl.className = 'status hidden';
 
   try {
-    const data = await extractContent(true);
+    const data = await extractContent(action, format);
+    claimExport();
     const obsidianFriendly = chkObsidianFriendly.checked;
     const exported = buildFormatExport(format, data, {
       includeEngagement: chkInlineStats.checked,

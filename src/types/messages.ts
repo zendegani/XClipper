@@ -34,11 +34,6 @@ export interface ExtractedContent {
   body?: import('../ast/types').Document;
 }
 
-export interface ExtractRequest {
-  action: 'EXTRACT';
-  includeMetadata?: boolean;
-}
-
 // ─── Popup single export (issue #191) ───
 // These go over a port that the popup opens to the tab (chrome.tabs.connect),
 // not through the background router. Chrome closes the port when the popup
@@ -372,7 +367,6 @@ export interface GraphqlBatchStatusResponse {
 }
 
 export type MessageRequest =
-  | ExtractRequest
   | DownloadRequest
   | ResolveVideoUrlsRequest
   | ResolveFullTextRequest
