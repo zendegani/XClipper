@@ -327,10 +327,13 @@
     "message": "A batch job is already running."
   },
   "btn_obsidian_hint": {
-    "message": "Configure vault, subfolder, and frontmatter fields in Settings.\nUse the 'Download .md' button for long threads or images."
+    "message": "Configure vault, subfolder, and frontmatter fields in Settings.\nThe note is sent through your clipboard. Use the 'Download .md' button to save images locally."
   },
   "obsidian_opened": {
-    "message": "Opening Obsidian…"
+    "message": "Note copied to clipboard. Opening Obsidian…"
+  },
+  "obsidian_copy_failed": {
+    "message": "Couldn’t copy the note to the clipboard, so Obsidian wasn’t opened. Try again."
   },
   "extracting": {
     "message": "Extracting…"

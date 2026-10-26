@@ -327,10 +327,13 @@
     "message": "Ya hay un lote en ejecución."
   },
   "btn_obsidian_hint": {
-    "message": "Configura el vault, la subcarpeta y los campos del frontmatter en Configuración.\nPara hilos largos o imágenes usa el botón 'Descargar .md'."
+    "message": "Configura el vault, la subcarpeta y los campos del frontmatter en Configuración.\nLa nota se envía a través del portapapeles. Para guardar las imágenes localmente usa el botón 'Descargar .md'."
   },
   "obsidian_opened": {
-    "message": "Abriendo Obsidian…"
+    "message": "Nota copiada al portapapeles. Abriendo Obsidian…"
+  },
+  "obsidian_copy_failed": {
+    "message": "No se pudo copiar la nota al portapapeles, así que Obsidian no se abrió. Inténtalo de nuevo."
   },
   "extracting": {
     "message": "Extrayendo…"

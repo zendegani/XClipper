@@ -327,10 +327,13 @@
     "message": "Une tâche en lot est déjà en cours."
   },
   "btn_obsidian_hint": {
-    "message": "Configurez le vault, le sous-dossier et les champs du frontmatter dans les Paramètres.\nPour les fils longs ou les images, utilisez le bouton 'Télécharger .md'."
+    "message": "Configurez le vault, le sous-dossier et les champs du frontmatter dans les Paramètres.\nLa note passe par le presse-papiers. Pour enregistrer les images localement, utilisez le bouton 'Télécharger .md'."
   },
   "obsidian_opened": {
-    "message": "Ouverture d’Obsidian…"
+    "message": "Note copiée dans le presse-papiers. Ouverture d’Obsidian…"
+  },
+  "obsidian_copy_failed": {
+    "message": "Impossible de copier la note dans le presse-papiers, Obsidian n’a donc pas été ouvert. Réessayez."
   },
   "extracting": {
     "message": "Extraction…"

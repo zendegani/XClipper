@@ -142,9 +142,11 @@ function stripAutoMarker(): void {
 
 // Clipboard write with a hidden-textarea fallback for when the Clipboard API is
 // blocked (e.g. the tab isn't focused).
-async function copyText(text: string): Promise<void> {
+// Returns whether the text reached the clipboard.
+async function copyText(text: string): Promise<boolean> {
   try {
     await navigator.clipboard.writeText(text);
+    return true;
   } catch {
     const ta = document.createElement('textarea');
     ta.value = text;
@@ -152,8 +154,10 @@ async function copyText(text: string): Promise<void> {
     ta.style.opacity = '0';
     document.body.appendChild(ta);
     ta.select();
-    try { document.execCommand('copy'); } catch { /* ignore */ }
+    let copied = false;
+    try { copied = document.execCommand('copy'); } catch { /* ignore */ }
     ta.remove();
+    return copied;
   }
 }
 
@@ -241,9 +245,15 @@ async function runAutoExtract(
   if (action === 'copy') {
     await copyText(result.markdown);
   } else if (action === 'obsidian') {
+    // Obsidian reads the note from the clipboard. If the copy failed, opening
+    // it would make a note out of whatever the clipboard held before.
+    if (!(await copyText(result.markdown))) {
+      showInPlaceToast(chrome.i18n.getMessage('obsidian_copy_failed') || 'Couldn’t copy the note to the clipboard, so Obsidian wasn’t opened. Try again.');
+      return;
+    }
     const vault = settings.obsidianVault.trim();
     const folder = settings.obsidianFolder.trim();
-    const url = buildObsidianUrl(result.markdown, result.filename, vault, folder);
+    const url = buildObsidianUrl(result.filename, vault, folder);
     if (allowClose) {
       // New-tab flow: navigate the tab itself so the OS protocol handler
       // picks it up.
@@ -288,7 +298,7 @@ async function runAutoExtract(
       : 'downloaded';
     const fallback =
       action === 'copy' ? 'Copied!'
-      : action === 'obsidian' ? 'Opening Obsidian…'
+      : action === 'obsidian' ? 'Note copied to clipboard. Opening Obsidian…'
       : 'Downloaded!';
     showInPlaceToast(chrome.i18n.getMessage(key) || fallback);
   }

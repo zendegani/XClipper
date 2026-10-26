@@ -327,10 +327,13 @@
     "message": "一括ジョブはすでに実行中です。"
   },
   "btn_obsidian_hint": {
-    "message": "Vault・サブフォルダ・frontmatter のフィールドは「設定」で構成できます。\n長いスレッドや画像は「.mdをダウンロード」ボタンをお使いください。"
+    "message": "Vault・サブフォルダ・frontmatter のフィールドは「設定」で構成できます。\nノートはクリップボード経由で送られます。画像をローカルに保存するには「.mdをダウンロード」ボタンをお使いください。"
   },
   "obsidian_opened": {
-    "message": "Obsidianを開いています…"
+    "message": "ノートをクリップボードにコピーしました。Obsidianを開いています…"
+  },
+  "obsidian_copy_failed": {
+    "message": "ノートをクリップボードにコピーできなかったため、Obsidianを開きませんでした。もう一度お試しください。"
   },
   "extracting": {
     "message": "抽出中…"
