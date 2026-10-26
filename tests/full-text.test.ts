@@ -108,6 +108,54 @@ describe('posts X cut off at "Show more"', () => {
   });
 });
 
+describe('the post\'s own page (#xclipper=fulltext)', () => {
+  afterEach(() => {
+    runtime.sendMessage = originalSendMessage;
+  });
+
+  it('waits out an error in the sidebar while the post loads', async () => {
+    // The 1100 px window shows the Trending sidebar, which can say this on a
+    // normal page (as in the Huawei capture) before the post has loaded.
+    document.body.innerHTML = `
+      <div id="react-root">
+        <div data-testid="primaryColumn"></div>
+        <div data-testid="sidebarColumn"><span>Something went wrong. Try reloading.</span></div>
+      </div>`;
+    Object.defineProperty(window, 'location', {
+      value: {
+        ...window.location,
+        pathname: '/bob/status/111',
+        href: 'https://x.com/bob/status/111#xclipper=fulltext',
+        hash: '#xclipper=fulltext',
+      },
+      writable: true,
+      configurable: true,
+    });
+    const result = new Promise<unknown>((resolve) => {
+      runtime.sendMessage = vi.fn((msg: { action: string }) => {
+        if (msg.action === 'FULL_TEXT_RESULT') resolve(msg);
+      });
+    });
+    vi.resetModules();
+    await import('../src/content/content');
+    await new Promise((r) => setTimeout(r, 400));
+    document.querySelector('[data-testid="primaryColumn"]')!.innerHTML = `
+      <article role="article">
+        <div data-testid="User-Name">
+          <a href="/bob"><span>Bob</span></a>
+          <a href="/bob"><span>@bob</span></a>
+        </div>
+        <a href="/bob/status/111"><time datetime="2026-05-01T00:00:00.000Z">May 1</time></a>
+        <div data-testid="tweetText"><span>A long post, in full.</span></div>
+      </article>`;
+    expect(await result).toEqual({
+      action: 'FULL_TEXT_RESULT',
+      tweetId: '111',
+      text: [{ type: 'text', value: 'A long post, in full.' }],
+    });
+  });
+});
+
 describe('truncatedTweets', () => {
   const post = (tweetId: string, extra: Partial<TweetNode> = {}): TweetNode => ({
     type: 'tweet',
