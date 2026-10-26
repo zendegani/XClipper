@@ -21,7 +21,7 @@ flowchart LR
   AST --> RM["renderMarkdown"]
   AST --> RP["renderPdfHtml"]
   RM --> MD["Markdown .md<br/>+ frontmatter (postProcess)"]
-  RM --> OB["Obsidian<br/>obsidian:// URI"]
+  RM --> OB["Obsidian<br/>clipboard + obsidian:// URI"]
   RP --> PDF["PDF<br/>Chrome native print"]
 ```
 
@@ -119,7 +119,7 @@ flowchart TD
   EC --> PP["postProcess<br/>frontmatter · filename · images · inline stats"]
   PP -->|DOWNLOAD_MD → background| DL["chrome.downloads (.md + images)"]
   PP -->|clipboard| CP["Copy"]
-  PP -->|buildObsidianUrl| OBS["obsidian:// navigation"]
+  PP -->|clipboard + buildObsidianUrl| OBS["obsidian://…&clipboard navigation"]
   AST -->|EXPORT_PDF path| RPF["renderPdfFragment(doc)"]
   RPF -->|PDF_PRINT_REQUEST → background| PRINT["print.html → window.print()"]
   PRINT --> PDF["Save as PDF (Chrome)"]
@@ -127,8 +127,10 @@ flowchart TD
 
 - **Markdown / Copy / Obsidian** share the markdown plane. `postProcess` prepends
   YAML frontmatter (default or Obsidian-friendly schema, per-field toggles),
-  resolves local images, and builds the filename. Obsidian just delivers that
-  same markdown through an `obsidian://` URI instead of a file.
+  resolves local images, and builds the filename. Obsidian gets that same
+  markdown through the clipboard: the note is copied, then an
+  `obsidian://new?…&clipboard` URI tells Obsidian to read it from there. The
+  note never goes in the URL (#181).
 - **PDF** is a separate plane: AST → HTML fragment → handed to the background
   worker, which opens an extension-origin `print.html` and calls `window.print()`.
   It never touches markdown or `postProcess`. (See ADR 0001 → "Renderer decisions".)
