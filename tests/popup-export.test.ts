@@ -2,6 +2,7 @@ import { beforeEach, describe, expect, it, vi } from 'vitest';
 import {
   SINGLE_EXPORT_PORT,
   type DownloadRequest,
+  type DownloadResponse,
   type SingleExportRequest,
   type SingleExportState,
 } from '../src/types/messages';
@@ -14,8 +15,11 @@ import { DEFAULT_SETTINGS, type Settings } from '../src/shared/settings';
 
 const chromeStub = (globalThis as unknown as { chrome: { runtime: Record<string, unknown> } }).chrome;
 
+// The background's answer to DOWNLOAD_MD, given when `downloadHeld` resolves.
+let downloadAnswer: DownloadResponse = { success: true, downloadId: 1 };
+let downloadHeld: Promise<void> = Promise.resolve();
 const sendMessage = vi.fn((msg: { action: string }, cb?: (r: unknown) => void) => {
-  if (msg.action === 'DOWNLOAD_MD') cb?.({ success: true, downloadId: 1 });
+  if (msg.action === 'DOWNLOAD_MD') void downloadHeld.then(() => cb?.(downloadAnswer));
   else cb?.(undefined);
 });
 chromeStub.runtime.sendMessage = sendMessage;
@@ -117,6 +121,8 @@ describe('popup export', () => {
   beforeEach(() => {
     buildTweet();
     sendMessage.mockClear();
+    downloadAnswer = { success: true, downloadId: 1 };
+    downloadHeld = Promise.resolve();
     writeText.mockReset().mockResolvedValue(undefined);
     open.mockReset();
     Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
@@ -194,6 +200,41 @@ describe('popup export', () => {
     await exportEnded(reopened);
     expect(writeText).toHaveBeenCalledWith(expect.stringContaining('A tweet'));
     expect(toastText()).toBe('copied');
+  });
+
+  // The popup's own download goes through the content script, because the
+  // background can take long to answer (zip mode fetches the media first).
+  const fileRequest: DownloadRequest = { action: 'DOWNLOAD_MD', content: '# Note', filename: 'note.md' };
+
+  it('answers the open popup with the download result', async () => {
+    const popup = openPopup();
+    popup.send(request('download'));
+    await popup.next('SINGLE_EXPORT_RESULT');
+    popup.send({ action: 'SINGLE_EXPORT_DOWNLOAD', request: fileRequest });
+
+    expect(await popup.next('SINGLE_EXPORT_DOWNLOADED')).toEqual({ action: 'SINGLE_EXPORT_DOWNLOADED', error: null });
+    expect(downloads()).toEqual([fileRequest]);
+    expect(toastText()).toBe('');
+  });
+
+  it('shows the download error on the page when the popup closed before the answer', async () => {
+    let release = () => {};
+    downloadHeld = new Promise((r) => (release = r));
+    downloadAnswer = { success: false, error: 'Disk full' };
+    const popup = openPopup();
+    popup.send(request('download'));
+    await popup.next('SINGLE_EXPORT_RESULT');
+    popup.send({ action: 'SINGLE_EXPORT_DOWNLOAD', request: fileRequest });
+    popup.close();
+
+    const reopened = openPopup();
+    expect(reopened.received[0]).toEqual({ action: 'SINGLE_EXPORT_STATE', busy: 'download' });
+    release();
+    await exportEnded(reopened);
+
+    // Only the popup's download, not a second one from the content script.
+    expect(downloads()).toEqual([fileRequest]);
+    expect(toastText()).toBe('Disk full');
   });
 
   it('tells a new popup nothing when no export runs', () => {

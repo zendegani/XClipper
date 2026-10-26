@@ -66,6 +66,21 @@ export interface SingleExportClaimMessage {
   action: 'SINGLE_EXPORT_CLAIM';
 }
 
+// Popup → content: download this file. This also claims the export. The
+// content script sends DOWNLOAD_MD to the background, because the background
+// can take long to answer (zip mode fetches the media first). If the popup has
+// closed when the answer comes, the content script shows it in a toast.
+export interface SingleExportDownloadMessage {
+  action: 'SINGLE_EXPORT_DOWNLOAD';
+  request: DownloadRequest;
+}
+
+// Content → popup: the error to show, or null when Chrome started the download.
+export interface SingleExportDownloadedMessage {
+  action: 'SINGLE_EXPORT_DOWNLOADED';
+  error: string | null;
+}
+
 // Content → popup: an export that a closed popup started still runs (`busy`)
 // or has ended (null). Sent when a popup connects during that export, and when
 // that export ends.
