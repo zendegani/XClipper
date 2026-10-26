@@ -8,6 +8,7 @@ import type {
   ResolveFullTextRequest,
   ResolveFullTextResponse,
   ResolveVideoUrlsResponse,
+  SingleExportClaimMessage,
   SingleExportRequest,
   SingleExportResultMessage,
   SingleExportState,
@@ -235,12 +236,14 @@ async function runAutoExtract(
     return;
   }
 
-  await finishAutoExtract(response.data, action, settings, { allowClose });
+  await finishMarkdownExport(response.data, action, settings, { allowClose });
 }
 
 // The last step of a Markdown export: post-process, then copy, open Obsidian,
-// or download, and tell the user the result.
-async function finishAutoExtract(
+// or download, and tell the user the result. The in-page flows and a popup
+// export whose popup closed both end here. `zip` is the popup's Zip choice;
+// the in-page flows don't offer one.
+async function finishMarkdownExport(
   data: ExtractedContent,
   action: AutoAction,
   settings: Settings,
@@ -390,17 +393,18 @@ async function runAutoExtractFormat(
     return;
   }
 
-  await finishAutoExtractFormat(response.data, format, mode, settings, allowClose);
+  await finishFormatExport(response.data, format, mode, settings, { allowClose });
 }
 
 // The last step of a TXT / HTML / JSON / CSV export.
-async function finishAutoExtractFormat(
+async function finishFormatExport(
   data: ExtractedContent,
   format: ExportFormat,
   mode: 'copy' | 'download',
   settings: Settings,
-  allowClose: boolean
+  opts: { allowClose: boolean }
 ): Promise<void> {
+  const { allowClose } = opts;
   const obsidianFriendly = settings.obsidianFriendly;
   const frontmatterFields = obsidianFriendly
     ? settings.frontmatterFieldsObsidian
@@ -703,7 +707,7 @@ chrome.runtime.onConnect.addListener((port) => {
     const state: SingleExportState = { action: 'SINGLE_EXPORT_STATE', busy: popupExport.request.target };
     port.postMessage(state);
   }
-  port.onMessage.addListener((msg: SingleExportRequest | { action: 'SINGLE_EXPORT_CLAIM' }) => {
+  port.onMessage.addListener((msg: SingleExportRequest | SingleExportClaimMessage) => {
     if (msg.action === 'SINGLE_EXPORT') void runPopupExport(port, msg);
     else if (msg.action === 'SINGLE_EXPORT_CLAIM' && popupExport?.owner === port) popupExport = null;
   });
@@ -721,8 +725,8 @@ async function runPopupExport(port: chrome.runtime.Port, request: SingleExportRe
   const job: PopupExport = { request, owner: port };
   popupExport = job;
   const { settings, format } = request;
-  // Same metadata choice as the popup flows: Markdown needs it only if a
-  // renderer wants it; the other formats always get it.
+  // Same metadata choice as runAutoExtract and runAutoExtractFormat: Markdown
+  // needs it only if a renderer wants it; the other formats always get it.
   const response = await extract({
     includeMetadata: format === 'md' ? settings.includeMetadata || settings.inlineStats : true,
   });
@@ -745,9 +749,9 @@ async function finishPopupExport(job: PopupExport, data: ExtractedContent): Prom
   const { target, format, settings } = job.request;
   try {
     if (target === 'obsidian' || format === 'md') {
-      await finishAutoExtract(data, target, settings, { allowClose: false, zip: settings.batchZip });
+      await finishMarkdownExport(data, target, settings, { allowClose: false, zip: settings.batchZip });
     } else {
-      await finishAutoExtractFormat(data, format, target, settings, false);
+      await finishFormatExport(data, format, target, settings, { allowClose: false });
     }
   } finally {
     endPopupExport(job);
