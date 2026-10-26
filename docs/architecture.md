@@ -143,12 +143,22 @@ batch engine.
 
 ```mermaid
 flowchart LR
-  Popup["Popup buttons"] -->|EXTRACT / EXPORT_PDF| Content["content.ts<br/>extract() / runPdfExport()"]
+  Popup["Popup buttons"] -->|"SINGLE_EXPORT port / EXPORT_PDF"| Content["content.ts<br/>extract() / runPdfExport()"]
   Inline["Inline button (injector.ts)"] -->|"#xclipper= marker or in-page event"| Content
   Ctx["Context menu (background.ts)"] -->|"new tab + marker, or XCLIPPER_AUTOEXTRACT"| Content
   Content --> domToAst["domToAst()"]
   Content -->|DOWNLOAD_MD / PDF_PRINT_REQUEST| BG["background.ts<br/>downloads · print · context menus"]
 ```
+
+The popup's Download, Copy, and Add to Obsidian go over a port that the popup
+opens to the tab (`SINGLE_EXPORT_PORT`), not through the background router.
+While the popup is open, it gets the post and does the last step itself,
+because a content script can't write the clipboard while the popup has the
+focus. Chrome closes the port when the popup closes. If that happens before the
+popup sends `SINGLE_EXPORT_CLAIM`, the content script does the last step with
+the popup's settings (`finishAutoExtract`) and shows a toast (#191). A popup
+opened during that export gets `SINGLE_EXPORT_STATE` and shows the button as
+busy until the export ends.
 
 `background.ts` is the privileged hub: it owns the message route table (each
 action with its trusted senders, checked by `router.ts` before the handler
