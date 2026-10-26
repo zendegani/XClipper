@@ -3,8 +3,10 @@
 // On a permalink X cuts every post but the requested one at about 280
 // characters, so a thread exported from a later post, the posts a reply
 // answers, a quote, or a post embedded in an article can arrive cut off. Single
-// export fills those in (content.ts); whatever stays cut off ends with a link
-// to the post rather than stopping mid-line.
+// export fills those in (content.ts); whatever stays cut off ends with "…" and
+// a link to the post (just "…" when it has no id) rather than stopping
+// mid-line. Only posts with a "Show more" button are found: X cuts long quotes
+// too, but without one.
 
 import type { Block, Document, InlineNode, TweetNode } from './types';
 
@@ -33,7 +35,7 @@ export function truncatedTweets(doc: Document): TweetNode[] {
 }
 
 // The text renderers show: a cut-off post ends with "…" and a link to its own
-// page, where X shows all of it.
+// page, where X shows all of it, or just "…" when it has no id to link.
 export function displayText(tweet: TweetNode): InlineNode[] {
   if (!tweet.truncated) return tweet.text;
   if (!tweet.tweetId) return [...tweet.text, { type: 'text', value: '…' }];

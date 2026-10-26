@@ -80,7 +80,8 @@ async function fillTruncatedText(data: ExtractedContent): Promise<void> {
   let filled = 0;
   for (const tweet of truncated) {
     const text = texts.get(tweet.tweetId);
-    if (!text) continue;
+    // An empty text would replace the preview with nothing.
+    if (!text?.length) continue;
     tweet.text = text;
     delete tweet.truncated;
     filled++;

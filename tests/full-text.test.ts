@@ -80,6 +80,32 @@ describe('posts X cut off at "Show more"', () => {
     const res = await extract({ singleTweet: true });
     expect(res.data!.markdown).toContain('[Show more](https://x.com/bob/status/111)');
   });
+
+  it('keeps the preview when the background found an empty text', async () => {
+    answerFullText([['111', []]]);
+    const res = await extract({ singleTweet: true });
+    expect(res.data!.markdown).toContain('cuts off right in the… [Show more](https://x.com/bob/status/111)');
+  });
+
+  it("doesn't take a quote's cut-off for the post's own", async () => {
+    // @bob's post has no text of its own, so the quote card's text comes first.
+    document.querySelector('article')!.outerHTML = `
+      <article role="article">
+        <div data-testid="User-Name">
+          <a href="/bob"><span>Bob</span></a>
+          <a href="/bob"><span>@bob</span></a>
+        </div>
+        <a href="/bob/status/111"><time datetime="2026-05-01T00:00:00.000Z">May 1</time></a>
+        <div role="link">
+          <div>
+            <div data-testid="tweetText"><span>A long quoted post that X cuts off</span></div>
+            <button role="button" data-testid="tweet-text-show-more-link" type="button"><span>Show more</span></button>
+          </div>
+        </div>
+      </article>`;
+    const res = await extract({ singleTweet: true, fullText: false });
+    expect(res.data!.body!.context?.[0].truncated).toBeUndefined();
+  });
 });
 
 describe('truncatedTweets', () => {

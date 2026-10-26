@@ -96,7 +96,8 @@ const RETRY_BASE_MS = 1200;
 
 // Per-item TweetDetail fetch — the bookmarks timeline carries only a tweet's
 // root, so an Article's full body and a self-thread's continuation tweets both
-// come from here (tweetDetailToDocument maps both). Built from the captured
+// come from here (tweetDetailToDocument maps both). Single export also uses it
+// for the full text of posts X cut off (resolve-full-text.ts). Built from the captured
 // TweetDetail request so the query-id + `features` stay current; we only swap in
 // the target id (`focalTweetId` is X's well-known TweetDetail variable). Returns
 // null when no TweetDetail request has been observed yet. Retries transient /

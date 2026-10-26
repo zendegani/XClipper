@@ -330,8 +330,8 @@ listen({
     }),
   },
   // Single export asks for the full text of the posts X cut off at "Show
-  // more". Only the content script asks, and only it answers, from the post's
-  // own page in the window this opens.
+  // more". The content script asks, and the content script on each post's own
+  // page answers. Answers are matched by post id, not by sender tab.
   RESOLVE_FULL_TEXT: { trust: ['x-content'], handle: resolveFullText },
   FULL_TEXT_RESULT: { trust: ['x-content'], handle: receiveFullText },
   // The HTML goes into an extension page, so only our content script may send it.

@@ -71,7 +71,9 @@ async function fromTweetDetail(
 const waiting = new Map<string, (text: InlineNode[] | undefined) => void>();
 
 // One window for every post, like the Scroll batch worker: unfocused, so the
-// popup stays open, and wide enough for X's full layout.
+// popup stays open, and wide enough for X's full layout. Stops at the first
+// page that gives no text: a sign-in or rate-limit page would block every
+// post after it too, and each one costs the full wait.
 async function fromPostPages(posts: Post[], texts: Map<string, InlineNode[]>): Promise<void> {
   let windowId: number | undefined;
   let tabId: number | undefined;
@@ -91,12 +93,17 @@ async function fromPostPages(posts: Post[], texts: Map<string, InlineNode[]>): P
         const win = await chrome.windows.create({ url, focused: false, type: 'popup', width: 1100, height: 900 });
         windowId = win?.id;
         tabId = win?.tabs?.[0]?.id;
+        // Without the tab, the next post would open a second window.
+        if (tabId === undefined) throw new Error('the window opened without a tab');
       } else {
         await chrome.tabs.update(tabId, { url });
       }
       const full = await text;
-      if (full) texts.set(post.tweetId, full);
-      else log('no full text from the page of', post.tweetId);
+      if (!full?.length) {
+        log('no full text from the page of', post.tweetId, '— leaving the rest cut off');
+        return;
+      }
+      texts.set(post.tweetId, full);
     }
   } catch (err) {
     log('reading posts from their pages stopped:', err);
