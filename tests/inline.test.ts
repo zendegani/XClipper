@@ -35,3 +35,19 @@ describe('extractInline — t.co links', () => {
     ]);
   });
 });
+
+describe('extractInline — links to other posts', () => {
+  it('makes the relative href absolute and labels it as the page shows it (#187)', () => {
+    const nodes = inline(
+      '<a dir="ltr" href="/alice/status/1234567890123456789" role="link"><span aria-hidden="true">https://</span>' +
+        'x.com/alice/stat<span aria-hidden="true">us/1234567890123456789</span><span aria-hidden="true">…</span></a>'
+    );
+    expect(nodes).toEqual([
+      {
+        type: 'link',
+        url: 'https://x.com/alice/status/1234567890123456789',
+        children: [{ type: 'text', value: 'x.com/alice/stat…' }],
+      },
+    ]);
+  });
+});
