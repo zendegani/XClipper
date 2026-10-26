@@ -125,12 +125,14 @@ function anchorToInline(a: Element): EntityNode | LinkNode | null {
   // External link. X labels a t.co link with aria-hidden spans and lets CSS
   // decide which show: the scheme and, for a link it shortens, the rest of the
   // URL are hidden, and the closing "…" is shown. So the URL is the full text
-  // minus that "…", and the label skips the hidden parts (#158).
+  // minus that "…", and the label skips the hidden parts (#158). A link to
+  // another post has a relative href but the same label, so it gets the same
+  // label and an absolute URL (#187).
   const isTco = /^https?:\/\/t\.co\//.test(href);
   const children: InlineNode[] = [];
   for (const child of a.childNodes) {
     const hidden =
-      isTco &&
+      (isTco || !!xPath) &&
       child.nodeType === 1 &&
       (child as Element).getAttribute('aria-hidden') === 'true' &&
       child.textContent !== '…';
@@ -138,13 +140,14 @@ function anchorToInline(a: Element): EntityNode | LinkNode | null {
   }
   return {
     type: 'link',
-    url: resolveExternalUrl(href, isTco ? text.replace(/…$/, '') : text),
+    url: xPath ? `https://x.com${xPath}` : resolveExternalUrl(href, isTco ? text.replace(/…$/, '') : text),
     children: mergeAdjacentText(children),
   };
 }
 
 function xComPath(href: string): string | null {
-  if (href.startsWith('/')) return href;
+  // "//host/…" is protocol-relative, not an x.com path.
+  if (href.startsWith('/') && !href.startsWith('//')) return href;
   const m = href.match(/^https?:\/\/(?:www\.|m\.)?x\.com(\/.*)$/);
   return m ? m[1] : null;
 }
