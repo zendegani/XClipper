@@ -145,3 +145,60 @@ describe('in-page download', () => {
     });
   });
 });
+
+// Add to Obsidian hands the note over through the clipboard (issue #181). If
+// the copy fails, opening Obsidian would make a note out of whatever the
+// clipboard held before, so it must stay closed.
+describe('in-page Add to Obsidian', () => {
+  const writeText = vi.fn<(text: string) => Promise<void>>();
+  const open = vi.fn();
+
+  beforeEach(() => {
+    buildTweet();
+    savedSettings = {};
+    writeText.mockReset().mockResolvedValue(undefined);
+    open.mockReset();
+    Object.defineProperty(navigator, 'clipboard', { value: { writeText }, configurable: true });
+    window.open = open as typeof window.open;
+    document.execCommand = vi.fn(() => false);
+  });
+
+  it('copies the note and opens Obsidian with a short clipboard link', async () => {
+    await autoExtract('obsidian');
+
+    expect(writeText).toHaveBeenCalledWith(expect.stringContaining('A tweet'));
+    expect(open).toHaveBeenCalledWith(expect.stringMatching(/^obsidian:\/\/new\?file=[^&]+&clipboard$/), '_blank', 'noopener');
+    expect(toastText()).toBe('obsidian_opened');
+  });
+
+  it('does not open Obsidian when the copy fails', async () => {
+    writeText.mockRejectedValue(new Error('Document is not focused.'));
+    await autoExtract('obsidian');
+
+    expect(open).not.toHaveBeenCalled();
+    expect(toastText()).toBe('obsidian_copy_failed');
+  });
+});
+
+describe('in-page export failures', () => {
+  beforeEach(() => {
+    buildTweet();
+    sendMessage.mockClear();
+    savedSettings = {};
+  });
+
+  it('says why when the post cannot be extracted', async () => {
+    Object.defineProperty(window, 'location', {
+      value: { ...window.location, pathname: '/home', href: 'https://x.com/home', hash: '' },
+      writable: true,
+      configurable: true,
+    });
+    await autoExtract('download');
+
+    expect(sendMessage).not.toHaveBeenCalledWith(
+      expect.objectContaining({ action: 'DOWNLOAD_MD' }),
+      expect.any(Function)
+    );
+    expect(toastText()).toMatch(/^Not on an X\.com status page/);
+  });
+});

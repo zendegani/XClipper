@@ -221,7 +221,10 @@ async function runAutoExtract(
   stripAutoMarker();
 
   const article = await waitForArticle();
-  if (!article) return;
+  if (!article) {
+    showInPlaceToast(chrome.i18n.getMessage('error_reload') || 'Reload the page and try again.');
+    return;
+  }
 
   const settings = await loadSettings();
   const shouldClose = allowClose && settings.closeTabAfterExport;
@@ -231,7 +234,10 @@ async function runAutoExtract(
     includeMetadata: settings.includeMetadata || settings.inlineStats,
     singleTweet,
   });
-  if (!response.success || !response.data) return;
+  if (!response.success || !response.data) {
+    showInPlaceToast(response.error || chrome.i18n.getMessage('error_unexpected') || 'An unexpected error occurred.');
+    return;
+  }
 
   const mdOptions = markdownOptions(settings, action);
   const video: LocalVideoResult = mdOptions.downloadImages
@@ -283,6 +289,8 @@ async function runAutoExtract(
 
   // In-place runs (inline button / context menu on the current page) get a
   // brief toast since there's no popup UI or new tab to provide feedback.
+  // Obsidian gets it in a new tab too: that tab stays open, and the toast is
+  // the only sign the note replaced the user's clipboard.
   // A video that stays a link gets a toast in both flows, and the tab stays
   // open so the user can read it.
   const videoUnresolved = video.status === 'unresolved';
@@ -291,7 +299,7 @@ async function runAutoExtract(
       chrome.i18n.getMessage('video_unresolved') ||
         'Video kept as a link — reload the post once, then export again.'
     );
-  } else if (!allowClose) {
+  } else if (!allowClose || action === 'obsidian') {
     const key =
       action === 'copy' ? 'copied'
       : action === 'obsidian' ? 'obsidian_opened'
@@ -354,13 +362,19 @@ async function runAutoExtractFormat(
   stripAutoMarker();
 
   const article = await waitForArticle();
-  if (!article) return;
+  if (!article) {
+    showInPlaceToast(chrome.i18n.getMessage('error_reload') || 'Reload the page and try again.');
+    return;
+  }
 
   const settings = await loadSettings();
   // Always request metadata so CSV/JSON/HTML have engagement counts available
   // regardless of the toggles — mirrors the popup's runFormatExport.
   const response = await extract({ includeMetadata: true, singleTweet });
-  if (!response.success || !response.data) return;
+  if (!response.success || !response.data) {
+    showInPlaceToast(response.error || chrome.i18n.getMessage('error_unexpected') || 'An unexpected error occurred.');
+    return;
+  }
 
   const obsidianFriendly = settings.obsidianFriendly;
   const frontmatterFields = obsidianFriendly
