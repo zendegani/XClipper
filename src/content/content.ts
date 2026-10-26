@@ -434,14 +434,14 @@ const BATCH_MARKER_RE = /[#&]xclipper=batch/;
 // exist") also has no article but uses different copy, so it stays a per-item
 // skip and returns null here. The full-text window checks it too, to give up
 // on such a wall at once.
-function detectBatchInterstitial(): string | null {
+function detectBatchInterstitial(scope = '#react-root'): string | null {
   if (/^\/(i\/flow\/login|login|account\/access)/.test(window.location.pathname)) {
     return 'Signed out of X';
   }
   if (document.querySelector('input[autocomplete="username"], input[name="text"][autocapitalize="none"]')) {
     return 'X is asking you to sign in';
   }
-  const text = (document.querySelector('#react-root')?.textContent || '').toLowerCase();
+  const text = (document.querySelector(scope)?.textContent || '').toLowerCase();
   if (text.includes('rate limit') || text.includes('try reloading')) {
     return 'X is rate-limiting';
   }
@@ -528,7 +528,9 @@ async function runFullTextExtract(): Promise<void> {
       shown = true;
       break;
     }
-    if (detectBatchInterstitial()) break;
+    // Only the main column: the sidebar can say "Try reloading" on a normal
+    // page, and here we check before the post has had time to show.
+    if (detectBatchInterstitial('[data-testid="primaryColumn"]')) break;
     await delay(200);
   }
   if (shown) {
