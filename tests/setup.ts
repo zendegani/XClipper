@@ -7,6 +7,7 @@ const listeners = new Set<unknown>();
 (globalThis as unknown as { chrome: unknown }).chrome = {
   runtime: {
     onMessage: { addListener: (fn: unknown) => listeners.add(fn) },
+    onConnect: { addListener: noop },
     sendMessage: noop,
     lastError: undefined,
     id: 'test-extension',

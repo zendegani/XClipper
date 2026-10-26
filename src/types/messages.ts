@@ -39,6 +39,46 @@ export interface ExtractRequest {
   includeMetadata?: boolean;
 }
 
+// ─── Popup single export (issue #191) ───
+// These go over a port that the popup opens to the tab (chrome.tabs.connect),
+// not through the background router. Chrome closes the port when the popup
+// closes, so the content script knows at once that the popup is gone.
+export const SINGLE_EXPORT_PORT = 'xclipper-single-export';
+
+export type SingleExportTarget = 'download' | 'copy' | 'obsidian';
+
+// Popup → content: get the post. While the popup is open, it receives the post
+// and does the last step itself (clipboard, Obsidian, download). If the popup
+// closes first, the content script does that step with `settings`, the popup's
+// form at the time of the click.
+export interface SingleExportRequest {
+  action: 'SINGLE_EXPORT';
+  target: SingleExportTarget;
+  // The Download / Copy format. Add to Obsidian always sends 'md'.
+  format: import('../shared/settings').BatchFormat;
+  settings: import('../shared/settings').Settings;
+}
+
+// Content → popup: the extraction result.
+export interface SingleExportResultMessage {
+  action: 'SINGLE_EXPORT_RESULT';
+  response: ExtractResponse;
+}
+
+// Popup → content: the popup now does the last step, so the content script
+// must not do it when the popup closes.
+export interface SingleExportClaimMessage {
+  action: 'SINGLE_EXPORT_CLAIM';
+}
+
+// Content → popup: an export that a closed popup started still runs (`busy`)
+// or has ended (null). Sent when a popup connects during that export, and when
+// that export ends.
+export interface SingleExportState {
+  action: 'SINGLE_EXPORT_STATE';
+  busy: SingleExportTarget | null;
+}
+
 export interface DownloadRequest {
   action: 'DOWNLOAD_MD';
   content: string;
