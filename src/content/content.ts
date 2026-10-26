@@ -249,7 +249,10 @@ async function runAutoExtract(
   });
 
   if (action === 'copy') {
-    await copyText(result.markdown);
+    if (!(await copyText(result.markdown))) {
+      showInPlaceToast(chrome.i18n.getMessage('copy_failed') || 'Couldn’t copy to the clipboard. Try again.');
+      return;
+    }
   } else if (action === 'obsidian') {
     // Obsidian reads the note from the clipboard. If the copy failed, opening
     // it would make a note out of whatever the clipboard held before.
@@ -393,7 +396,10 @@ async function runAutoExtractFormat(
   );
 
   if (mode === 'copy') {
-    await copyText(exported.content);
+    if (!(await copyText(exported.content))) {
+      showInPlaceToast(chrome.i18n.getMessage('copy_failed') || 'Couldn’t copy to the clipboard. Try again.');
+      return;
+    }
   } else {
     const downloadMsg: DownloadRequest = {
       action: 'DOWNLOAD_MD',

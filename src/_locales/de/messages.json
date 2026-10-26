@@ -596,6 +596,9 @@
   "copied": {
     "message": "Kopiert!"
   },
+  "copy_failed": {
+    "message": "Kopieren in die Zwischenablage fehlgeschlagen. Versuche es erneut."
+  },
   "video_unresolved": {
     "message": "Video bleibt als Link erhalten - lade den Post einmal neu und exportiere erneut."
   }
