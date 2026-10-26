@@ -28,7 +28,9 @@ import { hasAccess, restoreSession } from './x-session';
 const log = (...args: unknown[]): void => console.log('[xclipper full-text]', ...args);
 
 type Post = ResolveFullTextRequest['posts'][number];
-const PAGE_TIMEOUT_MS = 20000;
+// The page gives up after 8 s (content.ts); this only covers a page that never
+// answers, with room for it to load before its content script starts.
+const PAGE_TIMEOUT_MS = 12000;
 
 export async function resolveFullText(msg: ResolveFullTextRequest): Promise<ResolveFullTextResponse> {
   // Both go into an x.com URL below.
@@ -73,12 +75,21 @@ const waiting = new Map<string, (text: InlineNode[] | undefined) => void>();
 // One window for every post, like the Scroll batch worker: unfocused, so the
 // popup stays open, and wide enough for X's full layout. Stops at the first
 // page that gives no text: a sign-in or rate-limit page would block every
-// post after it too, and each one costs the full wait.
+// post after it too. Only posts X just showed on the user's page get here, so
+// none is a deleted one. Closing the window ends it at once.
 async function fromPostPages(posts: Post[], texts: Map<string, InlineNode[]>): Promise<void> {
   let windowId: number | undefined;
   let tabId: number | undefined;
+  let current: string | undefined;
+  const onRemoved = (id: number): void => {
+    if (id !== windowId) return;
+    windowId = undefined;
+    if (current) waiting.get(current)?.(undefined);
+  };
+  chrome.windows.onRemoved.addListener(onRemoved);
   try {
     for (const post of posts) {
+      current = post.tweetId;
       const text = new Promise<InlineNode[] | undefined>((resolve) => {
         const settle = (value: InlineNode[] | undefined): void => {
           clearTimeout(timer);
@@ -108,6 +119,7 @@ async function fromPostPages(posts: Post[], texts: Map<string, InlineNode[]>): P
   } catch (err) {
     log('reading posts from their pages stopped:', err);
   } finally {
+    chrome.windows.onRemoved.removeListener(onRemoved);
     if (windowId !== undefined) await chrome.windows.remove(windowId).catch(() => {});
   }
 }
