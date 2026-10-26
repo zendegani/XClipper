@@ -8,7 +8,11 @@ import type {
   ResolveFullTextRequest,
   ResolveFullTextResponse,
   ResolveVideoUrlsResponse,
+  SingleExportRequest,
+  SingleExportResultMessage,
+  SingleExportState,
 } from '../types/messages';
+import { SINGLE_EXPORT_PORT } from '../types/messages';
 import { postProcess, markdownOptions, buildFilename } from '../shared/post-process';
 import { renderMarkdown } from '../ast/render-markdown';
 import { truncatedTweets } from '../ast/full-text';
@@ -247,7 +251,7 @@ async function finishAutoExtract(
   data: ExtractedContent,
   action: AutoAction,
   settings: Settings,
-  opts: { allowClose: boolean }
+  opts: { allowClose: boolean; zip?: boolean }
 ): Promise<void> {
   const { allowClose } = opts;
   const shouldClose = allowClose && settings.closeTabAfterExport;
@@ -293,6 +297,7 @@ async function finishAutoExtract(
       content: result.markdown,
       filename: result.filename,
       images: result.images.length > 0 ? result.images : undefined,
+      zip: opts.zip && result.images.length > 0,
     };
     // On failure, keep the tab open so the user can read the error.
     const error = await sendDownload(downloadMsg);
@@ -680,3 +685,85 @@ chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
   }
   return false;
 });
+
+// ─── Popup export (issue #191) ──────────────────────────────────────
+// While the popup is open, it does the last step itself: a content script
+// can't write the clipboard while the popup has the focus. When the popup
+// closes before it claims that step, Chrome stops the popup's code, so the
+// content script does the step here and shows the result in a toast.
+
+interface PopupExport {
+  request: SingleExportRequest;
+  // The popup that asked. null when it closed before it claimed the last step.
+  owner: chrome.runtime.Port | null;
+  data?: ExtractedContent;
+}
+
+let popupExport: PopupExport | null = null;
+const popupPorts = new Set<chrome.runtime.Port>();
+
+chrome.runtime.onConnect.addListener((port) => {
+  if (port.name !== SINGLE_EXPORT_PORT) return;
+  popupPorts.add(port);
+  // A popup opened again during an export must not show its idle state.
+  if (popupExport) {
+    const state: SingleExportState = { action: 'SINGLE_EXPORT_STATE', busy: popupExport.request.target };
+    port.postMessage(state);
+  }
+  port.onMessage.addListener((msg: SingleExportRequest | { action: 'SINGLE_EXPORT_CLAIM' }) => {
+    if (msg.action === 'SINGLE_EXPORT') void runPopupExport(port, msg);
+    else if (msg.action === 'SINGLE_EXPORT_CLAIM' && popupExport?.owner === port) popupExport = null;
+  });
+  port.onDisconnect.addListener(() => {
+    popupPorts.delete(port);
+    const job = popupExport;
+    if (job?.owner !== port) return;
+    job.owner = null;
+    // Extraction is done but the popup closed before it claimed the last step.
+    if (job.data) void finishPopupExport(job, job.data);
+  });
+});
+
+async function runPopupExport(port: chrome.runtime.Port, request: SingleExportRequest): Promise<void> {
+  const job: PopupExport = { request, owner: port };
+  popupExport = job;
+  const { settings, format } = request;
+  // Same metadata choice as the popup flows: Markdown needs it only if a
+  // renderer wants it; the other formats always get it.
+  const response = await extract({
+    includeMetadata: format === 'md' ? settings.includeMetadata || settings.inlineStats : true,
+  });
+  if (job.owner) {
+    if (response.success && response.data) job.data = response.data;
+    else if (popupExport === job) popupExport = null;
+    const msg: SingleExportResultMessage = { action: 'SINGLE_EXPORT_RESULT', response };
+    job.owner.postMessage(msg);
+    return;
+  }
+  if (!response.success || !response.data) {
+    showInPlaceToast(response.error || chrome.i18n.getMessage('error_unexpected') || 'An unexpected error occurred.');
+    endPopupExport(job);
+    return;
+  }
+  await finishPopupExport(job, response.data);
+}
+
+async function finishPopupExport(job: PopupExport, data: ExtractedContent): Promise<void> {
+  const { target, format, settings } = job.request;
+  try {
+    if (target === 'obsidian' || format === 'md') {
+      await finishAutoExtract(data, target, settings, { allowClose: false, zip: settings.batchZip });
+    } else {
+      await finishAutoExtractFormat(data, format, target, settings, false);
+    }
+  } finally {
+    endPopupExport(job);
+  }
+}
+
+function endPopupExport(job: PopupExport): void {
+  if (popupExport !== job) return;
+  popupExport = null;
+  const state: SingleExportState = { action: 'SINGLE_EXPORT_STATE', busy: null };
+  for (const port of popupPorts) port.postMessage(state);
+}
