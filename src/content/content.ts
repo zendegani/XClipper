@@ -227,7 +227,6 @@ async function runAutoExtract(
   }
 
   const settings = await loadSettings();
-  const shouldClose = allowClose && settings.closeTabAfterExport;
 
   // Need engagement data if either renderer wants it.
   const response = await extract({
@@ -239,11 +238,25 @@ async function runAutoExtract(
     return;
   }
 
+  await finishAutoExtract(response.data, action, settings, { allowClose });
+}
+
+// The last step of a Markdown export: post-process, then copy, open Obsidian,
+// or download, and tell the user the result.
+async function finishAutoExtract(
+  data: ExtractedContent,
+  action: AutoAction,
+  settings: Settings,
+  opts: { allowClose: boolean }
+): Promise<void> {
+  const { allowClose } = opts;
+  const shouldClose = allowClose && settings.closeTabAfterExport;
+
   const mdOptions = markdownOptions(settings, action);
   const video: LocalVideoResult = mdOptions.downloadImages
-    ? await resolvePostVideo(response.data, settings)
+    ? await resolvePostVideo(data, settings)
     : { status: 'none' };
-  const result = postProcess(response.data, {
+  const result = postProcess(data, {
     ...mdOptions,
     videoAttachments: video.status === 'resolved' ? video.attachments : undefined,
   });
@@ -379,18 +392,29 @@ async function runAutoExtractFormat(
     return;
   }
 
+  await finishAutoExtractFormat(response.data, format, mode, settings, allowClose);
+}
+
+// The last step of a TXT / HTML / JSON / CSV export.
+async function finishAutoExtractFormat(
+  data: ExtractedContent,
+  format: ExportFormat,
+  mode: 'copy' | 'download',
+  settings: Settings,
+  allowClose: boolean
+): Promise<void> {
   const obsidianFriendly = settings.obsidianFriendly;
   const frontmatterFields = obsidianFriendly
     ? settings.frontmatterFieldsObsidian
     : settings.frontmatterFields;
-  const exported = buildFormatExport(format, response.data, {
+  const exported = buildFormatExport(format, data, {
     includeEngagement: settings.inlineStats,
     obsidianFriendly,
     frontmatterFields,
     obsidianTagsTemplate: settings.obsidianTagsTemplate.trim(),
     includeMetadata: settings.includeMetadata,
   });
-  const filename = buildFilename(response.data, settings.filenameTemplate.trim()).replace(
+  const filename = buildFilename(data, settings.filenameTemplate.trim()).replace(
     /\.md$/i,
     `.${exported.ext}`
   );
