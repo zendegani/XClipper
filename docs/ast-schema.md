@@ -67,7 +67,7 @@ interface TweetNode {
 - `media` is an ordered array of attachments. Empty array (not omitted) when there are none.
 - `quotedTweet` recurses; the AST imposes no nesting cap. Renderers may visually clamp depth (PDF page layout, etc.).
 - `engagement` is per-tweet, distinct from `DocumentMetadata.engagement`. In a thread, only the root tweet typically has counts.
-- `truncated` is set by the DOM extractor when X showed the post as a preview with a **Show more** button, which it does for every post on a permalink except the requested one. `text` then stops where X cut it off. Single export fills in the full text and clears the flag (from X's TweetDetail data when `webRequest` is granted, otherwise from the post's own page, see `src/background/resolve-full-text.ts`). Renderers end a post that still has it with `… [Show more](<post url>)`. GraphQL-built nodes never set it, since `note_tweet` carries the full text. (Issue #184.)
+- `truncated` is set by the DOM extractor when X showed the post as a preview with a **Show more** button, which it does for every post on a permalink except the requested one. `text` then stops where X cut it off. Single export fills in the full text and clears the flag (from X's TweetDetail data when `webRequest` is granted, otherwise from the post's own page, see `src/background/resolve-full-text.ts`). Renderers end a post that still has it with `… [Show more](<post url>)`, or just `…` when it has no `tweetId`. Only posts with that button are flagged: X also cuts long quoted posts, but shows no button on the quote card, so a quote's preview can't be told from a complete post. GraphQL-built nodes never set it, since `note_tweet` carries the full text. (Issue #184.)
 
 | Renderer | Expectation |
 |---|---|

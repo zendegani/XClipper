@@ -31,6 +31,11 @@ export function articleToTweetNode(article: Element): TweetNode {
   if (linkCard) node.linkCard = linkCard;
   if (quotedTweet) node.quotedTweet = quotedTweet;
   if (engagement) node.engagement = engagement;
-  if (mainTextEl && isTextTruncated(mainTextEl)) node.truncated = true;
+  // A post with no text of its own has the quote's text first, inside the
+  // quote card's link wrapper; that cut-off is the quote's, not this post's.
+  const card = mainTextEl?.closest('div[role="link"]');
+  if (mainTextEl && !(card && article.contains(card)) && isTextTruncated(mainTextEl)) {
+    node.truncated = true;
+  }
   return node;
 }
