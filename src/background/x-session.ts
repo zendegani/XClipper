@@ -42,7 +42,7 @@ function captureHeaders(
   }
 
   const op = details.url.match(
-    /\/graphql\/[^/]+\/(Bookmarks|Likes|UserOriginalsTimeline|UserTweets|TweetDetail)\b/
+    /\/graphql\/[^/]+\/(Bookmarks|Likes|UserOriginalsTimeline|UserTweets|UserRepostsTimeline|TweetDetail)\b/
   )?.[1];
   if (op && templates[op] !== details.url) {
     templates[op] = details.url;

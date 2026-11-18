@@ -622,6 +622,18 @@ export function jsonToTweetNode(raw: unknown): TweetNode {
   return node;
 }
 
+// The post a repost wraps. X's Reposts tab sends the profile owner as the
+// outer author and the original under legacy.retweeted_status_result (#110).
+// Null when this row is not a repost. The caller exports the original, not
+// the "RT @…" wrapper.
+export function repostOriginal(raw: unknown): unknown | null {
+  const r = (raw ?? {}) as { tweet?: unknown };
+  const t = (r.tweet ?? r) as { legacy?: { retweeted_status_result?: { result?: unknown } } };
+  const inner = t.legacy?.retweeted_status_result?.result;
+  if (!inner || typeof inner !== 'object') return null;
+  return inner;
+}
+
 // A reply to someone else's post, whose meaning depends on the posts above it
 // (issue #154). A reply to the author's own post continues their thread.
 export function repliesToAnotherAuthor(raw: unknown): boolean {

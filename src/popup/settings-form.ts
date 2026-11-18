@@ -545,7 +545,10 @@ export function initSettingsForm(): void {
     persistAll();
   });
   chkInlineStats.addEventListener('change', persistAll);
-  chkIncludeReposts.addEventListener('change', persistAll);
+  chkIncludeReposts.addEventListener('change', () => {
+    persistAll();
+    window.dispatchEvent(new Event('xclipper-reposts-changed'));
+  });
   chkObsidianFriendly.addEventListener('change', () => {
     // Obsidian-friendly only reshapes the frontmatter — turning it on while
     // Include metadata is off would leave nothing to reshape. Flip metadata on

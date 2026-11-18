@@ -22,7 +22,7 @@ vi.mock('../src/background/x-session', () => ({
 
 vi.mock('../src/shared/settings', async (importOriginal) => {
   const actual = await importOriginal<typeof import('../src/shared/settings')>();
-  return { ...actual, loadSettings: async () => ({ ...actual.DEFAULT_SETTINGS }) };
+  return { ...actual, loadSettings: vi.fn(async () => ({ ...actual.DEFAULT_SETTINGS })) };
 });
 
 vi.mock('../src/shared/review-prompt', () => ({ recordExport: async () => {} }));
@@ -38,9 +38,10 @@ vi.mock('../src/background/batch-sink', async (importOriginal) => {
   };
 });
 
-const { authedFetchJson } = await import('../src/background/x-session');
+const { authedFetchJson, templates } = await import('../src/background/x-session');
 const { writeFiles } = await import('../src/background/batch-sink');
-const { runGraphqlBatchExport } = await import('../src/background/graphql-batch');
+const { loadSettings } = await import('../src/shared/settings');
+const { graphqlBatchRoutes, runGraphqlBatchExport } = await import('../src/background/graphql-batch');
 
 function tweet(id: string) {
   return {
@@ -98,6 +99,10 @@ beforeEach(() => {
 afterEach(() => {
   vi.useRealTimers();
   vi.mocked(writeFiles).mockReset();
+  vi.mocked(loadSettings).mockReset();
+  vi.mocked(loadSettings).mockImplementation(async () => ({ ...DEFAULT_SETTINGS }));
+  delete templates.UserOriginalsTimeline;
+  delete templates.UserRepostsTimeline;
 });
 
 describe('runGraphqlBatchExport — long downloads', () => {
@@ -114,6 +119,102 @@ describe('runGraphqlBatchExport — long downloads', () => {
     getPlatformInfo.mockClear();
     await vi.advanceTimersByTimeAsync(65_000);
     expect(getPlatformInfo).not.toHaveBeenCalled();
+  });
+});
+
+function profilePage(results: unknown[]) {
+  const entries = results.map((result) => {
+    const id = (result as { rest_id?: string }).rest_id ?? '0';
+    return {
+      entryId: `tweet-${id}`,
+      content: {
+        entryType: 'TimelineTimelineItem',
+        itemContent: { itemType: 'TimelineTweet', tweet_results: { result } },
+      },
+    };
+  });
+  return {
+    data: { user: { result: { timeline: { timeline: { instructions: [{ type: 'TimelineAddEntries', entries }] } } } } },
+  };
+}
+
+function profileTweet(id: string, handle: string, text: string, createdAt: string) {
+  return {
+    rest_id: id,
+    core: { user_results: { result: { legacy: { name: handle, screen_name: handle } } } },
+    legacy: { id_str: id, created_at: createdAt, full_text: text, entities: {} },
+  };
+}
+
+describe('runGraphqlBatchExport — profile reposts', () => {
+  const postsUrl = 'https://x.com/i/api/graphql/q/UserOriginalsTimeline?variables=%7B%7D';
+  const repostsUrl = 'https://x.com/i/api/graphql/q/UserRepostsTimeline?variables=%7B%7D';
+  const own = profileTweet('own1', 'elonmusk', 'my post', 'Wed Oct 10 20:19:24 +0000 2018');
+  const original = profileTweet('orig1', 'alex', 'the original words', 'Wed Jan 01 00:00:00 +0000 2010');
+  const repost = {
+    rest_id: 'wrap1',
+    core: { user_results: { result: { legacy: { name: 'Elon', screen_name: 'elonmusk' } } } },
+    legacy: {
+      id_str: 'wrap1',
+      full_text: 'RT @alex: the original words',
+      created_at: 'Wed Nov 10 20:19:24 +0000 2020',
+      retweeted_status_result: { result: original },
+    },
+  };
+
+  beforeEach(() => {
+    templates.UserOriginalsTimeline = postsUrl;
+    templates.UserRepostsTimeline = repostsUrl;
+    vi.mocked(authedFetchJson).mockClear();
+    vi.mocked(writeFiles).mockResolvedValue(undefined);
+    vi.mocked(authedFetchJson).mockImplementation(async (url: string) => {
+      if (url.includes('UserOriginalsTimeline')) return profilePage([own]);
+      if (url.includes('UserRepostsTimeline')) return profilePage([repost]);
+      throw new Error('not found');
+    });
+  });
+
+  async function exportProfile(includeReposts: boolean, maxItems = 20) {
+    vi.mocked(loadSettings).mockResolvedValue({ ...DEFAULT_SETTINGS, includeReposts });
+    return runGraphqlBatchExport({
+      source: 'profile',
+      handle: 'elonmusk',
+      expandThreads: false,
+      maxItems,
+    });
+  }
+
+  function written(): string {
+    return JSON.stringify(vi.mocked(writeFiles).mock.calls);
+  }
+
+  it('saves the original post when Include reposts is on, and prefers the newer repost', async () => {
+    const result = await exportProfile(true, 1);
+    expect(result?.exported).toBe(1);
+    expect(written()).toContain('the original words');
+    expect(written()).not.toContain('RT @');
+    expect(written()).not.toContain('my post');
+    expect(vi.mocked(authedFetchJson).mock.calls.some(([url]) => String(url).includes('UserRepostsTimeline'))).toBe(true);
+  });
+
+  it('does not read the Reposts tab when Include reposts is off', async () => {
+    const result = await exportProfile(false, 20);
+    expect(result?.exported).toBe(1);
+    expect(written()).toContain('my post');
+    expect(written()).not.toContain('the original words');
+    expect(vi.mocked(authedFetchJson).mock.calls.some(([url]) => String(url).includes('UserRepostsTimeline'))).toBe(false);
+  });
+
+  it('stops and names the Reposts tab when that request was not captured', async () => {
+    delete templates.UserRepostsTimeline;
+    const result = await exportProfile(true, 20);
+    expect(result).toBeNull();
+    const status = (await graphqlBatchRoutes.FAST_BATCH_STATUS!.handle(
+      { action: 'FAST_BATCH_STATUS' },
+      {} as chrome.runtime.MessageSender,
+    )) as { progress: { error?: string } };
+    expect(status.progress.error).toContain('x.com/elonmusk/reposts');
+    expect(vi.mocked(authedFetchJson)).not.toHaveBeenCalled();
   });
 });
 

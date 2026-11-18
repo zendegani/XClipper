@@ -38,6 +38,7 @@ import {
   btnBatchPause,
   btnBatchReset,
   btnBatchResetQueue,
+  chkIncludeReposts,
   tabBatchBookmarks,
   tabBatchProfile,
   tabBatchSelection,
@@ -212,7 +213,12 @@ async function refreshGraphqlIdle(): Promise<void> {
     // Handle from the URL, not the injector — GraphQL doesn't need the page.
     const handle = handleFromUrl(pageUrl);
     label = `${t('btn_batch_profile', 'Export posts')}${handle ? ` @${handle}` : ''}`;
-    hint = t('btn_batch_fast_profile_hint', "Fetch this profile's own posts through your X session — much faster. Reposts are skipped.");
+    hint = chkIncludeReposts.checked
+      ? t(
+          'btn_batch_fast_profile_reposts_hint',
+          "Fetch this profile's posts and Reposts tab through your X session. Open the Reposts tab once so that request is captured."
+        )
+      : t('btn_batch_fast_profile_hint', "Fetch this profile's own posts through your X session — much faster. Reposts are skipped.");
   } else if (activeTab === 'likes') {
     label = t('btn_batch_likes', 'Export likes');
     hint = t('btn_batch_fast_likes_hint', 'Fetch your liked posts through your X session — much faster. Expands threads & articles.');
@@ -341,7 +347,12 @@ async function renderOnSourceButton(urls: string[], handle: string | undefined):
   const tooltip = onSameSourceJob
     ? t('btn_batch_add_hint', 'Add the newly-loaded posts to the running batch queue.')
     : activeTab === 'profile'
-      ? t('btn_batch_profile_hint', "Export this profile's own posts loaded on the page as Markdown files into one folder. Reposts are skipped; scroll to load more.")
+      ? chkIncludeReposts.checked
+        ? t(
+            'btn_batch_profile_reposts_hint',
+            "Export this profile's posts, including the Reposts tab when it is loaded. Scroll to load more."
+          )
+        : t('btn_batch_profile_hint', "Export this profile's own posts loaded on the page as Markdown files into one folder. Reposts are skipped; scroll to load more.")
       : activeTab === 'likes'
         ? t('btn_batch_likes_hint', 'Export every liked post loaded on this page as Markdown files into one folder. Scroll your Likes page to load more.')
         : activeTab === 'timeline'
@@ -613,6 +624,7 @@ export async function initBatchUi(): Promise<void> {
     applyEngineSourceGating();
     void refreshIdleUi();
   });
+  window.addEventListener('xclipper-reposts-changed', () => void refreshIdleUi());
   btnBatchPause.addEventListener('click', () => {
     const resuming = lastJob?.status === 'paused';
     void control(resuming ? 'resume' : 'pause');

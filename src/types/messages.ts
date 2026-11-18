@@ -357,6 +357,8 @@ export interface GraphqlBatchReadyRequest {
 export interface GraphqlBatchReadyResponse {
   feed: boolean; // the source's feed template was observed (page visited)
   tweetDetail: boolean; // a tweet was opened (expansion possible)
+  // Profile only. True once the Reposts tab request was captured (#110).
+  reposts?: boolean;
 }
 export interface GraphqlBatchProgress {
   status: 'idle' | 'running' | 'done' | 'cancelled' | 'error';

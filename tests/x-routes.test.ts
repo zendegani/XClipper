@@ -71,6 +71,11 @@ describe('pageSourceOfPath() — profiles and timeline', () => {
     expect(pageSourceOfPath('/jack')).toEqual({ source: 'profile', handle: 'jack' });
   });
 
+  it('reads the Reposts tab as that profile', () => {
+    expect(pageSourceOfPath('/jack/reposts')).toEqual({ source: 'profile', handle: 'jack' });
+    expect(pageSourceOfPath('/settings/reposts')).toBeNull();
+  });
+
   it('preserves the handle as written, for display', () => {
     expect(pageSourceOfPath('/ElonMusk')?.handle).toBe('ElonMusk');
   });

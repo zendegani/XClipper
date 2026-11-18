@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { articleEmbeddedTweetIds, jsonToAst, jsonToTweetNode, repliesToAnotherAuthor } from '../src/graphql/json-to-ast';
+import { articleEmbeddedTweetIds, jsonToAst, jsonToTweetNode, repliesToAnotherAuthor, repostOriginal } from '../src/graphql/json-to-ast';
 import { renderMarkdown } from '../src/ast/render-markdown';
 import { isDownloadableVideo } from '../src/ast/collect-media';
 
@@ -1015,5 +1015,32 @@ describe('repliesToAnotherAuthor', () => {
   it('sees through a TweetWithVisibilityResults wrapper', () => {
     const inner = tweet({ in_reply_to_status_id_str: '9', in_reply_to_screen_name: 'alice' });
     expect(repliesToAnotherAuthor({ __typename: 'TweetWithVisibilityResults', tweet: inner })).toBe(true);
+  });
+});
+
+describe('repostOriginal', () => {
+  const original = tweet({ full_text: 'the original words' }, {});
+  const wrapper = {
+    rest_id: 'wrap',
+    core: { user_results: { result: user } },
+    legacy: {
+      id_str: 'wrap',
+      full_text: 'RT @alex: the original words',
+      created_at: 'Wed Nov 10 20:19:24 +0000 2020',
+      retweeted_status_result: { result: { ...original, rest_id: 'orig', legacy: { ...original.legacy, id_str: 'orig', full_text: 'the original words' } } },
+    },
+  };
+
+  it('returns null for a normal post', () => {
+    expect(repostOriginal(tweet())).toBeNull();
+  });
+
+  it('returns the original post, and jsonToAst saves that post', () => {
+    const inner = repostOriginal(wrapper);
+    if (!inner) throw new Error('expected the original post');
+    const doc = jsonToAst(inner);
+    expect(doc.metadata.tweetId).toBe('orig');
+    expect(renderMarkdown(doc)).toContain('the original words');
+    expect(renderMarkdown(doc)).not.toContain('RT @');
   });
 });

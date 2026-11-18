@@ -28,7 +28,7 @@ import type {
 } from '../types/messages';
 import type { Routes } from './router';
 import type { EmbeddedTweets } from '../graphql/json-to-ast';
-import { jsonToAst, repliesToAnotherAuthor } from '../graphql/json-to-ast';
+import { jsonToAst, repliesToAnotherAuthor, repostOriginal } from '../graphql/json-to-ast';
 import {
   tweetDetailEmbeddedTweetIds,
   tweetDetailFocalTweetNode,
@@ -212,6 +212,10 @@ const SOURCE_CONFIG: Record<GraphqlBatchSource, { ops: string[]; label: string }
   likes: { ops: ['Likes'], label: 'likes' },
 };
 
+// Not a source. Resume and Date range keep a second frontier for the profile
+// Reposts tab, so a later run does not re-read reposts already passed (#110).
+const PROFILE_REPOSTS_CURSOR = 'profileReposts';
+
 // The captured request for a source's feed, or undefined if none was seen yet.
 const feedTemplate = (source: GraphqlBatchSource): string | undefined =>
   SOURCE_CONFIG[source].ops.map((op) => templates[op]).find(Boolean);
@@ -332,29 +336,36 @@ async function exportGraphqlBatch(opts: GraphqlBatchOptions = {}): Promise<Graph
     return null;
   }
   await restoreSession(); // reload captured auth/templates if the SW restarted
-  // Auto Full/Auto Fast replays two captured requests: the source feed (bookmarks /
-  // profile / likes), and (to expand threads/articles) TweetDetail. After an
-  // extension reload neither has been seen yet. Check BOTH up front (before
+  // Auto Full/Auto Fast replay captured requests: the source feed, and (to expand
+  // threads/articles) TweetDetail. A profile with Include reposts also needs the
+  // Reposts tab — X no longer mixes those into the Posts feed (#110). After an
+  // extension reload none of these have been seen yet. Check up front (before
   // paginating) and give one plain hint — the user does it once, then it works.
+  const settings = await loadSettings();
+  // Profile: drop reposts unless the user opted to include them (matches Scroll).
+  const includeProfileReposts = source === 'profile' && settings.includeReposts;
+  const skipReposts = source === 'profile' && !settings.includeReposts;
   const template = feedTemplate(source);
   const needFeed = !template;
+  const needReposts = includeProfileReposts && !templates.UserRepostsTimeline;
   const needTweetDetail = expandThreads && !templates.TweetDetail;
-  if (needFeed || needTweetDetail) {
-    const feedHint = `Reload your ${cfg.label} page`;
-    const msg =
-      needFeed && needTweetDetail
-        ? `${feedHint} and open any one tweet, then click Export again.`
-        : needFeed
-          ? `${feedHint}, then click Export again.`
-          : 'Open any one tweet, then click Export again.';
-    log(`preconditions missing (${cfg.ops.join('/')}:${needFeed} tweetDetail:${needTweetDetail})`);
+  if (needFeed || needReposts || needTweetDetail) {
+    const steps = [
+      needFeed ? `reload your ${cfg.label} page` : '',
+      needReposts ? (handleRaw ? `open x.com/${handleRaw}/reposts` : "open this profile's Reposts tab") : '',
+      needTweetDetail ? 'open any one tweet' : '',
+    ].filter(Boolean);
+    steps[0] = steps[0].charAt(0).toUpperCase() + steps[0].slice(1);
+    const msg = `${steps.join(' and ')}, then click Export again.`;
+    // "missing:true" means that capture is absent. The operation name alone
+    // looked like the capture had succeeded (issue #110 retest).
+    log(
+      `preconditions missing (feed missing:${needFeed}, reposts missing:${needReposts}, tweetDetail missing:${needTweetDetail})`
+    );
     setProgress({ status: 'error', needTweetDetail, error: msg });
     return null;
   }
-
-  const settings = await loadSettings();
-  // Profile: drop reposts unless the user opted to include them (matches Scroll).
-  const skipReposts = source === 'profile' && !settings.includeReposts;
+  if (includeProfileReposts) setProgress({ phase: 'Fetching posts & reposts…' });
   // The same output rules Scroll follows (batch-sink.ts planBatch).
   const plan = planBatch(settings, settings.batchFormat ?? 'md', settings.batchOutput ?? 'separate');
   const { format, output, zip } = plan;
@@ -470,29 +481,31 @@ async function exportGraphqlBatch(opts: GraphqlBatchOptions = {}): Promise<Graph
   // page budget and pacing without ever touching the resume cursor (#83).
   const fetchMode = opts.paginate ?? 'recent';
   const deepCrawl = fetchMode === 'resume' || fetchMode === 'dateRange';
-  const vars = JSON.parse(getVariables(template)) as Record<string, unknown>;
-  delete vars.cursor;
   const resumeCursors = await loadResumeCursors();
   const dateCursors = fetchMode === 'dateRange' ? await loadDateCursors() : {};
   // Date range keys its window so a changed range restarts from the top.
   const dateWindow = { from: opts.fromDate ?? '', to: opts.toDate ?? '' };
-  if (fetchMode === 'resume' && resumeCursors[source]) {
-    vars.cursor = resumeCursors[source];
-  } else if (fetchMode === 'dateRange') {
-    const d = dateCursors[source];
-    if (d && d.from === dateWindow.from && d.to === dateWindow.to) vars.cursor = d.cursor;
-  }
-  const initialUrl = setVariablesParam(template, JSON.stringify(vars));
   // Frontier to persist for the next Resume run — advances only past pages we
-  // fully consume (below); starts wherever this run started. Only Resume saves it.
-  let frontier: string | null = (vars.cursor as string | undefined) ?? null;
+  // fully consume; starts wherever this run started. Only Resume saves it.
+  const feedStart = (templateUrl: string, cursorKey: string): { url: string; frontier: string | null } => {
+    const vars = JSON.parse(getVariables(templateUrl)) as Record<string, unknown>;
+    delete vars.cursor;
+    if (fetchMode === 'resume' && resumeCursors[cursorKey]) vars.cursor = resumeCursors[cursorKey];
+    else if (fetchMode === 'dateRange') {
+      const d = dateCursors[cursorKey];
+      if (d && d.from === dateWindow.from && d.to === dateWindow.to) vars.cursor = d.cursor;
+    }
+    const frontier = (vars.cursor as string | undefined) ?? null;
+    return { url: setVariablesParam(templateUrl, JSON.stringify(vars)), frontier };
+  };
 
   // 1) Collect: paginate the source feed, mapping each root tweet, skipping
   //    anything already exported. (Cheap — pure mapping, no per-item fetch yet.)
   //    `needsExpand` items get a TweetDetail fetch next; `ledger` decides whether
   //    to mark the item done (false = re-run should retry it). For a profile,
-  //    `handle` is set and reposts (author ≠ handle) are skipped — matching
-  //    Scroll profile export.
+  //    `handle` is set and reposts are skipped unless Include reposts is on.
+  //    When it is on, the Reposts tab is merged in and each row is saved as
+  //    the original post (#110).
   interface Item {
     doc: Document;
     needsExpand: boolean;
@@ -511,56 +524,117 @@ async function exportGraphqlBatch(opts: GraphqlBatchOptions = {}): Promise<Graph
   // to an old tweet-date window) so they get a large page ceiling; Recent only
   // scans the top.
   const maxPages = deepCrawl ? RESUME_MAX_PAGES : RECENT_MAX_PAGES;
-  try {
-    for await (const { tweetResults, cursor } of paginateTimeline(initialUrl, authedFetchJson, { maxPages })) {
-      if (cancelRequested) break;
-      let cappedMidPage = false;
-      for (const raw of tweetResults) {
-        if (selected.length >= maxItems) {
-          cappedMidPage = true;
-          break;
-        }
-        const doc = jsonToAst(raw);
-        if (skipReposts && (isRepost(raw) || (handle && doc.metadata.author.handle.toLowerCase() !== handle))) {
-          continue; // a retweet, or (rarely) a top-level original author ≠ owner
-        }
-        if (dateFiltered) {
-          const d = Date.parse(doc.metadata.date);
-          if (Number.isNaN(d) || d < fromMs || d > toMs) continue; // outside the range — skip (not expanded)
-        }
-        const id = doc.metadata.tweetId;
-        if (id && ledger.has(id)) {
-          skipped++;
-          continue;
-        }
-        if (id && prevIncomplete.has(id)) continue; // retried by id below — don't double-collect
-        // Auto Fast still fetches a reply to someone else: the posts it answers
-        // only come with TweetDetail (issue #154).
-        const needsExpand = doc.metadata.type === 'article' || expandThreads || repliesToAnotherAuthor(raw);
-        const item: Item = { doc, needsExpand, ledger: !needsExpand, feedId: id };
-        selected.push(item);
-        // Stream complete (non-article) roots to disk as they arrive, so their
-        // downloads overlap the rest of the crawl instead of piling up at the end.
-        if (superStream && !item.needsExpand) {
-          streamedWrites.push(writeOne(item));
-          item.written = true;
-        }
-      }
-      // Advance the Resume frontier only past pages we fully consumed — a page
-      // cut short by maxItems is re-fetched next run (the ledger dedups what we
-      // already took), so no mid-page items are lost.
-      if (!cappedMidPage) frontier = cursor;
-      log(`fetched ${selected.length}${skipped ? ` (skipped ${skipped} already-exported)` : ''}`);
-      setProgress({ done: selected.length, skipped });
-      if (selected.length >= maxItems) break;
-      // Space out a deep crawl (Resume / Date range) so many back-to-back feed
-      // pages don't trip X's rate limit; Recent's short window skips the delay.
-      if (deepCrawl) await sleep(RESUME_PAGE_DELAY_MS);
-    }
-  } catch (err) {
-    // Partial export is honest — we still write whatever we collected.
-    log('fetch stopped early:', err);
+
+  // Two feeds, merged newest-activity first, so a small cap still includes a
+  // recent repost instead of filling up on Posts alone (#110). Each feed keeps
+  // its own frontier. A page cut short by maxItems is re-fetched next run.
+  type TimelineYield = { tweetResults: unknown[]; cursor: string | null };
+  interface OpenFeed {
+    iter: AsyncIterator<TimelineYield>;
+    page: IteratorResult<TimelineYield>;
+    index: number;
+    frontier: string | null;
   }
+  const openFeed = async (url: string, frontier: string | null): Promise<OpenFeed> => {
+    const iter = paginateTimeline(url, authedFetchJson, { maxPages })[Symbol.asyncIterator]();
+    let page: IteratorResult<TimelineYield>;
+    try {
+      page = await iter.next();
+    } catch (err) {
+      // Partial export is honest — we still write whatever we collected.
+      log('fetch stopped early:', err);
+      page = { done: true, value: undefined };
+    }
+    return { iter, page, index: 0, frontier };
+  };
+  const head = (feed: OpenFeed): unknown | undefined =>
+    feed.page.done ? undefined : feed.page.value.tweetResults[feed.index];
+  const consume = async (feed: OpenFeed): Promise<void> => {
+    if (feed.page.done) return;
+    feed.index++;
+    if (feed.index < feed.page.value.tweetResults.length) return;
+    feed.frontier = feed.page.value.cursor;
+    const more = !!feed.page.value.cursor;
+    // Space out a deep crawl so many back-to-back feed pages don't trip X's
+    // rate limit. Recent's short window skips the delay.
+    if (deepCrawl && more) await sleep(RESUME_PAGE_DELAY_MS);
+    try {
+      feed.page = await feed.iter.next();
+    } catch (err) {
+      log('fetch stopped early:', err);
+      feed.page = { done: true, value: undefined };
+    }
+    feed.index = 0;
+    log(`fetched ${selected.length}${skipped ? ` (skipped ${skipped} already-exported)` : ''}`);
+    setProgress({ done: selected.length, skipped });
+  };
+  // A repost joins the merge, and a date range, by when this profile reposted
+  // it. The saved file is still the original post.
+  const createdMs = (raw: unknown): number => {
+    const t = ((raw as { tweet?: unknown }).tweet ?? raw) as { legacy?: { created_at?: string } };
+    const ms = Date.parse(t.legacy?.created_at ?? '');
+    return Number.isNaN(ms) ? Number.NEGATIVE_INFINITY : ms;
+  };
+  const take = (raw: unknown): void => {
+    const original = includeProfileReposts ? repostOriginal(raw) : null;
+    // Only a profile run with Include reposts unwraps the row. Bookmarks and
+    // Likes keep the wrapper they already saved. A repost with no original
+    // post is skipped — the "RT @…" text is not the post.
+    if (isRepost(raw) && (skipReposts || (includeProfileReposts && !original))) return;
+    const payload = original ?? raw;
+    let doc: Document;
+    try {
+      doc = jsonToAst(payload);
+    } catch (err) {
+      log('skip unreadable post:', err);
+      return;
+    }
+    if (!doc.metadata.tweetId) return;
+    if (skipReposts && handle && doc.metadata.author.handle.toLowerCase() !== handle) {
+      return; // rarely, a top-level post by someone other than the profile owner
+    }
+    if (dateFiltered) {
+      const d = createdMs(raw);
+      if (d === Number.NEGATIVE_INFINITY || d < fromMs || d > toMs) return;
+    }
+    const id = doc.metadata.tweetId;
+    if (ledger.has(id)) {
+      skipped++;
+      return;
+    }
+    if (prevIncomplete.has(id)) return; // retried by id below — don't double-collect
+    // Auto Fast still fetches a reply to someone else: the posts it answers
+    // only come with TweetDetail (issue #154).
+    const needsExpand = doc.metadata.type === 'article' || expandThreads || repliesToAnotherAuthor(payload);
+    const item: Item = { doc, needsExpand, ledger: !needsExpand, feedId: id };
+    selected.push(item);
+    // Stream complete (non-article) roots to disk as they arrive, so their
+    // downloads overlap the rest of the crawl instead of piling up at the end.
+    if (superStream && !item.needsExpand) {
+      streamedWrites.push(writeOne(item));
+      item.written = true;
+    }
+  };
+
+  const postsStart = feedStart(template, source);
+  const postsFeed = await openFeed(postsStart.url, postsStart.frontier);
+  let repostsFeed: OpenFeed | null = null;
+  if (includeProfileReposts && templates.UserRepostsTimeline) {
+    const repostsStart = feedStart(templates.UserRepostsTimeline, PROFILE_REPOSTS_CURSOR);
+    repostsFeed = await openFeed(repostsStart.url, repostsStart.frontier);
+  }
+  while (!cancelRequested && selected.length < maxItems) {
+    const post = head(postsFeed);
+    const repost = repostsFeed ? head(repostsFeed) : undefined;
+    if (post == null && repost == null) break;
+    const useRepost =
+      repostsFeed != null && repost != null && (post == null || createdMs(repost) > createdMs(post));
+    const raw = useRepost ? repost : post;
+    if (raw == null) break;
+    await consume(useRepost && repostsFeed ? repostsFeed : postsFeed);
+    take(raw);
+  }
+  setProgress({ done: selected.length, skipped });
 
   // 2) Complete the backlog FIRST: items a previous run left incomplete, by a
   //    DIRECT TweetDetail fetch by id — feed-independent, so they finish no
@@ -698,14 +772,16 @@ async function exportGraphqlBatch(opts: GraphqlBatchOptions = {}): Promise<Graph
   // Remember where to continue next time (Resume and Date range keep separate
   // cursors). Skip on cancel — a cancelled run may have paginated past items it
   // never wrote, and we must not skip those.
-  if (!cancelled && frontier) {
-    if (fetchMode === 'resume') {
-      resumeCursors[source] = frontier;
-      await saveResumeCursors(resumeCursors);
-    } else if (fetchMode === 'dateRange') {
-      dateCursors[source] = { cursor: frontier, from: dateWindow.from, to: dateWindow.to };
-      await saveDateCursors(dateCursors);
-    }
+  if (!cancelled && (fetchMode === 'resume' || fetchMode === 'dateRange')) {
+    const remember = (key: string, frontier: string | null): void => {
+      if (!frontier) return;
+      if (fetchMode === 'resume') resumeCursors[key] = frontier;
+      else dateCursors[key] = { cursor: frontier, from: dateWindow.from, to: dateWindow.to };
+    };
+    remember(source, postsFeed.frontier);
+    if (repostsFeed) remember(PROFILE_REPOSTS_CURSOR, repostsFeed.frontier);
+    if (fetchMode === 'resume') await saveResumeCursors(resumeCursors);
+    else await saveDateCursors(dateCursors);
   }
   log(
     `${cancelled ? 'cancelled' : 'done'} — exported ${items.length}` +
@@ -774,7 +850,11 @@ function startGraphqlBatch(m: GraphqlBatchStartRequest): GraphqlBatchStartRespon
 async function graphqlBatchReady(msg: GraphqlBatchReadyRequest): Promise<GraphqlBatchReadyResponse> {
   await restoreSession(); // templates may live in session storage after a SW restart
   const src = msg.source ?? 'bookmarks';
-  return { feed: !!feedTemplate(src), tweetDetail: !!templates.TweetDetail };
+  return {
+    feed: !!feedTemplate(src),
+    tweetDetail: !!templates.TweetDetail,
+    ...(src === 'profile' ? { reposts: !!templates.UserRepostsTimeline } : {}),
+  };
 }
 
 // Popup → background controls. Only extension pages may drive these, same as
