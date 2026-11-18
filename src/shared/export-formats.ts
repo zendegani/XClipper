@@ -129,6 +129,7 @@ const CSV_COLUMN_ORDER = [
   'date', 'published', 'created',
   'author', 'author_name', 'handle', 'title',
   'type', 'description', 'tags',
+  'reposted_by', 'reposted_at',
   'likes', 'reposts', 'replies', 'bookmarks', 'views',
   'source',
 ];
@@ -144,9 +145,14 @@ export function buildCsvTable(rows: ExtractedContent[], opts: FormatOptions = {}
   // toggle drops its column). The body `text` column is always last.
   const active: string[] =
     opts.includeMetadata === false ? ['date', 'source'] : fieldOrder.filter(includeField);
+  // These two are empty on every row that is not a profile repost. Leave them
+  // out of that file so a normal CSV keeps its old header.
+  const repostColumn = (key: string) => key === 'reposted_by' || key === 'reposted_at';
+  const shown = (key: string) =>
+    !repostColumn(key) || rows.some((data) => fieldValue(key, data, opts) !== '');
   const columns = [
-    ...CSV_COLUMN_ORDER.filter((k) => active.includes(k)),
-    ...active.filter((k) => !CSV_COLUMN_ORDER.includes(k)),
+    ...CSV_COLUMN_ORDER.filter((k) => active.includes(k) && shown(k)),
+    ...active.filter((k) => !CSV_COLUMN_ORDER.includes(k) && shown(k)),
     'text',
   ];
 
@@ -190,6 +196,10 @@ function fieldValue(key: string, data: ExtractedContent, opts: FormatOptions): s
       return data.author.name;
     case 'handle':
       return data.author.handle;
+    case 'reposted_by':
+      return data.body?.metadata.repost?.handle.replace(/^@/, '') ?? '';
+    case 'reposted_at':
+      return data.body?.metadata.repost?.date ?? '';
     case 'date':
       return data.date;
     case 'published':

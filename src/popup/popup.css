@@ -2038,6 +2038,12 @@ details.option-group[open] .option-group-chevron {
   cursor: not-allowed;
 }
 
+/* Include reposts off: only these two fields lock. The rest of the picker stays live. */
+.fm-picker:not(.disabled) .fm-field:has(.fm-field-input:disabled) {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
 /* ─── Animations ────────────────────────────────────────────── */
 @keyframes fadeIn {
   from {

@@ -328,10 +328,13 @@ function updateFieldPickerMode(): void {
 // suggest otherwise.
 function updateFieldPickerEnabled(): void {
   const enabled = chkMetadata.checked;
+  const repostsOn = chkIncludeReposts.checked;
   const picker = document.querySelector<HTMLElement>('.fm-picker');
   picker?.classList.toggle('disabled', !enabled);
   fieldCheckboxes.forEach((cb) => {
-    cb.disabled = !enabled;
+    const repostField = cb.dataset.field === 'reposted_by' || cb.dataset.field === 'reposted_at';
+    // Grey these two while Include reposts is off. Their saved on/off stays.
+    cb.disabled = !enabled || (repostField && !repostsOn);
   });
   document.querySelectorAll<HTMLButtonElement>('.fm-picker-select-all').forEach((btn) => {
     btn.disabled = !enabled;
@@ -546,6 +549,7 @@ export function initSettingsForm(): void {
   });
   chkInlineStats.addEventListener('change', persistAll);
   chkIncludeReposts.addEventListener('change', () => {
+    updateFieldPickerEnabled();
     persistAll();
     window.dispatchEvent(new Event('xclipper-reposts-changed'));
   });

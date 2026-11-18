@@ -31,6 +31,8 @@ export const FRONTMATTER_FIELDS_DEFAULT = [
   'replies',
   'bookmarks',
   'views',
+  'reposted_by',
+  'reposted_at',
 ] as const;
 
 export const FRONTMATTER_FIELDS_OBSIDIAN = [
@@ -49,6 +51,8 @@ export const FRONTMATTER_FIELDS_OBSIDIAN = [
   'replies',
   'bookmarks',
   'views',
+  'reposted_by',
+  'reposted_at',
 ] as const;
 
 export const FILENAME_PLACEHOLDERS = ['date', 'datetime', 'handle', 'author', 'id', 'slug', 'type'] as const;
@@ -374,12 +378,14 @@ export function postProcess(
       if (includeField('type')) lines.push(`type: ${data.type}`);
     }
 
-    // Present only when this file exists because a profile reposted the post.
-    // Kept off the field lists so a normal CSV header does not grow a column.
+    // Present only on a file saved because a profile reposted the post.
+    // Each key follows its Frontmatter-fields toggle. A missing key stays on.
     const repost = data.body?.metadata.repost;
-    if (repost?.handle) {
+    if (repost?.handle && includeField('reposted_by')) {
       lines.push(`reposted_by: "${repost.handle.replace(/^@/, '')}"`);
-      if (repost.date) lines.push(`reposted_at: ${repost.date}`);
+    }
+    if (repost?.date && includeField('reposted_at')) {
+      lines.push(`reposted_at: ${repost.date}`);
     }
 
     if (m) {

@@ -91,6 +91,31 @@ describe('buildCsvRow', () => {
     expect(row.endsWith('"Hello, world"')).toBe(true); // text
   });
 
+  it('adds repost columns when a row was saved from a repost', () => {
+    const reposted: ExtractedContent = {
+      ...data,
+      body: {
+        ...doc,
+        metadata: {
+          ...doc.metadata,
+          repost: { name: 'Elon', handle: 'elonmusk', date: '2020-11-10T20:19:24.000Z' },
+        },
+      },
+    };
+    const [header, row] = lines(buildCsvRow(reposted, { obsidianFriendly: false }));
+    const cols = header.split(',');
+    expect(cols).toContain('reposted_by');
+    expect(cols).toContain('reposted_at');
+    expect(row.split(',')[cols.indexOf('reposted_by')]).toBe('elonmusk');
+    expect(row.split(',')[cols.indexOf('reposted_at')]).toBe('2020-11-10T20:19:24.000Z');
+    const off = lines(buildCsvRow(reposted, {
+      obsidianFriendly: false,
+      frontmatterFields: { reposted_by: false },
+    }))[0];
+    expect(off.split(',')).not.toContain('reposted_by');
+    expect(off.split(',')).toContain('reposted_at');
+  });
+
   it('uses the handle for author in the Obsidian field set', () => {
     const csv = buildCsvRow(data, { obsidianFriendly: true });
     const [header, row] = lines(csv);
