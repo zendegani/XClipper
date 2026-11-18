@@ -92,6 +92,9 @@
   "btn_batch_fast_profile_hint": {
     "message": "Fetch this profile's own posts through your X session — much faster. Reposts are skipped."
   },
+  "btn_batch_fast_profile_reposts_hint": {
+    "message": "Fetch this profile's posts and Reposts tab through your X session. Open the Reposts tab once so that request is captured."
+  },
   "btn_batch_fast_likes_hint": {
     "message": "Fetch your liked posts through your X session — much faster. Expands threads & articles."
   },
@@ -145,6 +148,9 @@
   },
   "fast_step_page_profile": {
     "message": "Reload profile"
+  },
+  "fast_step_page_reposts": {
+    "message": "Open the profile's Reposts tab and reload it so its feed request is captured"
   },
   "fast_step_tweet": {
     "message": "Open a tweet"
@@ -211,6 +217,9 @@
   },
   "btn_batch_profile_hint": {
     "message": "Export this profile's own posts loaded on the page as Markdown files into one folder. Reposts are skipped; scroll to load more."
+  },
+  "btn_batch_profile_reposts_hint": {
+    "message": "Export this profile's posts, including the Reposts tab when it is loaded. Scroll to load more."
   },
   "btn_batch_likes": {
     "message": "Export likes"
@@ -492,7 +501,7 @@
     "message": "Include reposts (profiles)"
   },
   "opt_include_reposts_title": {
-    "message": "When batch-exporting a profile, include reposts too. Off = the profile owner's own posts only."
+    "message": "When batch-exporting a profile, also include the Reposts tab. Off = the profile owner's own posts only. For Auto Full or Auto Fast, open that tab once before you export."
   },
   "opt_close_tab_title": {
     "message": "Close the tab automatically after exporting from a tweet's inline button or right-click menu"

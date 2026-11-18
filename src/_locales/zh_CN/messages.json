@@ -492,7 +492,7 @@
     "message": "包含转帖（资料页）"
   },
   "opt_include_reposts_title": {
-    "message": "批量导出资料页时也包含转帖。关闭 = 仅导出资料页所有者自己的帖子。"
+    "message": "批量导出资料页时也包含转帖标签页。关闭 = 仅导出资料页所有者自己的帖子。使用 Auto Full 或 Auto Fast 时，请先打开该标签页一次。"
   },
   "opt_close_tab_title": {
     "message": "从推文的内联按钮或右键菜单导出后自动关闭标签页"

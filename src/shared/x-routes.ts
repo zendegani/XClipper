@@ -58,6 +58,12 @@ export function pageSourceOfPath(pathname: string): XPage | null {
     return { source: 'likes', handle: liked[1] };
   }
 
+  // The Reposts tab is still this profile. Replies, media, and highlights are not.
+  const reposts = path.match(/^\/([A-Za-z0-9_]{1,15})\/reposts$/);
+  if (reposts && !NON_PROFILE_PATHS.has(reposts[1].toLowerCase())) {
+    return { source: 'profile', handle: reposts[1] };
+  }
+
   const profile = path.match(/^\/([A-Za-z0-9_]{1,15})$/);
   if (profile && !NON_PROFILE_PATHS.has(profile[1].toLowerCase())) {
     return { source: 'profile', handle: profile[1] };

@@ -280,9 +280,9 @@ function scan(): void {
 // so "what's in the DOM" is not "what the user has loaded". Accumulate
 // permalinks as cells pass through, in encounter order (top first); the
 // popup asks for the set when starting a batch export. Sources: the
-// bookmarks page, profile pages (where reposts are skipped by keeping only
-// the owner's own /<handle>/status/ links), and the Likes page (which keeps
-// every author, since likes are of other people's posts). The set resets
+// bookmarks page, profile pages (the Posts tab and, when Include reposts is
+// on, the Reposts tab), and the Likes page (which keeps every author, since
+// likes are of other people's posts). The set resets
 // when the source changes, so a later visit doesn't export items removed
 // meanwhile.
 

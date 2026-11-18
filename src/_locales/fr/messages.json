@@ -492,7 +492,7 @@
     "message": "Inclure les reposts (profils)"
   },
   "opt_include_reposts_title": {
-    "message": "Lors de l’export en lot d’un profil, inclure aussi les reposts. Désactivé = uniquement les propres posts du propriétaire du profil."
+    "message": "Lors de l’export en lot d’un profil, inclure aussi l’onglet Reposts. Désactivé = uniquement les propres posts du propriétaire du profil. Pour Auto Full ou Auto Fast, ouvrez cet onglet une fois avant l’export."
   },
   "opt_close_tab_title": {
     "message": "Fermer automatiquement l’onglet après l’export depuis le bouton intégré ou le menu contextuel d’un tweet"

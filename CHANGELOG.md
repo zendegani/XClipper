@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
+## [Unreleased]
+
+### Fixed
+
+- **Include reposts now reads the Reposts tab**: Auto Full and Auto Fast read a profile's Reposts tab and save each repost as the original post. Before this, the control added nothing, because X keeps reposts off the Posts tab. Open that profile's Reposts tab once before you export, so the request can be captured. Scroll includes the Reposts tab when you open it. The control stays off by default. A run with it on can save more files than before. A date range keeps a repost when the repost itself is inside the window. (#110)
+
 ## [2.8.10] - 2026-10-26
 
 ### Fixed

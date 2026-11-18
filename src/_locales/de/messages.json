@@ -492,7 +492,7 @@
     "message": "Reposts einschließen (Profile)"
   },
   "opt_include_reposts_title": {
-    "message": "Beim Batch-Export eines Profils auch Reposts einschließen. Aus = nur eigene Posts des Profilinhabers."
+    "message": "Beim Batch-Export eines Profils auch den Reposts-Tab einschließen. Aus = nur eigene Posts des Profilinhabers. Für Auto Full oder Auto Fast diesen Tab einmal öffnen, bevor du exportierst."
   },
   "opt_close_tab_title": {
     "message": "Tab nach dem Export über Inline-Button oder Kontextmenü automatisch schließen"

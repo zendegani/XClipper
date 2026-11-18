@@ -492,7 +492,7 @@
     "message": "Incluir reposts (perfiles)"
   },
   "opt_include_reposts_title": {
-    "message": "Al exportar un perfil en lote, incluye también reposts. Desactivado = solo publicaciones propias del dueño del perfil."
+    "message": "Al exportar un perfil en lote, incluye también la pestaña Reposts. Desactivado = solo publicaciones propias del dueño del perfil. Para Auto Full o Auto Fast, abre esa pestaña una vez antes de exportar."
   },
   "opt_close_tab_title": {
     "message": "Cierra automáticamente la pestaña después de exportar desde el botón integrado o el menú contextual de un tweet."

@@ -36,6 +36,7 @@ import {
   floodFix,
   outCombined,
   chkZip,
+  chkIncludeReposts,
   fetchDateRange,
   fetchDateFrom,
   fetchDateTo,
@@ -239,7 +240,14 @@ export async function updateGraphqlSteps(source: GraphqlBatchSource): Promise<vo
   // A failed handler sends { success: false, error }, not a readiness answer.
   // Keep the steps as they are rather than tell the user to reload the page.
   if (typeof r?.feed !== 'boolean') return;
-  setStep(graphqlStepPage, r?.feed ? 'ready' : 'missing', r?.feed ? '' : page.hint);
+  // Include reposts needs a second capture. Posts alone leaves the light red
+  // until the user opens the Reposts tab (#110).
+  const needReposts = source === 'profile' && chkIncludeReposts.checked && r.reposts === false;
+  const pageReady = r.feed && !needReposts;
+  const pageHint = !r.feed
+    ? page.hint
+    : t('fast_step_page_reposts', "Open the profile's Reposts tab and reload it so its feed request is captured");
+  setStep(graphqlStepPage, pageReady ? 'ready' : 'missing', pageReady ? '' : pageHint);
   setStep(graphqlStepTweet, r?.tweetDetail ? 'ready' : 'missing', r?.tweetDetail ? '' : 'Open any one tweet so threads & articles can be expanded');
   setStep(graphqlStepFetch, 'pending');
   setStep(graphqlStepExpand, 'pending');
