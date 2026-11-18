@@ -43,8 +43,12 @@ export function renderMarkdown(doc: Document, options: MarkdownRenderOptions = {
 // columns; re-emitting them inside the text would be redundant.
 export function renderMarkdownBody(doc: Document, options: MarkdownRenderOptions = {}): string {
   const { body } = doc;
-  if (body.type === 'article') return renderArticleChildren(body.children, options);
-  const parts: string[] = [];
+  if (body.type === 'article') {
+    const note = repostLines(doc.metadata).join('\n');
+    const article = renderArticleChildren(body.children, options);
+    return note ? `${note}\n${article}` : article;
+  }
+  const parts: string[] = [...repostLines(doc.metadata)];
   const tweets = body.type === 'thread' ? body.tweets : [body];
   tweets.forEach((tweet, idx) => {
     if (idx > 0) parts.push('', '---', '');
@@ -57,6 +61,16 @@ export function renderMarkdownBody(doc: Document, options: MarkdownRenderOptions
 
 function tweetHeader(meta: DocumentMetadata): string {
   return `# ${meta.author.name} (@${meta.author.handle})`;
+}
+
+// Visible in the file itself. Frontmatter can be skipped when you read the note.
+function repostLines(meta: DocumentMetadata): string[] {
+  const r = meta.repost;
+  if (!r) return [];
+  if (!r.name && !r.handle) return [];
+  const who = r.name && r.handle ? `${r.name} (@${r.handle})` : r.name || `@${r.handle}`;
+  const day = r.date.slice(0, 10);
+  return [`*Reposted by ${who}${day ? ` on ${day}` : ''}.*`, ''];
 }
 
 // The posts a reply answers (issue #154): the conversation's first post and
@@ -93,7 +107,7 @@ function renderTweetDocument(
   context: TweetNode[] | undefined,
   options: MarkdownRenderOptions,
 ): string[] {
-  const parts: string[] = [tweetHeader(meta), '', ...renderContext(context, meta, options)];
+  const parts: string[] = [tweetHeader(meta), '', ...repostLines(meta), ...renderContext(context, meta, options)];
   appendTweetBody(parts, tweet, options);
   return parts;
 }
@@ -104,7 +118,7 @@ function renderThreadDocument(
   context: TweetNode[] | undefined,
   options: MarkdownRenderOptions,
 ): string[] {
-  const parts: string[] = [tweetHeader(meta), '', ...renderContext(context, meta, options)];
+  const parts: string[] = [tweetHeader(meta), '', ...repostLines(meta), ...renderContext(context, meta, options)];
   thread.tweets.forEach((tweet, idx) => {
     if (idx > 0) parts.push('', '---', '');
     appendTweetBody(parts, tweet, options);
@@ -117,7 +131,7 @@ function renderArticleDocument(
   meta: DocumentMetadata,
   options: MarkdownRenderOptions,
 ): string[] {
-  const parts: string[] = [];
+  const parts: string[] = [...repostLines(meta)];
   if (meta.title) {
     parts.push(`# ${meta.title}`, '', `*By ${meta.author.name} (@${meta.author.handle})*`, '');
   } else {

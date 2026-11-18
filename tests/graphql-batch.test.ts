@@ -185,16 +185,40 @@ describe('runGraphqlBatchExport — profile reposts', () => {
   }
 
   function written(): string {
-    return JSON.stringify(vi.mocked(writeFiles).mock.calls);
+    return vi.mocked(writeFiles).mock.calls
+      .map(([folder, files]) => {
+        const list = files as { path?: string; content?: string }[];
+        return list.map((f) => `${folder}/${f.path ?? ''}\n${f.content ?? ''}`).join('\n');
+      })
+      .join('\n');
   }
 
   it('saves the original post when Include reposts is on, and prefers the newer repost', async () => {
     const result = await exportProfile(true, 1);
     expect(result?.exported).toBe(1);
     expect(written()).toContain('the original words');
+    expect(written()).toContain('Reposted by Elon (@elonmusk) on 2020-11-10.');
+    expect(written()).toContain('reposted_by: "elonmusk"');
+    expect(written()).toContain('reposted_at: 2020-11-10T20:19:24.000Z');
+    expect(written()).toContain('elonmusk-repost-orig1.md');
     expect(written()).not.toContain('RT @');
     expect(written()).not.toContain('my post');
+    expect(store[EXPORTED_LEDGER_KEY]).toEqual(['wrap1']);
     expect(vi.mocked(authedFetchJson).mock.calls.some(([url]) => String(url).includes('UserRepostsTimeline'))).toBe(true);
+
+    const again = await exportProfile(true, 1);
+    expect(again?.skipped).toBe(1);
+    expect(again?.exported).toBe(1);
+    expect(store[EXPORTED_LEDGER_KEY]).toEqual(['wrap1', 'own1']);
+    expect(written().split('elonmusk-repost-orig1.md').length - 1).toBe(1);
+  });
+
+  it('saves a repost even when the original post was already exported', async () => {
+    store[EXPORTED_LEDGER_KEY] = ['orig1'];
+    const result = await exportProfile(true, 1);
+    expect(result?.exported).toBe(1);
+    expect(result?.skipped).toBe(0);
+    expect(store[EXPORTED_LEDGER_KEY]).toEqual(['orig1', 'wrap1']);
   });
 
   it('does not read the Reposts tab when Include reposts is off', async () => {
@@ -202,6 +226,7 @@ describe('runGraphqlBatchExport — profile reposts', () => {
     expect(result?.exported).toBe(1);
     expect(written()).toContain('my post');
     expect(written()).not.toContain('the original words');
+    expect(written()).not.toContain('Reposted by');
     expect(vi.mocked(authedFetchJson).mock.calls.some(([url]) => String(url).includes('UserRepostsTimeline'))).toBe(false);
   });
 

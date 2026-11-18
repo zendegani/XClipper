@@ -146,6 +146,12 @@
   "fast_step_page_profile": {
     "message": "Recharger le profil"
   },
+  "fast_step_page_profile_reposts": {
+    "message": "Profil et reposts"
+  },
+  "fast_step_page_profile_and_reposts": {
+    "message": "Rechargez ce profil, puis ouvrez son onglet Reposts et rechargez-le aussi."
+  },
   "fast_step_tweet": {
     "message": "Ouvrir tweet"
   },

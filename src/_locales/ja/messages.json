@@ -146,6 +146,12 @@
   "fast_step_page_profile": {
     "message": "プロフィール再読込"
   },
+  "fast_step_page_profile_reposts": {
+    "message": "プロフィールとリポスト"
+  },
+  "fast_step_page_profile_and_reposts": {
+    "message": "このプロフィールを再読み込みし、リポストタブを開いてそれも再読み込みしてください。"
+  },
   "fast_step_tweet": {
     "message": "ツイートを開く"
   },

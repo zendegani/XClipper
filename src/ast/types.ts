@@ -19,6 +19,9 @@ export interface DocumentMetadata {
   date: string;
   title?: string;
   engagement?: EngagementCounts;
+  // Set only when this file exists because a profile reposted the post.
+  // The body stays the original post. This records who brought it in, and when.
+  repost?: { name: string; handle: string; date: string };
 }
 
 export type Block =

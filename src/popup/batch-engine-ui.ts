@@ -228,7 +228,14 @@ export async function updateGraphqlSteps(source: GraphqlBatchSource): Promise<vo
   if (graphqlRunActive) return; // a run owns the steps (see render)
   const page = PAGE_STEP[source];
   const pageLabel = graphqlStepPage?.querySelector('.fast-step-label');
-  if (pageLabel) pageLabel.textContent = t(page.key, page.text);
+  // Include reposts needs a second page. Name it on the light itself, so a red
+  // light is not read as "reload the profile again" (#110).
+  const wantReposts = source === 'profile' && chkIncludeReposts.checked;
+  if (pageLabel) {
+    pageLabel.textContent = wantReposts
+      ? t('fast_step_page_profile_reposts', 'Profile & reposts')
+      : t(page.key, page.text);
+  }
   let r: GraphqlBatchReadyResponse | undefined;
   try {
     r = (await chrome.runtime.sendMessage({ action: 'FAST_BATCH_READY', source })) as
@@ -240,13 +247,20 @@ export async function updateGraphqlSteps(source: GraphqlBatchSource): Promise<vo
   // A failed handler sends { success: false, error }, not a readiness answer.
   // Keep the steps as they are rather than tell the user to reload the page.
   if (typeof r?.feed !== 'boolean') return;
-  // Include reposts needs a second capture. Posts alone leaves the light red
-  // until the user opens the Reposts tab (#110).
-  const needReposts = source === 'profile' && chkIncludeReposts.checked && r.reposts === false;
-  const pageReady = r.feed && !needReposts;
-  const pageHint = !r.feed
-    ? page.hint
-    : t('fast_step_page_reposts', "Open the profile's Reposts tab and reload it so its feed request is captured");
+  const repostsMissing = wantReposts && r.reposts === false;
+  const pageReady = r.feed && !repostsMissing;
+  let pageHint = page.hint;
+  if (!r.feed && repostsMissing) {
+    pageHint = t(
+      'fast_step_page_profile_and_reposts',
+      'Reload this profile, then open its Reposts tab and reload that page too',
+    );
+  } else if (repostsMissing) {
+    pageHint = t(
+      'fast_step_page_reposts',
+      "Open the profile's Reposts tab and reload it so its feed request is captured",
+    );
+  }
   setStep(graphqlStepPage, pageReady ? 'ready' : 'missing', pageReady ? '' : pageHint);
   setStep(graphqlStepTweet, r?.tweetDetail ? 'ready' : 'missing', r?.tweetDetail ? '' : 'Open any one tweet so threads & articles can be expanded');
   setStep(graphqlStepFetch, 'pending');
