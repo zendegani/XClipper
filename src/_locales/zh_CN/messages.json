@@ -146,6 +146,12 @@
   "fast_step_page_profile": {
     "message": "刷新个人资料页"
   },
+  "fast_step_page_profile_reposts": {
+    "message": "资料页和转帖"
+  },
+  "fast_step_page_profile_and_reposts": {
+    "message": "刷新此资料页，然后打开其转帖页并刷新。"
+  },
   "fast_step_tweet": {
     "message": "打开一条推文"
   },

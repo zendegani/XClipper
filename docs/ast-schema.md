@@ -38,12 +38,14 @@ interface DocumentMetadata {
   date: string;            // ISO 8601
   title?: string;          // articles only
   engagement?: EngagementCounts;
+  repost?: { name: string; handle: string; date: string };
 }
 ```
 
 - `type` mirrors `body`'s node type — redundant but cheap to read and useful in consumers that only care about metadata.
 - `author` here is the *root* author. For threads, individual tweets carry their own `author` on each `TweetNode`.
 - `title` is article-only and identical to the article's first `HeadingNode` text; redundant but lets metadata consumers skip parsing the body.
+- `repost` is set only when a profile export saved this post because that profile reposted it. `name` and `handle` are the reposter. `date` is when they reposted it, ISO 8601. The post's own author, date, and `tweetId` stay the original post's. Absent on every other file.
 
 ## Block nodes
 

@@ -443,14 +443,19 @@ async function exportGraphqlBatch(opts: GraphqlBatchOptions = {}): Promise<Graph
     usedFilenames.push(filename.toLowerCase());
     items.push({ url: doc.metadata.sourceUrl, filename, doc });
     const markDone = (): void => {
-      // Ledger BOTH ids the post can appear under, so the next run's feed dedups
+      // Ledger both ids the post can appear under, so the next run's feed dedups
       // it whichever id it presents (the feed id, or the canonical id).
+      // A profile repost is a different save. Ledger only the repost event, so
+      // a later export of the original post is still kept (#110).
+      const repostSave = !!doc.metadata.repost;
       if (s.ledger) {
         if (feedId) ledgerArr = appendToLedger(ledgerArr, feedId);
-        if (expandedId && expandedId !== feedId) ledgerArr = appendToLedger(ledgerArr, expandedId);
+        if (!repostSave && expandedId && expandedId !== feedId) {
+          ledgerArr = appendToLedger(ledgerArr, expandedId);
+        }
       }
       if (feedId) nextIncomplete.delete(feedId);
-      if (expandedId) nextIncomplete.delete(expandedId);
+      if (!repostSave && expandedId) nextIncomplete.delete(expandedId);
       if (saveAsWeGo) scheduleSave();
     };
     if (output === 'combined') {
@@ -569,7 +574,7 @@ async function exportGraphqlBatch(opts: GraphqlBatchOptions = {}): Promise<Graph
     setProgress({ done: selected.length, skipped });
   };
   // A repost joins the merge, and a date range, by when this profile reposted
-  // it. The saved file is still the original post.
+  // it. The saved file is the original post, plus who reposted it.
   const createdMs = (raw: unknown): number => {
     const t = ((raw as { tweet?: unknown }).tweet ?? raw) as { legacy?: { created_at?: string } };
     const ms = Date.parse(t.legacy?.created_at ?? '');
@@ -590,6 +595,21 @@ async function exportGraphqlBatch(opts: GraphqlBatchOptions = {}): Promise<Graph
       return;
     }
     if (!doc.metadata.tweetId) return;
+    // The file stays the original post. Record who reposted it, and dedup on
+    // the repost event, so the author's own export of this post is still saved.
+    let feedId = doc.metadata.tweetId;
+    if (original) {
+      try {
+        const wrap = jsonToAst(raw);
+        const who = wrap.metadata.author;
+        if (who.handle || who.name) {
+          doc.metadata.repost = { name: who.name, handle: who.handle, date: wrap.metadata.date };
+        }
+        if (wrap.metadata.tweetId) feedId = wrap.metadata.tweetId;
+      } catch (err) {
+        log('repost wrapper unreadable:', err);
+      }
+    }
     if (skipReposts && handle && doc.metadata.author.handle.toLowerCase() !== handle) {
       return; // rarely, a top-level post by someone other than the profile owner
     }
@@ -597,16 +617,15 @@ async function exportGraphqlBatch(opts: GraphqlBatchOptions = {}): Promise<Graph
       const d = createdMs(raw);
       if (d === Number.NEGATIVE_INFINITY || d < fromMs || d > toMs) return;
     }
-    const id = doc.metadata.tweetId;
-    if (ledger.has(id)) {
+    if (ledger.has(feedId)) {
       skipped++;
       return;
     }
-    if (prevIncomplete.has(id)) return; // retried by id below — don't double-collect
+    if (prevIncomplete.has(feedId)) return; // retried by id below — don't double-collect
     // Auto Fast still fetches a reply to someone else: the posts it answers
     // only come with TweetDetail (issue #154).
     const needsExpand = doc.metadata.type === 'article' || expandThreads || repliesToAnotherAuthor(payload);
-    const item: Item = { doc, needsExpand, ledger: !needsExpand, feedId: id };
+    const item: Item = { doc, needsExpand, ledger: !needsExpand, feedId };
     selected.push(item);
     // Stream complete (non-article) roots to disk as they arrive, so their
     // downloads overlap the rest of the crawl instead of piling up at the end.
@@ -703,7 +722,12 @@ async function exportGraphqlBatch(opts: GraphqlBatchOptions = {}): Promise<Graph
       if (rateLimited || cancelRequested) return; // budget spent / cancelled — leave pending
       try {
         const full = await fetchTweetDetailDoc(s.doc.metadata.tweetId, s.doc.metadata.sourceUrl);
-        if (full) s.doc = full.doc;
+        if (full) {
+          // TweetDetail is the original post. Keep who reposted it.
+          const repost = s.doc.metadata.repost;
+          s.doc = full.doc;
+          if (repost) s.doc.metadata.repost = repost;
+        }
         // An embed lost to the rate limit leaves the article un-ledgered, so
         // the re-run that fetches it replaces the link-only version.
         s.ledger = !full?.incomplete;

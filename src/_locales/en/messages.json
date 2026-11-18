@@ -149,6 +149,12 @@
   "fast_step_page_profile": {
     "message": "Reload profile"
   },
+  "fast_step_page_profile_reposts": {
+    "message": "Profile & reposts"
+  },
+  "fast_step_page_profile_and_reposts": {
+    "message": "Reload this profile, then open its Reposts tab and reload that page too"
+  },
   "fast_step_page_reposts": {
     "message": "Open the profile's Reposts tab and reload it so its feed request is captured"
   },

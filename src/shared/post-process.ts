@@ -302,6 +302,9 @@ export function buildFilename(data: ExtractedContent, template?: string): string
 
   const handle = data.author.handle.replace('@', '');
   const id = data.tweetId;
+  // A profile repost must not replace the author's own file in the same folder.
+  const repostHandle = data.body?.metadata.repost?.handle.replace(/^@/, '');
+  if (repostHandle) return `${repostHandle}-repost-${id}.md`;
 
   if (data.type === 'article' && data.title) {
     return `${handle}-${slugify(data.title)}.md`;
@@ -369,6 +372,14 @@ export function postProcess(
       if (includeField('source')) lines.push(`source: "${data.sourceUrl}"`);
       if (includeField('date')) lines.push(`date: ${data.date}`);
       if (includeField('type')) lines.push(`type: ${data.type}`);
+    }
+
+    // Present only when this file exists because a profile reposted the post.
+    // Kept off the field lists so a normal CSV header does not grow a column.
+    const repost = data.body?.metadata.repost;
+    if (repost?.handle) {
+      lines.push(`reposted_by: "${repost.handle.replace(/^@/, '')}"`);
+      if (repost.date) lines.push(`reposted_at: ${repost.date}`);
     }
 
     if (m) {

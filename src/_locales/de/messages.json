@@ -146,6 +146,12 @@
   "fast_step_page_profile": {
     "message": "Profil neu laden"
   },
+  "fast_step_page_profile_reposts": {
+    "message": "Profil & Reposts"
+  },
+  "fast_step_page_profile_and_reposts": {
+    "message": "Laden Sie dieses Profil neu. Öffnen Sie dann den Tab Reposts und laden Sie ihn neu."
+  },
   "fast_step_tweet": {
     "message": "Tweet öffnen"
   },

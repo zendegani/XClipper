@@ -64,10 +64,21 @@ function tweetTitle(meta: DocumentMetadata): string {
 
 // ─── Top-level body ─────────────────────────────────────────────────
 
+function renderRepostBanner(meta: DocumentMetadata): string {
+  const r = meta.repost;
+  if (!r) return '';
+  if (!r.name && !r.handle) return '';
+  const who = r.name && r.handle ? `${r.name} (@${r.handle})` : r.name || `@${r.handle}`;
+  const day = r.date.slice(0, 10);
+  const when = day ? ` on ${escapeHtml(day)}` : '';
+  return `<p class="repost-banner">Reposted by ${escapeHtml(who)}${when}.</p>`;
+}
+
 function renderBody(doc: Document, opts: RenderPdfHtmlOptions = {}): string {
-  if (doc.body.type === 'tweet') return renderContext(doc) + renderTweetCard(doc.body, doc.metadata, opts);
-  if (doc.body.type === 'thread') return renderContext(doc) + renderThread(doc.body, doc.metadata, opts);
-  return renderArticle(doc.body, doc.metadata, opts);
+  const banner = renderRepostBanner(doc.metadata);
+  if (doc.body.type === 'tweet') return banner + renderContext(doc) + renderTweetCard(doc.body, doc.metadata, opts);
+  if (doc.body.type === 'thread') return banner + renderContext(doc) + renderThread(doc.body, doc.metadata, opts);
+  return banner + renderArticle(doc.body, doc.metadata, opts);
 }
 
 // The posts a reply answers (issue #154), as quoted cards above it, folded
