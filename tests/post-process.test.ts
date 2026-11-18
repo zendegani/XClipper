@@ -370,6 +370,41 @@ describe('postProcess() frontmatter field filtering', () => {
     expect(result.markdown).toContain('author: "[[@example]]"');
     expect(result.markdown).toContain('published: 2026-05-11');
   });
+
+  it('writes repost fields, and omits one the user switched off', () => {
+    const reposted: ExtractedContent = {
+      ...data,
+      body: {
+        version: 1,
+        metadata: {
+          type: 'tweet',
+          sourceUrl: data.sourceUrl,
+          tweetId: data.tweetId,
+          author: { name: 'Alex', handle: 'alex' },
+          date: data.date,
+          repost: { name: 'Elon', handle: 'elonmusk', date: '2020-11-10T20:19:24.000Z' },
+        },
+        body: {
+          type: 'tweet',
+          author: { name: 'Alex', handle: 'alex' },
+          date: data.date,
+          tweetId: '1',
+          text: [],
+          media: [],
+        },
+      },
+    };
+    const on = postProcess(reposted, { includeMetadata: true, downloadImages: false });
+    expect(on.markdown).toContain('reposted_by: "elonmusk"');
+    expect(on.markdown).toContain('reposted_at: 2020-11-10T20:19:24.000Z');
+    const off = postProcess(reposted, {
+      includeMetadata: true,
+      downloadImages: false,
+      frontmatterFields: { reposted_by: false },
+    });
+    expect(off.markdown).not.toContain('reposted_by:');
+    expect(off.markdown).toContain('reposted_at: 2020-11-10T20:19:24.000Z');
+  });
 });
 
 describe('applyTagsTemplate()', () => {

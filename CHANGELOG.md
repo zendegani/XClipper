@@ -14,6 +14,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Include reposts now reads the Reposts tab**: Auto Full and Auto Fast read a profile's Reposts tab and save each repost as the original post. Before this, the control added nothing, because X keeps reposts off the Posts tab. Open that profile's Reposts tab once before you export, so the request can be captured. Scroll includes the Reposts tab when you open it. The control stays off by default. A run with it on can save more files than before. A date range keeps a repost when the repost itself is inside the window. (#110)
 - **Profile light names the Reposts tab**: When Include reposts is on, the first step light says "Profile & reposts". A red light names the profile page, the Reposts tab, or both, before you click Export. (#110)
 - **Reposts stay distinct from the original post**: A file saved because a profile reposted a post starts with "Reposted by Name (@handle) on YYYY-MM-DD." The frontmatter adds `reposted_by` and `reposted_at`. The default file name is `handle-repost-<id>.md`. The author's own export of that post is still saved as its own file. The control stays off by default. A run with it on can save more files than before. (#110)
+- **Repost fields can be switched off**: `reposted_by` and `reposted_at` are in Frontmatter fields, in both modes. They stay grey while Include reposts is off. Turn Include reposts on to switch each field on or off. Both stay on until you switch them off. (#110)
 
 ## [2.8.10] - 2026-10-26
 
