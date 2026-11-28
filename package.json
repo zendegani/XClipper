@@ -29,13 +29,13 @@
   },
   "devDependencies": {
     "@puppeteer/browsers": "^3.2.7",
-    "@types/chrome": "^0.3.7",
+    "@types/chrome": "^0.3.8",
     "@types/jsdom": "^30.0.0",
     "esbuild": "^0.28.2",
     "jsdom": "^31.0.1",
     "puppeteer-core": "^25.18.1",
     "typescript": "^7.0.2",
-    "vitest": "^5.1.0"
+    "vitest": "^5.1.1"
   },
   "allowScripts": {
     "esbuild": false,
